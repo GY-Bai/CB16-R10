@@ -1,4 +1,4 @@
-// CB16 CI Worker Edge Auth (Cloudflare Access-equivalent for V1.1)
+// CB16 CI Worker Edge Auth (Cloudflare Access-equivalent for V1.1/V1.2)
 // Edge layer validates only the Cloudflare Service Token.
 // CB16 application Bearer is validated by the OCI FastAPI relay.
 export default {

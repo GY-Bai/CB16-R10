@@ -350,6 +350,7 @@ class DuplicateDelivery(Exception):
 
 class InternalPrefixMiddleware:
     """Allows Cloudflare Worker edge auth to call /cb16-internal/api/* safely."""
+    """Allows the Cloudflare Worker to call /cb16-internal/api/* safely."""
     def __init__(self, app):
         self.app = app
     async def __call__(self, scope, receive, send):
@@ -362,12 +363,13 @@ class InternalPrefixMiddleware:
                     await response(scope, receive, send)
                     return
                 scope["path"] = path[len("/cb16-internal"):]
+                # update raw_path if present
                 if b"raw_path" in scope:
                     scope["raw_path"] = scope["path"].encode()
         await self.app(scope, receive, send)
 
 
-app = FastAPI(title="CB16 CI Relay", version="1.1")
+app = FastAPI(title="CB16 CI Relay", version="1.2")
 app.add_middleware(InternalPrefixMiddleware)
 
 
@@ -413,9 +415,17 @@ async def github_webhook(request: Request):
 
 
 def require_worker_auth(request: Request) -> bool:
+    # The public worker API is only reachable through the Cloudflare Worker edge,
+    # which adds an internal shared secret. Application layer also requires bearer.
     auth = request.headers.get("Authorization", "")
     expected = "Bearer " + CB16_WORKER_TOKEN
-    return bool(CB16_WORKER_TOKEN) and hmac.compare_digest(auth, expected)
+    internal = request.headers.get("X-CB16-Internal-Secret", "")
+    return (
+        bool(CB16_WORKER_TOKEN)
+        and bool(CB16_INTERNAL_SECRET)
+        and hmac.compare_digest(auth, expected)
+        and hmac.compare_digest(internal, CB16_INTERNAL_SECRET)
+    )
 
 
 def _unauthorized():
