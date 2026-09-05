@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "9a539f41-6826-43e1-a6b0-1f402cd4febe",
+  "commit_sha": "eb8c1fa2a0c5b57587eeef0f52f88afd8665678f",
+  "ci_profile": "unit",
+  "verdict": "ERROR",
+  "started_at": "2026-09-05T16:15:11Z",
+  "finished_at": "2026-09-05T16:15:25Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "PROVISION_FAILED: PROVISION_FAILED:profile=unit:exit=1",
+  "model_artifacts": []
+}

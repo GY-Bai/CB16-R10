@@ -1,0 +1,25 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "eb8c1fa2a0c5b57587eeef0f52f88afd8665678f",
+  "ci_profile": "unit",
+  "environment_id": "unit",
+  "environment_sha256": "4c9a53475c834034c89606efea55354a396ec7aab8ab169014f49ca6cfe408d1",
+  "runtime_identity": {
+    "python_implementation": "CPython",
+    "python_major_minor": [
+      3,
+      10
+    ],
+    "sys_platform": "linux",
+    "machine": "x86_64"
+  },
+  "status": "PROVISION_FAILED",
+  "python": {
+    "status": "NOT_RUN",
+    "cache_hit": null
+  },
+  "assets": [],
+  "failure_stage": "python",
+  "error_code": "PYTHON_REQUIREMENTS_INSTALL_FAILED_PIP_INDEX_AUTH",
+  "error_type": "RuntimeError"
+}
