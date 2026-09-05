@@ -82,7 +82,13 @@ if __name__=='__main__':
     try:
         main()
     except Exception as exc:
-        _write_failure_receipt('/home/bgy/cb16_ssd/runtime/R10_2', exc)
-        _append_ci_blocker_summary(exc)
+        try:
+            _append_ci_blocker_summary(exc)
+        except Exception:
+            pass
+        try:
+            _write_failure_receipt('/home/bgy/cb16_ssd/runtime/R10_2', exc)
+        except Exception:
+            pass
         raise
 
