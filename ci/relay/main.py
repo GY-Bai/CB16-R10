@@ -161,6 +161,7 @@ def load_secret(name: str, default: str = "") -> str:
 
 GITHUB_WEBHOOK_SECRET = load_secret("GITHUB_WEBHOOK_SECRET")
 CB16_WORKER_TOKEN = load_secret("CB16_WORKER_TOKEN")
+CB16_INTERNAL_SECRET = load_secret("CB16_INTERNAL_SECRET")
 GITHUB_RESULT_TOKEN = load_secret("GITHUB_RESULT_TOKEN")
 
 
@@ -347,7 +348,27 @@ class DuplicateDelivery(Exception):
     pass
 
 
+class InternalPrefixMiddleware:
+    """Allows Cloudflare Worker edge auth to call /cb16-internal/api/* safely."""
+    def __init__(self, app):
+        self.app = app
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            if path.startswith("/cb16-internal/api/"):
+                headers = {k.decode("latin1").lower(): v.decode("latin1") for k, v in scope.get("headers", [])}
+                if not hmac.compare_digest(headers.get("x-cb16-internal-secret", ""), CB16_INTERNAL_SECRET):
+                    response = JSONResponse({"error": "forbidden"}, status_code=403)
+                    await response(scope, receive, send)
+                    return
+                scope["path"] = path[len("/cb16-internal"):]
+                if b"raw_path" in scope:
+                    scope["raw_path"] = scope["path"].encode()
+        await self.app(scope, receive, send)
+
+
 app = FastAPI(title="CB16 CI Relay", version="1.1")
+app.add_middleware(InternalPrefixMiddleware)
 
 
 @app.get("/healthz")
