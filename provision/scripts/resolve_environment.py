@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import platform
 import sys
 from pathlib import Path
 
@@ -17,10 +18,19 @@ def environment_path(profile: str) -> Path:
 
 def compute_environment_hash(manifest: dict, repo: Path) -> str:
     h = hashlib.sha256()
-    h.update(json.dumps(manifest, sort_keys=True).encode())
+    runtime_identity = {
+        "python_implementation": platform.python_implementation(),
+        "python_major_minor": [sys.version_info.major, sys.version_info.minor],
+        "sys_platform": sys.platform,
+        "machine": platform.machine().lower(),
+    }
+    h.update(json.dumps(runtime_identity, sort_keys=True, separators=(",", ":")).encode())
+    h.update(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode())
     for req in manifest.get("requirements", []):
         p = repo / req
         if p.exists():
+            h.update(req.encode("utf-8"))
+            h.update(b"\0")
             h.update(p.read_bytes())
     return h.hexdigest()
 
@@ -38,6 +48,12 @@ def resolve(profile: str) -> dict:
         "environment_id": manifest.get("id", profile),
         "environment_sha256": env_hash,
         "manifest": manifest,
+        "runtime_identity": {
+            "python_implementation": platform.python_implementation(),
+            "python_major_minor": [sys.version_info.major, sys.version_info.minor],
+            "sys_platform": sys.platform,
+            "machine": platform.machine().lower(),
+        },
     }
 
 

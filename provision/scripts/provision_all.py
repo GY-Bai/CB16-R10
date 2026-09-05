@@ -79,7 +79,6 @@ def _write_public_summary(
     error_code: str | None = None,
     error_type: str | None = None,
 ) -> None:
-    """Write a path/secret-free summary directly into ci_output, including failures."""
     ci_out = os.environ.get("CI_OUT")
     if not ci_out:
         return
@@ -89,7 +88,13 @@ def _write_public_summary(
     py = {"status": "NOT_RUN", "cache_hit": None}
     if isinstance(python_result, dict):
         source = python_result.get("python", {})
-        py = {"status": source.get("status"), "cache_hit": source.get("cache_hit")}
+        py = {
+            "status": source.get("status"),
+            "cache_hit": source.get("cache_hit"),
+            "installer": source.get("installer"),
+            "python_version": source.get("python_version"),
+            "resolved_packages_sha256": source.get("resolved_packages_sha256"),
+        }
 
     assets = []
     if isinstance(asset_result, dict):
@@ -101,6 +106,7 @@ def _write_public_summary(
                     "provider": a.get("provider"),
                     "cache_hit": a.get("cache_hit"),
                     "integrity_mode": a.get("integrity_mode"),
+                    "asset_manifest_sha256": a.get("asset_manifest_sha256"),
                     "sha256": a.get("sha256"),
                 }
             )
@@ -111,6 +117,7 @@ def _write_public_summary(
         "ci_profile": profile,
         "environment_id": resolved["environment_id"],
         "environment_sha256": resolved["environment_sha256"],
+        "runtime_identity": resolved.get("runtime_identity"),
         "status": status,
         "python": py,
         "assets": assets,
@@ -141,6 +148,7 @@ def _fail(
         "status": "PROVISION_FAILED",
         "environment_id": resolved["environment_id"],
         "environment_hash": resolved["environment_sha256"],
+        "runtime_identity": resolved.get("runtime_identity"),
         "failure_stage": failure_stage,
         "error_code": error_code,
         "error_type": error_type,
@@ -173,7 +181,6 @@ def main() -> int:
     args = ap.parse_args()
 
     ensure_dirs()
-    repo = Path(args.repo).resolve()
     job_root = JOB_ROOT / args.job_id
     job_root.mkdir(parents=True, exist_ok=True)
 
@@ -203,8 +210,6 @@ def main() -> int:
             error_type=type(exc).__name__,
         )
 
-    # Provider/index configuration is intentionally host-local. Merge it only into
-    # the provisioning subprocess environment and never publish its values.
     asset_env = os.environ.copy()
     asset_env.update(load_provision_env())
     try:
@@ -240,6 +245,7 @@ def main() -> int:
         "status": "READY",
         "environment_id": resolved["environment_id"],
         "environment_hash": resolved["environment_sha256"],
+        "runtime_identity": resolved.get("runtime_identity"),
         "python": python_result,
         "assets": asset_result,
         "system": system,
