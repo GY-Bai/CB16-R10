@@ -47,13 +47,14 @@ def provision(profile: str) -> dict:
     ready_path = venv_dir / "READY.json"
     if ready_path.exists():
         ready = json.loads(ready_path.read_text())
-        if ready.get("environment_sha256") == env_hash:
+        if ready.get("environment_sha256") == env_hash or ready.get("environment_hash") == env_hash:
             return {
                 "environment_id": resolved["environment_id"],
                 "environment_hash": env_hash,
                 "python": {"status": "READY", "cache_hit": True, "venv": str(venv_dir)},
             }
-        venv_dir.unlink(missing_ok=True)
+        import shutil
+        shutil.rmtree(venv_dir, ignore_errors=True)
     ensure_dirs()
     if venv_dir.exists():
         shutil.rmtree(venv_dir, ignore_errors=True)
@@ -93,6 +94,7 @@ def provision(profile: str) -> dict:
             "schema": "CB16_PYTHON_ENV_READY_V1",
             "environment_id": resolved["environment_id"],
             "environment_hash": env_hash,
+            "environment_sha256": env_hash,
             "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         },
     )

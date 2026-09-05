@@ -237,6 +237,36 @@ def terminate_process_group(proc: subprocess.Popen, grace_seconds: int = 30) -> 
         pass
 
 
+def run_provisioner(ws: Path, job: dict, env: dict, stdout_path: Path, stderr_path: Path) -> dict:
+    """Run provision/scripts/provision_all.py if present. Returns resolved env dict."""
+    provision_all = ws / "provision" / "scripts" / "provision_all.py"
+    if not provision_all.exists():
+        return {}
+    profile = job.get("ci_profile", "smoke")
+    job_id = job["id"]
+    cmd = [sys.executable, str(provision_all), "--profile", profile, "--job-id", job_id, "--repo", str(ws)]
+    with stdout_path.open("a") as out, stderr_path.open("a") as err:
+        proc = subprocess.run(cmd, stdout=out, stderr=err, text=True, env=env, timeout=3600)
+    if proc.returncode != 0:
+        raise RuntimeError(f"PROVISION_FAILED:profile={profile}:exit={proc.returncode}")
+    prov_dir = Path(env.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci")) / "jobs" / job_id
+    prov_json = prov_dir / "provisioning.json"
+    if not prov_json.exists():
+        raise RuntimeError(f"PROVISION_FAILED:missing_provisioning_json:{prov_json}")
+    import json as _json
+    prov = _json.loads(prov_json.read_text())
+    if prov.get("status") != "READY":
+        raise RuntimeError(f"PROVISION_FAILED:status={prov.get('status')}")
+    resolved_env = {}
+    env_path = prov_dir / "resolved.env"
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            if line and "=" in line:
+                k, v = line.split("=", 1)
+                resolved_env[k] = v
+    return resolved_env
+
+
 def run_job(job: dict) -> dict:
     job_id = job["id"]
     profile = job.get("ci_profile", "smoke")
@@ -259,6 +289,25 @@ def run_job(job: dict) -> dict:
     env["CI_OUT"] = str(ci_out)
     env["CI_PYTHON"] = sys.executable
 
+    try:
+        resolved_env = run_provisioner(ws, job, env, stdout_path, stderr_path)
+        env.update(resolved_env)
+        if resolved_env.get("CI_PYTHON"):
+            env["CI_PYTHON"] = resolved_env["CI_PYTHON"]
+    except Exception as e:
+        result = write_synthetic_evidence(
+            ci_out,
+            job=job,
+            verdict="ERROR",
+            error=f"PROVISION_FAILED: {e}",
+            started_at=started_at,
+        )
+        report = ci_out / "REPORT.md"
+        sums = ci_out / "SHA256SUMS"
+        upload_result(job_id, result, report, sums, stdout_path, stderr_path)
+        shutil.rmtree(ws, ignore_errors=True)
+        return result
+
     import threading
 
     stop = threading.Event()
@@ -273,7 +322,7 @@ def run_job(job: dict) -> dict:
 
     timed_out = False
     try:
-        with stdout_path.open("w") as stdout_file, stderr_path.open("w") as stderr_file:
+        with stdout_path.open("a") as stdout_file, stderr_path.open("a") as stderr_file:
             proc = subprocess.Popen(
                 ["bash", "ci/run_shanxi_ci.sh"],
                 cwd=ws,

@@ -32,10 +32,11 @@ ASSET_DIR = PROVISION_ROOT / "assets"
 
 
 def find_asset_manifest(asset_id: str) -> dict:
-    candidates = list(ASSET_DIR.glob(f"{asset_id}.json")) + list(ASSET_DIR.glob("examples/*.json"))
+    candidates = list(ASSET_DIR.glob("*.json")) + list(ASSET_DIR.glob("examples/*.json"))
     for p in candidates:
-        if p.name == f"{asset_id}.json":
-            return load_json(p)
+        manifest = load_json(p)
+        if manifest.get("asset_id") == asset_id:
+            return manifest
     raise RuntimeError(f"UNKNOWN_ASSET_ID:{asset_id}")
 
 
