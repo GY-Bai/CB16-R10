@@ -39,3 +39,4 @@ node_modules/
 # local infra state
 /srv/cb16-ci/
 /data/cb16_ci/
+.wrangler/
