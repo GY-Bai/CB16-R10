@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CB16_ASSET_V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","asset_id","type","storage"],
+  "properties": {
+    "schema": { "const": "CB16_ASSET_V1" },
+    "asset_id": { "type": "string" },
+    "type": { "enum": ["model","tokenizer","dataset","dataset_index","frozen_asset","cache_seed","config_bundle","other"] },
+    "required": { "type": "boolean" },
+    "integrity": {
+      "type": "object",
+      "properties": {
+        "sha256": { "type": ["string","null"] },
+        "size_bytes": { "type": ["integer","null"] },
+        "manifest_sha256": { "type": ["string","null"] }
+      }
+    },
+    "integrity_mode": { "enum": ["FROZEN","DISCOVERY"] },
+    "storage": {
+      "type": "object",
+      "required": ["class","logical_path"],
+      "properties": {
+        "class": { "enum": ["shanxi_local","oci_cache"] },
+        "logical_path": { "type": "string" }
+      }
+    },
+    "sources": { "type": "array", "items": { "type": "object" } }
+  }
+}
