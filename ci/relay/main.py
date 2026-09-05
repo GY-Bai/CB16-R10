@@ -397,6 +397,8 @@ def publish_result_branch(job_id: str, commit_sha: str, verdict: str) -> None:
     if sums.exists():
         shutil.copy(sums, run_dir / "SHA256SUMS")
     (run_dir / "result.json").write_text(json.dumps(json.loads((run_dir / "result.json").read_text()), indent=2))
+    subprocess.run(["git", "-C", str(pub_root), "config", "user.name", "CB16 CI Relay"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(pub_root), "config", "user.email", "ci@localhost"], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(pub_root), "add", "."], check=True, capture_output=True)
     try:
         subprocess.run(["git", "-C", str(pub_root), "commit", "-m", f"ci-result: {commit_sha} {verdict}"], check=True, capture_output=True)
