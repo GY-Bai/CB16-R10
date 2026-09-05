@@ -97,15 +97,14 @@ def _python_satisfies(spec: str) -> bool:
 
 def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     env = os.environ.copy()
+    # Host-local routing/index configuration may live in provision.env. Values are
+    # never emitted into public evidence; only coarse installer/fallback status is.
     for key in (
-        "PIP_INDEX_URL",
-        "PIP_EXTRA_INDEX_URL",
-        "PIP_TRUSTED_HOST",
-        "UV_INDEX_URL",
-        "UV_EXTRA_INDEX_URL",
-        "UV_DEFAULT_INDEX",
-        "HF_ENDPOINT",
-        "HF_TOKEN",
+        "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST",
+        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX",
+        "HF_ENDPOINT", "HF_TOKEN",
+        "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+        "http_proxy", "https_proxy", "all_proxy", "no_proxy",
     ):
         if prov_env.get(key):
             env[key] = prov_env[key]
@@ -121,13 +120,8 @@ def _public_pypi_env(base_env: dict[str, str], *, direct: bool = False) -> dict[
     """
     env = base_env.copy()
     for key in (
-        "PIP_EXTRA_INDEX_URL",
-        "PIP_TRUSTED_HOST",
-        "PIP_NO_INDEX",
-        "PIP_FIND_LINKS",
-        "UV_INDEX_URL",
-        "UV_EXTRA_INDEX_URL",
-        "UV_DEFAULT_INDEX",
+        "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_NO_INDEX", "PIP_FIND_LINKS",
+        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX",
     ):
         env.pop(key, None)
     env["PIP_INDEX_URL"] = "https://pypi.org/simple"
@@ -198,9 +192,7 @@ def provision(profile: str) -> dict:
                 "environment_id": resolved["environment_id"],
                 "environment_hash": env_hash,
                 "python": {
-                    "status": "READY",
-                    "cache_hit": True,
-                    "venv": str(venv_dir),
+                    "status": "READY", "cache_hit": True, "venv": str(venv_dir),
                     "installer": ready.get("installer", "cached"),
                     "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
                     "resolved_packages_sha256": package_hash,
@@ -249,34 +241,23 @@ def provision(profile: str) -> dict:
         installer = "pip" if uv_failure is None else "pip_fallback"
         if reqs:
             ok, pip_failure = _pip_install(venv_python, reqs, install_env)
-            if (
-                not ok
-                and pip_failure in {"INDEX_AUTH", "NETWORK_OR_INDEX"}
-                and allow_public_fallback
-            ):
+            if not ok and pip_failure in {"INDEX_AUTH", "NETWORK_OR_INDEX"} and allow_public_fallback:
                 venv_python = _create_stdlib_venv(venv_dir)
                 public_env = _public_pypi_env(install_env, direct=False)
                 ok, public_failure = _pip_install(venv_python, reqs, public_env)
                 if not ok and public_failure in {"INDEX_AUTH", "NETWORK_OR_INDEX"}:
-                    # A stale/authenticated inherited proxy can still intercept a
-                    # request after the private package index was removed. The
-                    # manifest opt-in allows one final direct public attempt.
                     venv_python = _create_stdlib_venv(venv_dir)
                     direct_env = _public_pypi_env(install_env, direct=True)
                     ok, direct_failure = _pip_install(venv_python, reqs, direct_env)
                     if not ok:
-                        raise RuntimeError(
-                            f"PYTHON_REQUIREMENTS_DIRECT_PUBLIC_FALLBACK_FAILED_PIP_{direct_failure}"
-                        )
+                        raise RuntimeError(f"PYTHON_REQUIREMENTS_DIRECT_PUBLIC_FALLBACK_FAILED_PIP_{direct_failure}")
                     install_env = direct_env
                     installer = "pip_public_direct_fallback"
                     public_fallback_used = True
                     public_direct_fallback_used = True
                 elif not ok:
                     uv_part = f"UV_{uv_failure}_" if uv_failure else ""
-                    raise RuntimeError(
-                        f"PYTHON_REQUIREMENTS_PUBLIC_FALLBACK_FAILED_{uv_part}PIP_{public_failure}"
-                    )
+                    raise RuntimeError(f"PYTHON_REQUIREMENTS_PUBLIC_FALLBACK_FAILED_{uv_part}PIP_{public_failure}")
                 else:
                     install_env = public_env
                     installer = "pip_public_fallback"
@@ -307,11 +288,8 @@ def provision(profile: str) -> dict:
         "environment_id": resolved["environment_id"],
         "environment_hash": env_hash,
         "python": {
-            "status": "READY",
-            "cache_hit": False,
-            "venv": str(venv_dir),
-            "installer": installer,
-            "python_version": ready["python_version"],
+            "status": "READY", "cache_hit": False, "venv": str(venv_dir),
+            "installer": installer, "python_version": ready["python_version"],
             "resolved_packages_sha256": package_hash,
             "public_index_fallback_used": public_fallback_used,
             "public_direct_fallback_used": public_direct_fallback_used,
