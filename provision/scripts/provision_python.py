@@ -34,7 +34,7 @@ def _classify_failure(text: str) -> str:
     s = text.lower()
     if "no space left" in s or "disk quota" in s:
         return "DISK_SPACE"
-    if any(x in s for x in ("401", "403", "unauthorized", "forbidden")):
+    if any(x in s for x in ("401", "403", "407", "unauthorized", "forbidden", "proxy authentication required")):
         return "INDEX_AUTH"
     if any(x in s for x in ("timed out", "timeout", "connection", "name resolution", "dns", "ssl", "certificate", "failed to fetch", "network", "proxy")):
         return "NETWORK_OR_INDEX"
@@ -112,12 +112,12 @@ def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     return env
 
 
-def _public_pypi_env(base_env: dict[str, str]) -> dict[str, str]:
-    """Return a pip environment that ignores host/private index configuration.
+def _public_pypi_env(base_env: dict[str, str], *, direct: bool = False) -> dict[str, str]:
+    """Return an opt-in public PyPI environment.
 
-    This is only used when the environment manifest explicitly opts in. Proxy,
-    TLS/CA, locale, and ordinary process settings remain intact. Requirements may
-    still declare their own public --extra-index-url (e.g. PyTorch CUDA wheels).
+    Private pip/uv index configuration is always removed. When ``direct`` is true,
+    inherited proxy variables are removed as a final public-only recovery path.
+    Requirements may still declare their own public --extra-index-url.
     """
     env = base_env.copy()
     for key in (
@@ -132,6 +132,12 @@ def _public_pypi_env(base_env: dict[str, str]) -> dict[str, str]:
         env.pop(key, None)
     env["PIP_INDEX_URL"] = "https://pypi.org/simple"
     env["PIP_CONFIG_FILE"] = os.devnull
+    if direct:
+        for key in (
+            "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+            "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+        ):
+            env.pop(key, None)
     return env
 
 
@@ -199,6 +205,7 @@ def provision(profile: str) -> dict:
                     "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
                     "resolved_packages_sha256": package_hash,
                     "public_index_fallback_used": bool(ready.get("public_index_fallback_used", False)),
+                    "public_direct_fallback_used": bool(ready.get("public_direct_fallback_used", False)),
                 },
             }
         shutil.rmtree(venv_dir, ignore_errors=True)
@@ -217,6 +224,7 @@ def provision(profile: str) -> dict:
     installer = "stdlib-venv"
     uv_failure: str | None = None
     public_fallback_used = False
+    public_direct_fallback_used = False
     if shutil.which("uv"):
         ok, cls = _run_capture(["uv", "venv", str(venv_dir)], env=install_env)
         if ok:
@@ -246,20 +254,33 @@ def provision(profile: str) -> dict:
                 and pip_failure in {"INDEX_AUTH", "NETWORK_OR_INDEX"}
                 and allow_public_fallback
             ):
-                # Public fallback is opt-in and applies only to Python packages.
-                # Recreate the venv so a partial private-index install cannot leak
-                # into the public-fallback environment identity.
                 venv_python = _create_stdlib_venv(venv_dir)
-                public_env = _public_pypi_env(install_env)
+                public_env = _public_pypi_env(install_env, direct=False)
                 ok, public_failure = _pip_install(venv_python, reqs, public_env)
-                if not ok:
+                if not ok and public_failure in {"INDEX_AUTH", "NETWORK_OR_INDEX"}:
+                    # A stale/authenticated inherited proxy can still intercept a
+                    # request after the private package index was removed. The
+                    # manifest opt-in allows one final direct public attempt.
+                    venv_python = _create_stdlib_venv(venv_dir)
+                    direct_env = _public_pypi_env(install_env, direct=True)
+                    ok, direct_failure = _pip_install(venv_python, reqs, direct_env)
+                    if not ok:
+                        raise RuntimeError(
+                            f"PYTHON_REQUIREMENTS_DIRECT_PUBLIC_FALLBACK_FAILED_PIP_{direct_failure}"
+                        )
+                    install_env = direct_env
+                    installer = "pip_public_direct_fallback"
+                    public_fallback_used = True
+                    public_direct_fallback_used = True
+                elif not ok:
                     uv_part = f"UV_{uv_failure}_" if uv_failure else ""
                     raise RuntimeError(
                         f"PYTHON_REQUIREMENTS_PUBLIC_FALLBACK_FAILED_{uv_part}PIP_{public_failure}"
                     )
-                install_env = public_env
-                installer = "pip_public_fallback"
-                public_fallback_used = True
+                else:
+                    install_env = public_env
+                    installer = "pip_public_fallback"
+                    public_fallback_used = True
             elif not ok:
                 uv_part = f"UV_{uv_failure}_" if uv_failure else ""
                 raise RuntimeError(f"PYTHON_REQUIREMENTS_INSTALL_FAILED_{uv_part}PIP_{pip_failure}")
@@ -278,6 +299,7 @@ def provision(profile: str) -> dict:
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         "resolved_packages_sha256": package_hash,
         "public_index_fallback_used": public_fallback_used,
+        "public_direct_fallback_used": public_direct_fallback_used,
         "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
     atomic_write_json(ready_path, ready)
@@ -292,6 +314,7 @@ def provision(profile: str) -> dict:
             "python_version": ready["python_version"],
             "resolved_packages_sha256": package_hash,
             "public_index_fallback_used": public_fallback_used,
+            "public_direct_fallback_used": public_direct_fallback_used,
         },
     }
 
