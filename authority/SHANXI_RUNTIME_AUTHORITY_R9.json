@@ -1,0 +1,95 @@
+{
+  "authority_version": "CB16_SHANXI_RUNTIME_AUTHORITY_R9",
+  "status": "SHANXI_RUNTIME_AUTHORITY_BOUND",
+  "qualification_final_status": "READY_WITH_LIMITS",
+  "qualification_warning_codes": [
+    "NATIVE_SM61_NOT_PRESENT_USING_SM_60_NVIDIA_BINARY_COMPATIBILITY"
+  ],
+  "source_file_sha256": {
+    "bringup": "1bd0df8cfcb5bf067784b21c557d9d9e8de2527b0399b733fc5bc10a07e798ac",
+    "performance": "997492b1bdb9dcd7194a27719d890975aad27d2b80ffc9e713aada1a2eaeafca",
+    "burnin": "17911a55f163065f45c366bce10b573290b1a5460ad904d6dbfaf18a394d1383",
+    "final": "842677cd1e79781b095745c8654a80719fa481affe4cc1d56fd5977faac2c504"
+  },
+  "source_receipt_hashes": {
+    "bringup": "d9278a10d04ff78afed01bb51db911228292035ecc1215571e0b254c5b278c70",
+    "performance": "c7e37c96d0a3ca61328d20a55412dff084fb88a8084d37f4c0c330153623f108",
+    "burnin": "83ba3f872061c5ae2068d14fef76bd9cdbcec9bdd2e09446e4ab78996c3f32c1"
+  },
+  "runtime_profile_hash": "98471292867fca6fa19cc383f4fd0ef7567deec01581f488198916d99a9363a0",
+  "runtime_profile": {
+    "profile_version": "CB16_SHANXI_RUNTIME_PROFILE_R8_1",
+    "status": "READY_WITH_LIMITS",
+    "source_receipt_hashes": {
+      "bringup": "d9278a10d04ff78afed01bb51db911228292035ecc1215571e0b254c5b278c70",
+      "performance": "c7e37c96d0a3ca61328d20a55412dff084fb88a8084d37f4c0c330153623f108",
+      "burnin": "83ba3f872061c5ae2068d14fef76bd9cdbcec9bdd2e09446e4ab78996c3f32c1"
+    },
+    "gpu": {
+      "dtype": "fp32",
+      "amp_enabled": false,
+      "tier": "TIER_1",
+      "rollout_chunk_rows": 32768,
+      "train_batch": 8192,
+      "cpu_torch_threads": 1,
+      "single_cuda_owner": true
+    },
+    "cpu": {
+      "h72_workers": 2,
+      "h72_threads_per_worker": 1,
+      "h72_max_in_flight": 4,
+      "teacher_workers": 2,
+      "teacher_threads_per_worker": 1
+    },
+    "io": {
+      "historical_read_batch_rows": 65536,
+      "market_encode_batch_windows": 8192,
+      "experience_shards": 4,
+      "sqlite_synchronous": "FULL",
+      "parquet_readahead_batches": 2
+    },
+    "pipeline": {
+      "loader_prefetch": 2,
+      "max_stage_concurrency": 2,
+      "do_not_run_h72_and_teacher_at_full_concurrency": true,
+      "maintenance_every_generations": 10,
+      "wal_checkpoint_every_generations": 5,
+      "retention_scan_every_generations": 10
+    },
+    "resource_limits": {
+      "ram_backpressure_high": 0.85,
+      "ram_hard_stop": 0.92,
+      "vram_backpressure_high": 0.88,
+      "disk_free_hard_stop_gib": 10.0,
+      "swap_is_emergency_only": true
+    },
+    "storage_placement": {
+      "active_dataset": "SSD",
+      "market64_cache": "SSD",
+      "experience_metadata": "SSD",
+      "active_checkpoints": "SSD",
+      "cold_trajectory_matrices": "HDD",
+      "old_checkpoints": "HDD",
+      "archives": "HDD"
+    },
+    "scientific_semantics_changed": false,
+    "policy_hash": "924a993e14dd67da46b8be7c2c6b691d68275e962d977310d286935ac1969d6c",
+    "content_hash": "98471292867fca6fa19cc383f4fd0ef7567deec01581f488198916d99a9363a0"
+  },
+  "torch_version": "2.8.0+cu126",
+  "torch_cuda_version": "12.6",
+  "gpu_name": "NVIDIA GeForce GTX 1060 6GB",
+  "compute_capability": [
+    6,
+    1
+  ],
+  "selected_cubin_arch": "sm_60",
+  "binary_compatibility_mode": "SAME_MAJOR_FORWARD_MINOR_BINARY_COMPATIBILITY",
+  "burnin_duration_s": 3600.080633519916,
+  "burnin_max_ram_used_fraction": 0.1641011091049781,
+  "burnin_max_gpu_temp_c": 71.0,
+  "burnin_swap_growth_bytes": 0,
+  "policy_hash": "b5c675a30e4893f49ec82955105e15e2c2480568a4ed185c5f35cecf4230524a",
+  "scientific_semantics_changed": false,
+  "content_hash": "07afedc7d42f78ed28506fc6e95a4f5193d131290991f159f3a3fd30e5820383"
+}

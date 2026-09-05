@@ -1,0 +1,45 @@
+{
+  "schema": "CB16_R10_2_2_RUNTIME_PARALLEL_REPAIR_RECEIPT_V1",
+  "status": "IMPLEMENTED_LOCAL_EQUIVALENCE_QUALIFIED__SHANXI_CI_PENDING",
+  "parent_source": {
+    "library_package": "CB16_SHANXI_R10_2_1_FUNDING_TIMESTAMP_COMPAT_REPAIR_V1",
+    "inherits_funding_timestamp_repair": true
+  },
+  "runtime_authority": {
+    "source": "R8.1 real Shanxi qualification receipts embedded through R9 authority",
+    "authority_file_sha256": "f50757da882cee0f6def11ec9c6e38e1065f415032f7d1405b249beb997e92df",
+    "authority_content_hash": "07afedc7d42f78ed28506fc6e95a4f5193d131290991f159f3a3fd30e5820383",
+    "runtime_profile_hash": "98471292867fca6fa19cc383f4fd0ef7567deec01581f488198916d99a9363a0"
+  },
+  "parallel_execution": {
+    "h72": {
+      "workers": 2,
+      "threads_per_worker": 1,
+      "max_in_flight": 4,
+      "process_start_method": "spawn",
+      "cuda_owner": "main_process_only"
+    },
+    "teacher": {
+      "workers": 2,
+      "threads_per_worker": 1,
+      "bounded_in_flight": true
+    },
+    "stage_overlap": "H72_AND_TEACHER_NOT_RUN_AT_FULL_CONCURRENCY_SIMULTANEOUSLY"
+  },
+  "preserved_scientific_contract": {
+    "r10_training_batch_size": 512,
+    "r8_qualified_train_batch_8192_used_as_ceiling_only": true,
+    "teacher_semantics_changed": false,
+    "physics_changed": false,
+    "credit_evidence_changed": false,
+    "chronology_changed": false,
+    "final_holdout_policy_changed": false,
+    "scientific_semantics_changed": false
+  },
+  "local_equivalence_tests": {
+    "h72_serial_vs_two_worker_exact_branch_results": "PASS",
+    "teacher_serial_vs_two_worker_content_hashes": "PASS",
+    "r8_1_authority_hash_binding": "PASS"
+  },
+  "remote_qualification": "PENDING_GITHUB_CI_UNIT"
+}

@@ -18,8 +18,9 @@ from .r102_common import (
 from .r102_market import build_symbol_market_cache, load_anchor_frames
 from .r102_physics import (
     CANDIDATES_R102, FLAT, LONG, SHORT, FrozenPhysicsRuntimeR102,
-    build_parent_scenarios, market_future_lineage_hash, simulate_h72_branch,
+    build_parent_scenarios, market_future_lineage_hash,
 )
+from .r102_parallel_runtime import H72ParentGroupJobR102, run_counterfactual_h72_farm_r102
 
 
 @dataclass(frozen=True)
@@ -98,6 +99,7 @@ def build_real_evidence_cache(
     prehistory_hours: int = 96,
     verify_checksums: bool = False,
     sensory_batch_size: int = 128,
+    runtime_parallelism: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     root = Path(package_root).resolve(); out = Path(out_dir).resolve(); out.mkdir(parents=True, exist_ok=True)
     source = BinanceUSDMArchiveSourceR10(data_root)
@@ -109,6 +111,13 @@ def build_real_evidence_cache(
     branches: list[dict[str, Any]] = []
     symbol_manifests = {}
     censored = 0; finalized = 0
+    if runtime_parallelism is None:
+        from .r102_runtime_authority import load_r102_runtime_parallelism
+        runtime_parallelism = load_r102_runtime_parallelism(root, live_environment_check=False).as_dict()
+    rp = dict(runtime_parallelism)
+    h72_workers = int(rp.get("h72_workers", 1))
+    h72_threads = int(rp.get("h72_threads_per_worker", 1))
+    h72_max_in_flight = int(rp.get("h72_max_in_flight", max(1, h72_workers)))
 
     for symbol in symbols:
         cache_dir = out / "market_cache"
@@ -132,6 +141,8 @@ def build_real_evidence_cache(
                 )
 
         future_hash_cache = {}
+        symbol_h72_jobs: list[H72ParentGroupJobR102] = []
+        group_by_parent: dict[str, str] = {}
         for frame in frames:
             t = int(frame.decision_time_ms)
             if t >= VALIDATION_END_MS:
@@ -172,25 +183,34 @@ def build_real_evidence_cache(
                 })
                 if not pc.eligible_for_economic_evidence:
                     continue
-                for d_v55, r in CANDIDATES_R102:
-                    b = simulate_h72_branch(
-                        physics, parent=s, symbol=symbol, decision_time_ms=t,
-                        candidate_direction_v55=int(d_v55), candidate_risk=float(r),
-                        hourly_ts=hourly_ts, hourly_ohlcv=hourly, funding=funding,
-                    )
-                    if b["status"] != "MATURED":
-                        censored += 1
-                    if bool(b.get("finalize", {}).get("used", False)):
-                        finalized += 1
-                    branches.append(asdict(BranchRecordR102(
-                        parent_id=parent_id, dependence_group_id=group_id,
-                        direction=_teacher_direction(int(d_v55)), requested_risk=float(r),
-                        status=str(b["status"]), realized_utility=None if b.get("utility") is None else float(b["utility"]),
-                        w0=None if b.get("w0") is None else float(b["w0"]),
-                        wt=None if b.get("wt") is None else float(b["wt"]),
-                        terminal_at_step=b.get("terminal_at_step"),
-                        evaluation_finalize_used=bool(b.get("finalize", {}).get("used", False)),
-                    )))
+                # R8.1-qualified execution: one parent group is one bounded CPU work item.
+                # Each worker evaluates the complete frozen 9-branch grid in canonical order.
+                group_by_parent[parent_id] = group_id
+                symbol_h72_jobs.append(H72ParentGroupJobR102(
+                    ordinal=len(symbol_h72_jobs), parent_id=parent_id, parent=s, decision_time_ms=t,
+                ))
+
+        symbol_h72_results = run_counterfactual_h72_farm_r102(
+            package_root=root, symbol=symbol, hourly_ts=hourly_ts, hourly_ohlcv=hourly, funding=funding,
+            jobs=symbol_h72_jobs, workers=h72_workers, threads_per_worker=h72_threads,
+            max_in_flight=h72_max_in_flight,
+        )
+        for _, parent_id, candidate_results in symbol_h72_results:
+            group_id = group_by_parent[parent_id]
+            for d_v55, r, b in candidate_results:
+                if b["status"] != "MATURED":
+                    censored += 1
+                if bool(b.get("finalize", {}).get("used", False)):
+                    finalized += 1
+                branches.append(asdict(BranchRecordR102(
+                    parent_id=parent_id, dependence_group_id=group_id,
+                    direction=_teacher_direction(int(d_v55)), requested_risk=float(r),
+                    status=str(b["status"]), realized_utility=None if b.get("utility") is None else float(b["utility"]),
+                    w0=None if b.get("w0") is None else float(b["w0"]),
+                    wt=None if b.get("wt") is None else float(b["wt"]),
+                    terminal_at_step=b.get("terminal_at_step"),
+                    evaluation_finalize_used=bool(b.get("finalize", {}).get("used", False)),
+                )))
 
     parent_path = out / "PARENT_CONTEXTS_R102.jsonl.gz"
     state_path = out / "PARENT_PHYSICS_STATES_R102.jsonl.gz"
@@ -217,8 +237,16 @@ def build_real_evidence_cache(
         "train_boundary": "H72 maturity + 128h purge <= 2025-01-01T00:00:00Z",
         "validation_boundary": "2025-01-01 <= decision_time and H72 maturity < 2025-09-01",
         "final_holdout_2025_09_accessed": False,
-        "funding_semantics": "EVENT_ONLY_EXACT_HOUR_NO_FORWARD_FILL",
+        "funding_semantics": "EVENT_ONLY__RAW_CALC_TIME_BOUNDED_JITTER_CANONICALIZED_TO_NEAREST_UTC_HOUR__NO_FORWARD_FILL",
         "mark_index_semantics": "1H_CLOSE_PROXY_AS_FROZEN_HISTORICAL_ADAPTER",
+        "runtime_parallelism": {
+            "authority": "R8_1_MACHINE_SPECIFIC_RUNTIME_PROFILE",
+            "h72_workers": h72_workers,
+            "h72_threads_per_worker": h72_threads,
+            "h72_max_in_flight": h72_max_in_flight,
+            "single_cuda_owner": bool(rp.get("single_cuda_owner", True)),
+            "scheduling_changes_scientific_semantics": False,
+        },
         "parents_file": str(parent_path), "parents_sha256": sha256_file(parent_path),
         "parent_states_file": str(state_path), "parent_states_sha256": sha256_file(state_path),
         "branches_file": str(branch_path), "branches_sha256": sha256_file(branch_path),

@@ -43,17 +43,36 @@ VAL_TEACHER_CONFIG_R102 = DependenceAwareTeacherConfigR6(
 )
 
 
-def compile_teacher_evidence(samples, parents: Mapping[str, ParentContextR102]):
+def compile_teacher_evidence(
+    samples, parents: Mapping[str, ParentContextR102], *,
+    workers: int | None = None, threads_per_worker: int | None = None, max_in_flight: int | None = None,
+):
+    if workers is None or threads_per_worker is None or max_in_flight is None:
+        from .r102_runtime_authority import load_r102_runtime_parallelism
+        rp = load_r102_runtime_parallelism(Path(__file__).resolve().parents[1], live_environment_check=False)
+        workers = rp.teacher_workers if workers is None else workers
+        threads_per_worker = rp.teacher_threads_per_worker if threads_per_worker is None else threads_per_worker
+        max_in_flight = rp.h72_max_in_flight if max_in_flight is None else max_in_flight
     train_parent_ids = sorted(p.parent_id for p in parents.values() if p.split == "TRAIN")
     val_parent_ids = sorted(p.parent_id for p in parents.values() if p.split == "VALIDATION")
     train_groups = {p.dependence_group_id for p in parents.values() if p.split == "TRAIN"}
-    train_teacher = DependenceAwareProbabilisticTeacherR6(TRAIN_TEACHER_CONFIG_R102)
-    val_teacher = DependenceAwareProbabilisticTeacherR6(VAL_TEACHER_CONFIG_R102)
-    idx_train = train_teacher.index(samples)
-    idx_val = val_teacher.index(samples)
-    train_e = [train_teacher.compile_one(target_parent=p, index=idx_train, eligible_train_dependence_groups=train_groups) for p in train_parent_ids if p in idx_train.rows_by_parent]
-    val_e = [val_teacher.compile_one(target_parent=p, index=idx_val, eligible_train_dependence_groups=train_groups) for p in val_parent_ids if p in idx_val.rows_by_parent]
-    return train_e, val_e
+    if int(workers) <= 1:
+        train_teacher = DependenceAwareProbabilisticTeacherR6(TRAIN_TEACHER_CONFIG_R102)
+        val_teacher = DependenceAwareProbabilisticTeacherR6(VAL_TEACHER_CONFIG_R102)
+        idx_train = train_teacher.index(samples)
+        idx_val = val_teacher.index(samples)
+        train_e = [train_teacher.compile_one(target_parent=p, index=idx_train, eligible_train_dependence_groups=train_groups) for p in train_parent_ids if p in idx_train.rows_by_parent]
+        val_e = [val_teacher.compile_one(target_parent=p, index=idx_val, eligible_train_dependence_groups=train_groups) for p in val_parent_ids if p in idx_val.rows_by_parent]
+        return train_e, val_e
+
+    # R8.1-qualified Teacher worker count is a scheduling optimization only.
+    # Evidence is reordered to canonical parent order before returning.
+    from .r102_teacher_parallel import compile_teacher_evidence_process_farm_r102
+    return compile_teacher_evidence_process_farm_r102(
+        samples=samples, train_parent_ids=train_parent_ids, val_parent_ids=val_parent_ids,
+        train_groups=train_groups, train_config=TRAIN_TEACHER_CONFIG_R102, val_config=VAL_TEACHER_CONFIG_R102,
+        workers=int(workers), threads_per_worker=int(threads_per_worker), max_in_flight=int(max_in_flight),
+    )
 
 
 def evidence_summary(rows: Sequence[DependenceAwareTeacherEvidenceR6]) -> dict[str, Any]:

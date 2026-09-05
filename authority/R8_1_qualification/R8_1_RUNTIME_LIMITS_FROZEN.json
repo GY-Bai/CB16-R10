@@ -1,0 +1,78 @@
+{
+  "h72_worker_scaling": {
+    "points": [
+      {
+        "accounts_per_group": 64,
+        "elapsed_s": 1.8353704509790987,
+        "groups": 12,
+        "groups_per_s": 6.538189602866532,
+        "status": "PASS",
+        "teacher_samples_per_s": 1255.332403750374,
+        "workers": 1
+      },
+      {
+        "accounts_per_group": 64,
+        "elapsed_s": 1.5721489069983363,
+        "groups": 12,
+        "groups_per_s": 7.632864766551466,
+        "status": "PASS",
+        "teacher_samples_per_s": 1465.5100351778817,
+        "workers": 2
+      },
+      {
+        "accounts_per_group": 64,
+        "elapsed_s": 1.5728228678926826,
+        "groups": 12,
+        "groups_per_s": 7.629594053447339,
+        "status": "PASS",
+        "teacher_samples_per_s": 1464.8820582618891,
+        "workers": 4
+      },
+      {
+        "accounts_per_group": 64,
+        "elapsed_s": 1.6370171140879393,
+        "groups": 12,
+        "groups_per_s": 7.330405954054901,
+        "status": "PASS",
+        "teacher_samples_per_s": 1407.4379431785408,
+        "workers": 6
+      }
+    ],
+    "policy_hash": "f066739274d099b024db1147932b2d1cc5d4444493d955f49a0c059dd11fd8d6",
+    "selected_workers": 2,
+    "status": "PASS"
+  },
+  "pipeline": {
+    "do_not_run_h72_and_teacher_at_full_concurrency": true,
+    "loader_prefetch": 2,
+    "max_stage_concurrency": 2
+  },
+  "r10_inheritance_rule": "PERFORMANCE_ONLY__DO_NOT_OVERRIDE_R10_SCIENTIFIC_BATCH_OR_HORIZON",
+  "resource_limits": {
+    "disk_free_hard_stop_gib": 10.0,
+    "ram_backpressure_high": 0.85,
+    "ram_hard_stop": 0.92,
+    "swap_is_emergency_only": true,
+    "vram_backpressure_high": 0.88
+  },
+  "runtime_profile_hash": "98471292867fca6fa19cc383f4fd0ef7567deec01581f488198916d99a9363a0",
+  "schema": "CB16_R8_1_RUNTIME_LIMITS_FROZEN_V1",
+  "scientific_semantics_changed": false,
+  "selected": {
+    "cpu_torch_threads": 1,
+    "experience_shards": 4,
+    "h72_max_in_flight": 4,
+    "h72_threads_per_worker": 1,
+    "h72_workers": 2,
+    "qualified_train_batch_ceiling": 8192,
+    "rollout_chunk_rows": 32768,
+    "single_cuda_owner": true,
+    "sqlite_synchronous": "FULL",
+    "teacher_threads_per_worker": 1,
+    "teacher_workers": 2
+  },
+  "source_final_file_sha256": "842677cd1e79781b095745c8654a80719fa481affe4cc1d56fd5977faac2c504",
+  "source_performance_content_hash": "c7e37c96d0a3ca61328d20a55412dff084fb88a8084d37f4c0c330153623f108",
+  "source_performance_file_sha256": "997492b1bdb9dcd7194a27719d890975aad27d2b80ffc9e713aada1a2eaeafca",
+  "status": "DERIVED_FROM_EXACT_R8_1_PERFORMANCE_AND_FINAL_RECEIPTS"
+}
