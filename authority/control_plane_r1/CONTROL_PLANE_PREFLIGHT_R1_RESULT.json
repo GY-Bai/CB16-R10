@@ -1,0 +1,33 @@
+{
+  "authority": {
+    "historical_action_contract": "UNCHANGED_V5_5",
+    "physics_risk_budget_mutation": "NONE",
+    "risk_budget_owner": "EXTERNAL_RISK_BUDGET_AUTHORITY_V1",
+    "risk_budget_update_rule": "UPDATE_RULE_UNRESOLVED"
+  },
+  "central_brain_training_performed": false,
+  "economic_training_ready": false,
+  "external_survey_sha256": "0e9f3fbff441e3189a24ed14da1fc905ef7b966a4267322730d4a39c2cfc4742",
+  "fresh_market_accessed": false,
+  "gates": {
+    "end_to_end_replay_1_10_100": "PASS",
+    "lineage_fail_closed": "PASS",
+    "max_holding_environment_owned_exit": "PASS",
+    "multi_account_1_100_1000_10000": "PASS",
+    "supervisor_counterfactuals": "PASS",
+    "upstream_kernel_byte_identity": "PASS"
+  },
+  "lineage_binding_manifest_sha256": "4964ccf0685ba8832c8a0c9a01e080e9e50d8bc8343680858f5c65449d526ce6",
+  "mechanistic_training_readiness": "MECHANISTIC_TRAINING_RUNTIME_READY_WITH_EXTERNAL_STATIC_RISK_AUTHORITY",
+  "pnl_optimization_performed": false,
+  "primary_status": "CONTROL_PLANE_READY_WITH_EXTERNAL_RISK_AUTHORITY",
+  "prohibited_claims": [
+    "ECONOMIC_TRAINING_READY",
+    "risk-budget depletion semantics resolved",
+    "manual close/resize/reverse authorized"
+  ],
+  "reward_defined": false,
+  "risk_budget_status": "RISK_BUDGET_UPDATE_AUTHORITY_UNRESOLVED",
+  "rl_performed": false,
+  "schema": "CB16_CONTROL_PLANE_PREFLIGHT_R1_RESULT_V1"
+}

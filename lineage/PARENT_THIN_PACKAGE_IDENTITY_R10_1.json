@@ -1,0 +1,15 @@
+{
+  "schema": "CB16_R10_1_THIN_PACKAGE_IDENTITY_V1",
+  "package": "CB16_SHANXI_FROZEN_BODY_G0_BRAIN_R10_1_THIN_V1",
+  "parent": "CB16_SHANXI_FROZEN_BODY_G0_BRAIN_R10_THIN_V1",
+  "purpose": "Resolve Central-Brain input-stem gradient authority as user-approved decision A; unify frozen sensory canary semantics; close pre-learning integrity/disk receipts.",
+  "parent_g0_sha256": "b123a89ff3a7838861ccad592e71305b4bc09c4b9e3a05f9fd22564762f4304f",
+  "parent_g0_reinitialized": false,
+  "parent_g0_tensor_values_changed": false,
+  "public_foundation_weights_in_bundle": false,
+  "uses_existing_verified_r10_prefix_installation": true,
+  "hf_redownload_required": false,
+  "scientific_semantics_changed": false,
+  "market_training_started": false,
+  "expected_local_gate_status": "READY_FOR_R10_1_G0_LEARNING_PIPELINE"
+}

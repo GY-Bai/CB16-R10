@@ -1,0 +1,68 @@
+{
+  "$id": "CB16_ActionIntentV1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "forbidden_semantics": [
+    "predicted_pnl",
+    "confidence",
+    "hidden_market_state_copy"
+  ],
+  "properties": {
+    "direction": {
+      "description": "SHORT=0, FLAT=1, LONG=2",
+      "enum": [
+        0,
+        1,
+        2
+      ],
+      "type": "integer"
+    },
+    "lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "intent_step": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "market_packet_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "source_snapshot_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generator",
+        "source_snapshot_sha256",
+        "market_packet_id",
+        "account_id",
+        "intent_step"
+      ],
+      "type": "object"
+    },
+    "requested_risk_multiplier": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "type": "number"
+    },
+    "schema": {
+      "const": "ActionIntentV1"
+    }
+  },
+  "required": [
+    "schema",
+    "direction",
+    "requested_risk_multiplier",
+    "lineage"
+  ],
+  "title": "ActionIntentV1",
+  "type": "object"
+}

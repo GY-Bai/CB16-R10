@@ -1,0 +1,64 @@
+{
+  "accounting_identity": {
+    "max_abs_diff": 0.0,
+    "status": "PASS"
+  },
+  "branch_isolation": true,
+  "fee_slippage_accounting": {
+    "max_abs_diff": 1.4551915228366852e-11,
+    "status": "PASS",
+    "tolerance": 1e-08
+  },
+  "finite_and_nonnegative_required_state": {
+    "finite": true,
+    "impossible_negative": false,
+    "status": "PASS"
+  },
+  "funding_behavior": {
+    "carry_cost": 2.6802483768727576,
+    "equity_delta_plus_carry_abs": 3.0446756227320293e-12,
+    "status": "PASS",
+    "tolerance": 1e-08
+  },
+  "historical_88_step_parity": {
+    "first_mismatches": [],
+    "max_abs_diff": 0.0,
+    "mismatch_count": 0,
+    "status": "PASS",
+    "steps": 88
+  },
+  "hundred_step_exact": true,
+  "margin_liquidation": {
+    "liquidation_price": 74.161483998325,
+    "status": "PASS",
+    "termination_type": "LIQUIDATED"
+  },
+  "max_holding_behavior": {
+    "status": "PASS",
+    "termination_sequence": [
+      "NORMAL_CONTINUE",
+      "NORMAL_CONTINUE",
+      "MAX_HOLDING_FORCED_EXIT",
+      "NORMAL_CONTINUE"
+    ]
+  },
+  "one_step_exact": true,
+  "projection_identity": true,
+  "replay_details": {
+    "10": {
+      "exact": true,
+      "snapshot_sha256_a": "644a8eb6fc51baeb1d70927ac815bffb4e3529e203d176badc0d65e12f7c62a1",
+      "snapshot_sha256_b": "644a8eb6fc51baeb1d70927ac815bffb4e3529e203d176badc0d65e12f7c62a1",
+      "termination_sequence_equal": true
+    },
+    "100": {
+      "exact": true,
+      "snapshot_sha256_a": "e0aeb4ee45cf808586d816430226e626cfd209131cb7c2766a8944e8032f8e77",
+      "snapshot_sha256_b": "e0aeb4ee45cf808586d816430226e626cfd209131cb7c2766a8944e8032f8e77",
+      "termination_sequence_equal": true
+    }
+  },
+  "schema": "CB16_DETERMINISTIC_REPLAY_TESTS_V1",
+  "status": "PASS",
+  "ten_step_exact": true
+}

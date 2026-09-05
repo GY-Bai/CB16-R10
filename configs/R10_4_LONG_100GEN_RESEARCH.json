@@ -1,0 +1,12 @@
+{
+  "schema": "CB16_R10_4_LONG_RESEARCH_PROFILE_V1",
+  "profile_name": "R10_4_LONG_100GEN_RESEARCH",
+  "requires": "R10_3_10ASSET_20GEN_EXPANSION_PASS",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "DOTUSDT", "LINKUSDT", "LTCUSDT", "SOLUSDT"],
+  "attempts": 100,
+  "anchor_stride_hours": 256,
+  "forbidden_final_holdout_month": "2025-09",
+  "read_2025_09": false,
+  "scientific_semantics_changed": false,
+  "purpose": "long research flywheel after 5+20 generation gates; stop on storage/integrity failure; still not FINAL"
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=CB16 CI Worker (Shanxi)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bgy
+EnvironmentFile=/data/cb16_ci/worker.env
+WorkingDirectory=/data/cb16_ci/worker
+ExecStart=/data/cb16_ci/worker/.venv/bin/python worker.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

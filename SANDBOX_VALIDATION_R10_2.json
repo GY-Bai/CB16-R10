@@ -1,0 +1,17 @@
+{
+  "schema": "CB16_R10_2_SANDBOX_VALIDATION_V1",
+  "status": "R10_2_IMPLEMENTATION_SANDBOX_PASS",
+  "real_market_training_executed_in_sandbox": false,
+  "tests": {
+    "exact_recovered_V5_5_physics_H72_fixture": "PASS",
+    "2025_09_archive_selection_fail_closed": "PASS",
+    "G0_file_and_tensor_semantic_identity": "PASS",
+    "probabilistic_teacher_real_brain_gradient_and_crash_recovery_fixture": "PASS",
+    "compileall": "PASS",
+    "script_import_help": "PASS",
+    "Champion_Brain_to_ActionIntent_to_Supervisor_to_exact_Physics_H72_trace_fixture": "PASS",
+    "r102_targeted_unittests": "5/5 PASS"
+  },
+  "scientific_claim": "NONE__IMPLEMENTATION_AND_CONTRACT_ONLY",
+  "next_execution": "SHANXI_REAL_HISTORICAL_R10_2_5GEN"
+}

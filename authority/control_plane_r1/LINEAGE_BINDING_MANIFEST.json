@@ -1,0 +1,39 @@
+{
+  "account_packet": "AccountStatePacketV1",
+  "account_schema_sha256": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890",
+  "binding_policy": "ALL_MISMATCHES_FAIL_CLOSED",
+  "frozen_trading_kernel_release": "V5.5_CLEAN_REBUILD_PHASE1",
+  "frozen_trading_kernel_sha256": "518f90f3f0db790b0e6e49ec05def3b98344d92984cf2956d9dd9a2cc5701d87",
+  "hard_isolation_consumer": "HARD_ISOLATED_TYPED_PASSTHROUGH_R0",
+  "market_packet_lineage": {
+    "cache_version": "MarketSensoryCacheV1",
+    "operator_lineage_sha": "cf9f48510794d20c44ea507a099aa03716c58eda817bf1949031810bca0ee24d",
+    "sensory_architecture_sha": "9144365a1abe389f2d44318b4cd1432f4981327bc036601a4a3d75d490efda45",
+    "state_lineage_sha": "96676d52b08c7e5aa85447513f573127f2589d7bfebdf03e64c0173b5687015a"
+  },
+  "physics_contract_sha256": "d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+  "replay_schema": "TransitionRecordV2",
+  "replay_schema_sha256": "db8a65a45dd1d515f2e14e8ad16fff3028f57f214b7a122fe7836439399684dd",
+  "risk_authority_contract_sha256": "a875c91f0f095e9282faf441d2ea2d19d21f8130abf436b5fa0d3609325a3cc7",
+  "risk_supervisor_sha256": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6",
+  "runtime_file_bindings": {
+    "runtime/account_physics_runtime_r0.py": "193f21b4b2e216ad8dcc9c36821be2d517e5d5280ea9ea0f92e479310b169e17",
+    "runtime/central_brain_hard_isolation_runtime.py": "49b0acb3cea1bf612c1782b95b1cbe2cffbf78d83cf797f4ff4aa7f5fdcf2416",
+    "runtime/dummy_intent_generator_r1.py": "1dcac3dab729dcba549911743f9ddc904b74d80af0d2a467ff7a1c6ccf1e1543",
+    "runtime/risk_supervisor_r1.py": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6",
+    "runtime/upstream_account_state_interface_r0.py": "d172e43fe236299dff184a9d6e964e35cab7e678460ad8b765c2cdeddbfbaf4c",
+    "runtime/upstream_preflight_runtime_r0.py": "4f65e07ad9e524b29e85cd5b17f865b9f2bc436846faf2701bc1b25e8de621ff",
+    "runtime/v55/__init__.py": "1132534ab79712d0720bef2a791a878240c405bc870fad2b2decc7a067fefa13",
+    "runtime/v55/kernel/__init__.py": "c22c6603dce2eb907d40327f00d17b6502f9e5d1bcca563a7addbee3590376bb",
+    "runtime/v55/kernel/actions.py": "f24566d7a03f34e93bd45bc0e2567ddde16fc73a00b63533810fb6ec14239abc",
+    "runtime/v55/kernel/bar.py": "2ae0dd333ea4e20df02ae8e4700a42ce495c9a7caa83563284bb13c7eee4e115",
+    "runtime/v55/kernel/engine.py": "f2355ec8f8f71419d9fb037f69f1fe4d0039c1c79eb875fb096b9c2b7d7ee236",
+    "runtime/v55/kernel/reward.py": "c52866de342e43a39caf3a31806b0465c7dc217971a95706b4357f53c722f1f0",
+    "runtime/v55/kernel/sim_config.py": "f33523922039d55f64d34d6b546ffcc1261fb88dd5dfe608a48c3638617dfe47",
+    "runtime/v55/kernel/snapshot.py": "90ca400d8298ce2878392bdea52fd990e0ea9b9950606bdf957a6df88d88c579",
+    "runtime/v55/kernel/state.py": "eb20554f304c42f41e9a461d6a178e1730cdf8080698b057784eee0b3adb382a"
+  },
+  "schema": "CB16_CONTROL_PLANE_LINEAGE_BINDING_MANIFEST_V1",
+  "sim_config_canonicalization": "sorted-key compact JSON of ACCOUNT_PHYSICS_CONTRACT_V1.sim_config",
+  "sim_config_sha256": "da8643d75241112335b825f2af72ebab4118fc89ef0c4be1df340b97c9c12a90"
+}

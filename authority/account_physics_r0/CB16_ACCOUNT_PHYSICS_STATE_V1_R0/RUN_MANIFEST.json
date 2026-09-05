@@ -1,0 +1,50 @@
+{
+  "authorities": {
+    "account_state_interface": {
+      "ACCOUNT_FIELD_DEFINITIONS.json": "a4bf4272f20ef2ab092170a9817d5f8d9560605cb9c90acd0feb6424b02987b6",
+      "ACCOUNT_STATE_INTERFACE_R0_REPORT.md": "5af85c24d94ab303473d8aec3593c75e6cae0b3449d46400deae2eb9cbf072f0",
+      "ACCOUNT_STATE_INTERFACE_R0_RESULT.json": "50546d543cfbf313f5b4039421cc3db987ee31a6f7eeba0c48488d0ccd491430",
+      "ACCOUNT_STATE_PACKET_SCHEMA_V1.json": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890",
+      "ACCOUNT_TRANSITION_COMPATIBILITY.json": "6e58b3851d585415b1a854782d652418e967beb6b019704e15513ea2836b26db",
+      "CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json": "eba58997b56a07b1bfa7a90f6677ec4270f081065155cef0269a53bca2e74e35",
+      "NORMALIZATION_CONTRACT.json": "594ad2128d76f8744a5bc01eff7f6f5317eadc2b4c46e4c974d0c63663627261",
+      "account_state_interface_r0.py": "d172e43fe236299dff184a9d6e964e35cab7e678460ad8b765c2cdeddbfbaf4c"
+    },
+    "historical_kernel_aggregate_sha256": "518f90f3f0db790b0e6e49ec05def3b98344d92984cf2956d9dd9a2cc5701d87",
+    "historical_v55_archive_sha256": "6da734c5eb8dbc43f86f2091b0a9ad73f1c0f9416c6a63f465a8dd64fc34e88b",
+    "historical_v55_library_backing_file_id": "file_00000000646c822fbdd6e104e94b9c7f"
+  },
+  "created_utc": "2026-09-02T20:20:29.401686+00:00",
+  "data_boundary": {
+    "2025_09_accessed": false,
+    "final_holdout_accessed": false,
+    "fresh_cohort_enumerated": false,
+    "fresh_market_accessed": false,
+    "synthetic_physics_canary_only": true
+  },
+  "environment": {
+    "numpy": "2.3.5",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "psutil": "7.2.2",
+    "python": "3.13.5"
+  },
+  "final_status": "ACCOUNT_PHYSICS_RUNTIME_RECOVERED_AND_FROZEN",
+  "forbidden_work": {
+    "account_state_packet_redesign": false,
+    "central_brain_training": false,
+    "market_forecasting": false,
+    "pnl_optimization": false,
+    "reward_learning": false,
+    "rl": false
+  },
+  "phase": "SYSTEMS_SIMULATION_ACCOUNT_PHYSICS_FREEZE_ONLY",
+  "run_id": "CB16_ACCOUNT_PHYSICS_STATE_V1_R0",
+  "runtime_entrypoint": "runtime/account_physics_runtime_r0.py",
+  "schema": "CB16_ACCOUNT_PHYSICS_R0_RUN_MANIFEST_V1",
+  "tests": {
+    "deterministic_replay": "PASS",
+    "historical_parity": "PASS",
+    "multi_account_stress": "PASS",
+    "snapshot_restore": "PASS"
+  }
+}

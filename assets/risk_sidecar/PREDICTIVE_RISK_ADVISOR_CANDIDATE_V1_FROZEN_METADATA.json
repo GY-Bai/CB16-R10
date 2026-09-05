@@ -1,0 +1,110 @@
+{
+  "active_authority": false,
+  "base_params": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.05,
+    "min_child_samples": 20,
+    "n_estimators": 120,
+    "n_jobs": 1,
+    "num_leaves": 15,
+    "reg_lambda": 0.1,
+    "subsample": 0.8,
+    "subsample_freq": 1,
+    "verbosity": -1
+  },
+  "calibration_status": "DEVELOPMENT_ONLY",
+  "candidate_contract_sha256": "d1b80e8796c5337a14d3aaa0b2a7637f7f855bf8470e11fd704e35b5ee61faed",
+  "candidate_family": "INHERITED_LIGHTGBM_DISTRIBUTIONAL_READOUT_ONLY",
+  "feature_contract": {
+    "action_feature_dim": 38,
+    "action_level": [
+      "AccountState6",
+      "decision",
+      "risk_multiplier",
+      "Ordered4H30"
+    ],
+    "pair_feature_dim": 44,
+    "pair_level": [
+      "AccountState6",
+      "8-way frozen pair identity",
+      "Ordered4H30"
+    ]
+  },
+  "formal_crc_certificate": false,
+  "input_lineage": {
+    "account_state_schema_sha256": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890",
+    "action_intent_schema_sha256": "5581a26a75b0b8b56ff24f9b196ea6b4398e760ed09d1d6fcadc9290a9db02ac",
+    "dimension": 30,
+    "physics_contract_sha256": "d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+    "representation": "Ordered4H30",
+    "representation_sha256": "738ed11011a7749b0ddf182ed5538d2c6c0b118ab24bb2bbf206c9a65e4a5048",
+    "support_version": "CB16_ORDERED4H30_ADVISOR_SUPPORT_V1_R2"
+  },
+  "mode": "SHADOW_LOG_ONLY",
+  "model_components": [
+    "action_stress_LGBM+Platt",
+    "action_max_margin_quantile_LGBM_q10_q50_q90+heldout_offsets",
+    "pair_discordance_LGBM+Platt",
+    "pair_direction_LGBM+Platt"
+  ],
+  "model_version": "PredictiveRiskAdvisorCandidateV1.R2",
+  "quantiles": [
+    0.1,
+    0.5,
+    0.9
+  ],
+  "schema": "CB16_PREDICTIVE_RISK_ADVISOR_FROZEN_CANDIDATE_V1",
+  "seed": 24680,
+  "supported_edges": [
+    {
+      "edge_id": "LONG_075_TO_025",
+      "family": "risk_multiplier_long",
+      "from": "L075",
+      "level": 1,
+      "pair_id": "L075_MINUS_L025",
+      "to": "L025"
+    },
+    {
+      "edge_id": "SHORT_075_TO_025",
+      "family": "risk_multiplier_short",
+      "from": "S075",
+      "level": 1,
+      "pair_id": "S075_MINUS_S025",
+      "to": "S025"
+    },
+    {
+      "edge_id": "SHORT_025_TO_FLAT",
+      "family": "flat_vs_short",
+      "from": "S025",
+      "level": 2,
+      "pair_id": "S025_MINUS_FLAT",
+      "to": "FLAT"
+    },
+    {
+      "edge_id": "SHORT_075_TO_FLAT",
+      "family": "flat_vs_short",
+      "from": "S075",
+      "level": 2,
+      "pair_id": "S075_MINUS_FLAT",
+      "to": "FLAT"
+    }
+  ],
+  "supported_families": [
+    "flat_vs_short",
+    "risk_multiplier_long",
+    "risk_multiplier_short"
+  ],
+  "target": {
+    "continuous_companion": "max_margin_utilization_excess_H64",
+    "definition": "1{max_margin_utilization_excess_H64 >= 0.20}",
+    "primary_event": "margin_stress_20pp_by_H64"
+  },
+  "unsupported": [
+    "flat_vs_long",
+    "long_vs_short",
+    "LONG@0.25->FLAT",
+    "positioned account",
+    "low-envelope 0.25 subgroup",
+    "non-anchor risk"
+  ]
+}

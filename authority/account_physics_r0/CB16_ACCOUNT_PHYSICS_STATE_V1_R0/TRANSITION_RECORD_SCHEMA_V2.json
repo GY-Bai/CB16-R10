@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "market_payload_storage": "key/reference only; MarketSensory remains shared",
+  "properties": {
+    "account_observation_t": {
+      "$ref": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json"
+    },
+    "account_observation_t1": {
+      "$ref": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json"
+    },
+    "action": {
+      "type": "object"
+    },
+    "execution_metadata": {
+      "type": "object"
+    },
+    "lineage": {
+      "type": "object"
+    },
+    "market_packet_key_t": {
+      "type": "object"
+    },
+    "schema": {
+      "const": "TransitionRecordV2"
+    },
+    "simulator_snapshot_ref_t": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "simulator_snapshot_ref_t1": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "termination_type": {
+      "enum": [
+        "TERMINATED",
+        "TRUNCATED",
+        "LIQUIDATED",
+        "MAX_HOLDING_FORCED_EXIT",
+        "NORMAL_CONTINUE"
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "market_packet_key_t",
+    "simulator_snapshot_ref_t",
+    "account_observation_t",
+    "action",
+    "execution_metadata",
+    "simulator_snapshot_ref_t1",
+    "account_observation_t1",
+    "termination_type",
+    "lineage"
+  ],
+  "schema_id": "CB16_TRANSITION_RECORD_SCHEMA_V2",
+  "snapshot_storage": "content-addressed; record stores refs, not duplicate snapshot bytes",
+  "title": "TransitionRecordV2",
+  "type": "object"
+}

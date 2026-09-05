@@ -1,0 +1,25 @@
+{
+  "action": {
+    "decision": 2,
+    "risk_multiplier": 0.6
+  },
+  "market_execution_input": {
+    "bar": {
+      "bar_start": "2026-01-01T03:00:00+00:00",
+      "close": 100.45850995325894,
+      "high": 100.90850995325894,
+      "index_price": 100.45850995325894,
+      "low": 99.95056697930933,
+      "mark_price": 100.45850995325894,
+      "open": 100.40056697930933,
+      "symbol": "SYNTH",
+      "timeframe": "1h",
+      "volume": 1000.0
+    },
+    "funding_rate": 0.0
+  },
+  "physics_contract_file": "../ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+  "portable_snapshot_file": "SIMULATOR_SNAPSHOT_PORTABLE.npz",
+  "schema": "CB16_ACCOUNT_PHYSICS_BEHAVIOR_CANARY_INPUT_V1",
+  "snapshot_file": "SIMULATOR_SNAPSHOT_NATIVE.json"
+}

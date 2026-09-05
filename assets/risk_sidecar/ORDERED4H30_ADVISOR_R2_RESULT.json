@@ -1,0 +1,90 @@
+{
+  "LONG_to_FLAT_supported": false,
+  "authority_mode": "SHADOW_ADVISORY_ONLY",
+  "canaries": {
+    "OOD_NO_ADVICE": true,
+    "all_pass": true,
+    "hard_non_override": true,
+    "reload": true
+  },
+  "candidate": "PredictiveRiskAdvisorCandidateV1",
+  "central_brain_trained": false,
+  "claims_not_made": [
+    "QUALIFIED",
+    "ACTIVE",
+    "FORMALLY_SAFE",
+    "formal CRC certificate",
+    "deployment intervention frequency"
+  ],
+  "development_calibration": {
+    "diagnostic_gates": {
+      "event_ece_max": 0.1,
+      "pair_rho_ece_max": 0.1,
+      "quantile_coverage_mae_max": 0.08
+    },
+    "event_ece": 0.03414835693225283,
+    "formal_certificate": false,
+    "max_margin_qcov_mae": 0.033518518518518524,
+    "pair_rho_ece_max": 0.09753652720092533,
+    "pass": true
+  },
+  "flat_vs_long_admitted": false,
+  "fresh_prospective_cohort_opened": false,
+  "frozen_RiskSupervisor_modified": false,
+  "original_ActionIntent_modified": false,
+  "outputs_bound": [
+    "P(Z64(a)=1|current info)",
+    "conditional max-margin q10/q50/q90",
+    "rho(A->B|I_t)",
+    "support validity"
+  ],
+  "predictor_family": "exact inherited LightGBM distributional readout family; no architecture tournament",
+  "primary_event": "margin_stress_20pp_by_H64",
+  "primary_status": "ORDERED4H30_ADVISOR_SHADOW_CANDIDATE_FROZEN",
+  "runtime_representation": {
+    "Raw24_runtime_input": false,
+    "dimension": 30,
+    "name": "Ordered4H30",
+    "sha256": "738ed11011a7749b0ddf182ed5538d2c6c0b118ab24bb2bbf206c9a65e4a5048"
+  },
+  "schema": "CB16_ORDERED4H30_PREDICTIVE_RISK_ADVISOR_R2_RESULT_V1",
+  "shadow_replay": {
+    "intervention_frequency_is_deployment_estimate": false,
+    "lambda_path_monotonicity_pass": true,
+    "rows": 2520
+  },
+  "supported_edges": [
+    {
+      "edge_id": "LONG_075_TO_025",
+      "family": "risk_multiplier_long",
+      "from": "L075",
+      "level": 1,
+      "pair_id": "L075_MINUS_L025",
+      "to": "L025"
+    },
+    {
+      "edge_id": "SHORT_075_TO_025",
+      "family": "risk_multiplier_short",
+      "from": "S075",
+      "level": 1,
+      "pair_id": "S075_MINUS_S025",
+      "to": "S025"
+    },
+    {
+      "edge_id": "SHORT_025_TO_FLAT",
+      "family": "flat_vs_short",
+      "from": "S025",
+      "level": 2,
+      "pair_id": "S025_MINUS_FLAT",
+      "to": "FLAT"
+    },
+    {
+      "edge_id": "SHORT_075_TO_FLAT",
+      "family": "flat_vs_short",
+      "from": "S075",
+      "level": 2,
+      "pair_id": "S075_MINUS_FLAT",
+      "to": "FLAT"
+    }
+  ]
+}

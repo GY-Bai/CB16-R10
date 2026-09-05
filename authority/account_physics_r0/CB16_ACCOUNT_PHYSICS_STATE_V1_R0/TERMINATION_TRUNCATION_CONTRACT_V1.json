@@ -1,0 +1,27 @@
+{
+  "autoreset_forbidden": true,
+  "definitions": {
+    "LIQUIDATED": "Recovered kernel liquidation event occurred this transition; may be terminal.",
+    "MAX_HOLDING_FORCED_EXIT": "Recovered environment-owned time_stop closed the position at max_holding_bars; episode itself need not terminate.",
+    "NORMAL_CONTINUE": "None of the above occurred.",
+    "TERMINATED": "Kernel entered another terminal state, currently max_drawdown/risk-limit path in recovered semantics.",
+    "TRUNCATED": "External time/resource horizon requested after this physical transition; not an MDP terminal cause."
+  },
+  "final_pre_reset_preservation": "snapshot_t1 and account_observation_t1 are emitted before any reset. step_account never resets automatically.",
+  "post_end_step_policy": "Stepping a terminated or truncated snapshot fails closed; caller must invoke explicit_reset.",
+  "precedence": [
+    "LIQUIDATED",
+    "MAX_HOLDING_FORCED_EXIT",
+    "TERMINATED",
+    "TRUNCATED",
+    "NORMAL_CONTINUE"
+  ],
+  "schema": "CB16_TERMINATION_TRUNCATION_CONTRACT_V1",
+  "types": [
+    "TERMINATED",
+    "TRUNCATED",
+    "LIQUIDATED",
+    "MAX_HOLDING_FORCED_EXIT",
+    "NORMAL_CONTINUE"
+  ]
+}

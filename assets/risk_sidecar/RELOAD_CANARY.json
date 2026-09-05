@@ -1,0 +1,13 @@
+{
+  "all_pass": true,
+  "exact_reload_pass": true,
+  "frozen_action_probability_max_abs_diff": 0.0,
+  "frozen_candidate_sha256": "a99b9a2aa337681298f2f89d13fd3bf36fab17d62aae1252c76bed29d7c93269",
+  "frozen_pair_rho_max_abs_diff": 0.0,
+  "frozen_quantile_max_abs_diff": 0.0,
+  "portable_action_probability_max_abs_diff": 0.0,
+  "portable_pair_rho_max_abs_diff": 0.0,
+  "portable_quantile_max_abs_diff": 0.0,
+  "portable_tolerance_pass": true,
+  "schema": "CB16_ORDERED4H30_ADVISOR_RELOAD_CANARY_V1"
+}

@@ -1,0 +1,44 @@
+{
+  "$id": "CB16_ExecutableActionV1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "direction": {
+      "enum": [
+        0,
+        1,
+        2
+      ],
+      "type": "integer"
+    },
+    "physics_contract_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "risk_multiplier": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "type": "number"
+    },
+    "schema": {
+      "const": "ExecutableActionV1"
+    },
+    "semantics": {
+      "const": "V5_5_ENTRY_OR_NOOP_ONLY"
+    },
+    "supervisor_decision_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "direction",
+    "risk_multiplier",
+    "semantics",
+    "supervisor_decision_sha256",
+    "physics_contract_sha256"
+  ],
+  "title": "ExecutableActionV1",
+  "type": "object"
+}

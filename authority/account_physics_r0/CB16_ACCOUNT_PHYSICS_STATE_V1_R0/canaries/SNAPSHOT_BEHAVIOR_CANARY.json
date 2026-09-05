@@ -1,0 +1,21 @@
+{
+  "account_observation_payload_shape": [
+    6
+  ],
+  "covered_runtime": "runtime/account_physics_runtime_r0.py",
+  "input_file": "SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+  "input_sha256": "661c98987c68544a53fd40c4f9b005c49e8e2b47fefef8b19f81ecbe4bb48799",
+  "max_abs_diff": 0.0,
+  "max_abs_diff_tolerance": 0.0,
+  "native_portable_snapshot_equal": true,
+  "native_snapshot_file": "SIMULATOR_SNAPSHOT_NATIVE.json",
+  "physics_contract_sha256": "35aca2d832c04754c55ae71e0827c8b24ed538b57fa94d95d19e2262943ac9f4",
+  "portable_snapshot_file": "SIMULATOR_SNAPSHOT_PORTABLE.npz",
+  "prediction_sha256": "f6c3df5422a69601f49683ff647e045dbcf4ed70033ae93ba7e8b7a7f704298b",
+  "representation_sha256": "5637c1ddb4618b3448a4205038d1f689e1a5e73a23a370c9b87fecde8d6eba63",
+  "schema": "CB16_ACCOUNT_PHYSICS_BEHAVIOR_CANARY_V1",
+  "status": "PASS",
+  "validity_shape": [
+    7
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "causal_boundary": "current/past account state only; no future return, future price, reward, action label, opportunity score, or market technical indicator",
+  "field_formulas": {
+    "current_drawdown_fraction": "(peak_equity - equity) / peak_equity",
+    "entry_price_log_ratio": "log(current_price / entry_price)",
+    "margin_utilization_fraction": "margin_used / margin_capacity",
+    "remaining_holding_fraction": "(max_holding_bars_contract - holding_bars) / max_holding_bars_contract",
+    "risk_budget_remaining_fraction": "risk_budget_remaining / risk_budget_capacity",
+    "signed_exposure_fraction_of_contract_cap": "(signed_position_notional / equity) / max_gross_leverage_contract"
+  },
+  "fixed_protocol_assumptions": {
+    "account_scope": "single active traded asset per AccountStatePacketV1; multi-asset portfolio requires a new typed packet version",
+    "max_gross_leverage_contract": "fixed/known for a Central Brain run; signed exposure is normalized by it",
+    "max_holding_contract": "fixed/known for a Central Brain run; if variable and absolute horizon matters => revision",
+    "timestamp_alignment": "all raw account quantities and the referenced MarketSensory packet are as-of the same decision timestamp"
+  },
+  "flat_position_rules": {
+    "corresponding_validity_flags": false,
+    "entry_price_log_ratio": 0.0,
+    "remaining_holding_fraction": 1.0
+  },
+  "principles": [
+    "dimensionless where possible",
+    "no absolute account equity",
+    "no absolute price in payload",
+    "no technical indicators",
+    "no market-state duplication",
+    "no saturating clipping for contract violations"
+  ],
+  "scale_invariances": {
+    "asset_price_x10": "scale current_price and entry_price by same positive factor => payload invariant",
+    "equity_x10": "scale equity, peak_equity, signed_position_notional, risk_budget_remaining/capacity, margin_used/capacity by same positive factor => payload invariant"
+  },
+  "schema": "CB16_ACCOUNT_NORMALIZATION_CONTRACT_V1"
+}

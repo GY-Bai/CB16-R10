@@ -1,0 +1,1252 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "a_account_observation_projection_contract_v1_json",
+      "class": "G",
+      "path": "ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "7621f0e5917fa035841749b5bffa5145a82bae8fd9adfc3bd8027b16d9ccbcaf",
+      "size_bytes": 1918,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_canary_contract_v1_json",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "e4a024f823c639433f9a4221d969afd3ffcafda4f7d61af272c81b6470abd775",
+      "size_bytes": 6162,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_contract_v1_json",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "49bf9a7368fd23c4bc6d2174374dd2ab0f634c1eabd809de331e97a9d0319f39",
+      "size_bytes": 6167,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_r0_report_md",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_R0_REPORT.md",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "e5262cf51a30b192a6999fecb71235d0b360b9a5bdf2694f411445e41209f775",
+      "size_bytes": 5879,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_r0_result_json",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_R0_RESULT.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "fba2995b7adad0233773c8434bc7f98764bd9df66fed386a4c9dfda301c83ef2",
+      "size_bytes": 1218,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_deterministic_replay_tests_json",
+      "class": "G",
+      "path": "DETERMINISTIC_REPLAY_TESTS.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "dda0224173f7698b1b79b565de22d1182b93a85c1541e5e00ab0a4d127e306db",
+      "size_bytes": 1766,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_external_simulator_state_survey_md",
+      "class": "G",
+      "path": "EXTERNAL_SIMULATOR_STATE_SURVEY.md",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "a1645ad0b655550d46412d9a9068c9aca4256f6f7a48820bcc763c933d2f9bd1",
+      "size_bytes": 5554,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_physics_recovery_audit_json",
+      "class": "G",
+      "path": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "df701f8dedb618798f698d50cfcaec4dbcc5bd0523b17edbb1d403cd0344d328",
+      "size_bytes": 4589,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_multi_account_physics_stress_csv",
+      "class": "G",
+      "path": "MULTI_ACCOUNT_PHYSICS_STRESS.csv",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "7fe4b193eee7683d9dd6699b1cde0c47419d8b768a62aefae0380ba7aec2e977",
+      "size_bytes": 739,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_run_manifest_json",
+      "class": "G",
+      "path": "RUN_MANIFEST.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "fd10abb3695f1143ce601f29d73454d83111f246d5add467c4e738fa3f489587",
+      "size_bytes": 2342,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_simulator_state_snapshot_schema_v1_json",
+      "class": "G",
+      "path": "SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "dd4d15e19524d1b5283745e817d1f34e61f4bad188c147e73e25d61d18df8cd0",
+      "size_bytes": 9044,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_snapshot_restore_tests_json",
+      "class": "G",
+      "path": "SNAPSHOT_RESTORE_TESTS.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "de9f2a6c3baa099bc895ebd68a0a89e34ff6ba91737aaf55335bbd270fd6c1a0",
+      "size_bytes": 584,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_termination_truncation_contract_v1_json",
+      "class": "G",
+      "path": "TERMINATION_TRUNCATION_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "734167f9d1d5f6cc9d2c87e8314bf2254736e8179d1166acca861204791c6b4b",
+      "size_bytes": 1178,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_transition_record_schema_v2_json",
+      "class": "G",
+      "path": "TRANSITION_RECORD_SCHEMA_V2.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "db8a65a45dd1d515f2e14e8ad16fff3028f57f214b7a122fe7836439399684dd",
+      "size_bytes": 1546,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_account_field_definitions_json",
+      "class": "G",
+      "path": "authority_reference/ACCOUNT_FIELD_DEFINITIONS.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "a4bf4272f20ef2ab092170a9817d5f8d9560605cb9c90acd0feb6424b02987b6",
+      "size_bytes": 4155,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_account_state_packet_schema_v1_json",
+      "class": "G",
+      "path": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890",
+      "size_bytes": 1738,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_account_transition_compatibility_json",
+      "class": "G",
+      "path": "authority_reference/ACCOUNT_TRANSITION_COMPATIBILITY.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "6e58b3851d585415b1a854782d652418e967beb6b019704e15513ea2836b26db",
+      "size_bytes": 2049,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_central_brain_input_contract_draft_v1_json",
+      "class": "G",
+      "path": "authority_reference/CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "eba58997b56a07b1bfa7a90f6677ec4270f081065155cef0269a53bca2e74e35",
+      "size_bytes": 1548,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_normalization_contract_json",
+      "class": "G",
+      "path": "authority_reference/NORMALIZATION_CONTRACT.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "594ad2128d76f8744a5bc01eff7f6f5317eadc2b4c46e4c974d0c63663627261",
+      "size_bytes": 2003,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_simulator_snapshot_native_json",
+      "class": "H",
+      "path": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "cba4a3adecb6c46449563da99ef547755f843d7ebcc3b4639904672e3d7e7461",
+      "size_bytes": 2594,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_simulator_snapshot_portable_npz",
+      "class": "H",
+      "path": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "9bc59106029dd885e4b67750f87e142744b04af172da0f826effa764da4e09d0",
+      "size_bytes": 1695,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_snapshot_behavior_canary_json",
+      "class": "H",
+      "path": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "0e0770fd8ced8779d22a08d6410ab0466d922adf4871c96c4094163f3a6613d1",
+      "size_bytes": 870,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_snapshot_behavior_canary_input_json",
+      "class": "H",
+      "path": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "f2dfe326c6a6a9e03966eafbef802f8d2e8dc2678e74747278033bb20dd3f81e",
+      "size_bytes": 734,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_build_report_json",
+      "class": "G",
+      "path": "historical_recovery/BUILD_REPORT.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "34864ede0fda559488c440385889b201814914ba600fff174bc3642f19a9ff27",
+      "size_bytes": 5570,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_frozen_kernel_parity_json",
+      "class": "G",
+      "path": "historical_recovery/FROZEN_KERNEL_PARITY.json",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "193af80b42b00c0d9dc1ba71953405b064d2471235466f2e20de5224aee789f8",
+      "size_bytes": 109,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_v5_5_clean_rebuild_phase1_tar_gz",
+      "class": "F",
+      "path": "historical_recovery/v5.5_clean_rebuild_phase1.tar.gz",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "6da734c5eb8dbc43f86f2091b0a9ad73f1c0f9416c6a63f465a8dd64fc34e88b",
+      "size_bytes": 1138523,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_v5_5_clean_rebuild_phase1_tar_gz_sha256",
+      "class": "F",
+      "path": "historical_recovery/v5.5_clean_rebuild_phase1.tar.gz.sha256",
+      "required_for_reload": false,
+      "selected": false,
+      "sha256": "fcd5049e6926cd244ec159642375a33c1da358671b4ce7a34941888fc437a823",
+      "size_bytes": 99,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_account_physics_runtime_r0_py",
+      "class": "F",
+      "path": "runtime/account_physics_runtime_r0.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "193f21b4b2e216ad8dcc9c36821be2d517e5d5280ea9ea0f92e479310b169e17",
+      "size_bytes": 15467,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_upstream_account_state_interface_r0_py",
+      "class": "F",
+      "path": "runtime/upstream_account_state_interface_r0.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "d172e43fe236299dff184a9d6e964e35cab7e678460ad8b765c2cdeddbfbaf4c",
+      "size_bytes": 1899,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_init_py",
+      "class": "F",
+      "path": "runtime/v55/__init__.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "1132534ab79712d0720bef2a791a878240c405bc870fad2b2decc7a067fefa13",
+      "size_bytes": 101,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_init_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/__init__.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "c22c6603dce2eb907d40327f00d17b6502f9e5d1bcca563a7addbee3590376bb",
+      "size_bytes": 658,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_actions_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/actions.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "f24566d7a03f34e93bd45bc0e2567ddde16fc73a00b63533810fb6ec14239abc",
+      "size_bytes": 868,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_bar_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/bar.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "2ae0dd333ea4e20df02ae8e4700a42ce495c9a7caa83563284bb13c7eee4e115",
+      "size_bytes": 6724,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_engine_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/engine.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "f2355ec8f8f71419d9fb037f69f1fe4d0039c1c79eb875fb096b9c2b7d7ee236",
+      "size_bytes": 26057,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_reward_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/reward.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "c52866de342e43a39caf3a31806b0465c7dc217971a95706b4357f53c722f1f0",
+      "size_bytes": 840,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_sim_config_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/sim_config.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "f33523922039d55f64d34d6b546ffcc1261fb88dd5dfe608a48c3638617dfe47",
+      "size_bytes": 5472,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_snapshot_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/snapshot.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "90ca400d8298ce2878392bdea52fd990e0ea9b9950606bdf957a6df88d88c579",
+      "size_bytes": 1194,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_state_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/state.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "eb20554f304c42f41e9a461d6a178e1730cdf8080698b057784eee0b3adb382a",
+      "size_bytes": 10779,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_tests_run_account_physics_r0_tests_py",
+      "class": "F",
+      "path": "tests/run_account_physics_r0_tests.py",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "7a208838f6df4f60775c73611271190db4b4d305c2ce4cf543da5403a748384c",
+      "size_bytes": 1795,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_selected_artifact_manifest",
+      "class": "G",
+      "path": "SELECTED_ARTIFACT_MANIFEST.json",
+      "required_for_reload": true,
+      "selected": true,
+      "sha256": "4cde03725d2688135e18ae43b461e5c5c18111323d299c842a0b267102168015",
+      "size_bytes": 10693,
+      "storage": "bundled"
+    }
+  ],
+  "bundle_root": "CB16_ACCOUNT_PHYSICS_STATE_V1_R0",
+  "canaries": [
+    {
+      "canary_id": "account_physics_snapshot_behavior_v1",
+      "covers_artifact_ids": [
+        "a_runtime_account_physics_runtime_r0_py",
+        "a_canaries_simulator_snapshot_native_json",
+        "a_canaries_simulator_snapshot_portable_npz"
+      ],
+      "path": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+      "required": true,
+      "status": "PASS"
+    }
+  ],
+  "dependency_closure_scan": {
+    "references": [
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/__init__.py",
+        "resolved_path": "src/v55/kernel/__init__.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/actions.py",
+        "resolved_path": "src/v55/kernel/actions.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/bar.py",
+        "resolved_path": "src/v55/kernel/bar.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/engine.py",
+        "resolved_path": "src/v55/kernel/engine.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/reward.py",
+        "resolved_path": "src/v55/kernel/reward.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/sim_config.py",
+        "resolved_path": "src/v55/kernel/sim_config.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/snapshot.py",
+        "resolved_path": "src/v55/kernel/snapshot.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/state.py",
+        "resolved_path": "src/v55/kernel/state.py",
+        "source": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/__init__.py",
+        "resolved_path": "src/v55/kernel/__init__.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/actions.py",
+        "resolved_path": "src/v55/kernel/actions.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/bar.py",
+        "resolved_path": "src/v55/kernel/bar.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/engine.py",
+        "resolved_path": "src/v55/kernel/engine.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/reward.py",
+        "resolved_path": "src/v55/kernel/reward.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/sim_config.py",
+        "resolved_path": "src/v55/kernel/sim_config.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/snapshot.py",
+        "resolved_path": "src/v55/kernel/snapshot.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/state.py",
+        "resolved_path": "src/v55/kernel/state.py",
+        "source": "ACCOUNT_PHYSICS_CONTRACT_V1.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "MULTI_ACCOUNT_PHYSICS_STRESS.csv",
+        "resolved_path": "MULTI_ACCOUNT_PHYSICS_STRESS.csv",
+        "source": "ACCOUNT_PHYSICS_R0_REPORT.md"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "snapshot.py",
+        "resolved_path": "snapshot.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/__init__.py",
+        "resolved_path": "src/v55/kernel/__init__.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/actions.py",
+        "resolved_path": "src/v55/kernel/actions.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/bar.py",
+        "resolved_path": "src/v55/kernel/bar.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/engine.py",
+        "resolved_path": "src/v55/kernel/engine.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/reward.py",
+        "resolved_path": "src/v55/kernel/reward.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/sim_config.py",
+        "resolved_path": "src/v55/kernel/sim_config.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/snapshot.py",
+        "resolved_path": "src/v55/kernel/snapshot.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/state.py",
+        "resolved_path": "src/v55/kernel/state.py",
+        "source": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "ACCOUNT_FIELD_DEFINITIONS.json",
+        "resolved_path": "ACCOUNT_FIELD_DEFINITIONS.json",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "ACCOUNT_STATE_INTERFACE_R0_REPORT.md",
+        "resolved_path": "ACCOUNT_STATE_INTERFACE_R0_REPORT.md",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "ACCOUNT_STATE_INTERFACE_R0_RESULT.json",
+        "resolved_path": "ACCOUNT_STATE_INTERFACE_R0_RESULT.json",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+        "resolved_path": "ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "ACCOUNT_TRANSITION_COMPATIBILITY.json",
+        "resolved_path": "ACCOUNT_TRANSITION_COMPATIBILITY.json",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json",
+        "resolved_path": "CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "NORMALIZATION_CONTRACT.json",
+        "resolved_path": "NORMALIZATION_CONTRACT.json",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "account_state_interface_r0.py",
+        "resolved_path": "account_state_interface_r0.py",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/account_physics_runtime_r0.py",
+        "resolved_path": "runtime/account_physics_runtime_r0.py",
+        "source": "RUN_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1.json",
+        "resolved_path": "ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+        "resolved_path": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "ACCOUNT_PHYSICS_CONTRACT_V1.json",
+        "resolved_path": "ACCOUNT_PHYSICS_CONTRACT_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "ACCOUNT_PHYSICS_R0_REPORT.md",
+        "resolved_path": "ACCOUNT_PHYSICS_R0_REPORT.md",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "ACCOUNT_PHYSICS_R0_RESULT.json",
+        "resolved_path": "ACCOUNT_PHYSICS_R0_RESULT.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "DETERMINISTIC_REPLAY_TESTS.json",
+        "resolved_path": "DETERMINISTIC_REPLAY_TESTS.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "EXTERNAL_SIMULATOR_STATE_SURVEY.md",
+        "resolved_path": "EXTERNAL_SIMULATOR_STATE_SURVEY.md",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json",
+        "resolved_path": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "MULTI_ACCOUNT_PHYSICS_STRESS.csv",
+        "resolved_path": "MULTI_ACCOUNT_PHYSICS_STRESS.csv",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "RUN_MANIFEST.json",
+        "resolved_path": "RUN_MANIFEST.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1.json",
+        "resolved_path": "SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SNAPSHOT_RESTORE_TESTS.json",
+        "resolved_path": "SNAPSHOT_RESTORE_TESTS.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "TERMINATION_TRUNCATION_CONTRACT_V1.json",
+        "resolved_path": "TERMINATION_TRUNCATION_CONTRACT_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "TRANSITION_RECORD_SCHEMA_V2.json",
+        "resolved_path": "TRANSITION_RECORD_SCHEMA_V2.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "authority_reference/ACCOUNT_FIELD_DEFINITIONS.json",
+        "resolved_path": "authority_reference/ACCOUNT_FIELD_DEFINITIONS.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+        "resolved_path": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "authority_reference/ACCOUNT_TRANSITION_COMPATIBILITY.json",
+        "resolved_path": "authority_reference/ACCOUNT_TRANSITION_COMPATIBILITY.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "authority_reference/CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json",
+        "resolved_path": "authority_reference/CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "authority_reference/NORMALIZATION_CONTRACT.json",
+        "resolved_path": "authority_reference/NORMALIZATION_CONTRACT.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+        "resolved_path": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "resolved_path": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+        "resolved_path": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+        "resolved_path": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "historical_recovery/BUILD_REPORT.json",
+        "resolved_path": "historical_recovery/BUILD_REPORT.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "historical_recovery/FROZEN_KERNEL_PARITY.json",
+        "resolved_path": "historical_recovery/FROZEN_KERNEL_PARITY.json",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/account_physics_runtime_r0.py",
+        "resolved_path": "runtime/account_physics_runtime_r0.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/upstream_account_state_interface_r0.py",
+        "resolved_path": "runtime/upstream_account_state_interface_r0.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/__init__.py",
+        "resolved_path": "runtime/v55/__init__.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/__init__.py",
+        "resolved_path": "runtime/v55/kernel/__init__.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/actions.py",
+        "resolved_path": "runtime/v55/kernel/actions.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/bar.py",
+        "resolved_path": "runtime/v55/kernel/bar.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/engine.py",
+        "resolved_path": "runtime/v55/kernel/engine.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/reward.py",
+        "resolved_path": "runtime/v55/kernel/reward.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/sim_config.py",
+        "resolved_path": "runtime/v55/kernel/sim_config.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/snapshot.py",
+        "resolved_path": "runtime/v55/kernel/snapshot.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "runtime/v55/kernel/state.py",
+        "resolved_path": "runtime/v55/kernel/state.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "tests/run_account_physics_r0_tests.py",
+        "resolved_path": "tests/run_account_physics_r0_tests.py",
+        "source": "SELECTED_ARTIFACT_MANIFEST.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+        "resolved_path": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+        "source": "TRANSITION_RECORD_SCHEMA_V2.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SIMULATOR_SNAPSHOT_NATIVE.json",
+        "resolved_path": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "resolved_path": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+        "resolved_path": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "runtime/account_physics_runtime_r0.py",
+        "resolved_path": "canaries/runtime/account_physics_runtime_r0.py",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "../ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+        "resolved_path": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SIMULATOR_SNAPSHOT_NATIVE.json",
+        "resolved_path": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json"
+      },
+      {
+        "exists": true,
+        "listed": true,
+        "reference": "SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "resolved_path": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "source": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/experience/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/auditor.py",
+        "resolved_path": "historical_recovery/src/v55/experience/auditor.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/bank.py",
+        "resolved_path": "historical_recovery/src/v55/experience/bank.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/counterfactual.py",
+        "resolved_path": "historical_recovery/src/v55/experience/counterfactual.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/credit.py",
+        "resolved_path": "historical_recovery/src/v55/experience/credit.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/generator.py",
+        "resolved_path": "historical_recovery/src/v55/experience/generator.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/schema.py",
+        "resolved_path": "historical_recovery/src/v55/experience/schema.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/experience/trace.py",
+        "resolved_path": "historical_recovery/src/v55/experience/trace.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/actions.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/actions.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/bar.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/bar.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/engine.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/engine.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/reward.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/reward.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/sim_config.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/sim_config.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/snapshot.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/snapshot.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/kernel/state.py",
+        "resolved_path": "historical_recovery/src/v55/kernel/state.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/learning/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/learning/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/learning/challenger.py",
+        "resolved_path": "historical_recovery/src/v55/learning/challenger.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/learning/teacher.py",
+        "resolved_path": "historical_recovery/src/v55/learning/teacher.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/model/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/model/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/model/policy.py",
+        "resolved_path": "historical_recovery/src/v55/model/policy.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/promotion/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/promotion/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/promotion/evaluator.py",
+        "resolved_path": "historical_recovery/src/v55/promotion/evaluator.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/promotion/hall_of_fame.py",
+        "resolved_path": "historical_recovery/src/v55/promotion/hall_of_fame.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/runtime/__init__.py",
+        "resolved_path": "historical_recovery/src/v55/runtime/__init__.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/runtime/checkpoints.py",
+        "resolved_path": "historical_recovery/src/v55/runtime/checkpoints.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/runtime/config.py",
+        "resolved_path": "historical_recovery/src/v55/runtime/config.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/runtime/cycle.py",
+        "resolved_path": "historical_recovery/src/v55/runtime/cycle.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "src/v55/runtime/observation.py",
+        "resolved_path": "historical_recovery/src/v55/runtime/observation.py",
+        "source": "historical_recovery/BUILD_REPORT.json"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+        "resolved_path": "tests/ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+        "source": "tests/run_account_physics_r0_tests.py"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+        "resolved_path": "tests/canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+        "source": "tests/run_account_physics_r0_tests.py"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "resolved_path": "tests/canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+        "source": "tests/run_account_physics_r0_tests.py"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+        "resolved_path": "tests/canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+        "source": "tests/run_account_physics_r0_tests.py"
+      },
+      {
+        "exists": false,
+        "listed": false,
+        "reference": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+        "resolved_path": "tests/canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+        "source": "tests/run_account_physics_r0_tests.py"
+      }
+    ],
+    "status": "PASS"
+  },
+  "freeze_state": "PACKAGED",
+  "freeze_tool": {
+    "file": "cb16_freeze_artifact_v1.py",
+    "python_version": "3.13.5",
+    "sha256": "c007c51c096dc5096e402756a871b45f5960352da484e0dd71ddcaed5a9041fd"
+  },
+  "notes": [
+    "Recovered V5.5 Phase-1 kernel source is byte-exact; adapter adds durable simulator snapshot/replay state separation only.",
+    "No fresh market cohort, RL, Central Brain training, reward learning, or PnL optimization."
+  ],
+  "protocol_paths": [
+    "ACCOUNT_PHYSICS_CONTRACT_V1.json",
+    "SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1.json",
+    "ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1.json",
+    "TRANSITION_RECORD_SCHEMA_V2.json",
+    "TERMINATION_TRUNCATION_CONTRACT_V1.json"
+  ],
+  "run_directory": "/mnt/data/CB16_ACCOUNT_PHYSICS_STATE_V1_R0",
+  "run_id": "CB16_ACCOUNT_PHYSICS_STATE_V1_R0",
+  "runtime_entrypoints": [
+    "runtime/account_physics_runtime_r0.py",
+    "tests/run_account_physics_r0_tests.py"
+  ],
+  "schema": "CB16_ARTIFACT_MANIFEST_V1"
+}

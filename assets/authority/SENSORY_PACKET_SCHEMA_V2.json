@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "lineage": {
+      "type": "object"
+    },
+    "payload": {
+      "items": {
+        "type": "number"
+      },
+      "type": "array"
+    },
+    "payload_dim": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "protocol_version": {
+      "const": "SensoryPacketV2"
+    },
+    "semantic_type": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "time_span": {
+      "type": "object"
+    },
+    "validity_flags": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "source",
+    "semantic_type",
+    "time_span",
+    "payload_dim",
+    "confidence",
+    "validity_flags",
+    "lineage",
+    "payload"
+  ],
+  "selected_packets": {
+    "OperatorPacket48": {
+      "payload_dim": 48,
+      "semantic_type": "operator",
+      "substructure": {
+        "Macro24": 24,
+        "Micro24": 24
+      }
+    },
+    "StateContextPacket48": {
+      "canonical_seed": 24680,
+      "payload_dim": 48,
+      "semantic_type": "state_context_composite",
+      "substructure": null
+    }
+  },
+  "semantic_note": "Envelope is unified transport. Latent coordinate semantics remain packet-specific.",
+  "title": "CB16 SensoryPacket V2",
+  "type": "object"
+}

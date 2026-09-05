@@ -1,0 +1,55 @@
+{
+  "input": {
+    "account_state_packet": {
+      "payload_shape": [
+        "account_batch",
+        6
+      ],
+      "type": "AccountStatePacketV1",
+      "validity_shape": [
+        "account_batch",
+        7
+      ]
+    },
+    "account_to_market_index": {
+      "same_market_case": "all zeros; permits logical broadcast without recomputing MarketSensory",
+      "shape": [
+        "account_batch"
+      ],
+      "type": "int32/int64 transport metadata"
+    },
+    "operator_packet": {
+      "current_same_market_case_shape": [
+        1,
+        48
+      ],
+      "logical_shape": [
+        "market_batch",
+        48
+      ],
+      "type": "OperatorPacket48"
+    },
+    "state_context_packet": {
+      "current_same_market_case_shape": [
+        1,
+        48
+      ],
+      "logical_shape": [
+        "market_batch",
+        48
+      ],
+      "type": "StateContextPacket48"
+    }
+  },
+  "isolation_invariants": [
+    "MarketSensory computation must not read AccountStatePacket.",
+    "Changing only AccountStatePacket must not change OperatorPacket48 or StateContextPacket48 bytes.",
+    "Three packet types remain separately addressable through transport and serialization.",
+    "No transport-layer anonymous concatenation is allowed.",
+    "late-fuse, cross-attend, gated interaction, or other Central Brain consumer architecture is explicitly deferred."
+  ],
+  "same_timestamp_requirement": true,
+  "schema": "CB16_CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1",
+  "status": "DRAFT_ONLY_NOT_IMPLEMENTED",
+  "training_or_policy_defined": false
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "CB16_R10_FROZEN_LAYER_EXTRACTION_CONTRACT_V1",
+  "status": "FROZEN",
+  "scientific_semantics_changed": false,
+  "purpose": "Reconstruct exactly the already-qualified R10 sensory organs from immutable public foundation weights while keeping only tensors that are on the active CB16 computation path.",
+  "operator48": {
+    "foundation": "NeoQuasar/Kronos-small + NeoQuasar/Kronos-Tokenizer-base",
+    "historical_scientific_tap": "D45 = Layer5 last-token state - Layer4 last-token state",
+    "micro": "60 complete 1m OHLCV -> D45 -> frozen reducer -> Micro24",
+    "macro": "32 complete 1h OHLCV -> D45 -> frozen reducer -> Macro24",
+    "packet": "concat(Micro24, Macro24) = Operator48",
+    "kronos_model_tensors_kept": [
+      "embedding.*",
+      "time_emb.*",
+      "transformer.0.* through transformer.4.*"
+    ],
+    "kronos_model_tensors_excluded": [
+      "transformer.5.* through transformer.7.*",
+      "norm.*",
+      "dep_layer.*",
+      "head.*"
+    ],
+    "tokenizer_tensors_kept": [
+      "embed.*",
+      "encoder.*",
+      "quant_embed.*",
+      "tokenizer.* if state exists"
+    ],
+    "tokenizer_tensors_excluded": [
+      "decoder.*",
+      "head.*",
+      "post_quant_embed_pre.*",
+      "post_quant_embed.*"
+    ],
+    "frozen_reducer_sha256": "c61b20341ea7d859842821bfd401baad17b210d02317da6324be7de9d3d54423"
+  },
+  "medium48": {
+    "foundation": "google/timesfm-2.5-200m-transformers",
+    "input": "current 64 complete 1h Close values",
+    "historical_scientific_tap": "Layer3 last-token 1280D",
+    "post_tap": "frozen StandardScaler -> Linear(1280,96) -> GELU -> Linear(96,48), canonical seed24680",
+    "timesfm_tensors_kept": [
+      "model.input_ff_layer.*",
+      "model.layers.0.*",
+      "model.layers.1.*",
+      "model.layers.2.*"
+    ],
+    "timesfm_tensors_excluded": [
+      "model.layers.3.* through model.layers.19.*",
+      "output_projection_point.*",
+      "output_projection_quantiles.*"
+    ],
+    "adapter_sha256": "897ba29937817b225df73c6ad2b5bbf183d2a18a0488dcdcff5d7b43ade436c2"
+  },
+  "risk_sidecar": {
+    "Ordered4H30": "deterministic six ordered non-overlapping 4h OHLCV slots built from latest 24 complete hourly bars",
+    "mode": "SHADOW_ONLY_TASK_GATED",
+    "foundation_model_dependency": false
+  },
+  "remote": "OFF",
+  "central_brain": {
+    "initialization": "G0_BLANK_RANDOM_INITIALIZATION",
+    "pretrained_policy_weights": false,
+    "trainable": ["Shared Decision Core", "Direction Head", "Requested-Risk Head"]
+  },
+  "source_assets": {
+    "kronos_small": {
+      "repo": "NeoQuasar/Kronos-small",
+      "revision": "901c26c1332695a2a8f243eb2f37243a37bea320",
+      "source_weight_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020"
+    },
+    "kronos_tokenizer_base": {
+      "repo": "NeoQuasar/Kronos-Tokenizer-base",
+      "revision": "0e0117387f39004a9016484a186a908917e22426",
+      "source_weight_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee"
+    },
+    "timesfm_2p5_200m": {
+      "repo": "google/timesfm-2.5-200m-transformers",
+      "revision": "5a9806b9b291fad9233b5249d88263f1846304d3",
+      "source_weight_sha256": "b53f6d52114e2ad786890f3c4637ce05f580b7800d6e24401f88b398b76035ef"
+    }
+  },
+  "active_prefix_contract": {
+    "kronos_model_l5": {
+      "key_count": 79,
+      "tensor_bytes": 59062912,
+      "semantic_sha256": "b17dd3cb0f8fdb97e2327debb004a9c791f615d21b77432c2d2b3c4efb149cdc"
+    },
+    "kronos_tokenizer_encode": {
+      "key_count": 48,
+      "tensor_bytes": 7911056,
+      "semantic_sha256": "b315317b2ea619c13f7b9b3a87da085750ced2965e85e97fe17a5f32eb8cf089"
+    },
+    "timesfm_layer3": {
+      "key_count": 45,
+      "tensor_bytes": 125253440,
+      "semantic_sha256": "23eab66683b2581927d2d78ffcdb7c15b6d40ff7da2cd13e2277451c9bdebb2c"
+    }
+  },
+  "size": {
+    "full_public_source_weight_bytes": 1040010472,
+    "active_foundation_tensor_bytes": 192227408,
+    "active_foundation_reduction_fraction": 0.8151678149640785,
+    "note": "The full HF files are downloaded only into temporary bootstrap storage to prove exact source SHA and extract the frozen prefixes. They are not loaded by the active R10 runtime and are purged by default after canary PASS."
+  }
+}

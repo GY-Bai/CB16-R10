@@ -1,0 +1,68 @@
+{
+  "acquisition_version": "CB16_KRONOS_ACQUISITION_V1",
+  "artifacts": {
+    "kronos_base": {
+      "file_count": 3,
+      "model_safetensors_sha256": "abff193acab6db1a0368e9773e75799d11403b6d054ee6d5f0a11aeabc5f4b83",
+      "model_safetensors_size": 409264008,
+      "repo_id": "NeoQuasar/Kronos-base",
+      "revision": "2b554741eca47781b64468546e77fef3e85130e6",
+      "total_bytes": 409273077
+    },
+    "kronos_mini": {
+      "file_count": 3,
+      "model_safetensors_sha256": "a7d5f37e2e9fbd9891f7d7d4f72574512dd1f704fee14223e0a8cd0fbf54197c",
+      "model_safetensors_size": 16440776,
+      "repo_id": "NeoQuasar/Kronos-mini",
+      "revision": "7fdcc628d87f325ccdbcae0a372622ca7e6813aa",
+      "total_bytes": 16441233
+    },
+    "kronos_small": {
+      "file_count": 3,
+      "model_safetensors_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "model_safetensors_size": 98980656,
+      "repo_id": "NeoQuasar/Kronos-small",
+      "revision": "901c26c1332695a2a8f243eb2f37243a37bea320",
+      "total_bytes": 98989739
+    },
+    "tokenizer_2k": {
+      "file_count": 3,
+      "model_safetensors_sha256": "b97ec46b3b72160509e289183eaf7bdf5f0dac5bb9b49522f6d46638a99a8717",
+      "model_safetensors_size": 15842376,
+      "repo_id": "NeoQuasar/Kronos-Tokenizer-2k",
+      "revision": "b22fb9cb30a2de2f77e8b617169cd756ba964a08",
+      "total_bytes": 15842909
+    },
+    "tokenizer_base": {
+      "file_count": 3,
+      "model_safetensors_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee",
+      "model_safetensors_size": 15842368,
+      "repo_id": "NeoQuasar/Kronos-Tokenizer-base",
+      "revision": "0e0117387f39004a9016484a186a908917e22426",
+      "total_bytes": 15851532
+    }
+  },
+  "created_utc": "2026-09-01T20:16:51.541454+00:00",
+  "excluded": [
+    "Kronos-large (not publicly released)"
+  ],
+  "host": {
+    "free_bytes_at_start": 32002011136,
+    "machine": "x86_64",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.39",
+    "python": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]"
+  },
+  "schema": "CB16_KRONOS_AUDIT_ASSETS_V1",
+  "scientific_scope": "third-party artifact acquisition only; no market data; no model evaluation; no final holdout access",
+  "source": {
+    "method": "git",
+    "repo": "shiyu-coder/Kronos",
+    "required_files": {
+      "source/Kronos-67b630e67f6a18c9e9be918d9b4337c960db1e9a/model/kronos.py": "0a5f90282e2039c2de0771473419715c845def154896dbd0f5747837e6241032",
+      "source/Kronos-67b630e67f6a18c9e9be918d9b4337c960db1e9a/model/module.py": "a07edbadc0e96804c8158c021bbc6063bb7cc43b34d7fc470d5c8ff2005a409f",
+      "source/Kronos-67b630e67f6a18c9e9be918d9b4337c960db1e9a/requirements.txt": "b68eaa2f945d6a5726e3642ce5d6c82014b33a09c3c1bd6302f2c530db22593e"
+    },
+    "revision": "67b630e67f6a18c9e9be918d9b4337c960db1e9a",
+    "revision_verified": "67b630e67f6a18c9e9be918d9b4337c960db1e9a"
+  }
+}

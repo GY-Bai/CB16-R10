@@ -1,0 +1,48 @@
+{
+  "all_pass": true,
+  "cases": [
+    {
+      "expected_reason": "REPRESENTATION_VERSION_MISMATCH",
+      "name": "representation_version_mismatch",
+      "observed_reason": "REPRESENTATION_VERSION_MISMATCH",
+      "observed_status": "NO_ADVICE",
+      "pass": true
+    },
+    {
+      "expected_reason": "UNSUPPORTED_FAMILY__NO_FROZEN_MORE_CONSERVATIVE_EDGE",
+      "name": "unsupported_family_LONG025",
+      "observed_reason": "UNSUPPORTED_FAMILY__NO_FROZEN_MORE_CONSERVATIVE_EDGE",
+      "observed_status": "NO_ADVICE",
+      "pass": true
+    },
+    {
+      "expected_reason": "POSITIONED_ACCOUNT",
+      "name": "positioned_account",
+      "observed_reason": "POSITIONED_ACCOUNT",
+      "observed_status": "NO_ADVICE",
+      "pass": true
+    },
+    {
+      "expected_reason": "NONFINITE_OR_SHAPE_INVALID",
+      "name": "nonfinite_representation",
+      "observed_reason": "NONFINITE_OR_SHAPE_INVALID",
+      "observed_status": "NO_ADVICE",
+      "pass": true
+    },
+    {
+      "expected_reason": "LOW_OR_UNSUPPORTED_EXTERNAL_ENVELOPE",
+      "name": "low_envelope",
+      "observed_reason": "LOW_OR_UNSUPPORTED_EXTERNAL_ENVELOPE",
+      "observed_status": "NO_ADVICE",
+      "pass": true
+    },
+    {
+      "expected_reason": null,
+      "name": "supported_short075_shadow_prediction",
+      "observed_reason": null,
+      "observed_status": "SUPPORTED_SHADOW_PREDICTION",
+      "pass": true
+    }
+  ],
+  "schema": "CB16_ORDERED4H30_ADVISOR_OOD_NO_ADVICE_CANARIES_V1"
+}

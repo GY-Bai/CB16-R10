@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "AccountState6": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 6,
+      "minItems": 6,
+      "type": "array",
+      "x-field-order": [
+        "signed_exposure_fraction_of_contract_cap",
+        "entry_price_log_ratio",
+        "remaining_holding_fraction",
+        "current_drawdown_fraction",
+        "risk_budget_remaining_fraction",
+        "margin_utilization_fraction"
+      ],
+      "x-schema-sha256": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890"
+    },
+    "ActionIntentV1": {
+      "properties": {
+        "direction": {
+          "enum": [
+            0,
+            1,
+            2
+          ]
+        },
+        "requested_risk_multiplier": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "direction",
+        "requested_risk_multiplier"
+      ],
+      "type": "object"
+    },
+    "Ordered4H30": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 30,
+      "minItems": 30,
+      "type": "array",
+      "x-lineage-sha256": "738ed11011a7749b0ddf182ed5538d2c6c0b118ab24bb2bbf206c9a65e4a5048"
+    },
+    "lineage_support_version": {
+      "properties": {
+        "account_state_schema_sha256": {
+          "const": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890"
+        },
+        "action_intent_schema_sha256": {
+          "const": "5581a26a75b0b8b56ff24f9b196ea6b4398e760ed09d1d6fcadc9290a9db02ac"
+        },
+        "representation": {
+          "const": "Ordered4H30"
+        },
+        "representation_sha256": {
+          "const": "738ed11011a7749b0ddf182ed5538d2c6c0b118ab24bb2bbf206c9a65e4a5048"
+        },
+        "support_version": {
+          "const": "CB16_ORDERED4H30_ADVISOR_SUPPORT_V1_R2"
+        }
+      },
+      "required": [
+        "representation",
+        "representation_sha256",
+        "account_state_schema_sha256",
+        "action_intent_schema_sha256",
+        "support_version"
+      ],
+      "type": "object"
+    },
+    "static_external_envelope_metadata": {
+      "properties": {
+        "external_envelope_fraction": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "external_envelope_fraction"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "Ordered4H30",
+    "AccountState6",
+    "ActionIntentV1",
+    "static_external_envelope_metadata",
+    "lineage_support_version"
+  ],
+  "title": "PredictiveRiskAdvisorCandidateV1",
+  "type": "object",
+  "x-original-action-intent-mutation": false,
+  "x-output-contract": {
+    "NO_ADVICE_reason": "nullable reason code",
+    "model_calibration_lineage": "required",
+    "predicted_relief": "rho(A->B|I_t)",
+    "predicted_risk": "P(Z64(a)=1|current info)+conditional max-margin q10/q50/q90",
+    "suggested_intervention_level": "UNSET until formal control threshold is prospectively frozen",
+    "supported_edge_set": "array",
+    "task_gate_status": [
+      "SUPPORTED_SHADOW_PREDICTION",
+      "NO_ADVICE"
+    ]
+  },
+  "x-shadow-only": true
+}

@@ -1,0 +1,23 @@
+{
+  "authoritative_fields": [
+    "risk_budget_remaining",
+    "risk_budget_capacity"
+  ],
+  "brain_observation_projection": "risk_budget_remaining_fraction = risk_budget_remaining / risk_budget_capacity",
+  "depletion_semantics_defined": false,
+  "forbidden_in_r1": [
+    "derive depletion from loss",
+    "derive replenishment from profit",
+    "time decay",
+    "trade-count decrement",
+    "policy-chosen next budget",
+    "physics-inferred budget from drawdown"
+  ],
+  "owner": "CONTROL_PLANE_EXTERNAL_STATE",
+  "physics_mutation_policy": "PRESERVE_UNCHANGED",
+  "schema": "CB16_EXTERNAL_RISK_BUDGET_AUTHORITY_CONTRACT_V1",
+  "state_schema_sha256": "fe8c31d089f883d8810d33d7009189f589db52c02bbb38aa42345a2d487ca563",
+  "step_mutation": "NONE",
+  "supervisor_usage": "admission envelope only: executable risk_multiplier <= remaining/capacity",
+  "update_rule_status": "UPDATE_RULE_UNRESOLVED"
+}

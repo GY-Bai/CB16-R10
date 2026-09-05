@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "determinism_basis": {
+    "note": "Snapshot includes every AccountState dataclass field plus all non-lock hidden kernel state used by historical snapshot helper. SimConfig is not duplicated; its immutable hash-bound contract is referenced."
+  },
+  "properties": {
+    "historical_kernel_release": {
+      "const": "V5.5_CLEAN_REBUILD_PHASE1"
+    },
+    "kernel_hidden_state": {
+      "additionalProperties": false,
+      "properties": {
+        "last_bar_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_carry_cost": {
+          "type": "number"
+        },
+        "symbol": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "last_bar_time",
+        "symbol",
+        "last_carry_cost"
+      ],
+      "type": "object"
+    },
+    "kernel_state": {
+      "additionalProperties": false,
+      "properties": {
+        "atr": {
+          "type": "number"
+        },
+        "avg_entry_price": {
+          "type": "number"
+        },
+        "cash": {
+          "type": "number"
+        },
+        "current_stop_price": {
+          "type": "number"
+        },
+        "current_take_price": {
+          "type": "number"
+        },
+        "entry_equity": {
+          "type": "number"
+        },
+        "entry_price": {
+          "type": "number"
+        },
+        "equity_observations": {
+          "type": "integer"
+        },
+        "equity_sum": {
+          "type": "number"
+        },
+        "evaluation_end_count": {
+          "type": "integer"
+        },
+        "holding_bars_history": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "initial_entry_qty": {
+          "type": "number"
+        },
+        "initial_margin": {
+          "type": "number"
+        },
+        "initial_risk_notional": {
+          "type": "number"
+        },
+        "initial_risk_pct": {
+          "type": "number"
+        },
+        "initial_stop_price": {
+          "type": "number"
+        },
+        "initial_take_price": {
+          "type": "number"
+        },
+        "invalid_actions": {
+          "type": "integer"
+        },
+        "isolated_margin": {
+          "type": "number"
+        },
+        "isolated_wallet": {
+          "type": "number"
+        },
+        "last_close_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_executed_target": {
+          "type": "number"
+        },
+        "last_exit_bar": {
+          "type": "integer"
+        },
+        "last_mark_price": {
+          "type": "number"
+        },
+        "last_r_multiple": {
+          "type": "number"
+        },
+        "last_trade_bonus": {
+          "type": "number"
+        },
+        "liquidation_count": {
+          "type": "integer"
+        },
+        "liquidation_hit": {
+          "type": "boolean"
+        },
+        "long_entry_count": {
+          "type": "integer"
+        },
+        "maint_margin": {
+          "type": "number"
+        },
+        "margin_type": {
+          "type": "string"
+        },
+        "margin_used": {
+          "type": "number"
+        },
+        "max_adverse_price": {
+          "type": "number"
+        },
+        "max_favorable_price": {
+          "type": "number"
+        },
+        "max_observed_drawdown": {
+          "type": "number"
+        },
+        "open_order_initial_margin": {
+          "type": "number"
+        },
+        "peak_equity": {
+          "type": "number"
+        },
+        "position": {
+          "type": "number"
+        },
+        "position_age_bars": {
+          "type": "number"
+        },
+        "position_side": {
+          "type": "string"
+        },
+        "prev_close": {
+          "type": "number"
+        },
+        "r_multiples": {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "realized_pnl": {
+          "type": "number"
+        },
+        "risk_limit_count": {
+          "type": "integer"
+        },
+        "round_trips": {
+          "type": "integer"
+        },
+        "short_entry_count": {
+          "type": "integer"
+        },
+        "steps_survived": {
+          "type": "integer"
+        },
+        "stop_cooldown_until": {
+          "type": "integer"
+        },
+        "stop_loss_count": {
+          "type": "integer"
+        },
+        "take_profit_count": {
+          "type": "integer"
+        },
+        "terminal": {
+          "type": "boolean"
+        },
+        "terminal_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "time_stop_count": {
+          "type": "integer"
+        },
+        "total_holding_bars": {
+          "type": "integer"
+        },
+        "trade_count": {
+          "type": "integer"
+        },
+        "trade_phase": {
+          "type": "string"
+        },
+        "trade_realized_pnl_start": {
+          "type": "number"
+        },
+        "turnover_notional": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "cash",
+        "margin_used",
+        "position",
+        "avg_entry_price",
+        "realized_pnl",
+        "last_mark_price",
+        "peak_equity",
+        "liquidation_hit",
+        "terminal",
+        "terminal_reason",
+        "steps_survived",
+        "invalid_actions",
+        "position_side",
+        "margin_type",
+        "isolated_margin",
+        "isolated_wallet",
+        "maint_margin",
+        "initial_margin",
+        "open_order_initial_margin",
+        "trade_phase",
+        "position_age_bars",
+        "entry_price",
+        "entry_equity",
+        "max_favorable_price",
+        "max_adverse_price",
+        "last_exit_bar",
+        "last_executed_target",
+        "trade_count",
+        "long_entry_count",
+        "short_entry_count",
+        "round_trips",
+        "total_holding_bars",
+        "holding_bars_history",
+        "turnover_notional",
+        "max_observed_drawdown",
+        "equity_sum",
+        "equity_observations",
+        "initial_stop_price",
+        "initial_take_price",
+        "current_stop_price",
+        "current_take_price",
+        "initial_risk_pct",
+        "initial_risk_notional",
+        "initial_entry_qty",
+        "trade_realized_pnl_start",
+        "last_close_reason",
+        "stop_loss_count",
+        "take_profit_count",
+        "liquidation_count",
+        "time_stop_count",
+        "risk_limit_count",
+        "evaluation_end_count",
+        "r_multiples",
+        "last_r_multiple",
+        "last_trade_bonus",
+        "atr",
+        "prev_close",
+        "stop_cooldown_until"
+      ],
+      "type": "object"
+    },
+    "observation_support_state": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "const": "EXTERNAL_AUTHORITATIVE_RISK_STATE"
+        },
+        "physics_mutation_policy": {
+          "const": "PRESERVE_UNCHANGED"
+        },
+        "risk_budget_capacity": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "risk_budget_remaining": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "risk_budget_remaining",
+        "risk_budget_capacity",
+        "authority",
+        "physics_mutation_policy"
+      ],
+      "type": "object"
+    },
+    "physics_contract_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "rng_contract": {
+      "const": "NO_STOCHASTIC_PHYSICS_RNG"
+    },
+    "rng_state": {
+      "type": "null"
+    },
+    "runtime_version": {
+      "type": "string"
+    },
+    "schema": {
+      "const": "SimulatorStateSnapshotV1"
+    },
+    "step_index": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "symbol": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "termination_state": {
+      "additionalProperties": false,
+      "properties": {
+        "terminal_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "terminated": {
+          "type": "boolean"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "truncation_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "terminated",
+        "terminal_reason",
+        "truncated",
+        "truncation_reason"
+      ],
+      "type": "object"
+    },
+    "timestamp_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "runtime_version",
+    "physics_contract_sha256",
+    "historical_kernel_release",
+    "step_index",
+    "timestamp_utc",
+    "symbol",
+    "kernel_state",
+    "kernel_hidden_state",
+    "observation_support_state",
+    "termination_state",
+    "rng_state",
+    "rng_contract"
+  ],
+  "schema_id": "CB16_SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1",
+  "title": "CB16 SimulatorStateSnapshotV1",
+  "type": "object"
+}

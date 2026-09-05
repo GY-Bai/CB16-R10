@@ -1,0 +1,175 @@
+{
+  "end_to_end_cycle": "PASS",
+  "final_holdout_opened": false,
+  "frozen_kernel_parity": {
+    "first_mismatches": [],
+    "max_abs_diff": 0.0,
+    "mismatch_count": 0,
+    "status": "PASS",
+    "steps": 88
+  },
+  "known_next_tranche": [
+    "structured/multiscale representation migration",
+    "production data/funding loader and temporal split contracts",
+    "CUDA/vector rollout with scalar parity gate",
+    "production watchdog/population evaluator migration",
+    "offline V5.4 checkpoint tensor importer"
+  ],
+  "legacy_runtime_imports": [],
+  "pipeline_version": "5.5-clean.0",
+  "production_python_files": 30,
+  "pytest": "8 passed",
+  "release": "V5.5_CLEAN_REBUILD_PHASE1",
+  "source_manifest": [
+    {
+      "bytes": 101,
+      "path": "src/v55/__init__.py",
+      "sha256": "1132534ab79712d0720bef2a791a878240c405bc870fad2b2decc7a067fefa13"
+    },
+    {
+      "bytes": 438,
+      "path": "src/v55/experience/__init__.py",
+      "sha256": "0af63c036bfd420137bc45b74447a685eb0384a6afb99e58728dd701d53bc644"
+    },
+    {
+      "bytes": 2239,
+      "path": "src/v55/experience/auditor.py",
+      "sha256": "6207decff6a93314e97b074df33e9e6d60e42f2aa601b32c804255f26c27da91"
+    },
+    {
+      "bytes": 6890,
+      "path": "src/v55/experience/bank.py",
+      "sha256": "9559228475694f751dfdd851ce79e1da9f7c1cc8c25187f354d283866b05cfd1"
+    },
+    {
+      "bytes": 4458,
+      "path": "src/v55/experience/counterfactual.py",
+      "sha256": "760157be44224a5125dc4208852448d055372bec66d3bdc1a3decfe3e9ff0af0"
+    },
+    {
+      "bytes": 5471,
+      "path": "src/v55/experience/credit.py",
+      "sha256": "fd77b4c6dd84791fc2bf301008c725899e7f2bcaca493603b222ad4127e83a79"
+    },
+    {
+      "bytes": 3913,
+      "path": "src/v55/experience/generator.py",
+      "sha256": "e84b58048f0284817cd69a7d90c4446e423a2204e9318755274f5f2122228d79"
+    },
+    {
+      "bytes": 2491,
+      "path": "src/v55/experience/schema.py",
+      "sha256": "c085e6969b18b4dca7535d4a495e9cb14b440e490a1579c3ae3ace452f199b62"
+    },
+    {
+      "bytes": 597,
+      "path": "src/v55/experience/trace.py",
+      "sha256": "8464f4ba1628d499c516cfed0018d20ce9ac55709ffe172bef31c960073b59c6"
+    },
+    {
+      "bytes": 658,
+      "path": "src/v55/kernel/__init__.py",
+      "sha256": "c22c6603dce2eb907d40327f00d17b6502f9e5d1bcca563a7addbee3590376bb"
+    },
+    {
+      "bytes": 868,
+      "path": "src/v55/kernel/actions.py",
+      "sha256": "f24566d7a03f34e93bd45bc0e2567ddde16fc73a00b63533810fb6ec14239abc"
+    },
+    {
+      "bytes": 6724,
+      "path": "src/v55/kernel/bar.py",
+      "sha256": "2ae0dd333ea4e20df02ae8e4700a42ce495c9a7caa83563284bb13c7eee4e115"
+    },
+    {
+      "bytes": 26057,
+      "path": "src/v55/kernel/engine.py",
+      "sha256": "f2355ec8f8f71419d9fb037f69f1fe4d0039c1c79eb875fb096b9c2b7d7ee236"
+    },
+    {
+      "bytes": 840,
+      "path": "src/v55/kernel/reward.py",
+      "sha256": "c52866de342e43a39caf3a31806b0465c7dc217971a95706b4357f53c722f1f0"
+    },
+    {
+      "bytes": 5472,
+      "path": "src/v55/kernel/sim_config.py",
+      "sha256": "f33523922039d55f64d34d6b546ffcc1261fb88dd5dfe608a48c3638617dfe47"
+    },
+    {
+      "bytes": 1194,
+      "path": "src/v55/kernel/snapshot.py",
+      "sha256": "90ca400d8298ce2878392bdea52fd990e0ea9b9950606bdf957a6df88d88c579"
+    },
+    {
+      "bytes": 10779,
+      "path": "src/v55/kernel/state.py",
+      "sha256": "eb20554f304c42f41e9a461d6a178e1730cdf8080698b057784eee0b3adb382a"
+    },
+    {
+      "bytes": 240,
+      "path": "src/v55/learning/__init__.py",
+      "sha256": "c01a6596649955a4019cd363b0727db63930a2b65a9b50e665f7b1ee1835679e"
+    },
+    {
+      "bytes": 5782,
+      "path": "src/v55/learning/challenger.py",
+      "sha256": "7b44bd4fb4de6a333839cb767c6c199e48b62197857878c5f42e86e46ca6ef5c"
+    },
+    {
+      "bytes": 1976,
+      "path": "src/v55/learning/teacher.py",
+      "sha256": "42391261270a26cbcf49eaa074555a4079aaa51a024f51064ed4e178fb71a400"
+    },
+    {
+      "bytes": 102,
+      "path": "src/v55/model/__init__.py",
+      "sha256": "740eb06bbd690a025cf8b60f57b6b8e702f9b4e2f0e1d29dff406e0f55ed8bbd"
+    },
+    {
+      "bytes": 6703,
+      "path": "src/v55/model/policy.py",
+      "sha256": "420dd00eaf9b66144483ed1efd77da93969e60ef7347aa482fa7b891e0bdf76f"
+    },
+    {
+      "bytes": 314,
+      "path": "src/v55/promotion/__init__.py",
+      "sha256": "7b229e4dc9900aee18ee00518da41ddc19abde8606cfe5588f1f9626f31a804f"
+    },
+    {
+      "bytes": 3363,
+      "path": "src/v55/promotion/evaluator.py",
+      "sha256": "0928f71ce6e0b4c63aa75b1efa78f1a7aa05a037cfd7b28b163dc7a606ffd418"
+    },
+    {
+      "bytes": 1501,
+      "path": "src/v55/promotion/hall_of_fame.py",
+      "sha256": "e5a150322a5b9979acd84329adc91fc919e440f2f5b0906e0c5b2d64cb54f39f"
+    },
+    {
+      "bytes": 326,
+      "path": "src/v55/runtime/__init__.py",
+      "sha256": "646e2c3d9303efadb0ead8a0b8a0110c154f30bd7c71141bff9aba03bc67797a"
+    },
+    {
+      "bytes": 3478,
+      "path": "src/v55/runtime/checkpoints.py",
+      "sha256": "cfd7558c66819ce7ee1e833d4d9cc3329622b152a55de7bd08f9554a5d9b7b03"
+    },
+    {
+      "bytes": 1667,
+      "path": "src/v55/runtime/config.py",
+      "sha256": "c47954ac9ae2ea2975b06578f5e47305d7883f611e1388e845c64b6e1cff1be7"
+    },
+    {
+      "bytes": 6456,
+      "path": "src/v55/runtime/cycle.py",
+      "sha256": "85d3ecb43cb90ddf1761f98a519d5b3ca61ceeead8b590f727b689c701b276f6"
+    },
+    {
+      "bytes": 1865,
+      "path": "src/v55/runtime/observation.py",
+      "sha256": "44afa3c5b9bfb7fb7912be8d86fa877049515c4e8e4398e570beecf27dc8eef4"
+    }
+  ]
+}

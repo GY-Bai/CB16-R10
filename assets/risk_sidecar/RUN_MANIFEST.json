@@ -1,0 +1,51 @@
+{
+  "authority_paths": [
+    "/CB16_ORDERED4H30_ACTION_CONDITIONAL_RISK_V1/R2/",
+    "/CB16_COARSE_TEMPORAL_RISK_INTERFACE_V1/R1/",
+    "/CB16_PREDICTIVE_RISK_ADVISOR_STATISTICAL_CONTROL_V1/R1/",
+    "/CB16_PREDICTIVE_RISK_ADVISOR_ARCHITECTURE_V1/R0/",
+    "/CB16_ACCOUNT_PHYSICS_STATE_V1/R0/",
+    "/CB16_TRAINING_CONTROL_PLANE_V1/R1/"
+  ],
+  "created_utc": "2026-09-03T02:53:26.646934+00:00",
+  "data_boundary": {
+    "Raw24_runtime_input": false,
+    "active_deployment": false,
+    "central_brain_training": false,
+    "fresh_market_access": false,
+    "fresh_prospective_cohort": false,
+    "new_future_simulation": false,
+    "prospective_qualification": false
+  },
+  "environment": {
+    "joblib": "1.5.3",
+    "lightgbm": "4.6.0",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "python": "3.13.5",
+    "sklearn": "1.8.0"
+  },
+  "execution": {
+    "H64_only_runtime_heads": true,
+    "action_calibration_rows": 3268,
+    "action_exam_rows": 6840,
+    "action_fit_rows": 9044,
+    "architecture_candidates": 1,
+    "market_endpoints": 1088,
+    "model_family": "inherited LightGBM distributional readout",
+    "pair_calibration_rows": 3268,
+    "pair_exam_rows": 6840,
+    "pair_fit_rows": 9044,
+    "shadow_replay_rows": 2520,
+    "supported_concrete_edges": 4
+  },
+  "final_status": "ORDERED4H30_ADVISOR_SHADOW_CANDIDATE_FROZEN",
+  "input_hashes": {
+    "Ordered4H30": "738ed11011a7749b0ddf182ed5538d2c6c0b118ab24bb2bbf206c9a65e4a5048",
+    "pair_manifest": "2aaf73126a4678e9cb0d4d0fe75da1ae97924bedcf7ccd310c8715e2200cb084",
+    "risk_supervisor_r1.py": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6",
+    "target_cache": "7e0b691d60d0b6691f0af4f06428d2bb303e824eebe358c4817361da2e334a7b"
+  },
+  "run_id": "CB16_ORDERED4H30_PREDICTIVE_RISK_ADVISOR_V1_R2_20260902",
+  "schema": "CB16_ORDERED4H30_PREDICTIVE_RISK_ADVISOR_R2_RUN_MANIFEST_V1"
+}

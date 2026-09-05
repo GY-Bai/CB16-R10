@@ -1,0 +1,38 @@
+{
+  "advisor_output_is_shadow_log_only": true,
+  "advisor_runtime_has_no_supervisor_write_path": true,
+  "all_pass": true,
+  "edge_nonincrease": [
+    {
+      "edge_id": "LONG_075_TO_025",
+      "from_risk": 0.75,
+      "pass": true,
+      "to_risk": 0.25
+    },
+    {
+      "edge_id": "SHORT_075_TO_025",
+      "from_risk": 0.75,
+      "pass": true,
+      "to_risk": 0.25
+    },
+    {
+      "edge_id": "SHORT_025_TO_FLAT",
+      "from_risk": 0.25,
+      "pass": true,
+      "to_risk": 0.0
+    },
+    {
+      "edge_id": "SHORT_075_TO_FLAT",
+      "from_risk": 0.75,
+      "pass": true,
+      "to_risk": 0.0
+    }
+  ],
+  "no_LONG_SHORT_flip": true,
+  "no_LONG_to_FLAT_edge": true,
+  "original_action_intent_bytes_unchanged": true,
+  "risk_supervisor_byte_identical_unchanged": true,
+  "risk_supervisor_sha256_expected": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6",
+  "risk_supervisor_sha256_observed": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6",
+  "schema": "CB16_ORDERED4H30_ADVISOR_HARD_NON_OVERRIDE_CANARIES_V1"
+}

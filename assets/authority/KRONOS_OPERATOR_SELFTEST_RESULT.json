@@ -1,0 +1,18 @@
+{
+  "micro_shape": [
+    1,
+    24
+  ],
+  "macro_shape": [
+    1,
+    24
+  ],
+  "bus_shape": [
+    1,
+    48
+  ],
+  "repeat_exact": true,
+  "order_independent_exact": true,
+  "finite": true,
+  "bus_sha256": "f352a8793a1fc36a4f45e06b339bed015a469a3c6f1178b5162052ac40e1399a"
+}

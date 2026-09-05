@@ -1,0 +1,84 @@
+{
+  "derived_not_transmitted": {
+    "flat": "field[0] == 0 within upstream exact position convention",
+    "normalized_position_size": "abs(field[0])",
+    "position_direction": "sign(field[0])",
+    "position_phase": "derive from field[2] and fixed max-holding protocol if needed",
+    "simple_mark_to_market_unrealized_directional_return": "derive from sign(field[0]) and exp(field[1])-1; exact PnL scaling depends on the account physics contract"
+  },
+  "field_order": [
+    "signed_exposure_fraction_of_contract_cap",
+    "entry_price_log_ratio",
+    "remaining_holding_fraction",
+    "current_drawdown_fraction",
+    "risk_budget_remaining_fraction",
+    "margin_utilization_fraction"
+  ],
+  "fields": [
+    {
+      "formula": "(signed_position_notional / equity) / max_gross_leverage_contract",
+      "index": 0,
+      "name": "signed_exposure_fraction_of_contract_cap",
+      "range": "unclipped real; normal contract region approximately [-1,1]",
+      "reason": "jointly preserves direction and normalized size without a redundant direction field",
+      "semantic": "Signed current gross exposure as fraction of the fixed contract gross-leverage cap. Sign encodes short(-)/flat(0)/long(+); magnitude encodes size.",
+      "valid_when": "equity>0 and max_gross_leverage_contract>0"
+    },
+    {
+      "flat_encoding": "0 with validity=false",
+      "formula": "log(current_price / entry_price)",
+      "index": 1,
+      "name": "entry_price_log_ratio",
+      "range": "unclipped real",
+      "reason": "distinguishes profitable/underwater inventory without absolute price",
+      "semantic": "Scale-free current price relative to entry/cost basis.",
+      "valid_when": "non-flat position and current_price>0 and entry_price>0"
+    },
+    {
+      "flat_encoding": "1 with validity=false",
+      "formula": "(max_holding_bars_contract - holding_bars) / max_holding_bars_contract",
+      "index": 2,
+      "name": "remaining_holding_fraction",
+      "range": "unclipped real; normal contract region [0,1]",
+      "reason": "directly exposes forced-exit proximity; normalized duration is redundant",
+      "semantic": "Fraction of max-holding horizon remaining. Negative values preserve overdue-contract severity.",
+      "valid_when": "non-flat position and max_holding_bars_contract>0"
+    },
+    {
+      "formula": "(peak_equity - equity) / peak_equity",
+      "index": 3,
+      "name": "current_drawdown_fraction",
+      "range": "unclipped real; normal solvent region [0,1]",
+      "reason": "path-dependent risk state not recoverable from current market/position",
+      "semantic": "Peak-to-current account drawdown.",
+      "valid_when": "peak_equity>0"
+    },
+    {
+      "formula": "risk_budget_remaining / risk_budget_capacity",
+      "index": 4,
+      "name": "risk_budget_remaining_fraction",
+      "range": "unclipped real; normal region [0,1]",
+      "reason": "exposes independent risk headroom; negative value can represent exhausted/violated budget",
+      "semantic": "Remaining externally authoritative risk budget as a fraction of its capacity.",
+      "valid_when": "risk_budget_capacity>0"
+    },
+    {
+      "formula": "margin_used / margin_capacity",
+      "index": 5,
+      "name": "margin_utilization_fraction",
+      "range": "unclipped real; normal region [0,1]",
+      "reason": "exposes constraint headroom not guaranteed to be derivable from gross exposure",
+      "semantic": "Current margin usage as fraction of available margin capacity.",
+      "valid_when": "margin_capacity>0"
+    }
+  ],
+  "payload_dim": 6,
+  "revision_triggers": [
+    "max-holding contract varies across accounts in a way whose absolute horizon matters",
+    "gross-leverage cap varies across accounts and the absolute cap itself is decision-relevant",
+    "PnL contains non-derivable funding/fee/option effects that cannot be reconstructed from transmitted state plus fixed account physics",
+    "portfolio becomes multi-asset and one scalar signed exposure is no longer sufficient",
+    "margin/risk-budget semantics are not authoritative or not synchronized to the packet timestamp"
+  ],
+  "schema": "CB16_ACCOUNT_FIELD_DEFINITIONS_V1"
+}

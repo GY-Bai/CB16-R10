@@ -1,0 +1,22 @@
+{
+  "schema": "CB16_R10_1_PRELEARNING_AUTHORITY_CONSTITUTION_V1",
+  "decision": "A",
+  "decision_text": "operator/medium/account read-in modules are Central-Brain-owned trainable stems. Frozen authority ends at Operator48 / Medium48 / AccountState6 observation values; the stems belong to the blank G0 Student.",
+  "naming_resolution": {
+    "operator_encoder": "LEGACY_CHECKPOINT_KEY__LOGICAL_OPERATOR_BRAIN_STEM",
+    "medium_encoder": "LEGACY_CHECKPOINT_KEY__LOGICAL_MEDIUM_BRAIN_STEM",
+    "account_encoder": "LEGACY_CHECKPOINT_KEY__LOGICAL_ACCOUNT_BRAIN_STEM"
+  },
+  "checkpoint_policy": "DO_NOT_REINITIALIZE_G0; preserve exact R10 checkpoint keyspace and tensor values",
+  "parent_g0_sha256": "b123a89ff3a7838861ccad592e71305b4bc09c4b9e3a05f9fd22564762f4304f",
+  "frozen_organs_gradient_authority": "ZERO",
+  "brain_stems_gradient_authority": "AUTHORIZED",
+  "shared_core_gradient_authority": "AUTHORIZED",
+  "direction_head_gradient_authority": "AUTHORIZED",
+  "requested_risk_head_gradient_authority": "AUTHORIZED",
+  "teacher_gradient_into_student": "FORBIDDEN_EXCEPT_THROUGH_ADMITTED_STUDENT_LOSS",
+  "risk_advisor": "SEPARATE_SHADOW_AUTHORITY",
+  "ordered4h30_nominal_input": false,
+  "remote": "OFF",
+  "scientific_semantics_changed": false
+}

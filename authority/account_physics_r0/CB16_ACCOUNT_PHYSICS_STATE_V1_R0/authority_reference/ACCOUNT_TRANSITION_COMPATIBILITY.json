@@ -1,0 +1,39 @@
+{
+  "account_state_packet_role": "observation_projection_not_complete_simulator_state",
+  "frozen_physics_executed_in_preflight": false,
+  "frozen_physics_lineage_evidence_found": true,
+  "frozen_physics_parity_evidence": {
+    "first_mismatches": [],
+    "max_abs_diff": 0.0,
+    "mismatch_count": 0,
+    "status": "PASS",
+    "steps": 88
+  },
+  "frozen_physics_release": "V5.5_CLEAN_REBUILD_PHASE1",
+  "frozen_physics_runtime_bytes_recovered": false,
+  "frozen_physics_version_sha": "518f90f3f0db790b0e6e49ec05def3b98344d92984cf2956d9dd9a2cc5701d87",
+  "mismatch_reasons": [
+    "AccountStatePacketV1 carries 6 observation fields; it is not a serialized complete account ledger/simulator state.",
+    "Recovered frozen-kernel lineage documents fees, slippage, funding, margin/liquidation, max holding and other internal accounting semantics beyond the 6D packet.",
+    "The AccountState R0 contract explicitly requires revision if funding/fees/options create non-derivable PnL state; exact compatibility cannot be proven from the observation packet alone.",
+    "The authoritative old frozen kernel source bytes were not recovered as an executable runtime in this preflight; source/hash/parity evidence alone cannot substitute for execution."
+  ],
+  "required_before_large_training": "Recover exact frozen account-physics runtime (or explicitly freeze a new non-impersonating physics lineage) and define a replay-side authoritative simulator-state reference/snapshot contract sufficient for deterministic transition replay. Do not expand AccountStatePacketV1 silently.",
+  "schema": "CB16_ACCOUNT_TRANSITION_COMPATIBILITY_V1",
+  "status": "ACCOUNT_PHYSICS_INTERFACE_MISMATCH",
+  "synthetic_transition_plumbing": {
+    "cases": [
+      "flat_to_long",
+      "long_hold",
+      "long_to_flat",
+      "flat_to_short",
+      "short_hold",
+      "overdue_holding",
+      "drawdown_growth",
+      "risk_budget_exhaustion",
+      "margin_utilization_stress"
+    ],
+    "scientific_status": "INFRA_ONLY_NOT_PHYSICS_VALIDATION",
+    "status": "PASS"
+  }
+}

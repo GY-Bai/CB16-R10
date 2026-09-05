@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "payload_field_order": [
+    "signed_exposure_fraction_of_contract_cap",
+    "entry_price_log_ratio",
+    "remaining_holding_fraction",
+    "current_drawdown_fraction",
+    "risk_budget_remaining_fraction",
+    "margin_utilization_fraction"
+  ],
+  "properties": {
+    "account_state_type": {
+      "const": "SELF_ACCOUNT_OBSERVATION"
+    },
+    "payload": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 6,
+      "minItems": 6,
+      "type": "array"
+    },
+    "payload_dim": {
+      "const": 6
+    },
+    "protocol_version": {
+      "const": "AccountStatePacketV1"
+    },
+    "validity_flags": {
+      "items": {
+        "type": "boolean"
+      },
+      "maxItems": 7,
+      "minItems": 7,
+      "type": "array"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "account_state_type",
+    "validity_flags",
+    "payload_dim",
+    "payload"
+  ],
+  "schema_id": "CB16_ACCOUNT_STATE_PACKET_SCHEMA_V1",
+  "title": "CB16 AccountStatePacket V1",
+  "transport_contract": {
+    "anonymous_flatten_with_market_forbidden": true,
+    "learned_encoder": false,
+    "market_computation_must_not_depend_on_account_state": true,
+    "runtime_dtype": "float32 payload + boolean/uint8 validity mask",
+    "same_market_packet_may_be_broadcast_to_many_accounts": true,
+    "typed_interpretable": true
+  },
+  "type": "object",
+  "validity_flag_order": [
+    "packet_valid",
+    "signed_exposure_fraction_of_contract_cap_valid",
+    "entry_price_log_ratio_valid",
+    "remaining_holding_fraction_valid",
+    "current_drawdown_fraction_valid",
+    "risk_budget_remaining_fraction_valid",
+    "margin_utilization_fraction_valid"
+  ]
+}

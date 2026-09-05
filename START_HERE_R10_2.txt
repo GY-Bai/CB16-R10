@@ -1,0 +1,40 @@
+CB16 R10.2 — REAL HISTORICAL G0 LEARNING
+=========================================
+
+THIS FILE IS THE LOCAL AGENT ENTRYPOINT.
+
+Active authority is ACTIVE_AUTHORITY_R10_2.json. Historical parent files are lineage only.
+Do NOT redesign the architecture. Do NOT retrain Kronos, TimesFM, reducers, Medium48, Supervisor, or Physics.
+Do NOT open/read any 2025-09 Binance archive. FINAL is hard locked.
+
+Current legal ladder:
+  R10.2: 4 canonical assets, 5 generation attempts, real historical H72 feedback closure.
+  R10.3: only after R10.2 PASS, 10 assets, 20 generation attempts.
+  R10.4: only after R10.3 PASS, 10 assets, 100 research generation attempts; storage hard-stop remains active.
+  FINAL: NOT AUTHORIZED. scripts/final_holdout_LOCKED.py always refuses.
+
+R10.2 one-command execution:
+
+  source /home/bgy/m3-infra/.venv-r8-pascal/bin/activate
+  cd /home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1
+  python scripts/verify_package_r102.py
+  python scripts/run_r102_pipeline.py
+
+The run is resume-safe. If interrupted, rerun the same command. Completed generations are not retrained.
+A completed training snapshot has a trained-Challenger recovery checkpoint so crash/restart cannot double-consume it.
+
+On R10.2 completion inspect:
+  /home/bgy/cb16_ssd/runtime/R10_2/FINAL_RESULT_R102.json
+
+PASS means real data -> frozen sensory -> AccountState6 -> Brain -> Supervisor -> exact V5.5 Physics -> H72 outcome -> probabilistic Teacher -> Evidence -> FrozenTrainingSnapshot -> gradients -> Challenger -> PROMOTE/REJECT is connected.
+PASS DOES NOT MEAN PROFITABLE. F0/F1/F2/F3 scientific results are preserved even when negative.
+
+The return file is built automatically:
+  /home/bgy/cb16_ssd/runtime/R10_2/CB16_R10_2_RETURN_RECEIPTS_R0.tar.gz
+
+If the user/local operator has already authorized continuing without another chat round, after R10.2 PASS execute:
+  python scripts/run_r103_expansion.py
+Then, only after R10.3 PASS:
+  python scripts/run_r104_long_research.py
+
+Read docs/LOCAL_AGENT_EXECUTION_R10_2.md before making any manual intervention.

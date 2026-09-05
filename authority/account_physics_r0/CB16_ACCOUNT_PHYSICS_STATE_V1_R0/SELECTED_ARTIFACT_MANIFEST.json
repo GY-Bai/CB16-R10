@@ -1,0 +1,354 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "a_account_observation_projection_contract_v1_json",
+      "class": "G",
+      "path": "ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_canary_contract_v1_json",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_CANARY_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_contract_v1_json",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_r0_report_md",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_R0_REPORT.md",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_account_physics_r0_result_json",
+      "class": "G",
+      "path": "ACCOUNT_PHYSICS_R0_RESULT.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_deterministic_replay_tests_json",
+      "class": "G",
+      "path": "DETERMINISTIC_REPLAY_TESTS.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_external_simulator_state_survey_md",
+      "class": "G",
+      "path": "EXTERNAL_SIMULATOR_STATE_SURVEY.md",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_physics_recovery_audit_json",
+      "class": "G",
+      "path": "HISTORICAL_PHYSICS_RECOVERY_AUDIT.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_multi_account_physics_stress_csv",
+      "class": "G",
+      "path": "MULTI_ACCOUNT_PHYSICS_STRESS.csv",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_run_manifest_json",
+      "class": "G",
+      "path": "RUN_MANIFEST.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_simulator_state_snapshot_schema_v1_json",
+      "class": "G",
+      "path": "SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_snapshot_restore_tests_json",
+      "class": "G",
+      "path": "SNAPSHOT_RESTORE_TESTS.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_termination_truncation_contract_v1_json",
+      "class": "G",
+      "path": "TERMINATION_TRUNCATION_CONTRACT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_transition_record_schema_v2_json",
+      "class": "G",
+      "path": "TRANSITION_RECORD_SCHEMA_V2.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_account_field_definitions_json",
+      "class": "G",
+      "path": "authority_reference/ACCOUNT_FIELD_DEFINITIONS.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_account_state_packet_schema_v1_json",
+      "class": "G",
+      "path": "authority_reference/ACCOUNT_STATE_PACKET_SCHEMA_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_account_transition_compatibility_json",
+      "class": "G",
+      "path": "authority_reference/ACCOUNT_TRANSITION_COMPATIBILITY.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_central_brain_input_contract_draft_v1_json",
+      "class": "G",
+      "path": "authority_reference/CENTRAL_BRAIN_INPUT_CONTRACT_DRAFT_V1.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_authority_reference_normalization_contract_json",
+      "class": "G",
+      "path": "authority_reference/NORMALIZATION_CONTRACT.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_simulator_snapshot_native_json",
+      "class": "H",
+      "path": "canaries/SIMULATOR_SNAPSHOT_NATIVE.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_simulator_snapshot_portable_npz",
+      "class": "H",
+      "path": "canaries/SIMULATOR_SNAPSHOT_PORTABLE.npz",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_snapshot_behavior_canary_json",
+      "class": "H",
+      "path": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_canaries_snapshot_behavior_canary_input_json",
+      "class": "H",
+      "path": "canaries/SNAPSHOT_BEHAVIOR_CANARY_INPUT.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_build_report_json",
+      "class": "G",
+      "path": "historical_recovery/BUILD_REPORT.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_frozen_kernel_parity_json",
+      "class": "G",
+      "path": "historical_recovery/FROZEN_KERNEL_PARITY.json",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_v5_5_clean_rebuild_phase1_tar_gz",
+      "class": "F",
+      "path": "historical_recovery/v5.5_clean_rebuild_phase1.tar.gz",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_historical_recovery_v5_5_clean_rebuild_phase1_tar_gz_sha256",
+      "class": "F",
+      "path": "historical_recovery/v5.5_clean_rebuild_phase1.tar.gz.sha256",
+      "required_for_reload": false,
+      "selected": false,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_account_physics_runtime_r0_py",
+      "class": "F",
+      "path": "runtime/account_physics_runtime_r0.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_upstream_account_state_interface_r0_py",
+      "class": "F",
+      "path": "runtime/upstream_account_state_interface_r0.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_init_py",
+      "class": "F",
+      "path": "runtime/v55/__init__.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_init_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/__init__.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_actions_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/actions.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_bar_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/bar.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_engine_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/engine.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_reward_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/reward.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_sim_config_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/sim_config.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_snapshot_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/snapshot.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_runtime_v55_kernel_state_py",
+      "class": "F",
+      "path": "runtime/v55/kernel/state.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_tests_run_account_physics_r0_tests_py",
+      "class": "F",
+      "path": "tests/run_account_physics_r0_tests.py",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    },
+    {
+      "artifact_id": "a_selected_artifact_manifest",
+      "class": "G",
+      "path": "SELECTED_ARTIFACT_MANIFEST.json",
+      "required_for_reload": true,
+      "selected": true,
+      "storage": "bundled"
+    }
+  ],
+  "bundle_root": "CB16_ACCOUNT_PHYSICS_STATE_V1_R0",
+  "canaries": [
+    {
+      "canary_id": "account_physics_snapshot_behavior_v1",
+      "covers_artifact_ids": [
+        "a_runtime_account_physics_runtime_r0_py",
+        "a_canaries_simulator_snapshot_native_json",
+        "a_canaries_simulator_snapshot_portable_npz"
+      ],
+      "path": "canaries/SNAPSHOT_BEHAVIOR_CANARY.json",
+      "required": true,
+      "status": "PASS"
+    }
+  ],
+  "notes": [
+    "Recovered V5.5 Phase-1 kernel source is byte-exact; adapter adds durable simulator snapshot/replay state separation only.",
+    "No fresh market cohort, RL, Central Brain training, reward learning, or PnL optimization."
+  ],
+  "protocol_paths": [
+    "ACCOUNT_PHYSICS_CONTRACT_V1.json",
+    "SIMULATOR_STATE_SNAPSHOT_SCHEMA_V1.json",
+    "ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1.json",
+    "TRANSITION_RECORD_SCHEMA_V2.json",
+    "TERMINATION_TRUNCATION_CONTRACT_V1.json"
+  ],
+  "run_id": "CB16_ACCOUNT_PHYSICS_STATE_V1_R0",
+  "runtime_entrypoints": [
+    "runtime/account_physics_runtime_r0.py",
+    "tests/run_account_physics_r0_tests.py"
+  ]
+}

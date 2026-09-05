@@ -1,0 +1,39 @@
+{
+  "schema": "CB16_SHANXI_ACTIVE_RUNTIME_R10_1_V1",
+  "status": "PRELEARNING_AUTHORITY_REPAIR",
+  "parent_runtime": "R10 Thin V1",
+  "authority_resolution": "A__INPUT_STEMS_ARE_CENTRAL_BRAIN_OWNED_AND_TRAINABLE",
+  "nominal_brain_inputs": ["Operator48", "Medium48", "AccountState6"],
+  "frozen_external_body": {
+    "Operator48": "FROZEN / STOP-GRADIENT",
+    "Medium48": "FROZEN / STOP-GRADIENT",
+    "Ordered4H30": "SHADOW/TASK_GATED only; not nominal Brain input",
+    "Remote": "OFF",
+    "Supervisor": "FROZEN",
+    "Physics": "FROZEN"
+  },
+  "central_brain": {
+    "g0_parent_serialized_sha256": "b123a89ff3a7838861ccad592e71305b4bc09c4b9e3a05f9fd22564762f4304f",
+    "reinitialize": false,
+    "tensor_values_changed": false,
+    "trainable_groups": {
+      "operator_encoder.*": "logical role = Operator Brain Stem",
+      "medium_encoder.*": "logical role = Medium Brain Stem",
+      "account_encoder.*": "logical role = Account Brain Stem",
+      "shared_core.*": "Shared Decision Core",
+      "direction_body.* + direction_out.*": "Direction Head",
+      "direction_embedding.* + sizing_body.* + sizing_out.*": "Requested-Risk Head"
+    },
+    "total_parameters": 189052,
+    "trainable_parameters": 189052
+  },
+  "canary_contract": {
+    "policy_id": "CB16_R10_1_FROZEN_SENSORY_CANARY_CONTRACT_V1",
+    "hidden_intermediate_rule": "max_abs<=atol OR cosine>=0.999999",
+    "final_packet_rule": "max_abs<=atol AND cosine>=0.999999",
+    "cpu_atol": 0.00005,
+    "cuda_atol": 0.0005
+  },
+  "scientific_semantics_changed": false,
+  "market_training_started": false
+}

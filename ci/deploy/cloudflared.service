@@ -1,0 +1,14 @@
+[Unit]
+Description=Cloudflare Tunnel (cb16-ci-relay)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bgy
+ExecStart=/usr/local/bin/cloudflared --no-autoupdate tunnel run --token-file /home/bgy/.cloudflared/tunnel.token
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

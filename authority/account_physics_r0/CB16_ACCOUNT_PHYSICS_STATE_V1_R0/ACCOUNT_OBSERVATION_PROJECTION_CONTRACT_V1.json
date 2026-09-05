@@ -1,0 +1,25 @@
+{
+  "field_mapping": {
+    "current_drawdown_fraction": "(peak_equity - mark-to-market equity) / peak_equity",
+    "entry_price_log_ratio": "log(current_market_mark / avg_entry_price) when non-flat; frozen flat encoding otherwise",
+    "margin_utilization_fraction": "margin_used / (margin_used + recovered AccountState.available_margin at current mark)",
+    "remaining_holding_fraction": "(SimConfig.max_holding_bars - position_age_bars) / SimConfig.max_holding_bars",
+    "risk_budget_remaining_fraction": "snapshot.observation_support_state.risk_budget_remaining / risk_budget_capacity; external authority preserved, not synthesized",
+    "signed_exposure_fraction_of_contract_cap": "(position * current_market_mark / equity) / SimConfig.max_leverage"
+  },
+  "frozen_upstream": {
+    "account_field_definitions_sha256": "a4bf4272f20ef2ab092170a9817d5f8d9560605cb9c90acd0feb6424b02987b6",
+    "account_state_packet_schema_sha256": "6f9437c7ca198fda026bae9e1de03f7aef5878768807a772929b59bbed47a890",
+    "encoder_source_sha256": "d172e43fe236299dff184a9d6e964e35cab7e678460ad8b765c2cdeddbfbaf4c",
+    "normalization_contract_sha256": "594ad2128d76f8744a5bc01eff7f6f5317eadc2b4c46e4c974d0c63663627261"
+  },
+  "input_state": "SimulatorStateSnapshotV1",
+  "mutation_allowed": false,
+  "output_packet": "AccountStatePacketV1",
+  "output_payload_dim": 6,
+  "pure_function": "project_observation(snapshot,current_market_mark,frozen_contract)",
+  "risk_budget_note": "The physics adapter refuses to invent a historical risk-budget depletion rule because none exists in the recovered kernel. Risk state is part of the composite authoritative snapshot and must be synchronized by its owning risk supervisor.",
+  "scale_contract": "identical to frozen AccountStatePacketV1 encoder; float32 payload + 7 validity flags; no clipping",
+  "schema": "CB16_ACCOUNT_OBSERVATION_PROJECTION_CONTRACT_V1",
+  "semantics_changed": false
+}

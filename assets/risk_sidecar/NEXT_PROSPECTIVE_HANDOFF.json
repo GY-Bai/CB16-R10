@@ -1,0 +1,31 @@
+{
+  "Task_B_parallel_result_auto_import_forbidden": true,
+  "allowed_next_phase": "independent prospective qualification/statistical-control adjudication using frozen candidate and frozen task gates",
+  "candidate_object": "PREDICTIVE_RISK_ADVISOR_CANDIDATE_V1_FROZEN.joblib",
+  "carry_forward_supported_edges": [
+    "LONG_075_TO_025",
+    "SHORT_075_TO_025",
+    "SHORT_025_TO_FLAT",
+    "SHORT_075_TO_FLAT"
+  ],
+  "deployment_authorized": false,
+  "do_not_carry_forward": [
+    "flat_vs_long",
+    "LONG->FLAT",
+    "long_vs_short",
+    "Raw24 as runtime input",
+    "development calibration as formal guarantee"
+  ],
+  "formal_crc_certificate": false,
+  "portable_object": "PREDICTIVE_RISK_ADVISOR_CANDIDATE_V1_PORTABLE.tar.gz",
+  "required_before_any_active_use": [
+    "fresh prospective support under separately authorized budget",
+    "time-series/non-exchangeability theorem-family adjudication",
+    "prospective calibration/control threshold freeze",
+    "false-veto and missed-high-risk qualification gates",
+    "hard Supervisor remains final authority"
+  ],
+  "runtime_representation": "Ordered4H30 only",
+  "schema": "CB16_ORDERED4H30_ADVISOR_R2_NEXT_PROSPECTIVE_HANDOFF_V1",
+  "source_status": "ORDERED4H30_ADVISOR_SHADOW_CANDIDATE_FROZEN"
+}

@@ -1,0 +1,114 @@
+{
+  "archive": {
+    "actual_sha256": "6da734c5eb8dbc43f86f2091b0a9ad73f1c0f9416c6a63f465a8dd64fc34e88b",
+    "expected_sha256": "6da734c5eb8dbc43f86f2091b0a9ad73f1c0f9416c6a63f465a8dd64fc34e88b",
+    "library_backing_file_id": "file_00000000646c822fbdd6e104e94b9c7f",
+    "name": "v5.5_clean_rebuild_phase1.tar.gz",
+    "sha_match": true,
+    "size_bytes": 1138523
+  },
+  "audit_scope": "ONE_FINITE_AUTHORITY_ORIENTED_RECOVERY_AUDIT",
+  "executable_checks": {
+    "focused_pytest_stdout": "...                                                                      [100%]\n3 passed in 0.03s",
+    "parity_rerun": {
+      "first_mismatches": [],
+      "max_abs_diff": 0.0,
+      "mismatch_count": 0,
+      "status": "PASS",
+      "steps": 88
+    },
+    "parity_script_status": "PASS"
+  },
+  "impersonation": false,
+  "kernel_sources": {
+    "aggregate_sha256": "518f90f3f0db790b0e6e49ec05def3b98344d92984cf2956d9dd9a2cc5701d87",
+    "all_manifest_sha_and_size_match": true,
+    "count": 8,
+    "files": [
+      {
+        "actual_bytes": 658,
+        "actual_sha256": "c22c6603dce2eb907d40327f00d17b6502f9e5d1bcca563a7addbee3590376bb",
+        "bytes": 658,
+        "path": "src/v55/kernel/__init__.py",
+        "sha256": "c22c6603dce2eb907d40327f00d17b6502f9e5d1bcca563a7addbee3590376bb",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 868,
+        "actual_sha256": "f24566d7a03f34e93bd45bc0e2567ddde16fc73a00b63533810fb6ec14239abc",
+        "bytes": 868,
+        "path": "src/v55/kernel/actions.py",
+        "sha256": "f24566d7a03f34e93bd45bc0e2567ddde16fc73a00b63533810fb6ec14239abc",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 6724,
+        "actual_sha256": "2ae0dd333ea4e20df02ae8e4700a42ce495c9a7caa83563284bb13c7eee4e115",
+        "bytes": 6724,
+        "path": "src/v55/kernel/bar.py",
+        "sha256": "2ae0dd333ea4e20df02ae8e4700a42ce495c9a7caa83563284bb13c7eee4e115",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 26057,
+        "actual_sha256": "f2355ec8f8f71419d9fb037f69f1fe4d0039c1c79eb875fb096b9c2b7d7ee236",
+        "bytes": 26057,
+        "path": "src/v55/kernel/engine.py",
+        "sha256": "f2355ec8f8f71419d9fb037f69f1fe4d0039c1c79eb875fb096b9c2b7d7ee236",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 840,
+        "actual_sha256": "c52866de342e43a39caf3a31806b0465c7dc217971a95706b4357f53c722f1f0",
+        "bytes": 840,
+        "path": "src/v55/kernel/reward.py",
+        "sha256": "c52866de342e43a39caf3a31806b0465c7dc217971a95706b4357f53c722f1f0",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 5472,
+        "actual_sha256": "f33523922039d55f64d34d6b546ffcc1261fb88dd5dfe608a48c3638617dfe47",
+        "bytes": 5472,
+        "path": "src/v55/kernel/sim_config.py",
+        "sha256": "f33523922039d55f64d34d6b546ffcc1261fb88dd5dfe608a48c3638617dfe47",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 1194,
+        "actual_sha256": "90ca400d8298ce2878392bdea52fd990e0ea9b9950606bdf957a6df88d88c579",
+        "bytes": 1194,
+        "path": "src/v55/kernel/snapshot.py",
+        "sha256": "90ca400d8298ce2878392bdea52fd990e0ea9b9950606bdf957a6df88d88c579",
+        "status": "PASS"
+      },
+      {
+        "actual_bytes": 10779,
+        "actual_sha256": "eb20554f304c42f41e9a461d6a178e1730cdf8080698b057784eee0b3adb382a",
+        "bytes": 10779,
+        "path": "src/v55/kernel/state.py",
+        "sha256": "eb20554f304c42f41e9a461d6a178e1730cdf8080698b057784eee0b3adb382a",
+        "status": "PASS"
+      }
+    ]
+  },
+  "new_physics_lineage_created": false,
+  "recovered_semantics": [
+    "SHORT/FLAT/LONG + risk_multiplier action",
+    "next-bar-open execution",
+    "fees",
+    "slippage",
+    "funding",
+    "cross/isolated margin",
+    "maintenance liquidation",
+    "ATR stop/take-profit",
+    "max holding time_stop",
+    "cooldown",
+    "realized/unrealized accounting",
+    "peak/drawdown path accounting"
+  ],
+  "recovered_snapshot_helper": "Historical snapshot.py already deep-copies AccountState plus last_bar_time/symbol/last_carry_cost; R0 durable adapter serializes that continuation state instead of changing physics.",
+  "risk_budget_semantics": "UNRESOLVED_IN_HISTORICAL_KERNEL__TREATED_AS_EXTERNAL_AUTHORITATIVE_OBSERVATION_SUPPORT_STATE_PER_FROZEN_ACCOUNT_INTERFACE",
+  "schema": "CB16_HISTORICAL_PHYSICS_RECOVERY_AUDIT_V1",
+  "search_stop_reason": "Exact Phase-1 archive was directly present in Library; no further byte reconstruction archaeology performed.",
+  "status": "BYTE_EXACT_RUNTIME_DIRECTLY_RECOVERED_AND_VERIFIED"
+}

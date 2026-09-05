@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_R10_THIN_SHANXI_BOOTSTRAP_SUMMARY_V1",
+  "status": "READY_FOR_R10_G0_LEARNING_PIPELINE",
+  "data_root": "/data/cb16_hdd/binance_usdm_1m_funding_2020_2026",
+  "g0_out": "/home/bgy/cb16_ssd/runtime/R10/G0",
+  "frozen_sensory": [
+    "Operator48",
+    "Medium48"
+  ],
+  "risk_sidecar": "Ordered4H30 SHADOW/TASK_GATED",
+  "remote": "OFF",
+  "central_brain": "G0_BLANK_TIER_1",
+  "scientific_semantics_changed": false
+}

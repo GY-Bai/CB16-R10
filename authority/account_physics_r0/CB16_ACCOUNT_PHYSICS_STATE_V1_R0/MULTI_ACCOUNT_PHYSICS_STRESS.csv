@@ -1,0 +1,5 @@
+accounts,execution_mode,elapsed_ms,accounts_per_second,rss_delta_mib,shared_market_execution_objects,market_sensory_recomputations,account_state_objects_shared,order_independence_sample_size,order_independence_pass,sample_snapshot_hash_count,normal_continue_count,status
+1,independent_snapshot_scalar_reference,0.9575499999527892,1044.33188872571,0.00390625,1,0,0,1,True,1,1,PASS
+100,independent_snapshot_scalar_reference,84.62347199997566,1181.7052365805644,0.00390625,1,0,0,100,True,20,100,PASS
+1000,independent_snapshot_scalar_reference,869.3502300000091,1150.2843911365728,0.046875,1,0,0,100,True,20,1000,PASS
+10000,independent_snapshot_scalar_reference,7917.493046000004,1263.0260540679728,0.0078125,1,0,0,100,True,20,10000,PASS

@@ -1,0 +1,14 @@
+{
+  "branch_isolation": true,
+  "content_addressed_store_roundtrip": true,
+  "native_json_snapshot_sha256": "5637c1ddb4618b3448a4205038d1f689e1a5e73a23a370c9b87fecde8d6eba63",
+  "native_portable_exact": true,
+  "observation_projection_identity": true,
+  "one_step_exact": true,
+  "portable_npz_reload_snapshot_sha256": "5637c1ddb4618b3448a4205038d1f689e1a5e73a23a370c9b87fecde8d6eba63",
+  "post_truncation_step_fail_closed": true,
+  "schema": "CB16_SNAPSHOT_RESTORE_TESTS_V1",
+  "status": "PASS",
+  "terminal_state_preservation": true,
+  "truncation_final_state_preservation": true
+}

@@ -1,0 +1,9 @@
+name: repo-guard
+on: [push, pull_request]
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run repository policy
+        run: python3 ci/check_repository_policy.py --root .

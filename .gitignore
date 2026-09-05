@@ -1,0 +1,41 @@
+# secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# models / checkpoints / data
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.joblib
+*.npz
+*.tar.gz
+*.zip
+*.zst
+*.lgb
+*.lgb.txt
+*.bin
+*.parquet
+*.arrow
+*.h5
+*.hdf5
+
+# runtime
+__pycache__/
+*.pyc
+.venv/
+venv/
+ci_output/
+workspaces/
+results/
+runs/
+node_modules/
+
+# local infra state
+/srv/cb16-ci/
+/data/cb16_ci/

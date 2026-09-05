@@ -1,0 +1,28 @@
+{
+  "schema": "CB16_R10_2_PACKAGE_MANIFEST_V1",
+  "package_id": "CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1",
+  "status": "IMPLEMENTED_AND_SANDBOX_QUALIFIED__REAL_SHANXI_EXECUTION_PENDING",
+  "parent": "CB16_SHANXI_FROZEN_BODY_G0_BRAIN_R10_1_THIN_V1",
+  "scientific_semantics_changed_from_R10_1": false,
+  "active_authority": "ACTIVE_AUTHORITY_R10_2.json",
+  "entrypoint": "START_HERE_R10_2.txt",
+  "default_execution": "python scripts/run_r102_pipeline.py",
+  "authorized_research_ladder": [
+    "R10.2 4-asset 5-gen qualification",
+    "R10.3 10-asset 20-gen expansion after PASS",
+    "R10.4 10-asset 100-gen research after PASS"
+  ],
+  "final_holdout": "2025-09 HARD_LOCKED; no opening implementation in this package",
+  "frozen_authorities": {
+    "G0_file_sha256": "b123a89ff3a7838861ccad592e71305b4bc09c4b9e3a05f9fd22564762f4304f",
+    "G0_tensor_semantic_sha256": "ab4acc5962f7285efad5c1b7a3e60c3d53fb3102891364a46dc8250768bf9185",
+    "account_physics_bundle_sha256": "19f89018ef9b7c7301fe13c57e6b2abb512ffc770b29a7b3fb9df9a1be9f47de",
+    "physics_contract_sha256": "d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+    "risk_supervisor_r1_sha256": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6"
+  },
+  "R10_2_pass_definition": "real market Brain->Supervisor->exact Physics H72 trace + probabilistic Teacher/Evidence/Snapshot + six-group Brain gradients/updates + behavior change + Champion/Challenger lifecycle + frozen authority immutability; profitability not required",
+  "f0_f1_f2_f3": "diagnostic scientific result, never post-hoc rescued and not a promotion driver",
+  "resume": "completed generations reused; consumed snapshot has trained-Challenger recovery checkpoint; no double-consumption",
+  "data_root_default": "/data/cb16_hdd/binance_usdm_1m_funding_2020_2026",
+  "run_root_default": "/home/bgy/cb16_ssd/runtime/R10_2"
+}

@@ -1,0 +1,164 @@
+{
+  "action_contract": {
+    "action_schema_status": "AUTHORITATIVE_HISTORICAL_CONTRACT_RECOVERED",
+    "authority": "RECOVERED_V5_5_ACTIONS_PY",
+    "decision": {
+      "FLAT": 1,
+      "LONG": 2,
+      "SHORT": 0
+    },
+    "position_management": "While positioned, policy cannot resize, reverse, or manually close; exits are environment-owned.",
+    "risk_multiplier": {
+      "applies_to_non_flat_entry": true,
+      "default": 1.0,
+      "optional": true,
+      "range": [
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "boundaries": {
+    "central_brain_training": false,
+    "final_holdout_access": false,
+    "forbidden_2025_09_access": false,
+    "fresh_market_access": false,
+    "pnl_optimization": false,
+    "reward_learning": false,
+    "rl": false
+  },
+  "contract_role": "REFERENCE_DEFAULT_INSTANCE",
+  "contract_sha256": "d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+  "execution_semantics": {
+    "cooldown": "recovered stop cooldown",
+    "fees": "fee_rate * absolute fill notional on entry/exit",
+    "funding": "signed position * mark price * supplied funding_rate; applied after intrabar checks",
+    "liquidation": "recovered maintenance-margin and gap/intrabar liquidation semantics",
+    "margin": "cross or isolated per recovered SimConfig",
+    "max_holding": "environment-owned time_stop at max_holding_bars",
+    "pricing": "next-bar-open execution with configured slippage and optional tick quantization",
+    "rng": "NONE; no stochastic physics RNG in recovered kernel",
+    "stops": "ATR-sized fixed entry stop/take-profit with min risk/reward"
+  },
+  "historical_kernel": {
+    "archive_name": "v5.5_clean_rebuild_phase1.tar.gz",
+    "archive_sha256": "6da734c5eb8dbc43f86f2091b0a9ad73f1c0f9416c6a63f465a8dd64fc34e88b",
+    "kernel_source_aggregate_sha256": "518f90f3f0db790b0e6e49ec05def3b98344d92984cf2956d9dd9a2cc5701d87",
+    "kernel_source_files": [
+      {
+        "bytes": 658,
+        "path": "src/v55/kernel/__init__.py",
+        "sha256": "c22c6603dce2eb907d40327f00d17b6502f9e5d1bcca563a7addbee3590376bb"
+      },
+      {
+        "bytes": 868,
+        "path": "src/v55/kernel/actions.py",
+        "sha256": "f24566d7a03f34e93bd45bc0e2567ddde16fc73a00b63533810fb6ec14239abc"
+      },
+      {
+        "bytes": 6724,
+        "path": "src/v55/kernel/bar.py",
+        "sha256": "2ae0dd333ea4e20df02ae8e4700a42ce495c9a7caa83563284bb13c7eee4e115"
+      },
+      {
+        "bytes": 26057,
+        "path": "src/v55/kernel/engine.py",
+        "sha256": "f2355ec8f8f71419d9fb037f69f1fe4d0039c1c79eb875fb096b9c2b7d7ee236"
+      },
+      {
+        "bytes": 840,
+        "path": "src/v55/kernel/reward.py",
+        "sha256": "c52866de342e43a39caf3a31806b0465c7dc217971a95706b4357f53c722f1f0"
+      },
+      {
+        "bytes": 5472,
+        "path": "src/v55/kernel/sim_config.py",
+        "sha256": "f33523922039d55f64d34d6b546ffcc1261fb88dd5dfe608a48c3638617dfe47"
+      },
+      {
+        "bytes": 1194,
+        "path": "src/v55/kernel/snapshot.py",
+        "sha256": "90ca400d8298ce2878392bdea52fd990e0ea9b9950606bdf957a6df88d88c579"
+      },
+      {
+        "bytes": 10779,
+        "path": "src/v55/kernel/state.py",
+        "sha256": "eb20554f304c42f41e9a461d6a178e1730cdf8080698b057784eee0b3adb382a"
+      }
+    ],
+    "library_backing_file_id": "file_00000000646c822fbdd6e104e94b9c7f",
+    "parity": {
+      "first_mismatches": [],
+      "max_abs_diff": 0.0,
+      "mismatch_count": 0,
+      "status": "PASS",
+      "steps": 88
+    },
+    "pipeline_version": "5.5-clean.0",
+    "release": "V5.5_CLEAN_REBUILD_PHASE1",
+    "reuse_mode": "BYTE_EXACT_RECOVERED_KERNEL_SOURCE_AND_EXECUTABLE_BEHAVIOR"
+  },
+  "observation_support": {
+    "margin_capacity": {
+      "formula": "margin_used + AccountState.available_margin() evaluated at current_market_mark",
+      "owner": "RECOVERED_KERNEL_LEDGER_ADAPTER",
+      "reason": "uses recovered kernel locked-margin and available-margin semantics without adding a new economic limit"
+    },
+    "risk_budget": {
+      "owner": "EXTERNAL_AUTHORITATIVE_RISK_STATE",
+      "reason": "AccountStatePacketV1 explicitly defines this field as externally authoritative; no historical V5.5 kernel rule was found, so no budget-consumption rule is invented.",
+      "recovered_kernel_mutation": "NONE",
+      "snapshot_fields": [
+        "risk_budget_remaining",
+        "risk_budget_capacity"
+      ],
+      "step_account_policy": "PRESERVE_UNCHANGED"
+    }
+  },
+  "phase": "ACCOUNT_PHYSICS_RUNTIME_FREEZE_NOT_TRAINING",
+  "schema": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1",
+  "sim_config": {
+    "atr_period": 14,
+    "fee_rate": 0.0004,
+    "initial_cash": 100000.0,
+    "initial_margin_rate": null,
+    "lot_max_qty": null,
+    "lot_min_qty": null,
+    "lot_step_size": null,
+    "maintenance_margin_rate": 0.1,
+    "margin_type": "cross",
+    "max_drawdown": 1.0,
+    "max_holding_bars": 72,
+    "max_leverage": 3.0,
+    "min_notional": null,
+    "min_risk_reward": 3.0,
+    "percent_price_multiplier_down": null,
+    "percent_price_multiplier_up": null,
+    "price_max": null,
+    "price_min": null,
+    "risk_fraction_per_trade": 0.01,
+    "slippage_bps": 2.0,
+    "stop_atr_mult": 1.0,
+    "stop_cooldown_bars": 1,
+    "tick_size": null
+  },
+  "sim_config_binding": {
+    "mode": "EXPLICIT_IMMUTABLE_PER_RUN",
+    "note": "This R0 file binds the recovered source defaults as a reference instance. Future training must bind and hash its exact SimConfig before launch; R0 does not select a profitability-oriented configuration."
+  },
+  "state_separation": {
+    "account_observation_is_simulator_state": false,
+    "brain_visible": "AccountStatePacketV1 6D observation only",
+    "simulator_authority": "SimulatorStateSnapshotV1"
+  },
+  "transition_contract": {
+    "autoreset": false,
+    "market_execution_input": [
+      "CanonicalBar",
+      "funding_rate",
+      "optional truncate_after_step + truncation_reason"
+    ],
+    "signature": "step_account(snapshot_t, action, market_execution_input, physics_contract) -> outcome(snapshot_t1, observation_t1, termination_type, execution_metadata)",
+    "terminal_or_truncated_next_step": "FAIL_CLOSED_REQUIRES_EXPLICIT_RESET"
+  }
+}

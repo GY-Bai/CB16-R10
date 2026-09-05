@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_R10_1_G0_PARENT_AUTHORITY_V1",
+  "source": "real Shanxi R10 bootstrap return",
+  "bootstrap_return_archive_sha256": "5a46bcd169cf703debab0374cac8aa16fa7c3a8be2e61973e99dcf4f070274df",
+  "checkpoint_file": "central_brain_g0_r10_parent.pt",
+  "checkpoint_sha256": "b123a89ff3a7838861ccad592e71305b4bc09c4b9e3a05f9fd22564762f4304f",
+  "tier": "TIER_1",
+  "seed": 24680,
+  "parameter_count": 189052,
+  "trainable_parameter_count": 189052,
+  "tensor_count": 21,
+  "reinitialize_for_r10_1": false,
+  "tensor_values_changed_for_r10_1": false
+}

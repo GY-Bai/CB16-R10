@@ -1,0 +1,58 @@
+{
+  "schema": "CB16_R10_2_ACTIVE_AUTHORITY_V1",
+  "status": "ACTIVE",
+  "scientific_semantics_changed_from_R10_1": false,
+  "market_sensory": {
+    "Operator48": {
+      "status": "FROZEN_STOP_GRADIENT",
+      "source": "Kronos-small exact prefix L1-5 + tokenizer encode prefix",
+      "tap": "Micro D45=L5-L4 on 60x1m + Macro D45=L5-L4 on 32x1h -> frozen 24+24 reducers"
+    },
+    "Medium48": {
+      "status": "FROZEN_STOP_GRADIENT",
+      "source": "TimesFM-2.5 exact prefix through Layer3",
+      "tap": "64 complete 1h Close -> Layer3 last token 1280D -> frozen Nonlinear48 seed24680"
+    },
+    "Ordered4H30": {
+      "status": "FROZEN_TASK_GATED_SHADOW_ONLY",
+      "nominal_brain_input": false
+    },
+    "Remote": "OFF"
+  },
+  "account": {
+    "brain_visible": "AccountState6 deterministic typed projection",
+    "ledger_authority": "SimulatorStateSnapshotV1",
+    "account_state_is_not_ledger": true
+  },
+  "central_brain": {
+    "G0_source_sha256": "b123a89ff3a7838861ccad592e71305b4bc09c4b9e3a05f9fd22564762f4304f",
+    "G0_tensor_semantic_sha256": "ab4acc5962f7285efad5c1b7a3e60c3d53fb3102891364a46dc8250768bf9185",
+    "trainable_parameter_count": 189052,
+    "trainable_authority": [
+      "Operator Brain Stem (historical checkpoint key operator_encoder.*)",
+      "Medium Brain Stem (historical checkpoint key medium_encoder.*)",
+      "Account Brain Stem (historical checkpoint key account_encoder.*)",
+      "Shared Decision Core",
+      "Direction Head",
+      "Requested-Risk Head"
+    ],
+    "input_detach_boundary": ["Operator48", "Medium48", "AccountState6"],
+    "requested_risk_is_confidence": false,
+    "FLAT_forces_requested_risk_zero": true
+  },
+  "downstream": {
+    "ActionIntent": "Brain nominal decision",
+    "RiskSupervisorR1": "FROZEN permission authority; ACCEPT/CLAMP/REJECT/FORCED_NOOP; cannot increase risk",
+    "Physics": "byte-exact recovered V5.5 Phase-1 FrozenTradingKernel",
+    "Teacher": "dependence-aware probabilistic distributional evidence; no hindsight correct-action label",
+    "ExperienceLake": "typed immutable objects + FrozenTrainingSnapshot exactly-once consumption",
+    "Tournament": "validation probabilistic Teacher target loss; scientific F0/F1/F2/F3 controls never post-hoc rescue promotion"
+  },
+  "time_and_data": {
+    "decision_clock": "closed bar t; execution starts t+1; H72 = next 72 complete 1h bars",
+    "funding": "event only at exact funding hour; never forward fill",
+    "train_validation_purge_hours": 128,
+    "final_holdout": "2025-09 HARD_LOCKED and archive bytes are never opened by R10.2/R10.3/R10.4",
+    "dependence_group": "symbol + decision timestamp; all account/counterfactual branches sharing the same future count once"
+  }
+}

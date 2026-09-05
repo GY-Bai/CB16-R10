@@ -1,0 +1,12 @@
+{
+  "schema": "CB16_R10_3_EXPANSION_PROFILE_V1",
+  "profile_name": "R10_3_10ASSET_20GEN_EXPANSION",
+  "requires": "R10_2_REAL_HISTORICAL_LEARNING_PIPELINE_PASS",
+  "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "DOTUSDT", "LINKUSDT", "LTCUSDT", "SOLUSDT"],
+  "attempts": 20,
+  "anchor_stride_hours": 512,
+  "forbidden_final_holdout_month": "2025-09",
+  "read_2025_09": false,
+  "scientific_semantics_changed": false,
+  "purpose": "widen asset support after R10.2 mechanistic closure; still not FINAL"
+}
