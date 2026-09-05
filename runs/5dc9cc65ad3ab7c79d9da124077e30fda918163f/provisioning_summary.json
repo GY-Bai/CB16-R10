@@ -1,0 +1,25 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "5dc9cc65ad3ab7c79d9da124077e30fda918163f",
+  "ci_profile": "unit",
+  "environment_id": "unit",
+  "environment_sha256": "95771801c31cfa5d219b450c2a214785a847cf957da6cebe66ea03fea7f769fb",
+  "runtime_identity": {
+    "python_implementation": "CPython",
+    "python_major_minor": [
+      3,
+      10
+    ],
+    "sys_platform": "linux",
+    "machine": "x86_64"
+  },
+  "status": "PROVISION_FAILED",
+  "python": {
+    "status": "NOT_RUN",
+    "cache_hit": null
+  },
+  "assets": [],
+  "failure_stage": "python",
+  "error_code": "PYTHON_REQUIREMENTS_DIRECT_PUBLIC_FALLBACK_FAILED_PIP_INDEX_AUTH",
+  "error_type": "RuntimeError"
+}
