@@ -11,3 +11,4 @@ no model weights, checkpoints, datasets, secrets, or raw Binance data.
 - `docs/` – operational documentation.
 
 CI results are written to the `ci-results` branch under `runs/<commit_sha>/`.
+ci: remote relay smoke test
