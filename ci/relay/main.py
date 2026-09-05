@@ -124,6 +124,7 @@ def load_secret(name: str, default: str = "") -> str:
 
 GITHUB_WEBHOOK_SECRET = load_secret("GITHUB_WEBHOOK_SECRET")
 CB16_WORKER_TOKEN = load_secret("CB16_WORKER_TOKEN")
+CB16_INTERNAL_SECRET = load_secret("CB16_INTERNAL_SECRET")
 GITHUB_RESULT_TOKEN = load_secret("GITHUB_RESULT_TOKEN")
 
 
@@ -225,7 +226,28 @@ class DuplicateDelivery(Exception):
     pass
 
 
+class InternalPrefixMiddleware:
+    """Allows the Cloudflare Worker to call /cb16-internal/api/* safely."""
+    def __init__(self, app):
+        self.app = app
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            if path.startswith("/cb16-internal/api/"):
+                headers = {k.decode("latin1").lower(): v.decode("latin1") for k, v in scope.get("headers", [])}
+                if not hmac.compare_digest(headers.get("x-cb16-internal-secret", ""), CB16_INTERNAL_SECRET):
+                    response = JSONResponse({"error": "forbidden"}, status_code=403)
+                    await response(scope, receive, send)
+                    return
+                scope["path"] = path[len("/cb16-internal"):]
+                # update raw_path if present
+                if b"raw_path" in scope:
+                    scope["raw_path"] = scope["path"].encode()
+        await self.app(scope, receive, send)
+
+
 app = FastAPI(title="CB16 CI Relay", version="1.0")
+app.add_middleware(InternalPrefixMiddleware)
 
 
 @app.get("/healthz")
@@ -261,10 +283,17 @@ async def github_webhook(request: Request):
 
 
 def require_worker_auth(request: Request) -> bool:
-    # Cloudflare Access is enforced at edge. Application layer also requires bearer token.
+    # The public worker API is only reachable through the Cloudflare Worker edge,
+    # which adds an internal shared secret. Application layer also requires bearer.
     auth = request.headers.get("Authorization", "")
     expected = "Bearer " + CB16_WORKER_TOKEN
-    return bool(CB16_WORKER_TOKEN) and hmac.compare_digest(auth, expected)
+    internal = request.headers.get("X-CB16-Internal-Secret", "")
+    return (
+        bool(CB16_WORKER_TOKEN)
+        and bool(CB16_INTERNAL_SECRET)
+        and hmac.compare_digest(auth, expected)
+        and hmac.compare_digest(internal, CB16_INTERNAL_SECRET)
+    )
 
 
 def _unauthorized():

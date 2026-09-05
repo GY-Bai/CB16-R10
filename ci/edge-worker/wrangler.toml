@@ -1,0 +1,9 @@
+name = "cb16-ci-auth"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+workers_dev = false
+
+[[routes]]
+pattern = "ci-speedtest.bayesdesk.com/api/v1/worker/*"
+zone_name = "bayesdesk.com"
