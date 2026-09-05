@@ -33,6 +33,10 @@ VALIDATION_END_MS = FORBIDDEN_FINAL_START_MS
 HOUR_MS = 3_600_000
 H72 = 72
 TRAIN_VALIDATION_PURGE_HOURS = 128
+# Binance funding calc_time in official archives can carry tiny millisecond settlement jitter
+# around the scheduled UTC hour (e.g. +2 ms). R10.2.1 canonicalizes only bounded jitter.
+FUNDING_CANONICAL_JITTER_TOLERANCE_MS = 1_000
+FUNDING_CANONICALIZATION_POLICY = "NEAREST_UTC_HOUR_IF_ABS_JITTER_LE_1000MS__RAW_TIME_AUDITED__NO_FORWARD_FILL"
 
 
 def canonical_json_bytes(obj: Any) -> bytes:

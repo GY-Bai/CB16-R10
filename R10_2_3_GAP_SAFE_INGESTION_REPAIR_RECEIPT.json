@@ -1,0 +1,49 @@
+{
+  "compatibility_rules": [
+    "NON_INCREASING_1M_REMAINS_HARD_FAIL",
+    "NON_MINUTE_ALIGNED_1M_REMAINS_HARD_FAIL",
+    "POSITIVE_WHOLE_MINUTE_REAL_GAP_ALLOWED",
+    "RESET_MINUTE_BUFFER_ON_GAP",
+    "RESET_HOUR_BUFFER_ON_GAP",
+    "DISCARD_PARTIAL_HOUR_ON_GAP",
+    "RESET_CURRENT_HOUR_START_ON_GAP",
+    "NO_SYNTHETIC_1M_ROWS",
+    "NO_SYNTHETIC_1H_ROWS",
+    "NO_OHLCV_FORWARD_FILL",
+    "POST_GAP_SENSORY_REQUIRES_FRESH_CONTIGUOUS_CONTEXT",
+    "OBSERVED_HOURLY_DISCONTINUITY_PRESERVED",
+    "FUNDING_WITH_ABSENT_HOUR_INSIDE_OBSERVED_DISCONTINUITY_IS_OMITTED_NOT_SHIFTED",
+    "MISSING_FUNDING_HOUR_OUTSIDE_OBSERVED_DISCONTINUITY_REMAINS_HARD_FAIL",
+    "NO_FUNDING_FORWARD_FILL",
+    "CROSS_GAP_ANCHORS_REJECTED_BY_CONTIGUITY_FILTER",
+    "FINAL_HOLDOUT_2025_09_FIREWALL_UNCHANGED"
+  ],
+  "final_holdout_boundary_changed": false,
+  "known_real_gap": {
+    "first_post_gap_1m": "2022-03-01T00:00:00Z",
+    "last_pre_gap_1m": "2022-02-25T23:59:00Z",
+    "missing_calendar_days": [
+      "2022-02-26",
+      "2022-02-27",
+      "2022-02-28"
+    ],
+    "symbol": "SOLUSDT"
+  },
+  "local_regression": {
+    "command": "python -m pytest -q tests/test_r102_gap_safe_ingestion.py tests/test_r1021_funding_timestamp.py tests/test_r102_core.py tests/test_r102_policy_trace.py tests/test_r102_r81_parallel_runtime.py",
+    "failed": 0,
+    "passed": 17
+  },
+  "parent_library_package": "CB16_SHANXI_R10_2_1_FUNDING_TIMESTAMP_COMPAT_REPAIR_V1.tar.gz",
+  "parent_library_package_sha256": "923366cb3469a20184c6f89e9de92f8cd1888e718def4e21034d99949adba9b5",
+  "parent_market_source_sha256": "e70ea932f9e5b4cbf2b792bd623929321913cdc3d3149e68f400128eca483e8d",
+  "physics_semantics_changed": false,
+  "remote_qualification": "PENDING",
+  "repaired_market_source_sha256": "d91c6e40c5525b4f8e913458afaeff0d236c7a5a86a10d0b31042dafc4ac8ef2",
+  "schema": "CB16_R10_2_3_GAP_SAFE_INGESTION_REPAIR_RECEIPT_V1",
+  "scientific_semantics_changed": false,
+  "status": "LOCAL_REGRESSION_PASS__REMOTE_UNIT_PENDING",
+  "teacher_semantics_changed": false,
+  "training_hyperparameters_changed": false,
+  "truth_belief_decision_permission_changed": false
+}

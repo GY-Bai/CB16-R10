@@ -1,12 +1,12 @@
 {
-  "schema": "CB16_R10_2_REAL_HISTORICAL_LEARNING_CONFIG_V1",
-  "profile_name": "R10_2_5GEN_QUALIFICATION",
-  "status": "FROZEN_BEFORE_REAL_RUN",
-  "symbols": [
-    "BTCUSDT",
-    "ETHUSDT",
-    "BNBUSDT",
-    "SOLUSDT"
+  "F0_F1_F2_F3_negative_result_may_be_rescued": false,
+  "account_scenarios": [
+    "CLEAN_FLAT_FULL",
+    "CLEAN_FLAT_LOW_ENVELOPE",
+    "PRIOR_LONG_R025",
+    "PRIOR_SHORT_R025",
+    "PRIOR_LONG_R075",
+    "PRIOR_SHORT_R075"
   ],
   "all_ingest_compatible_symbols": [
     "BTCUSDT",
@@ -20,62 +20,67 @@
     "LTCUSDT",
     "SOLUSDT"
   ],
-  "attempts": 5,
   "anchor_stride_hours": 512,
-  "prehistory_hours": 96,
-  "horizon_hours": 72,
-  "train_decision_time": "H72 maturity + 128h purge <= 2025-01-01T00:00:00Z",
-  "validation_decision_time": "2025-01-01T00:00:00Z through H72 maturity strictly before 2025-09-01T00:00:00Z",
-  "forbidden_final_holdout_month": "2025-09",
-  "read_2025_09": false,
+  "attempts": 5,
   "candidate_grid": {
     "FLAT": [
       0.0
-    ],
-    "SHORT": [
-      0.25,
-      0.5,
-      0.75,
-      1.0
     ],
     "LONG": [
       0.25,
       0.5,
       0.75,
       1.0
+    ],
+    "SHORT": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
     ]
   },
-  "account_scenarios": [
-    "CLEAN_FLAT_FULL",
-    "CLEAN_FLAT_LOW_ENVELOPE",
-    "PRIOR_LONG_R025",
-    "PRIOR_SHORT_R025",
-    "PRIOR_LONG_R075",
-    "PRIOR_SHORT_R075"
-  ],
-  "funding": "Binance event only; exact 1h timestamp; no forward fill",
-  "mark_index": "1h close proxy, inherited V5.5 historical adapter semantics",
-  "physics": "byte-exact recovered V5.5 Phase-1 FrozenTradingKernel via ACCOUNT_PHYSICS_STATE_V1_R0",
-  "supervisor": "Risk Supervisor R1; ACCEPT/CLAMP/REJECT/FORCED_NOOP; never increases risk",
-  "teacher": "R6 dependence-aware probabilistic Teacher; no BEST_ACTION/CORRECT_DIRECTION/REALIZED_WINNER labels",
   "dependence_group": "symbol + decision_time; all account replicas and all counterfactual action branches share one market-future support group",
-  "training": {
-    "optimizer": "AdamW FP32",
-    "amp": false,
-    "epochs_per_attempt": 12,
-    "batch_size": 512,
-    "learning_rate": 0.0003,
-    "weight_decay": 0.0001
-  },
-  "promotion": {
-    "metric": "group-weighted validation probabilistic Teacher target loss",
-    "minimum_relative_improvement": 0.001,
-    "F0_F1_F2_F3_are_promotion_driver": false,
-    "single_realized_path_profit_is_correct_action": false
-  },
+  "final_holdout_opening": "PROHIBITED",
+  "forbidden_final_holdout_month": "2025-09",
+  "funding": "Binance archived funding event only; raw calc_time -> nearest UTC hour only if abs jitter <=1000ms; audit raw mapping; no forward fill",
+  "funding_inside_missing_hour_policy": "OMIT_IF_CANONICAL_HOUR_IS_ABSENT_INSIDE_OBSERVED_HOURLY_DISCONTINUITY__NO_SHIFT__NO_FORWARD_FILL",
+  "funding_timestamp_policy": "NEAREST_UTC_HOUR_IF_ABS_JITTER_LE_1000MS__RAW_TIME_AUDITED__NO_FORWARD_FILL",
+  "funding_timestamp_tolerance_ms": 1000,
+  "horizon_hours": 72,
+  "mark_index": "1h close proxy, inherited V5.5 historical adapter semantics",
+  "market_data_gap_policy": "ALLOW_POSITIVE_MINUTE_ALIGNED_REAL_GAPS__RESET_ALL_TEMPORAL_CONTEXT__NO_SYNTHETIC_ROWS__NO_CROSS_GAP_ANCHORS",
+  "market_data_gap_synthetic_fill": false,
+  "physics": "byte-exact recovered V5.5 Phase-1 FrozenTradingKernel via ACCOUNT_PHYSICS_STATE_V1_R0",
   "pipeline_pass_requires_profit": false,
   "pipeline_pass_requires_promotion": false,
-  "F0_F1_F2_F3_negative_result_may_be_rescued": false,
-  "final_holdout_opening": "PROHIBITED",
-  "train_validation_purge_hours": 128
+  "prehistory_hours": 96,
+  "profile_name": "R10_2_5GEN_QUALIFICATION",
+  "promotion": {
+    "F0_F1_F2_F3_are_promotion_driver": false,
+    "metric": "group-weighted validation probabilistic Teacher target loss",
+    "minimum_relative_improvement": 0.001,
+    "single_realized_path_profit_is_correct_action": false
+  },
+  "read_2025_09": false,
+  "schema": "CB16_R10_2_REAL_HISTORICAL_LEARNING_CONFIG_V1",
+  "status": "FROZEN_BEFORE_REAL_RUN",
+  "supervisor": "Risk Supervisor R1; ACCEPT/CLAMP/REJECT/FORCED_NOOP; never increases risk",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT"
+  ],
+  "teacher": "R6 dependence-aware probabilistic Teacher; no BEST_ACTION/CORRECT_DIRECTION/REALIZED_WINNER labels",
+  "train_decision_time": "H72 maturity + 128h purge <= 2025-01-01T00:00:00Z",
+  "train_validation_purge_hours": 128,
+  "training": {
+    "amp": false,
+    "batch_size": 512,
+    "epochs_per_attempt": 12,
+    "learning_rate": 0.0003,
+    "optimizer": "AdamW FP32",
+    "weight_decay": 0.0001
+  },
+  "validation_decision_time": "2025-01-01T00:00:00Z through H72 maturity strictly before 2025-09-01T00:00:00Z"
 }
