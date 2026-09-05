@@ -18,6 +18,7 @@ import tarfile
 import tempfile
 import time
 import uuid
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 import requests
@@ -195,7 +196,41 @@ def upload_result(job_id: str, result: dict, report: Path, sums: Path, stdout_pa
     r.raise_for_status()
 
 
+def clock_canary() -> None:
+    """Startup UTC consistency canary.
+
+    Compares local UTC against:
+      - OCI relay Date header (via Cloudflare)
+      - GitHub API Date header
+    Emits a warning if skew is greater than 30 seconds.
+    """
+    def http_date(url: str, timeout: float = 15.0):
+        try:
+            r = requests.get(url, timeout=timeout)
+            dt = parsedate_to_datetime(r.headers.get("Date", ""))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.timestamp()
+        except Exception:
+            return None
+    local_ts = time.time()
+    remote_ts = []
+    relay_ts = http_date(f"{RELAY_URL}/healthz")
+    if relay_ts is not None:
+        remote_ts.append(("oci", relay_ts))
+    gh_ts = http_date("https://api.github.com")
+    if gh_ts is not None:
+        remote_ts.append(("github", gh_ts))
+    print(f"CLOCK_CANARY local_unix={int(local_ts)}", flush=True)
+    for name, ts in remote_ts:
+        skew = abs(local_ts - ts)
+        print(f"CLOCK_CANARY {name}_unix={int(ts)} skew={skew:.3f}s", flush=True)
+        if skew > 30:
+            print(f"CLOCK_SKEW_TOO_LARGE {name} skew={skew:.3f}s > 30s", flush=True)
+
+
 def main_loop():
+    clock_canary()
     while True:
         try:
             job = get_next_job()
