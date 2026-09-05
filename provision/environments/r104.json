@@ -5,13 +5,15 @@
     "requires": ">=3.10,<3.13"
   },
   "requirements": [
-    "requirements-shanxi-pascal.txt"
+    "requirements-shanxi-pascal.txt",
+    "requirements-ci-runtime.txt"
   ],
   "imports": [
     "torch",
     "numpy",
     "pandas",
-    "lightgbm"
+    "lightgbm",
+    "pytest"
   ],
   "system_capabilities": [
     "cuda",

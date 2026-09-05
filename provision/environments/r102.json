@@ -2,8 +2,8 @@
   "schema": "CB16_ENVIRONMENT_V1",
   "id": "r102",
   "python": { "requires": ">=3.10,<3.13" },
-  "requirements": ["requirements-shanxi-pascal.txt"],
-  "imports": ["torch","numpy","pandas","lightgbm"],
+  "requirements": ["requirements-shanxi-pascal.txt","requirements-ci-runtime.txt"],
+  "imports": ["torch","numpy","pandas","lightgbm","pytest"],
   "system_capabilities": ["cuda","nvidia_gpu","git","zstd"],
   "assets": []
 }

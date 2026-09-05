@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json, os, sys, traceback
+import argparse, json, os, re, sys, traceback
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +23,39 @@ def _write_failure_receipt(run_root, exc):
     }
     tmp=rr/'EXECUTION_BLOCKER_RECEIPT_R1021.json.tmp'; final=rr/'EXECUTION_BLOCKER_RECEIPT_R1021.json'
     tmp.write_text(json.dumps(out,indent=2,sort_keys=True)+'\n'); tmp.replace(final)
+
+
+def _safe_blocker_summary(exc):
+    typ=type(exc).__name__
+    code=typ.upper()
+    detail=None
+    if isinstance(exc, ModuleNotFoundError):
+        code='MISSING_PYTHON_MODULE'
+        detail=getattr(exc,'name',None)
+    elif isinstance(exc, PermissionError):
+        code='HOST_PATH_PERMISSION'
+        fn=getattr(exc,'filename',None)
+        detail=Path(fn).name if fn else None
+    elif isinstance(exc, FileNotFoundError):
+        code='HOST_FILE_OR_ASSET_MISSING'
+        fn=getattr(exc,'filename',None)
+        detail=Path(fn).name if fn else None
+    elif isinstance(exc, RuntimeError):
+        m=re.match(r'^([A-Z][A-Z0-9_]{2,80})(?::|$)',str(exc))
+        code=m.group(1) if m else 'RUNTIME_ERROR'
+    return {"exception_type":typ,"error_code":code,"detail":detail,"scientific_verdict_changed":False,"final_holdout_2025_09_accessed":False}
+
+
+def _append_ci_blocker_summary(exc):
+    ci_out=os.environ.get('CI_OUT')
+    if not ci_out:
+        return
+    report=Path(ci_out)/'REPORT.md'
+    summary=_safe_blocker_summary(exc)
+    with report.open('a',encoding='utf-8') as f:
+        f.write('\n## R10 engineering blocker\n\n')
+        for k in ('exception_type','error_code','detail','scientific_verdict_changed','final_holdout_2025_09_accessed'):
+            f.write(f'- {k}: {json.dumps(summary[k],ensure_ascii=True)}\n')
 
 
 def main():
@@ -50,5 +83,6 @@ if __name__=='__main__':
         main()
     except Exception as exc:
         _write_failure_receipt('/home/bgy/cb16_ssd/runtime/R10_2', exc)
+        _append_ci_blocker_summary(exc)
         raise
 
