@@ -241,7 +241,11 @@ def provision(profile: str) -> dict:
         installer = "pip" if uv_failure is None else "pip_fallback"
         if reqs:
             ok, pip_failure = _pip_install(venv_python, reqs, install_env)
-            if not ok and pip_failure == "INDEX_AUTH" and allow_public_fallback:
+            if (
+                not ok
+                and pip_failure in {"INDEX_AUTH", "NETWORK_OR_INDEX"}
+                and allow_public_fallback
+            ):
                 # Public fallback is opt-in and applies only to Python packages.
                 # Recreate the venv so a partial private-index install cannot leak
                 # into the public-fallback environment identity.

@@ -94,6 +94,7 @@ def _write_public_summary(
             "installer": source.get("installer"),
             "python_version": source.get("python_version"),
             "resolved_packages_sha256": source.get("resolved_packages_sha256"),
+            "public_index_fallback_used": source.get("public_index_fallback_used"),
         }
 
     assets = []
