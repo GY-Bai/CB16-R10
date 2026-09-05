@@ -557,7 +557,7 @@ async def upload_logs(job_id: str, request: Request):
     result_path = RESULTS_DIR / job_id
     result_path.mkdir(parents=True, exist_ok=True)
     form = await request.form()
-    for field_name in ("stdout.log", "stderr.log", "REPORT.md", "SHA256SUMS"):
+    for field_name in ("stdout.log", "stderr.log", "REPORT.md", "SHA256SUMS", "provisioning_summary.json"):
         f = form.get(field_name)
         if f is not None:
             data = await f.read()
