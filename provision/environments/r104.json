@@ -19,8 +19,5 @@
     "git",
     "zstd"
   ],
-  "assets": [
-    "kronos_small",
-    "timesfm_2p5"
-  ]
+  "assets": []
 }

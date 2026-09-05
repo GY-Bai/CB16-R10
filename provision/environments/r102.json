@@ -5,5 +5,5 @@
   "requirements": ["requirements-shanxi-pascal.txt"],
   "imports": ["torch","numpy","pandas","lightgbm"],
   "system_capabilities": ["cuda","nvidia_gpu","git","zstd"],
-  "assets": ["kronos_small","timesfm_2p5"]
+  "assets": []
 }
