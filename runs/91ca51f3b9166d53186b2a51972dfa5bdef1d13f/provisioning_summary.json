@@ -1,0 +1,16 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "91ca51f3b9166d53186b2a51972dfa5bdef1d13f",
+  "ci_profile": "unit",
+  "environment_id": "unit",
+  "environment_sha256": "9a9321deaec791034af88dc2b1cf8423ead8766dd0112b8ec2529120ab7e5e8b",
+  "status": "PROVISION_FAILED",
+  "python": {
+    "status": "NOT_RUN",
+    "cache_hit": null
+  },
+  "assets": [],
+  "failure_stage": "python",
+  "error_code": "PYTHON_REQUIREMENTS_INSTALL_FAILED",
+  "error_type": "RuntimeError"
+}
