@@ -14,7 +14,6 @@ from provision_common import (
     VENV_ROOT,
     atomic_write_json,
     ensure_dirs,
-    load_json,
     repo_root,
 )
 from resolve_environment import resolve
@@ -22,7 +21,10 @@ from resolve_environment import resolve
 
 def load_provision_env() -> dict[str, str]:
     out: dict[str, str] = {}
-    for path in (Path("/etc/cb16-ci/provision.env"), Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci")) / "provision.env"):
+    for path in (
+        Path("/etc/cb16-ci/provision.env"),
+        Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci")) / "provision.env",
+    ):
         if path.exists():
             for line in path.read_text().splitlines():
                 line = line.strip()
@@ -32,11 +34,28 @@ def load_provision_env() -> dict[str, str]:
     return out
 
 
+def _run_checked(cmd: list[str], error_code: str, **kwargs) -> None:
+    """Run a provisioning subprocess without leaking captured provider/index details."""
+    try:
+        subprocess.run(cmd, check=True, **kwargs)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"{error_code}:exit={e.returncode}") from None
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"{error_code}:timeout") from None
+    except OSError as e:
+        raise RuntimeError(f"{error_code}:{type(e).__name__}") from None
+
+
 def canary_imports(venv_python: Path, imports: list[str]) -> None:
     if not imports:
         return
     code = "\n".join(f"import {imp.split('[')[0].split(':')[0]}" for imp in imports)
-    subprocess.run([str(venv_python), "-c", code], check=True, capture_output=True)
+    _run_checked(
+        [str(venv_python), "-c", code],
+        "PYTHON_IMPORT_CANARY_FAILED",
+        capture_output=True,
+        text=True,
+    )
 
 
 def provision(profile: str) -> dict:
@@ -54,19 +73,25 @@ def provision(profile: str) -> dict:
                 "python": {"status": "READY", "cache_hit": True, "venv": str(venv_dir)},
             }
         shutil.rmtree(venv_dir, ignore_errors=True)
+
     ensure_dirs()
     if venv_dir.exists():
         shutil.rmtree(venv_dir, ignore_errors=True)
     venv_dir.mkdir(parents=True, exist_ok=True)
+
     if shutil.which("uv"):
-        subprocess.run(["uv", "venv", str(venv_dir)], check=True)
+        _run_checked(["uv", "venv", str(venv_dir)], "PYTHON_VENV_CREATE_FAILED")
         venv_python = venv_dir / "bin" / "python"
     else:
-        subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
+        _run_checked([sys.executable, "-m", "venv", str(venv_dir)], "PYTHON_VENV_CREATE_FAILED")
         venv_python = venv_dir / "bin" / "python"
+
     prov_env = load_provision_env()
-    # Install requirements from repo-relative paths.
     reqs = [repo_root() / r for r in manifest.get("requirements", [])]
+    for r in reqs:
+        if not r.is_file():
+            raise RuntimeError(f"PYTHON_REQUIREMENTS_FILE_MISSING:{r.name}")
+
     if reqs:
         if shutil.which("uv"):
             cmd = ["uv", "pip", "install", "--python", str(venv_python)]
@@ -81,11 +106,29 @@ def provision(profile: str) -> dict:
             env["PIP_INDEX_URL"] = prov_env["PIP_INDEX_URL"]
         if prov_env.get("PIP_EXTRA_INDEX_URL"):
             env["PIP_EXTRA_INDEX_URL"] = prov_env["PIP_EXTRA_INDEX_URL"]
-        subprocess.run(cmd, check=True, env=env, capture_output=True)
+        _run_checked(
+            cmd,
+            "PYTHON_REQUIREMENTS_INSTALL_FAILED",
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+
     if shutil.which("uv"):
-        subprocess.run(["uv", "pip", "check", "--python", str(venv_python)], check=True, capture_output=True)
+        _run_checked(
+            ["uv", "pip", "check", "--python", str(venv_python)],
+            "PYTHON_DEPENDENCY_CHECK_FAILED",
+            capture_output=True,
+            text=True,
+        )
     else:
-        subprocess.run([str(venv_python), "-m", "pip", "check"], check=True, capture_output=True)
+        _run_checked(
+            [str(venv_python), "-m", "pip", "check"],
+            "PYTHON_DEPENDENCY_CHECK_FAILED",
+            capture_output=True,
+            text=True,
+        )
+
     canary_imports(venv_python, manifest.get("imports", []))
     atomic_write_json(
         ready_path,
