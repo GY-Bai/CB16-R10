@@ -53,7 +53,6 @@ def provision(profile: str) -> dict:
                 "environment_hash": env_hash,
                 "python": {"status": "READY", "cache_hit": True, "venv": str(venv_dir)},
             }
-        import shutil
         shutil.rmtree(venv_dir, ignore_errors=True)
     ensure_dirs()
     if venv_dir.exists():
