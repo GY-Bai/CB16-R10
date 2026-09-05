@@ -8,10 +8,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import argparse
 import fcntl
+import hashlib
 import json
 import os
 import shutil
-import sys
 from pathlib import Path
 
 from provision_common import (
@@ -22,10 +22,10 @@ from provision_common import (
     ensure_dirs,
     load_json,
     load_registry,
-    repo_root,
     save_registry,
 )
-from provision.providers import PROVIDERS, Candidate, ProviderError
+from provision.providers import PROVIDERS, Provider, ProviderError
+from provision.providers.base import integrity_target, sha256_file
 from resolve_environment import resolve
 
 ASSET_DIR = PROVISION_ROOT / "assets"
@@ -71,6 +71,36 @@ def _storage_base(manifest: dict) -> Path:
     return root / logical
 
 
+def _verified_sha(destination: Path, manifest: dict) -> str | None:
+    integrity = manifest.get("integrity") or {}
+    if not integrity.get("sha256"):
+        return None
+    target = integrity_target(destination, manifest)
+    return sha256_file(target)
+
+
+def _verify_existing(path: Path, manifest: dict) -> tuple[bool, str | None]:
+    try:
+        Provider().verify(path, manifest)
+        return True, _verified_sha(path, manifest)
+    except Exception:
+        return False, None
+
+
+def _ready_result(
+    *, asset_id: str, manifest: dict, path: Path, cache_hit: bool, provider: str, sha256: str | None
+) -> dict:
+    return {
+        "asset_id": asset_id,
+        "status": "READY",
+        "cache_hit": cache_hit,
+        "provider": provider,
+        "integrity_mode": manifest.get("integrity_mode"),
+        "sha256": sha256,
+        "local_path": str(path),
+    }
+
+
 def provision_asset(manifest: dict, env: dict[str, str]) -> dict:
     asset_id = manifest["asset_id"]
     if not env:
@@ -79,95 +109,98 @@ def provision_asset(manifest: dict, env: dict[str, str]) -> dict:
     try:
         registry = load_registry()
         entry = registry.get(asset_id)
-        if entry and entry.get("status") == "READY":
-            return {
-                "asset_id": asset_id,
-                "status": "READY",
-                "cache_hit": True,
-                "sha256": entry.get("sha256"),
-                "local_path": entry.get("local_path"),
-            }
+        if entry and entry.get("status") == "READY" and entry.get("local_path"):
+            cached = Path(entry["local_path"])
+            ok, verified_sha = _verify_existing(cached, manifest)
+            if ok:
+                return _ready_result(
+                    asset_id=asset_id,
+                    manifest=manifest,
+                    path=cached,
+                    cache_hit=True,
+                    provider=str(entry.get("provider") or "registry"),
+                    sha256=verified_sha or entry.get("sha256"),
+                )
+            # A previous DISCOVERY/marker-only registration must not survive a stronger manifest.
+            registry.pop(asset_id, None)
+            save_registry(registry)
 
         dest = _storage_base(manifest)
         dest.parent.mkdir(parents=True, exist_ok=True)
-        last_errors = []
+        last_errors: list[str] = []
+        winning_provider: str | None = None
+        winning_path: Path | None = None
+
         for source in manifest.get("sources", []):
+            handled = False
             for provider in PROVIDERS:
                 if not provider.can_handle(source):
                     continue
+                handled = True
                 try:
                     candidate = provider.resolve(source, env)
                     if candidate is None:
                         continue
-                    # For local existing, just register resolved path.
+
                     if provider.name == "local" and candidate.local_path is not None:
                         local = candidate.local_path
-                        # If logical destination is a directory and local is a directory, register it.
-                        if local.is_dir():
-                            registry[asset_id] = {
-                                "asset_id": asset_id,
-                                "local_path": str(local),
-                                "status": "READY",
-                                "cache_hit": True,
-                                "sha256": None,
-                            }
-                            save_registry(registry)
-                            return {
-                                "asset_id": asset_id,
-                                "status": "READY",
-                                "cache_hit": True,
-                                "local_path": str(local),
-                            }
-                        # File local: copy to destination and verify.
-                        dest.parent.mkdir(parents=True, exist_ok=True)
-                        tmp = dest.with_suffix(dest.suffix + ".partial")
-                        shutil.copy2(local, tmp)
-                        provider.verify(tmp, manifest)
-                        tmp.replace(dest)
+                        provider.verify(local, manifest)
+                        winning_provider = provider.name
+                        winning_path = local
                         break
+
+                    # Destination may contain an invalid marker-only V1 registration. Keep
+                    # any resumable provider metadata but never call it READY until verify passes.
                     provider.download(candidate, dest, env)
                     provider.verify(dest, manifest)
+                    winning_provider = provider.name
+                    winning_path = dest
                     break
-                except Exception as e:
-                    last_errors.append(f"{provider.name}:{type(e).__name__}:{e}")
+                except Exception as exc:
+                    # Coarse diagnostics only: provider + exception class/code, never URLs/tokens.
+                    text = str(exc)
+                    code = text.split(":", 1)[0] if text else type(exc).__name__
+                    last_errors.append(f"{provider.name}:{code}")
                     continue
-            else:
-                continue
-            break
-        else:
-            raise ProviderError(
-                "ALL_PROVIDERS_FAILED:" + ";".join(last_errors[-5:]) if last_errors else "NO_SOURCES"
-            )
+            if winning_path is not None:
+                break
+            if not handled:
+                last_errors.append(f"source:{source.get('type','unknown')}:NO_PROVIDER")
 
-        sha = None
-        import hashlib
-        if dest.is_file():
-            sha = hashlib.sha256(dest.read_bytes()).hexdigest()
+        if winning_path is None or winning_provider is None:
+            detail = ";".join(last_errors[-8:]) if last_errors else "NO_SOURCES"
+            raise ProviderError("ALL_PROVIDERS_FAILED:" + detail)
+
+        verified_sha = _verified_sha(winning_path, manifest)
         if manifest.get("integrity_mode") == "DISCOVERY":
-            # Discovery assets are never automatically frozen authority.
             discovery = {
                 "schema": "CB16_DISCOVERED_ASSET_V1",
                 "asset_id": asset_id,
-                "observed_sha256": sha,
+                "observed_sha256": verified_sha,
                 "status": "AVAILABLE_FOR_DISCOVERY",
-                "provider": "mixed",
+                "provider": winning_provider,
             }
             atomic_write_json(ASSET_REGISTRY_DIR / f"DISCOVERED_{asset_id}.json", discovery)
+
+        registry = load_registry()
         registry[asset_id] = {
             "asset_id": asset_id,
-            "local_path": str(dest),
+            "local_path": str(winning_path),
             "status": "READY",
             "cache_hit": False,
-            "sha256": sha,
+            "provider": winning_provider,
+            "integrity_mode": manifest.get("integrity_mode"),
+            "sha256": verified_sha,
         }
         save_registry(registry)
-        return {
-            "asset_id": asset_id,
-            "status": "READY",
-            "cache_hit": False,
-            "sha256": sha,
-            "local_path": str(dest),
-        }
+        return _ready_result(
+            asset_id=asset_id,
+            manifest=manifest,
+            path=winning_path,
+            cache_hit=False,
+            provider=winning_provider,
+            sha256=verified_sha,
+        )
     finally:
         release_lock(lock)
 

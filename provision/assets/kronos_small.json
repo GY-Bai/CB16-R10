@@ -3,10 +3,26 @@
   "asset_id": "kronos_small",
   "type": "model",
   "required": true,
-  "integrity_mode": "DISCOVERY",
-  "integrity": { "sha256": null, "size_bytes": null },
-  "storage": { "class": "shanxi_local", "logical_path": "assets/kronos-small-v1" },
+  "integrity_mode": "FROZEN",
+  "integrity": {
+    "sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+    "size_bytes": 98980656,
+    "relative_path": "model.safetensors"
+  },
+  "storage": {
+    "class": "shanxi_local",
+    "logical_path": "assets/kronos-small"
+  },
   "sources": [
-    { "type": "huggingface", "repo_id": "NeoQuasar/Kronos-small", "revision": "901c26c1332695a2a8f243eb2f37243a37bea320" }
+    {
+      "type": "manual_existing",
+      "hint_env": "CB16_KRONOS_SMALL_ROOT"
+    },
+    {
+      "type": "huggingface",
+      "repo_id": "NeoQuasar/Kronos-small",
+      "revision": "901c26c1332695a2a8f243eb2f37243a37bea320",
+      "allow_patterns": ["model.safetensors", "config.json"]
+    }
   ]
 }

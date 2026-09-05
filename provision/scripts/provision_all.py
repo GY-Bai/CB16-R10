@@ -13,7 +13,7 @@ import subprocess
 from pathlib import Path
 
 from provision_common import JOB_ROOT, atomic_write_json, ensure_dirs
-from provision_python import provision
+from provision_python import load_provision_env, provision
 from provision_assets import provision_assets
 from resolve_environment import resolve
 
@@ -98,7 +98,9 @@ def _write_public_summary(
                 {
                     "asset_id": a.get("asset_id"),
                     "status": a.get("status"),
+                    "provider": a.get("provider"),
                     "cache_hit": a.get("cache_hit"),
+                    "integrity_mode": a.get("integrity_mode"),
                     "sha256": a.get("sha256"),
                 }
             )
@@ -201,8 +203,12 @@ def main() -> int:
             error_type=type(exc).__name__,
         )
 
+    # Provider/index configuration is intentionally host-local. Merge it only into
+    # the provisioning subprocess environment and never publish its values.
+    asset_env = os.environ.copy()
+    asset_env.update(load_provision_env())
     try:
-        asset_result = provision_assets(args.profile, os.environ.copy())
+        asset_result = provision_assets(args.profile, asset_env)
     except Exception as exc:
         return _fail(
             job_root=job_root,

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import math
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -19,6 +21,47 @@ from cb16_local_opt.r102_learning import parameter_group_norms
 from cb16_local_opt.typed_central_brain_r10 import build_g0_brain_r10
 
 ROOT = Path(__file__).resolve().parents[1]
+
+FROZEN_SOURCE_ASSETS = {
+    "kronos_small": {
+        "env": "CB16_ASSET_KRONOS_SMALL",
+        "relative_path": "model.safetensors",
+        "sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+        "size_bytes": 98980656,
+    },
+    "timesfm_2p5": {
+        "env": "CB16_ASSET_TIMESFM_2P5",
+        "relative_path": "model.safetensors",
+        "sha256": "b53f6d52114e2ad786890f3c4637ce05f580b7800d6e24401f88b398b76035ef",
+        "size_bytes": 925187448,
+    },
+}
+
+
+def sha256_file(path: Path, chunk_size: int = 8 << 20) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for block in iter(lambda: f.read(chunk_size), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def frozen_asset_canary() -> dict:
+    out = {}
+    for asset_id, spec in FROZEN_SOURCE_ASSETS.items():
+        root = os.environ.get(spec["env"])
+        assert root, f"FROZEN_ASSET_ENV_MISSING:{asset_id}"
+        weight = Path(root) / spec["relative_path"]
+        assert weight.is_file(), f"FROZEN_ASSET_FILE_MISSING:{asset_id}"
+        assert weight.stat().st_size == spec["size_bytes"], f"FROZEN_ASSET_SIZE_MISMATCH:{asset_id}"
+        actual = sha256_file(weight)
+        assert actual == spec["sha256"], f"FROZEN_ASSET_SHA256_MISMATCH:{asset_id}"
+        out[asset_id] = {
+            "status": "PASS",
+            "sha256": actual,
+            "size_bytes": weight.stat().st_size,
+        }
+    return {"status": "PASS", "assets": out}
 
 
 def teacher_distribution_canary() -> dict:
@@ -38,8 +81,6 @@ def teacher_distribution_canary() -> dict:
     teacher = DependenceAwareProbabilisticTeacherR6(cfg)
     samples: list[CounterfactualBranchSampleR5] = []
 
-    # Forty independent future groups, each with two account replicas. The replicas
-    # must never count as independent support by themselves.
     for g in range(40):
         dep = f"DEP_{g:03d}"
         ts = 1_700_000_000 + g
@@ -66,8 +107,6 @@ def teacher_distribution_canary() -> dict:
                     )
                 )
 
-    # Target group is strictly later and therefore must be excluded from its own
-    # PREQUENTIAL teacher support.
     target_dep = "DEP_TARGET"
     target_parent = "P_TARGET"
     target_ts = 1_700_000_100
@@ -87,10 +126,7 @@ def teacher_distribution_canary() -> dict:
         )
 
     index = teacher.index(samples)
-    train_deps = teacher.train_dependence_groups_for_target(
-        target_parent=target_parent,
-        index=index,
-    )
+    train_deps = teacher.train_dependence_groups_for_target(target_parent=target_parent, index=index)
     assert target_dep not in train_deps, "TARGET_DEPENDENCE_GROUP_LEAKED_INTO_SUPPORT"
     assert len(train_deps) == 40, f"EXPECTED_40_INDEPENDENT_GROUPS_GOT_{len(train_deps)}"
 
@@ -170,6 +206,7 @@ def holdout_lock_canary() -> dict:
 def main() -> int:
     result = {
         "schema": "CB16_INFRA_V6_3_PREFLIGHT_R0",
+        "frozen_assets": frozen_asset_canary(),
         "teacher_distribution": teacher_distribution_canary(),
         "brain_authority": brain_authority_canary(),
         "final_holdout_lock": holdout_lock_canary(),
