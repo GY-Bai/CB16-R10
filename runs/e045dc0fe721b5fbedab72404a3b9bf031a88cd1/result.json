@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "1a03af8e-8399-4265-b18d-b6d79473be71",
+  "commit_sha": "e045dc0fe721b5fbedab72404a3b9bf031a88cd1",
+  "ci_profile": "default",
+  "verdict": "ERROR",
+  "started_at": "2026-09-05T09:14:09Z",
+  "finished_at": "2026-09-05T09:14:09Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "RuntimeError: UNKNOWN_CI_PROFILE:default",
+  "model_artifacts": []
+}
