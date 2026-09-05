@@ -224,6 +224,7 @@ def provision(profile: str) -> dict:
             installer = "uv"
             if reqs:
                 cmd = ["uv", "pip", "install", "--python", str(venv_python)]
+                cmd += ["--index-strategy", "unsafe-best-match"]
                 find_links = install_env.get("UV_FIND_LINKS") or install_env.get("PIP_FIND_LINKS")
                 if find_links:
                     cmd += ["--find-links", find_links]
