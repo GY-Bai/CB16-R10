@@ -436,6 +436,9 @@ def upload_result(
             files["REPORT.md"] = ("REPORT.md", report.open("rb"), "text/markdown")
         if sums.exists():
             files["SHA256SUMS"] = ("SHA256SUMS", sums.open("rb"), "text/plain")
+        prov = report.parent / "provisioning_summary.json"
+        if prov.exists():
+            files["provisioning_summary.json"] = ("provisioning_summary.json", prov.open("rb"), "application/json")
         if files:
             r = requests.post(
                 f"{RELAY_URL}/api/v1/worker/jobs/{job_id}/logs",
