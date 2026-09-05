@@ -1,0 +1,13 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "038fc9d4-802a-4d20-972a-2a10f506d830",
+  "commit_sha": "12433bc6706bb457ffcb604c62c129f1e00c993b",
+  "ci_profile": "smoke",
+  "verdict": "PASS",
+  "started_at": "2026-09-05T16:31:17Z",
+  "finished_at": "2026-09-05T16:31:17Z",
+  "tests_total": 2,
+  "tests_pass": 2,
+  "tests_fail": 0,
+  "model_artifacts": []
+}
