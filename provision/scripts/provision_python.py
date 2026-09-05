@@ -112,6 +112,29 @@ def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     return env
 
 
+def _public_pypi_env(base_env: dict[str, str]) -> dict[str, str]:
+    """Return a pip environment that ignores host/private index configuration.
+
+    This is only used when the environment manifest explicitly opts in. Proxy,
+    TLS/CA, locale, and ordinary process settings remain intact. Requirements may
+    still declare their own public --extra-index-url (e.g. PyTorch CUDA wheels).
+    """
+    env = base_env.copy()
+    for key in (
+        "PIP_EXTRA_INDEX_URL",
+        "PIP_TRUSTED_HOST",
+        "PIP_NO_INDEX",
+        "PIP_FIND_LINKS",
+        "UV_INDEX_URL",
+        "UV_EXTRA_INDEX_URL",
+        "UV_DEFAULT_INDEX",
+    ):
+        env.pop(key, None)
+    env["PIP_INDEX_URL"] = "https://pypi.org/simple"
+    env["PIP_CONFIG_FILE"] = os.devnull
+    return env
+
+
 def _create_stdlib_venv(venv_dir: Path) -> Path:
     shutil.rmtree(venv_dir, ignore_errors=True)
     _run_checked([sys.executable, "-m", "venv", str(venv_dir)], "PYTHON_VENV_CREATE_FAILED")
@@ -141,10 +164,19 @@ def canary_imports(venv_python: Path, imports: list[str]) -> None:
         raise RuntimeError(f"PYTHON_IMPORT_CANARY_FAILED_{cls}")
 
 
+def _pip_install(venv_python: Path, reqs: list[Path], env: dict[str, str]) -> tuple[bool, str]:
+    cmd = [str(venv_python), "-m", "pip", "install"]
+    for r in reqs:
+        cmd += ["-r", str(r)]
+    return _run_capture(cmd, env=env)
+
+
 def provision(profile: str) -> dict:
     resolved = resolve(profile)
     manifest = resolved["manifest"]
-    required_python = (manifest.get("python") or {}).get("requires")
+    python_cfg = manifest.get("python") or {}
+    required_python = python_cfg.get("requires")
+    allow_public_fallback = bool(python_cfg.get("allow_public_index_fallback", False))
     if required_python and not _python_satisfies(required_python):
         raise RuntimeError(f"PYTHON_VERSION_UNSUPPORTED_{sys.version_info.major}_{sys.version_info.minor}")
 
@@ -166,6 +198,7 @@ def provision(profile: str) -> dict:
                     "installer": ready.get("installer", "cached"),
                     "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
                     "resolved_packages_sha256": package_hash,
+                    "public_index_fallback_used": bool(ready.get("public_index_fallback_used", False)),
                 },
             }
         shutil.rmtree(venv_dir, ignore_errors=True)
@@ -183,6 +216,7 @@ def provision(profile: str) -> dict:
 
     installer = "stdlib-venv"
     uv_failure: str | None = None
+    public_fallback_used = False
     if shutil.which("uv"):
         ok, cls = _run_capture(["uv", "venv", str(venv_dir)], env=install_env)
         if ok:
@@ -206,11 +240,23 @@ def provision(profile: str) -> dict:
         venv_python = _create_stdlib_venv(venv_dir)
         installer = "pip" if uv_failure is None else "pip_fallback"
         if reqs:
-            cmd = [str(venv_python), "-m", "pip", "install"]
-            for r in reqs:
-                cmd += ["-r", str(r)]
-            ok, pip_failure = _run_capture(cmd, env=install_env)
-            if not ok:
+            ok, pip_failure = _pip_install(venv_python, reqs, install_env)
+            if not ok and pip_failure == "INDEX_AUTH" and allow_public_fallback:
+                # Public fallback is opt-in and applies only to Python packages.
+                # Recreate the venv so a partial private-index install cannot leak
+                # into the public-fallback environment identity.
+                venv_python = _create_stdlib_venv(venv_dir)
+                public_env = _public_pypi_env(install_env)
+                ok, public_failure = _pip_install(venv_python, reqs, public_env)
+                if not ok:
+                    uv_part = f"UV_{uv_failure}_" if uv_failure else ""
+                    raise RuntimeError(
+                        f"PYTHON_REQUIREMENTS_PUBLIC_FALLBACK_FAILED_{uv_part}PIP_{public_failure}"
+                    )
+                install_env = public_env
+                installer = "pip_public_fallback"
+                public_fallback_used = True
+            elif not ok:
                 uv_part = f"UV_{uv_failure}_" if uv_failure else ""
                 raise RuntimeError(f"PYTHON_REQUIREMENTS_INSTALL_FAILED_{uv_part}PIP_{pip_failure}")
         ok, pip_check = _run_capture([str(venv_python), "-m", "pip", "check"], env=install_env)
@@ -227,6 +273,7 @@ def provision(profile: str) -> dict:
         "installer": installer,
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         "resolved_packages_sha256": package_hash,
+        "public_index_fallback_used": public_fallback_used,
         "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
     atomic_write_json(ready_path, ready)
@@ -240,6 +287,7 @@ def provision(profile: str) -> dict:
             "installer": installer,
             "python_version": ready["python_version"],
             "resolved_packages_sha256": package_hash,
+            "public_index_fallback_used": public_fallback_used,
         },
     }
 

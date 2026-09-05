@@ -3,20 +3,22 @@
   "$id": "CB16_ENVIRONMENT_V1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema","id","python"],
+  "required": ["schema", "id", "python"],
   "properties": {
-    "schema": { "const": "CB16_ENVIRONMENT_V1" },
-    "id": { "type": "string" },
+    "schema": {"const": "CB16_ENVIRONMENT_V1"},
+    "id": {"type": "string"},
     "python": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["requires"],
       "properties": {
-        "requires": { "type": "string" }
+        "requires": {"type": "string"},
+        "allow_public_index_fallback": {"type": "boolean"}
       }
     },
-    "requirements": { "type": "array", "items": { "type": "string" } },
-    "imports": { "type": "array", "items": { "type": "string" } },
-    "system_capabilities": { "type": "array", "items": { "type": "string" } },
-    "assets": { "type": "array", "items": { "type": "string" } }
+    "requirements": {"type": "array", "items": {"type": "string"}},
+    "imports": {"type": "array", "items": {"type": "string"}},
+    "system_capabilities": {"type": "array", "items": {"type": "string"}},
+    "assets": {"type": "array", "items": {"type": "string"}}
   }
 }

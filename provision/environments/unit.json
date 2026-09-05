@@ -1,7 +1,10 @@
 {
   "schema": "CB16_ENVIRONMENT_V1",
   "id": "unit",
-  "python": { "requires": ">=3.10,<3.13" },
+  "python": {
+    "requires": ">=3.10,<3.13",
+    "allow_public_index_fallback": true
+  },
   "requirements": ["requirements-base.txt", "requirements-unit.txt"],
   "imports": ["numpy", "pytest"],
   "system_capabilities": ["git", "zstd"],

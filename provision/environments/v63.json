@@ -2,7 +2,8 @@
   "schema": "CB16_ENVIRONMENT_V1",
   "id": "v63",
   "python": {
-    "requires": ">=3.10,<3.13"
+    "requires": ">=3.10,<3.13",
+    "allow_public_index_fallback": true
   },
   "requirements": [
     "requirements-shanxi-pascal.txt"
