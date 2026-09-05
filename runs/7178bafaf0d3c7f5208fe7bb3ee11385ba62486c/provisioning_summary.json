@@ -1,0 +1,25 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "7178bafaf0d3c7f5208fe7bb3ee11385ba62486c",
+  "ci_profile": "unit",
+  "environment_id": "unit",
+  "environment_sha256": "97f1266ee7aea8aa746341badcd41c9997511b916d162cce76a23d7b08b6eadc",
+  "runtime_identity": {
+    "python_implementation": "CPython",
+    "python_major_minor": [
+      3,
+      10
+    ],
+    "sys_platform": "linux",
+    "machine": "x86_64"
+  },
+  "status": "PROVISION_FAILED",
+  "python": {
+    "status": "NOT_RUN",
+    "cache_hit": null
+  },
+  "assets": [],
+  "failure_stage": "python",
+  "error_code": "PYTHON_REQUIREMENTS_PUBLIC_FALLBACK_FAILED_PIP_RESOLUTION_CONFLICT",
+  "error_type": "RuntimeError"
+}
