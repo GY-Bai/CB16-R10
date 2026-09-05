@@ -183,9 +183,9 @@ def create_job_from_webhook(payload: dict[str, Any], delivery_id: str) -> dict[s
     job_id = str(uuid.uuid4())
     with db() as conn:
         # idempotency on delivery id and on repository+sha+profile
-        row = conn.execute("SELECT id FROM deliveries WHERE delivery_id=?", (delivery_id,)).fetchone()
+        row = conn.execute("SELECT delivery_id FROM deliveries WHERE delivery_id=?", (delivery_id,)).fetchone()
         if row:
-            raise DuplicateDelivery(row["id"])
+            raise DuplicateDelivery(row["delivery_id"])
         conn.execute("INSERT INTO deliveries(delivery_id, created_at) VALUES (?, ?)", (delivery_id, now_iso()))
         existing = conn.execute(
             "SELECT id FROM jobs WHERE repository=? AND commit_sha=? AND ci_profile=?",
