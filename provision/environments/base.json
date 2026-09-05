@@ -1,0 +1,9 @@
+{
+  "schema": "CB16_ENVIRONMENT_V1",
+  "id": "base",
+  "python": { "requires": ">=3.10,<3.13" },
+  "requirements": ["requirements-base.txt"],
+  "imports": ["numpy"],
+  "system_capabilities": ["git","zstd"],
+  "assets": []
+}

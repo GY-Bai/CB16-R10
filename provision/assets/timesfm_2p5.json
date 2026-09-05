@@ -1,0 +1,12 @@
+{
+  "schema": "CB16_ASSET_V1",
+  "asset_id": "timesfm_2p5",
+  "type": "model",
+  "required": true,
+  "integrity_mode": "DISCOVERY",
+  "integrity": { "sha256": null, "size_bytes": null },
+  "storage": { "class": "shanxi_local", "logical_path": "assets/timesfm-2.5-200m" },
+  "sources": [
+    { "type": "huggingface", "repo_id": "google/timesfm-2.5-200m-transformers", "revision": "5a9806b9b291fad9233b5249d88263f1846304d3" }
+  ]
+}

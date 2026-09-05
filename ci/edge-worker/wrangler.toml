@@ -1,4 +1,5 @@
 name = "cb16-ci-auth"
+account_id = "25dea0f8748cc0d718d11a64983b4123"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 

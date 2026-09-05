@@ -1,0 +1,12 @@
+{
+  "schema": "CB16_ASSET_V1",
+  "asset_id": "kronos_small",
+  "type": "model",
+  "required": true,
+  "integrity_mode": "DISCOVERY",
+  "integrity": { "sha256": null, "size_bytes": null },
+  "storage": { "class": "shanxi_local", "logical_path": "assets/kronos-small-v1" },
+  "sources": [
+    { "type": "huggingface", "repo_id": "NeoQuasar/Kronos-small", "revision": "901c26c1332695a2a8f243eb2f37243a37bea320" }
+  ]
+}

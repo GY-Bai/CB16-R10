@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CB16_ENVIRONMENT_V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","id","python"],
+  "properties": {
+    "schema": { "const": "CB16_ENVIRONMENT_V1" },
+    "id": { "type": "string" },
+    "python": {
+      "type": "object",
+      "required": ["requires"],
+      "properties": {
+        "requires": { "type": "string" }
+      }
+    },
+    "requirements": { "type": "array", "items": { "type": "string" } },
+    "imports": { "type": "array", "items": { "type": "string" } },
+    "system_capabilities": { "type": "array", "items": { "type": "string" } },
+    "assets": { "type": "array", "items": { "type": "string" } }
+  }
+}

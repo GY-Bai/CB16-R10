@@ -1,5 +1,6 @@
-// CB16 CI Worker Edge Auth
-// Approximates Cloudflare Access Service Auth at the edge.
+// CB16 CI Worker Edge Auth (Cloudflare Access-equivalent for V1.1/V1.2)
+// Edge layer validates only the Cloudflare Service Token.
+// CB16 application Bearer is validated by the OCI FastAPI relay.
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -10,12 +11,10 @@ export default {
 
     const clientId = request.headers.get('CF-Access-Client-Id') || '';
     const clientSecret = request.headers.get('CF-Access-Client-Secret') || '';
-    const auth = request.headers.get('Authorization') || '';
 
     if (
       clientId !== env.CF_CLIENT_ID ||
-      clientSecret !== env.CF_CLIENT_SECRET ||
-      auth !== `Bearer ${env.CB16_WORKER_TOKEN}`
+      clientSecret !== env.CF_CLIENT_SECRET
     ) {
       return new Response(JSON.stringify({ error: 'unauthorized' }), {
         status: 403,

@@ -1,0 +1,9 @@
+{
+  "schema": "CB16_ENVIRONMENT_V1",
+  "id": "qualification_python",
+  "python": { "requires": ">=3.10,<3.13" },
+  "requirements": ["provision/requirements-qualification.txt"],
+  "imports": ["six"],
+  "system_capabilities": [],
+  "assets": []
+}

@@ -39,3 +39,12 @@ node_modules/
 # local infra state
 /srv/cb16-ci/
 /data/cb16_ci/
+.wrangler/
+
+# provisioner local state
+/data/cb16_ci/
+venvs/
+asset_registry/
+locks/
+*.partial
+DISCOVERED_*.json

@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""CB16 Provisioner V1 orchestration entrypoint."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+from provision_common import JOB_ROOT, atomic_write_json, ensure_dirs
+from provision_python import provision
+from provision_assets import provision_assets
+from resolve_environment import resolve
+
+SYSTEM_CHECKS = {
+    "git": ["git", "--version"],
+    "zstd": ["zstd", "--version"],
+    "nvidia_gpu": ["nvidia-smi"],
+    "cuda": ["nvidia-smi"],
+    "ffmpeg": ["ffmpeg", "-version"],
+}
+
+
+def check_system_capabilities(manifest: dict) -> dict:
+    results = {}
+    ok = True
+    for cap in manifest.get("system_capabilities", []):
+        cmd = SYSTEM_CHECKS.get(cap)
+        if not cmd:
+            results[cap] = "UNKNOWN_CHECK"
+            ok = False
+            continue
+        try:
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            results[cap] = "PASS"
+        except Exception:
+            results[cap] = "MISSING"
+            ok = False
+    return {"status": "PASS" if ok else "FAIL", "checks": results}
+
+
+def write_resolved_env(job_root: Path, resolved: dict, python_result: dict, asset_result: dict) -> Path:
+    env_path = job_root / "resolved.env"
+    lines = []
+    if python_result["python"].get("venv"):
+        lines.append(f"CB16_VENV={python_result['python']['venv']}")
+        lines.append(f"CI_PYTHON={Path(python_result['python']['venv']) / 'bin' / 'python'}")
+    for a in asset_result.get("assets", []):
+        if a.get("local_path"):
+            key = "CB16_ASSET_" + a["asset_id"].upper().replace("-", "_")
+            lines.append(f"{key}={a['local_path']}")
+    lines.append(f"CB16_ENVIRONMENT_SHA256={resolved['environment_sha256']}")
+    env_path.write_text("\n".join(lines) + "\n")
+    return env_path
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--profile", required=True)
+    ap.add_argument("--job-id", default="manual")
+    ap.add_argument("--repo", default=".")
+    args = ap.parse_args()
+
+    ensure_dirs()
+    repo = Path(args.repo).resolve()
+    job_root = JOB_ROOT / args.job_id
+    job_root.mkdir(parents=True, exist_ok=True)
+
+    resolved = resolve(args.profile)
+    system = check_system_capabilities(resolved["manifest"])
+    if system["status"] != "PASS":
+        report = {
+            "schema": "CB16_PROVISION_RESULT_V1",
+            "status": "PROVISION_FAILED",
+            "environment_id": resolved["environment_id"],
+            "environment_hash": resolved["environment_sha256"],
+            "system": system,
+        }
+        atomic_write_json(job_root / "provisioning.json", report)
+        print(json.dumps(report, indent=2))
+        return 1
+
+    python_result = provision(args.profile)
+    asset_result = provision_assets(args.profile, os.environ.copy())
+    if asset_result["status"] != "PASS":
+        report = {
+            "schema": "CB16_PROVISION_RESULT_V1",
+            "status": "PROVISION_FAILED",
+            "environment_id": resolved["environment_id"],
+            "environment_hash": resolved["environment_sha256"],
+            "python": python_result,
+            "assets": asset_result,
+            "system": system,
+        }
+        atomic_write_json(job_root / "provisioning.json", report)
+        print(json.dumps(report, indent=2))
+        return 1
+
+    env_path = write_resolved_env(job_root, resolved, python_result, asset_result)
+    report = {
+        "schema": "CB16_PROVISION_RESULT_V1",
+        "status": "READY",
+        "environment_id": resolved["environment_id"],
+        "environment_hash": resolved["environment_sha256"],
+        "python": python_result,
+        "assets": asset_result,
+        "system": system,
+        "resolved_env": str(env_path),
+    }
+    atomic_write_json(job_root / "provisioning.json", report)
+    atomic_write_json(job_root / "resolved_environment.json", report)
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,22 @@
+{
+  "schema": "CB16_ASSET_V1",
+  "asset_id": "binance_usdm_1m_funding_2020_2026",
+  "type": "dataset",
+  "required": true,
+  "integrity_mode": "DISCOVERY",
+  "integrity": {
+    "sha256": null,
+    "size_bytes": 1299366537,
+    "manifest_sha256": "afd5641bbc76f43e8be0fa7f415e0057553ba0563bc8edba8f825e7f7f92407a"
+  },
+  "storage": {
+    "class": "shanxi_local",
+    "logical_path": "datasets/binance-usdm-1m-funding-2020-2026"
+  },
+  "sources": [
+    {
+      "type": "manual_existing",
+      "hint_env": "CB16_BINANCE_DATA_ROOT"
+    }
+  ]
+}
