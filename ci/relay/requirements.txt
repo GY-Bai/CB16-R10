@@ -3,3 +3,4 @@ uvicorn[standard]>=0.30
 pydantic>=2
 python-multipart>=0.0.9
 requests>=2.31
+zstandard>=0.22

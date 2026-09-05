@@ -27,6 +27,8 @@ from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import urlparse
 
+import zstandard
+
 from fastapi import FastAPI, Request, Response, UploadFile, File, status
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -148,18 +150,13 @@ def create_bundle(sha: str) -> dict[str, Any]:
         return {"sha": sha, "sha256": hashlib.sha256(data).hexdigest(), "size_bytes": len(data)}
     tmp = bundle_path.with_suffix(".tmp")
     try:
-        # Use git archive piped into zstd if available; otherwise use tar + zstd from tree via git worktree-less export.
-        # On OCI this is fine because we never need a working tree.
-        if shutil.which("zstd"):
-            with open(tmp, "wb") as f:
-                subprocess.run(["git", "-C", str(REPO_MIRROR), "archive", "--format=tar", sha], stdout=f, check=True)
-            # compress in place
-            subprocess.run(["zstd", "-q", "-f", "-o", str(bundle_path), str(tmp)], check=True)
-            tmp.unlink(missing_ok=True)
-        else:
-            # fallback: no compression
-            subprocess.run(["git", "-C", str(REPO_MIRROR), "archive", "--format=tar", sha], stdout=tmp.open("wb"), check=True)
-            tmp.replace(bundle_path)
+        # Always create real zstd archives using the Python zstandard library.
+        with open(tmp, "wb") as f:
+            subprocess.run(["git", "-C", str(REPO_MIRROR), "archive", "--format=tar", sha], stdout=f, check=True)
+        cctx = zstandard.ZstdCompressor()
+        with open(tmp, "rb") as fsrc, open(bundle_path, "wb") as fdst:
+            cctx.copy_stream(fsrc, fdst)
+        tmp.unlink(missing_ok=True)
         data = bundle_path.read_bytes()
         return {"sha": sha, "sha256": hashlib.sha256(data).hexdigest(), "size_bytes": len(data)}
     finally:
