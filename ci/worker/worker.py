@@ -152,7 +152,7 @@ def profile_timeout(profile: str) -> int:
 
 def write_evidence_hashes(ci_out: Path) -> None:
     lines = []
-    for name in ("result.json", "REPORT.md"):
+    for name in ("result.json", "REPORT.md", "provisioning_summary.json"):
         path = ci_out / name
         if path.exists():
             lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {name}")
@@ -237,6 +237,47 @@ def terminate_process_group(proc: subprocess.Popen, grace_seconds: int = 30) -> 
         pass
 
 
+def write_provisioning_summary(job: dict, ci_out: Path) -> None:
+    """Write sanitized provisioning_summary.json into ci_output."""
+    import json as _json
+    prov_root = Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci"))
+    prov_json = prov_root / "jobs" / job["id"] / "provisioning.json"
+    if not prov_json.exists():
+        return
+    try:
+        prov = _json.loads(prov_json.read_text())
+    except Exception:
+        return
+    assets = []
+    for a in prov.get("assets", {}).get("assets", []) if isinstance(prov.get("assets"), dict) else []:
+        assets.append({
+            "asset_id": a.get("asset_id"),
+            "status": a.get("status"),
+            "provider": "local" if a.get("cache_hit") else "unknown",
+            "cache_hit": a.get("cache_hit", False),
+            "integrity_mode": None,
+            "sha256": a.get("sha256"),
+            "manifest_sha256": None,
+        })
+    # For empty assets list from smoke, the provision result stores {"assets": [], "status": "PASS"}.
+    if isinstance(prov.get("assets"), dict) and prov.get("assets").get("assets") == []:
+        assets = []
+    summary = {
+        "schema": "CB16_PROVISION_SUMMARY_V1",
+        "commit_sha": job["commit_sha"],
+        "ci_profile": job.get("ci_profile", "smoke"),
+        "environment_id": prov.get("environment_id"),
+        "environment_sha256": prov.get("environment_hash") or prov.get("environment_sha256"),
+        "python": {
+            "status": (prov.get("python", {}).get("python", {}) or {}).get("status") if isinstance(prov.get("python"), dict) else None,
+            "cache_hit": (prov.get("python", {}).get("python", {}) or {}).get("cache_hit") if isinstance(prov.get("python"), dict) else None,
+        },
+        "assets": assets,
+    }
+    ci_out.mkdir(parents=True, exist_ok=True)
+    (ci_out / "provisioning_summary.json").write_text(_json.dumps(summary, indent=2) + "\n")
+
+
 def run_provisioner(ws: Path, job: dict, env: dict, stdout_path: Path, stderr_path: Path) -> dict:
     """Run provision/scripts/provision_all.py if present. Returns resolved env dict."""
     provision_all = ws / "provision" / "scripts" / "provision_all.py"
@@ -294,6 +335,7 @@ def run_job(job: dict) -> dict:
         env.update(resolved_env)
         if resolved_env.get("CI_PYTHON"):
             env["CI_PYTHON"] = resolved_env["CI_PYTHON"]
+        write_provisioning_summary(job, ci_out)
     except Exception as e:
         result = write_synthetic_evidence(
             ci_out,

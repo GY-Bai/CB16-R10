@@ -140,21 +140,19 @@ def provision_asset(manifest: dict, env: dict[str, str]) -> dict:
             )
 
         sha = None
-        if dest.is_dir():
-            # For a directory, registry only if integrity_mode=FROZEN and known manifest? We record status READY without global sha.
-            integrity = manifest.get("integrity") or {}
-            if manifest.get("integrity_mode") == "DISCOVERY":
-                # Discovery assets are not authority-frozen.
-                discovery = {
-                    "schema": "CB16_DISCOVERED_ASSET_V1",
-                    "asset_id": asset_id,
-                    "observed_sha256": None,
-                    "status": "DISCOVERED",
-                }
-                atomic_write_json(ASSET_REGISTRY_DIR / f"DISCOVERED_{asset_id}.json", discovery)
-        else:
-            import hashlib
+        import hashlib
+        if dest.is_file():
             sha = hashlib.sha256(dest.read_bytes()).hexdigest()
+        if manifest.get("integrity_mode") == "DISCOVERY":
+            # Discovery assets are never automatically frozen authority.
+            discovery = {
+                "schema": "CB16_DISCOVERED_ASSET_V1",
+                "asset_id": asset_id,
+                "observed_sha256": sha,
+                "status": "AVAILABLE_FOR_DISCOVERY",
+                "provider": "mixed",
+            }
+            atomic_write_json(ASSET_REGISTRY_DIR / f"DISCOVERED_{asset_id}.json", discovery)
         registry[asset_id] = {
             "asset_id": asset_id,
             "local_path": str(dest),

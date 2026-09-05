@@ -135,10 +135,14 @@ cat > "$CI_OUT/result.json" <<JSON
 }
 JSON
 
-# Evidence hashes are computed only after both canonical evidence files are final.
+# Evidence hashes are computed only after canonical evidence files are final.
 (
   cd "$CI_OUT"
-  sha256sum result.json REPORT.md > SHA256SUMS
+  files="result.json REPORT.md"
+  if [ -f provisioning_summary.json ]; then
+    files="$files provisioning_summary.json"
+  fi
+  sha256sum $files > SHA256SUMS
 )
 
 echo "VERDICT=$VERDICT"
