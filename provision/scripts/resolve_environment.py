@@ -11,9 +11,27 @@ from pathlib import Path
 
 from provision_common import PROVISION_ROOT, atomic_write_json, load_json, repo_root
 
+PROVISIONER_IDENTITY_FILES = (
+    "provision/scripts/resolve_environment.py",
+    "provision/scripts/provision_python.py",
+)
+
 
 def environment_path(profile: str) -> Path:
     return PROVISION_ROOT / "environments" / f"{profile}.json"
+
+
+def compute_provisioner_code_hash(repo: Path) -> str:
+    h = hashlib.sha256()
+    for rel in PROVISIONER_IDENTITY_FILES:
+        p = repo / rel
+        if not p.is_file():
+            raise RuntimeError(f"PROVISIONER_IDENTITY_FILE_MISSING:{rel}")
+        h.update(rel.encode("utf-8"))
+        h.update(b"\0")
+        h.update(p.read_bytes())
+        h.update(b"\0")
+    return h.hexdigest()
 
 
 def compute_environment_hash(manifest: dict, repo: Path) -> str:
@@ -26,6 +44,8 @@ def compute_environment_hash(manifest: dict, repo: Path) -> str:
     }
     h.update(json.dumps(runtime_identity, sort_keys=True, separators=(",", ":")).encode())
     h.update(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode())
+    h.update(b"provisioner_code_sha256\0")
+    h.update(compute_provisioner_code_hash(repo).encode("ascii"))
     for req in manifest.get("requirements", []):
         p = repo / req
         if p.exists():
@@ -42,11 +62,14 @@ def resolve(profile: str) -> dict:
     manifest = load_json(p)
     if manifest.get("schema") != "CB16_ENVIRONMENT_V1":
         raise RuntimeError(f"BAD_ENVIRONMENT_SCHEMA:{profile}")
-    env_hash = compute_environment_hash(manifest, repo_root())
+    repo = repo_root()
+    provisioner_sha = compute_provisioner_code_hash(repo)
+    env_hash = compute_environment_hash(manifest, repo)
     return {
         "profile": profile,
         "environment_id": manifest.get("id", profile),
         "environment_sha256": env_hash,
+        "provisioner_code_sha256": provisioner_sha,
         "manifest": manifest,
         "runtime_identity": {
             "python_implementation": platform.python_implementation(),
