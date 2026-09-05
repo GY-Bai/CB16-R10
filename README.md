@@ -12,3 +12,4 @@ no model weights, checkpoints, datasets, secrets, or raw Binance data.
 
 CI results are written to the `ci-results` branch under `runs/<commit_sha>/`.
 ci: remote relay smoke test
+ci: remote relay smoke test v2
