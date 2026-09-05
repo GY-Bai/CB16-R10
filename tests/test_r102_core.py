@@ -19,6 +19,8 @@ from cb16_local_opt.typed_central_brain_r10 import build_g0_brain_r10
 class TestR102Core(unittest.TestCase):
     def test_g0_authority(self):
         p=ROOT/'authority/g0_parent/central_brain_g0_r10_parent.pt'
+        if not p.exists():
+            self.skipTest("G0 parent checkpoint is not in public repo; verified only on Shanxi")
         self.assertEqual(sha256_file(p),G0_FILE_SHA256)
         s=torch.load(p,map_location='cpu',weights_only=True)
         self.assertEqual(torch_tensor_semantic_sha256(s),G0_TENSOR_SEMANTIC_SHA256)
