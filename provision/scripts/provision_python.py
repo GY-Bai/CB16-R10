@@ -100,8 +100,8 @@ def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     # Host-local routing/index configuration may live in provision.env. Values are
     # never emitted into public evidence; only coarse installer/fallback status is.
     for key in (
-        "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST",
-        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX",
+        "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_FIND_LINKS",
+        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
         "HF_ENDPOINT", "HF_TOKEN",
         "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
         "http_proxy", "https_proxy", "all_proxy", "no_proxy",
@@ -121,7 +121,7 @@ def _public_pypi_env(base_env: dict[str, str], *, direct: bool = False) -> dict[
     env = base_env.copy()
     for key in (
         "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_NO_INDEX", "PIP_FIND_LINKS",
-        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX",
+        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
     ):
         env.pop(key, None)
     env["PIP_INDEX_URL"] = "https://pypi.org/simple"
@@ -224,6 +224,9 @@ def provision(profile: str) -> dict:
             installer = "uv"
             if reqs:
                 cmd = ["uv", "pip", "install", "--python", str(venv_python)]
+                find_links = install_env.get("UV_FIND_LINKS") or install_env.get("PIP_FIND_LINKS")
+                if find_links:
+                    cmd += ["--find-links", find_links]
                 for r in reqs:
                     cmd += ["-r", str(r)]
                 ok, cls = _run_capture(cmd, env=install_env)
