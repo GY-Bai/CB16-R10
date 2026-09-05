@@ -15,3 +15,7 @@ ci: remote relay smoke test
 ci: remote relay smoke test v2
 ci: remote relay smoke test v3
 ci: remote relay smoke test v4
+
+## Host network / UV
+
+See `docs/UV_INSTALLATION.md`.
