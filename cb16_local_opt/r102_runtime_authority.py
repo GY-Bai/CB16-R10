@@ -62,7 +62,10 @@ def load_r102_runtime_parallelism(
     *,
     live_environment_check: bool = False,
 ) -> R102RuntimeParallelism:
-    root = Path(package_root).resolve()
+    # Runtime-performance authority belongs to the exact Git source lineage, not
+    # to the separately mounted Shanxi frozen-asset package. Keep package_root in
+    # the API for caller compatibility but always bind R8.1 receipts from source.
+    root = Path(__file__).resolve().parents[1]
     saved_path = root / "authority" / "SHANXI_RUNTIME_AUTHORITY_R9.json"
     limits_path = root / "authority" / "R8_1_qualification" / "R8_1_RUNTIME_LIMITS_FROZEN.json"
     final_path = root / "authority" / "R8_1_qualification" / "FINAL_QUALIFICATION_R8_1.json"

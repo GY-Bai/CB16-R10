@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json, sys
+import argparse, json, os, sys, traceback
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,8 +8,26 @@ sys.path.insert(0, str(ROOT))
 from cb16_local_opt.r102_campaign import run_campaign
 
 
+def _write_failure_receipt(run_root, exc):
+    rr=Path(run_root); rr.mkdir(parents=True,exist_ok=True)
+    out={
+        "schema":"CB16_R10_2_1_EXECUTION_BLOCKER_RECEIPT_V1",
+        "status":"ENGINEERING_EXECUTION_BLOCKED",
+        "phase":"R10_2",
+        "exception_type":type(exc).__name__,
+        "exception":str(exc),
+        "traceback":traceback.format_exc(),
+        "scientific_verdict_changed":False,
+        "final_holdout_2025_09_accessed":False,
+        "instruction":"Do not convert this exception into scientific FAIL; repair only the engineering compatibility cause and rerun from the same frozen authority.",
+    }
+    tmp=rr/'EXECUTION_BLOCKER_RECEIPT_R1021.json.tmp'; final=rr/'EXECUTION_BLOCKER_RECEIPT_R1021.json'
+    tmp.write_text(json.dumps(out,indent=2,sort_keys=True)+'\n'); tmp.replace(final)
+
+
 def main():
     ap=argparse.ArgumentParser(description="CB16 R10.2 real historical G0->G1.. 5-generation qualification")
+    ap.add_argument('--package-root', default=os.environ.get('CB16_R10_PACKAGE_ROOT', '/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1'))
     ap.add_argument('--data-root', default='/data/cb16_hdd/binance_usdm_1m_funding_2020_2026')
     ap.add_argument('--run-root', default='/home/bgy/cb16_ssd/runtime/R10_2')
     ap.add_argument('--parent-r101-root', default='/home/bgy/m3-infra/CB16_SHANXI_FROZEN_BODY_G0_BRAIN_R10_1_THIN_V1')
@@ -18,7 +36,7 @@ def main():
     ap.add_argument('--verify-all-cache-checksums', action='store_true')
     args=ap.parse_args()
     result=run_campaign(
-        package_root=ROOT, data_root=args.data_root, run_root=args.run_root,
+        package_root=args.package_root, data_root=args.data_root, run_root=args.run_root,
         parent_r101_root=args.parent_r101_root, parent_g0=args.parent_g0,
         device=args.device, attempts=5, stride_hours=512, prehistory_hours=96,
         epochs=12, batch_size=512, lr=3e-4,
@@ -27,4 +45,10 @@ def main():
     )
     print(json.dumps({k: result.get(k) for k in ['final_status','attempts_completed','promotions','rejections','final_champion_semantic_sha256','return_bundle']}, indent=2))
 
-if __name__=='__main__': main()
+if __name__=='__main__':
+    try:
+        main()
+    except Exception as exc:
+        _write_failure_receipt('/home/bgy/cb16_ssd/runtime/R10_2', exc)
+        raise
+
