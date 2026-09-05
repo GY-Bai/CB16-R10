@@ -6,6 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+PYTHON_BIN="${CI_PYTHON:-python3}"
 
 CI_OUT="${CI_OUT:-$ROOT/ci_output}"
 mkdir -p "$CI_OUT"
@@ -35,10 +36,10 @@ run_test() {
   echo "::endgroup::"
 }
 
-run_test "repository_policy" python3 ci/check_repository_policy.py --root .
+run_test "repository_policy" "$PYTHON_BIN" ci/check_repository_policy.py --root .
 
 # A harmless smoke check proving the workspace is exact and Python runs.
-run_test "python_import_smoke" python3 - <<'PY'
+run_test "python_import_smoke" "$PYTHON_BIN" - <<'PY'
 import json, pathlib, sys
 p = pathlib.Path("PACKAGE_MANIFEST_R10_2.json")
 assert p.exists(), "PACKAGE_MANIFEST_R10_2.json missing"
@@ -49,7 +50,7 @@ PY
 
 # Repository-local unit smoke (does not require datasets or model weights).
 if [ -d tests ] && find tests -name 'test_*.py' | grep -q .; then
-  run_test "repo_tests" python3 -m pytest tests -q --disable-warnings --maxfail=1 || true
+  run_test "repo_tests" "$PYTHON_BIN" -m pytest tests -q --disable-warnings --maxfail=1 || true
 fi
 
 FINISH_ISO="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

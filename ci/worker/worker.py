@@ -122,6 +122,7 @@ def run_job(job: dict) -> dict:
     env["CI_JOB_ID"] = job_id
     env["CI_COMMIT_SHA"] = job["commit_sha"]
     env["CI_OUT"] = str(ws / "ci_output")
+    env["CI_PYTHON"] = sys.executable
     proc = subprocess.Popen(
         ["bash", "ci/run_shanxi_ci.sh"],
         cwd=ws,
