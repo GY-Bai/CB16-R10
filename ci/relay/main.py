@@ -411,6 +411,8 @@ def publish_result_branch(job_id: str, commit_sha: str, verdict: str) -> None:
 
 
 def repo_url_with_token(token: str) -> str:
-    # token is only used by OCI result pusher.
+    # If no PAT is present, use the OCI SSH deploy key (git@github.com). Token is never committed.
+    if not token:
+        return "git@github.com:GY-Bai/CB16-R10.git"
     parsed = urlparse(REPO_URL)
     return f"https://x-access-token:{token}@{parsed.netloc}{parsed.path}"
