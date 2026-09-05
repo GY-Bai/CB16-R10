@@ -604,7 +604,7 @@ def publish_result_branch(job_id: str, commit_sha: str, verdict: str) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     result_path = RESULTS_DIR / job_id
     shutil.copy(result_path / "result.json", run_dir / "result.json")
-    for name in ("REPORT.md", "SHA256SUMS"):
+    for name in ("REPORT.md", "SHA256SUMS", "provisioning_summary.json"):
         source = result_path / name
         if source.exists():
             shutil.copy(source, run_dir / name)
