@@ -22,3 +22,15 @@ python provision/scripts/provision_all.py --profile smoke --job-id test
 ```
 
 Outputs are written under `CB16_CI_WORKER_ROOT/jobs/<job_id>/`.
+
+## Installer preference
+
+Provisioner prefers `uv` when available:
+
+```bash
+uv venv <path>
+uv pip install --python <path>/bin/python --index-strategy unsafe-best-match --find-links <flat-wheel-mirror> -r requirements...
+uv pip check --python <path>/bin/python
+```
+
+Fallback to `python -m venv` + `pip` remains supported for hosts without `uv`.

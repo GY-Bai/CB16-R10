@@ -180,3 +180,11 @@ REPAIR_MODE = EXISTING_SHANXI_PROXY | OCI_WHEEL_CACHE | NONE
 ```
 
 Do not include secret values, proxy URLs, IP addresses, local model/checkpoint paths, or raw private configuration.
+
+## UV adaptation notes
+
+- The Provisioner now uses `uv` when it is present on `PATH`.
+- `uv` should be used for `uv venv`, `uv pip install`, and `uv pip check`.
+- For the flat PyTorch wheel directory (e.g. Aliyun `pytorch-wheels/cu126/`), use `UV_FIND_LINKS` (not `UV_EXTRA_INDEX_URL`).
+- Use `--index-strategy unsafe-best-match` so CUDA companion packages can be resolved across PyPI and the PyTorch wheel mirror.
+- Host-local configuration remains in `/etc/cb16-ci/provision.env`; no values are committed to GitHub.
