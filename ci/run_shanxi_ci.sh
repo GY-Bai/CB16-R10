@@ -66,6 +66,8 @@ TESTS_TOTAL=$(grep -cE '^(PASS|FAIL) ' "$CI_OUT/REPORT.md" || true)
 TESTS_PASS=$(grep -c '^PASS ' "$CI_OUT/REPORT.md" || true)
 TESTS_FAIL=$(grep -c '^FAIL ' "$CI_OUT/REPORT.md" || true)
 
+(cd "$CI_OUT" && sha256sum REPORT.md result.json > SHA256SUMS 2>/dev/null || true)
+
 cat > "$CI_OUT/result.json" <<JSON
 {
   "schema": "CB16_CI_RESULT_V1",

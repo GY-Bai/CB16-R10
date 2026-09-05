@@ -365,8 +365,6 @@ async def upload_logs(job_id: str, request: Request):
 def publish_result_branch(job_id: str, commit_sha: str, verdict: str) -> None:
     """Push sanitized result to ci-results branch using OCI-only token."""
     token = GITHUB_RESULT_TOKEN
-    if not token:
-        return
     pub_root = RELAY_ROOT / "results-publish"
     if not (pub_root / ".git").exists():
         subprocess.run(["git", "init", str(pub_root)], check=True, capture_output=True)
