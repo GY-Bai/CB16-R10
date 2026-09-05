@@ -48,8 +48,9 @@ print("manifest schema:", data.get("schema", "unknown"))
 print("python:", sys.version.split()[0])
 PY
 
-# Repository-local unit smoke (does not require datasets or model weights).
-if [ -d tests ] && find tests -name 'test_*.py' | grep -q .; then
+# Repository-local unit tests are optional in smoke mode.
+# Set CI_SMOKE=1 for harmless end-to-end relay smoke; unset for full test runs.
+if [ "${CI_SMOKE:-0}" != "1" ] && [ -d tests ] && find tests -name 'test_*.py' | grep -q .; then
   run_test "repo_tests" "$PYTHON_BIN" -m pytest tests -q --disable-warnings --maxfail=1 || true
 fi
 
