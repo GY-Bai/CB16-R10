@@ -1,0 +1,29 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "e54eaa54392eae12afd23ae92ac4b3bc9b17959a",
+  "ci_profile": "r102",
+  "environment_id": "r102",
+  "environment_sha256": "6f53beffca1107e56ab72bd1615837b8e2835e4242a9ad1d998e65337e6ec3e1",
+  "runtime_identity": {
+    "python_implementation": "CPython",
+    "python_major_minor": [
+      3,
+      10
+    ],
+    "sys_platform": "linux",
+    "machine": "x86_64"
+  },
+  "status": "PROVISION_FAILED",
+  "python": {
+    "status": "READY",
+    "cache_hit": false,
+    "installer": "uv",
+    "python_version": "3.10.12",
+    "resolved_packages_sha256": "3d5505ba07dbaadfb28579215247941efe5d451f04510894ba2ae41fb28b55da",
+    "public_index_fallback_used": false
+  },
+  "assets": [],
+  "failure_stage": "assets",
+  "error_code": "ALL_PROVIDERS_FAILED",
+  "error_type": "ProviderError"
+}
