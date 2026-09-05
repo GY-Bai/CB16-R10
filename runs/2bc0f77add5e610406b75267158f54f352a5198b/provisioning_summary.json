@@ -1,0 +1,12 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "2bc0f77add5e610406b75267158f54f352a5198b",
+  "ci_profile": "r102",
+  "environment_id": "r102",
+  "environment_sha256": "183e82633198013aae0d50960d5fa69e18865f3fa297a4ae7145e48e9cd1153f",
+  "python": {
+    "status": "READY",
+    "cache_hit": false
+  },
+  "assets": []
+}
