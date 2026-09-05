@@ -8,7 +8,7 @@ Type=simple
 User=bgy
 EnvironmentFile=/home/bgy/cb16-ci/relay.env
 WorkingDirectory=/home/bgy/cb16-ci/relay
-ExecStart=/home/bgy/cb16-ci/relay/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8787
+ExecStart=/home/bgy/cb16-ci/relay/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 18787
 Restart=always
 RestartSec=5
 

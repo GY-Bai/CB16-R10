@@ -5,7 +5,7 @@
 - GitHub public repo: source + `ci-results` branch
 - Cloudflare Tunnel: `cb16-ci-relay`
 - Cloudflare Access: service auth for `/api/v1/worker/*`
-- Japan OCI: FastAPI relay listening on `127.0.0.1:8787`
+- Japan OCI: FastAPI relay listening on `127.0.0.1:18787`
 - Shanxi: systemd worker
 
 ## Directory layout (OCI)
@@ -49,7 +49,7 @@ systemctl --user start cb16-ci-worker.service
 ## Health
 
 ```
-curl https://ci.bayesdesk.com/healthz
+curl https://ci-speedtest.bayesdesk.com/healthz
 # => {"status":"ok"}
 ```
 
