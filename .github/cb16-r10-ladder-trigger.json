@@ -1,0 +1,8 @@
+{
+  "schema": "CB16_R10_8W_LADDER_TRIGGER_V1",
+  "phase": "r102",
+  "source_sha": "f056ae6a0722e3e92d71793024a6e6d3fe9af003",
+  "request": "FULL_R10_2_8W_QUALIFICATION",
+  "cache_policy": "EXPLICIT_CONTROLLED_REBUILD_IN_DEDICATED_QUALIFICATION_ROOT",
+  "final_holdout_2025_09_accessed": false
+}
