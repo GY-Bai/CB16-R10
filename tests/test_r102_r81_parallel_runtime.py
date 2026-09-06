@@ -14,7 +14,11 @@ from cb16_local_opt.probabilistic_teacher_r5 import CounterfactualBranchSampleR5
 from cb16_local_opt.r102_common import HOUR_MS
 from cb16_local_opt.r102_evidence_cache import ParentContextR102
 from cb16_local_opt.r102_learning import compile_teacher_evidence
-from cb16_local_opt.r102_parallel_runtime import H72ParentGroupJobR102, run_counterfactual_h72_farm_r102
+from cb16_local_opt.r102_parallel_runtime import (
+    H72ParentGroupJobR102,
+    ram_action_r82,
+    run_counterfactual_h72_farm_r102,
+)
 from cb16_local_opt.r102_physics import CANDIDATES_R102, FrozenPhysicsRuntimeR102, build_parent_scenarios, simulate_h72_branch
 from cb16_local_opt.r102_runtime_authority import (
     EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH,
@@ -70,17 +74,14 @@ def test_r81_baseline_is_preserved_while_r82_active_overlay_is_six_workers():
     assert r.runtime_authority_content_hash == EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH
     assert r.runtime_profile_hash == EXPECTED_RUNTIME_PROFILE_HASH
     assert EXPECTED_RUNTIME_AUTHORITY_FILE_SHA256 == "f50757da882cee0f6def11ec9c6e38e1065f415032f7d1405b249beb997e92df"
-    # Historical R8.1 authority remains immutable and still records 2 as its
-    # selected short-benchmark worker count.
     limits = json.loads((ROOT / "authority/R8_1_qualification/R8_1_RUNTIME_LIMITS_FROZEN.json").read_text())
     assert limits["h72_worker_scaling"]["selected_workers"] == 2
-    # Active R8.2 performance-only overlay starts H72 at six workers.
     assert r.performance_overlay == "R8_2_6W_RAM_ADAPTIVE"
     assert r.h72_workers == 6
     assert r.h72_threads_per_worker == 1
     assert r.h72_max_in_flight == 8
     assert r.h72_minimum_workers == 1
-    assert r.teacher_workers == 2
+    assert r.teacher_workers == 6
     assert r.teacher_threads_per_worker == 1
     assert r.experience_shards == 4
     assert r.gpu_qualified_train_batch_ceiling == 8192
@@ -123,7 +124,7 @@ def test_h72_active_six_worker_results_equal_serial_exactly():
     assert branch_results == serial
 
 
-def test_teacher_two_worker_content_hashes_equal_serial():
+def test_teacher_active_six_worker_content_hashes_equal_serial():
     r = load_r102_runtime_parallelism(ROOT, live_environment_check=False)
     parents, samples = _teacher_fixture()
     serial_train, serial_val = compile_teacher_evidence(samples, parents, workers=1, threads_per_worker=1, max_in_flight=1)
@@ -135,3 +136,10 @@ def test_teacher_two_worker_content_hashes_equal_serial():
     )
     assert [x.content_hash for x in par_train] == [x.content_hash for x in serial_train]
     assert [x.content_hash for x in par_val] == [x.content_hash for x in serial_val]
+
+
+def test_ram_monitor_never_requests_worker_removal_below_one_effective_worker():
+    assert ram_action_r82(0.50, 6) == "NONE"
+    assert ram_action_r82(0.85, 6) == "RETIRE_ONE"
+    assert ram_action_r82(0.92, 6) == "KILL_ONE"
+    assert ram_action_r82(0.99, 1) == "PAUSE"
