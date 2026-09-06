@@ -107,16 +107,27 @@ jobs:
           rc="$(cat ci_evidence/exit_code.txt)"
           if [ "$rc" = "0" ]; then verdict=PASS; else verdict=FAIL; fi
 
-          wt="$RUNNER_TEMP/ci-results-wt"
+          legacy_wt="$RUNNER_TEMP/ci-results-wt"
+          wt="$RUNNER_TEMP/ci-results-wt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           dest="runs/$sha/github-actions-canary/$run_id"
 
           cleanup() {
             cd "$GITHUB_WORKSPACE" >/dev/null 2>&1 || true
             git worktree remove --force "$wt" >/dev/null 2>&1 || true
+            rm -rf "$wt"
+            git worktree prune >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
+          # Self-hosted runners keep the repository metadata between runs.
+          # rm -rf alone does not unregister a Git worktree, so explicitly
+          # remove/prune both the legacy fixed path and the unique current path.
+          git worktree remove --force "$legacy_wt" >/dev/null 2>&1 || true
+          rm -rf "$legacy_wt"
+          git worktree remove --force "$wt" >/dev/null 2>&1 || true
           rm -rf "$wt"
+          git worktree prune
+
           git fetch origin ci-results
           git worktree add --detach "$wt" origin/ci-results
 
