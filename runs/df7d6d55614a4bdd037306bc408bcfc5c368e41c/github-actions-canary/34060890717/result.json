@@ -1,0 +1,10 @@
+{
+  "schema": "CB16_CANONICAL_RUNNER_RESULT_V1",
+  "run_id": "34060890717",
+  "commit_sha": "df7d6d55614a4bdd037306bc408bcfc5c368e41c",
+  "runner": "shanxi-cb16-r10-canonical",
+  "mode": "quick",
+  "verdict": "PASS",
+  "started_at": "2026-09-06T21:23:31Z",
+  "finished_at": "2026-09-06T21:23:31Z"
+}
