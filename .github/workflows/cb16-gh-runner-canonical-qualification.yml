@@ -1,0 +1,138 @@
+name: CB16 GH Runner Canonical Qualification
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Canonical qualification mode'
+        required: true
+        default: 'quick'
+        type: choice
+        options:
+          - quick
+          - failure
+
+permissions:
+  contents: write
+
+jobs:
+  canonical-qualification:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 30
+    steps:
+      - name: Identity
+        run: |
+          echo "whoami=$(whoami)"
+          echo "id=$(id)"
+          echo "pwd=$(pwd)"
+          uname -a
+          python3 --version
+          nvidia-smi || true
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Git identity
+        run: |
+          echo "sha=$(git rev-parse HEAD)"
+          echo "branch=$(git rev-parse --abbrev-ref HEAD)"
+      - name: R104 writer contract
+        run: |
+          python3 - <<'PY'
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("r104_writer_contract", "cb16_local_opt/r104_writer_contract.py")
+mod = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = mod
+spec.loader.exec_module(mod)
+r = mod.inspect_r104_writer_contract("/data/cb16_hdd/cb16_runtime/R10_4")
+print("effective_user =", r.effective_user)
+assert r.effective_user == "cb16-ci"
+assert r.canonical is True
+assert r.authorized is True
+print("R104_WRITER_CONTRACT=PASS")
+PY
+      - name: R104 filesystem canary
+        run: |
+          set -e
+          p=/data/cb16_hdd/cb16_runtime/R10_4/.github_canonical_runner_canary
+          touch "$p"
+          rm "$p"
+          echo "R104_FS_CANARY=PASS"
+      - name: Raw execution capture
+        run: |
+          set -o pipefail
+          mkdir -p ci_evidence
+          echo "run_id=${{ github.run_id }}" > ci_evidence/run.info
+          echo "commit_sha=$(git rev-parse HEAD)" >> ci_evidence/run.info
+          if [ "${{ github.event.inputs.mode }}" = "failure" ]; then
+            ( echo "intentional failure"; exit 7 ) 2>&1 | tee raw_execution.log
+            rc=${PIPESTATUS[0]}
+            echo "exit_code=$rc"
+          else
+            ( echo "cheap canary ok"; uname -a ) 2>&1 | tee raw_execution.log
+            rc=0
+          fi
+          echo "rc=$rc"
+          echo "$rc" > ci_evidence/exit_code.txt
+          echo "$rc" >> ci_evidence/run.info
+      - name: Materialize evidence
+        run: |
+          set -e
+          mode="${{ github.event.inputs.mode }}"
+          run_id="${{ github.run_id }}"
+          sha="$(git rev-parse HEAD)"
+          rc=$(cat ci_evidence/exit_code.txt)
+          if [ "$rc" = "0" ]; then verdict=PASS; else verdict=FAIL; fi
+          start=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          cat > ci_evidence/result.json <<JSON
+          {
+            "schema": "CB16_CANONICAL_RUNNER_RESULT_V1",
+            "run_id": "$run_id",
+            "commit_sha": "$sha",
+            "runner": "shanxi-cb16-r10-canonical",
+            "mode": "$mode",
+            "verdict": "$verdict",
+            "started_at": "$start",
+            "finished_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          JSON
+          cat > ci_evidence/REPORT.md <<MD
+          # CB16 Canonical Runner Evidence
+          - run_id: $run_id
+          - commit_sha: $sha
+          - mode: $mode
+          - verdict: $verdict
+          MD
+          cat > ci_evidence/runtime_metrics.json <<JSON
+          {"run_id":"$run_id","exit_code":$rc,"verdict":"$verdict"}
+          JSON
+          # Sanitize log: keep only non-secret lines
+          grep -viE "secret|token|password|credential|private key|BEGIN .*PRIVATE" raw_execution.log > ci_evidence/sanitized_execution.log || true
+          (cd ci_evidence && sha256sum result.json REPORT.md runtime_metrics.json sanitized_execution.log > SHA256SUMS)
+      - name: Repo guard on evidence
+        run: |
+          python3 ci/check_repository_policy.py --root .
+      - name: Push durable evidence to ci-results
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          run_id="${{ github.run_id }}"
+          sha="$(git rev-parse HEAD)"
+          git config user.name "CB16 GitHub Canonical Runner"
+          git config user.email "canonical-runner@users.noreply.github.com"
+          git fetch origin ci-results:ci-results || git checkout --orphan ci-results
+          git checkout ci-results || true
+          mkdir -p "runs/$sha/github-actions-canary/$run_id"
+          cp ci_evidence/result.json "runs/$sha/github-actions-canary/$run_id/result.json"
+          cp ci_evidence/REPORT.md "runs/$sha/github-actions-canary/$run_id/REPORT.md"
+          cp ci_evidence/runtime_metrics.json "runs/$sha/github-actions-canary/$run_id/runtime_metrics.json"
+          cp ci_evidence/sanitized_execution.log "runs/$sha/github-actions-canary/$run_id/sanitized_execution.log"
+          cp ci_evidence/SHA256SUMS "runs/$sha/github-actions-canary/$run_id/SHA256SUMS"
+          git add .
+          git commit -m "canonical-runner-evidence: $sha $verdict" || echo "nothing to commit"
+          git push origin ci-results
+      - name: Failure canary marker
+        if: ${{ github.event.inputs.mode == 'failure' }}
+        run: |
+          echo "failure mode rc=$(cat ci_evidence/exit_code.txt)"
+          test "$(cat ci_evidence/exit_code.txt)" != "0"
