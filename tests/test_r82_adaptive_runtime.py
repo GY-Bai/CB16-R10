@@ -15,7 +15,8 @@ def test_r82_runtime_overlay_starts_six_workers_and_preserves_cache_identity():
     assert rp.ram_hard_stop == 0.92
     assert rp.cache_hit_first is True
     assert rp.runtime_scheduling_identity_is_not_scientific_cache_identity is True
-    assert rp.teacher_workers == 2
+    assert rp.teacher_workers == 6
+    assert rp.teacher_threads_per_worker == 1
 
 
 def test_ram_monitor_retires_then_kills_one_worker_at_thresholds():
