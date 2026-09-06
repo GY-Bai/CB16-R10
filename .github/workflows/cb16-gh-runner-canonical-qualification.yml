@@ -37,19 +37,7 @@ jobs:
           echo "branch=$(git rev-parse --abbrev-ref HEAD)"
       - name: R104 writer contract
         run: |
-          python3 - <<'PY'
-import importlib.util, sys
-spec = importlib.util.spec_from_file_location("r104_writer_contract", "cb16_local_opt/r104_writer_contract.py")
-mod = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = mod
-spec.loader.exec_module(mod)
-r = mod.inspect_r104_writer_contract("/data/cb16_hdd/cb16_runtime/R10_4")
-print("effective_user =", r.effective_user)
-assert r.effective_user == "cb16-ci"
-assert r.canonical is True
-assert r.authorized is True
-print("R104_WRITER_CONTRACT=PASS")
-PY
+          python3 -c "import importlib.util,sys; spec=importlib.util.spec_from_file_location('r104_writer_contract','cb16_local_opt/r104_writer_contract.py'); mod=importlib.util.module_from_spec(spec); sys.modules[spec.name]=mod; spec.loader.exec_module(mod); r=mod.inspect_r104_writer_contract('/data/cb16_hdd/cb16_runtime/R10_4'); print('effective_user =', r.effective_user); assert r.effective_user == 'cb16-ci'; assert r.canonical is True; assert r.authorized is True; print('R104_WRITER_CONTRACT=PASS')"
       - name: R104 filesystem canary
         run: |
           set -e
@@ -66,7 +54,6 @@ PY
           if [ "${{ github.event.inputs.mode }}" = "failure" ]; then
             ( echo "intentional failure"; exit 7 ) 2>&1 | tee raw_execution.log
             rc=${PIPESTATUS[0]}
-            echo "exit_code=$rc"
           else
             ( echo "cheap canary ok"; uname -a ) 2>&1 | tee raw_execution.log
             rc=0
@@ -105,7 +92,6 @@ PY
           cat > ci_evidence/runtime_metrics.json <<JSON
           {"run_id":"$run_id","exit_code":$rc,"verdict":"$verdict"}
           JSON
-          # Sanitize log: keep only non-secret lines
           grep -viE "secret|token|password|credential|private key|BEGIN .*PRIVATE" raw_execution.log > ci_evidence/sanitized_execution.log || true
           (cd ci_evidence && sha256sum result.json REPORT.md runtime_metrics.json sanitized_execution.log > SHA256SUMS)
       - name: Repo guard on evidence
