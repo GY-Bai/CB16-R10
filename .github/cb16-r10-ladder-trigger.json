@@ -4,5 +4,7 @@
   "source_sha": "f056ae6a0722e3e92d71793024a6e6d3fe9af003",
   "request": "FULL_R10_2_8W_QUALIFICATION",
   "cache_policy": "EXPLICIT_CONTROLLED_REBUILD_IN_DEDICATED_QUALIFICATION_ROOT",
+  "retry_reason": "USE_SHARED_PROVISIONER_PYTHON_ENV",
+  "retry_sequence": 2,
   "final_holdout_2025_09_accessed": false
 }
