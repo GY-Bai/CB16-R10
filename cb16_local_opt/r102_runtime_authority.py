@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-"""R10 binding to R8.1 authority plus R8.2 performance-only execution overlay.
+"""R10 binding to R8.1 authority plus R8.3 performance-only execution overlay.
 
-R8.1 remains the immutable hardware qualification baseline. R8.2 may change only
-runtime scheduling/resource controls; it cannot rewrite H72, chronology, Teacher
-semantics, optimizer epochs, scientific batch size, Physics, or FINAL boundaries.
+R8.1 remains the immutable hardware qualification baseline. R8.3 supersedes the
+R8.2 six-worker scheduling overlay and may change only runtime scheduling/resource
+controls; it cannot rewrite H72, chronology, Teacher semantics, optimizer epochs,
+scientific batch size, Physics, cache identity, or FINAL boundaries.
 """
 
 import json
@@ -20,7 +21,7 @@ EXPECTED_RUNTIME_PROFILE_HASH = "98471292867fca6fa19cc383f4fd0ef7567deec01581f48
 EXPECTED_PERFORMANCE_FILE_SHA256 = "997492b1bdb9dcd7194a27719d890975aad27d2b80ffc9e713aada1a2eaeafca"
 EXPECTED_LIMITS_FILE_SHA256 = "ed193de8e27e4bc2b29c68865f47173842cc61cc5d237fe655900865505235b1"
 EXPECTED_FINAL_FILE_SHA256 = "842677cd1e79781b095745c8654a80719fa481affe4cc1d56fd5977faac2c504"
-EXPECTED_R8_2_OVERLAY_FILE_SHA256 = "3bf2592cbab55431f798578aa72513df79f38ee1b7509c4a6223b2f4b22a0115"
+EXPECTED_R8_3_OVERLAY_FILE_SHA256 = "259a334498015390d905a3037fc7be557dbe05d4b4e3ad67a9bc8a27897f0070"
 
 
 @dataclass(frozen=True)
@@ -70,7 +71,7 @@ def load_r102_runtime_parallelism(
     saved_path = root / "authority" / "SHANXI_RUNTIME_AUTHORITY_R9.json"
     limits_path = root / "authority" / "R8_1_qualification" / "R8_1_RUNTIME_LIMITS_FROZEN.json"
     final_path = root / "authority" / "R8_1_qualification" / "FINAL_QUALIFICATION_R8_1.json"
-    overlay_path = root / "configs" / "R10_RUNTIME_PERFORMANCE_R8_2.json"
+    overlay_path = root / "configs" / "R10_RUNTIME_PERFORMANCE_R8_3.json"
 
     if sha256_file(saved_path) != EXPECTED_RUNTIME_AUTHORITY_FILE_SHA256:
         raise RuntimeError("R8_1_SAVED_RUNTIME_AUTHORITY_FILE_SHA256_MISMATCH")
@@ -78,8 +79,8 @@ def load_r102_runtime_parallelism(
         raise RuntimeError("R8_1_RUNTIME_LIMITS_FILE_SHA256_MISMATCH")
     if sha256_file(final_path) != EXPECTED_FINAL_FILE_SHA256:
         raise RuntimeError("R8_1_FINAL_FILE_SHA256_MISMATCH")
-    if sha256_file(overlay_path) != EXPECTED_R8_2_OVERLAY_FILE_SHA256:
-        raise RuntimeError("R8_2_PERFORMANCE_OVERLAY_FILE_SHA256_MISMATCH")
+    if sha256_file(overlay_path) != EXPECTED_R8_3_OVERLAY_FILE_SHA256:
+        raise RuntimeError("R8_3_PERFORMANCE_OVERLAY_FILE_SHA256_MISMATCH")
 
     saved = _load_json(saved_path)
     limits = _load_json(limits_path)
@@ -113,7 +114,6 @@ def load_r102_runtime_parallelism(
 
     profile = saved["runtime_profile"]
     gpu = profile["gpu"]
-    cpu = profile["cpu"]
     io = profile["io"]
     pipe = profile["pipeline"]
     lim = profile["resource_limits"]
@@ -126,16 +126,18 @@ def load_r102_runtime_parallelism(
     if pipe.get("do_not_run_h72_and_teacher_at_full_concurrency") is not True:
         raise RuntimeError("R8_1_STAGE_CONCURRENCY_POLICY_DRIFT")
 
-    if overlay.get("schema") != "CB16_R10_RUNTIME_PERFORMANCE_R8_2_V1":
-        raise RuntimeError("R8_2_OVERLAY_SCHEMA_MISMATCH")
+    if overlay.get("schema") != "CB16_R10_RUNTIME_PERFORMANCE_R8_3_V1":
+        raise RuntimeError("R8_3_OVERLAY_SCHEMA_MISMATCH")
     if overlay.get("status") != "ACTIVE_PERFORMANCE_ONLY_OVERRIDE":
-        raise RuntimeError("R8_2_OVERLAY_NOT_ACTIVE")
+        raise RuntimeError("R8_3_OVERLAY_NOT_ACTIVE")
     if overlay.get("base_runtime_authority_content_hash") != EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH:
-        raise RuntimeError("R8_2_BASE_AUTHORITY_HASH_MISMATCH")
+        raise RuntimeError("R8_3_BASE_AUTHORITY_HASH_MISMATCH")
     if overlay.get("base_runtime_profile_hash") != EXPECTED_RUNTIME_PROFILE_HASH:
-        raise RuntimeError("R8_2_BASE_PROFILE_HASH_MISMATCH")
+        raise RuntimeError("R8_3_BASE_PROFILE_HASH_MISMATCH")
+    if overlay.get("supersedes_runtime_overlay") != "R8_2_6W_RAM_ADAPTIVE":
+        raise RuntimeError("R8_3_SUPERSEDED_OVERLAY_DRIFT")
     if overlay.get("scientific_semantics_changed") is not False:
-        raise RuntimeError("R8_2_OVERLAY_SCIENTIFIC_SEMANTICS_CHANGED")
+        raise RuntimeError("R8_3_OVERLAY_SCIENTIFIC_SEMANTICS_CHANGED")
     scientific = overlay.get("scientific_values_preserved") or {}
     required_preserved = {
         "horizon_hours": 72,
@@ -150,7 +152,15 @@ def load_r102_runtime_parallelism(
     }
     for k, expected in required_preserved.items():
         if scientific.get(k) != expected:
-            raise RuntimeError(f"R8_2_SCIENTIFIC_PRESERVATION_DRIFT:{k}")
+            raise RuntimeError(f"R8_3_SCIENTIFIC_PRESERVATION_DRIFT:{k}")
+
+    gate = overlay.get("qualification_gate") or {}
+    if gate.get("engineering_unit_required_before_r102") is not True:
+        raise RuntimeError("R8_3_ENGINEERING_GATE_DISABLED")
+    if gate.get("r102_required_before_r103") is not True or gate.get("r103_required_before_r104") is not True:
+        raise RuntimeError("R8_3_RESEARCH_LADDER_GATE_DISABLED")
+    if gate.get("final_holdout_2025_09_remains_locked") is not True:
+        raise RuntimeError("R8_3_FINAL_LOCK_DRIFT")
 
     h72 = overlay.get("h72") or {}
     teacher = overlay.get("teacher") or {}
@@ -161,36 +171,38 @@ def load_r102_runtime_parallelism(
     h72_minimum = int(h72.get("minimum_workers", 0))
     ram_high = float(h72.get("ram_backpressure_high", 0.0))
     ram_hard = float(h72.get("ram_hard_stop", 0.0))
-    if h72_workers != 6:
-        raise RuntimeError("R8_2_H72_WORKER_START_DRIFT")
+    if h72_workers != 8:
+        raise RuntimeError("R8_3_H72_WORKER_START_DRIFT")
     if h72_threads != 1 or h72_minimum != 1:
-        raise RuntimeError("R8_2_H72_THREAD_OR_MINIMUM_DRIFT")
+        raise RuntimeError("R8_3_H72_THREAD_OR_MINIMUM_DRIFT")
     if h72_in_flight < h72_workers:
-        raise RuntimeError("R8_2_H72_MAX_IN_FLIGHT_LT_WORKERS")
+        raise RuntimeError("R8_3_H72_MAX_IN_FLIGHT_LT_WORKERS")
     if not (0.0 < ram_high < ram_hard < 1.0):
-        raise RuntimeError("R8_2_RAM_THRESHOLDS_INVALID")
+        raise RuntimeError("R8_3_RAM_THRESHOLDS_INVALID")
     if h72.get("hard_pressure_action") != "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_H72_JOB":
-        raise RuntimeError("R8_2_HARD_RAM_ACTION_DRIFT")
+        raise RuntimeError("R8_3_HARD_RAM_ACTION_DRIFT")
 
     teacher_workers = int(teacher.get("workers", 0))
     teacher_threads = int(teacher.get("threads_per_worker", 0))
     teacher_in_flight = int(teacher.get("max_in_flight", 0))
     teacher_minimum = int(teacher.get("minimum_workers", 0))
-    if teacher_workers != 6:
-        raise RuntimeError("R8_2_TEACHER_WORKER_START_DRIFT")
+    if teacher_workers != 8:
+        raise RuntimeError("R8_3_TEACHER_WORKER_START_DRIFT")
     if teacher_threads != 1 or teacher_minimum != 1:
-        raise RuntimeError("R8_2_TEACHER_THREAD_OR_MINIMUM_DRIFT")
+        raise RuntimeError("R8_3_TEACHER_THREAD_OR_MINIMUM_DRIFT")
     if teacher_in_flight < teacher_workers:
-        raise RuntimeError("R8_2_TEACHER_MAX_IN_FLIGHT_LT_WORKERS")
+        raise RuntimeError("R8_3_TEACHER_MAX_IN_FLIGHT_LT_WORKERS")
     if float(teacher.get("ram_backpressure_high", 0.0)) != ram_high or float(teacher.get("ram_hard_stop", 0.0)) != ram_hard:
-        raise RuntimeError("R8_2_TEACHER_RAM_POLICY_DRIFT")
+        raise RuntimeError("R8_3_TEACHER_RAM_POLICY_DRIFT")
     if teacher.get("hard_pressure_action") != "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_TEACHER_JOB":
-        raise RuntimeError("R8_2_TEACHER_HARD_RAM_ACTION_DRIFT")
+        raise RuntimeError("R8_3_TEACHER_HARD_RAM_ACTION_DRIFT")
 
     if cache.get("cache_hit_first") is not True:
-        raise RuntimeError("R8_2_CACHE_HIT_FIRST_DISABLED")
+        raise RuntimeError("R8_3_CACHE_HIT_FIRST_DISABLED")
     if cache.get("runtime_scheduling_identity_is_not_scientific_cache_identity") is not True:
-        raise RuntimeError("R8_2_RUNTIME_IDENTITY_ILLEGALLY_INVALIDATES_CACHE")
+        raise RuntimeError("R8_3_RUNTIME_IDENTITY_ILLEGALLY_INVALIDATES_CACHE")
+    if cache.get("worker_count_change_does_not_invalidate_materialized_h72_cache") is not True:
+        raise RuntimeError("R8_3_WORKER_CHANGE_ILLEGALLY_INVALIDATES_CACHE")
 
     if live_environment_check:
         import torch
@@ -203,8 +215,8 @@ def load_r102_runtime_parallelism(
     return R102RuntimeParallelism(
         runtime_authority_content_hash=EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH,
         runtime_profile_hash=EXPECTED_RUNTIME_PROFILE_HASH,
-        performance_overlay="R8_2_6W_RAM_ADAPTIVE",
-        performance_overlay_file_sha256=EXPECTED_R8_2_OVERLAY_FILE_SHA256,
+        performance_overlay="R8_3_8W_RAM_ADAPTIVE",
+        performance_overlay_file_sha256=EXPECTED_R8_3_OVERLAY_FILE_SHA256,
         h72_workers=h72_workers,
         h72_threads_per_worker=h72_threads,
         h72_max_in_flight=h72_in_flight,
