@@ -20,7 +20,7 @@ EXPECTED_RUNTIME_PROFILE_HASH = "98471292867fca6fa19cc383f4fd0ef7567deec01581f48
 EXPECTED_PERFORMANCE_FILE_SHA256 = "997492b1bdb9dcd7194a27719d890975aad27d2b80ffc9e713aada1a2eaeafca"
 EXPECTED_LIMITS_FILE_SHA256 = "ed193de8e27e4bc2b29c68865f47173842cc61cc5d237fe655900865505235b1"
 EXPECTED_FINAL_FILE_SHA256 = "842677cd1e79781b095745c8654a80719fa481affe4cc1d56fd5977faac2c504"
-EXPECTED_R8_2_OVERLAY_FILE_SHA256 = "73918693df4ebe4ed8a3bc8ca0f977fc0e9c2aeefe398c8f1e0df007b2a00a10"
+EXPECTED_R8_2_OVERLAY_FILE_SHA256 = "3bf2592cbab55431f798578aa72513df79f38ee1b7509c4a6223b2f4b22a0115"
 
 
 @dataclass(frozen=True)
@@ -66,9 +66,6 @@ def load_r102_runtime_parallelism(
     *,
     live_environment_check: bool = False,
 ) -> R102RuntimeParallelism:
-    # Performance authority belongs to the exact Git source lineage, not the
-    # separately mounted Shanxi frozen-asset package. package_root remains only
-    # for caller compatibility.
     root = Path(__file__).resolve().parents[1]
     saved_path = root / "authority" / "SHANXI_RUNTIME_AUTHORITY_R9.json"
     limits_path = root / "authority" / "R8_1_qualification" / "R8_1_RUNTIME_LIMITS_FROZEN.json"
@@ -174,6 +171,22 @@ def load_r102_runtime_parallelism(
         raise RuntimeError("R8_2_RAM_THRESHOLDS_INVALID")
     if h72.get("hard_pressure_action") != "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_H72_JOB":
         raise RuntimeError("R8_2_HARD_RAM_ACTION_DRIFT")
+
+    teacher_workers = int(teacher.get("workers", 0))
+    teacher_threads = int(teacher.get("threads_per_worker", 0))
+    teacher_in_flight = int(teacher.get("max_in_flight", 0))
+    teacher_minimum = int(teacher.get("minimum_workers", 0))
+    if teacher_workers != 6:
+        raise RuntimeError("R8_2_TEACHER_WORKER_START_DRIFT")
+    if teacher_threads != 1 or teacher_minimum != 1:
+        raise RuntimeError("R8_2_TEACHER_THREAD_OR_MINIMUM_DRIFT")
+    if teacher_in_flight < teacher_workers:
+        raise RuntimeError("R8_2_TEACHER_MAX_IN_FLIGHT_LT_WORKERS")
+    if float(teacher.get("ram_backpressure_high", 0.0)) != ram_high or float(teacher.get("ram_hard_stop", 0.0)) != ram_hard:
+        raise RuntimeError("R8_2_TEACHER_RAM_POLICY_DRIFT")
+    if teacher.get("hard_pressure_action") != "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_TEACHER_JOB":
+        raise RuntimeError("R8_2_TEACHER_HARD_RAM_ACTION_DRIFT")
+
     if cache.get("cache_hit_first") is not True:
         raise RuntimeError("R8_2_CACHE_HIT_FIRST_DISABLED")
     if cache.get("runtime_scheduling_identity_is_not_scientific_cache_identity") is not True:
@@ -196,8 +209,8 @@ def load_r102_runtime_parallelism(
         h72_threads_per_worker=h72_threads,
         h72_max_in_flight=h72_in_flight,
         h72_minimum_workers=h72_minimum,
-        teacher_workers=int(teacher.get("workers", cpu["teacher_workers"])),
-        teacher_threads_per_worker=int(teacher.get("threads_per_worker", cpu["teacher_threads_per_worker"])),
+        teacher_workers=teacher_workers,
+        teacher_threads_per_worker=teacher_threads,
         experience_shards=int(io["experience_shards"]),
         sqlite_synchronous=str(io["sqlite_synchronous"]),
         loader_prefetch=int(pipe["loader_prefetch"]),
