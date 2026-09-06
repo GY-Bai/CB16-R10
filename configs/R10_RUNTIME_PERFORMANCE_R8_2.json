@@ -4,7 +4,7 @@
   "base_authority": "R8.1_REAL_SHANXI_HARDWARE_QUALIFICATION",
   "base_runtime_authority_content_hash": "07afedc7d42f78ed28506fc6e95a4f5193d131290991f159f3a3fd30e5820383",
   "base_runtime_profile_hash": "98471292867fca6fa19cc383f4fd0ef7567deec01581f488198916d99a9363a0",
-  "reason": "Long R10.4 H72 queues leave CPU and RAM headroom under the conservative two-worker R8.1 short benchmark.",
+  "reason": "Long R10 workloads leave CPU and RAM headroom under the conservative two-worker R8.1 short benchmark.",
   "h72": {
     "workers_start": 6,
     "threads_per_worker": 1,
@@ -17,8 +17,15 @@
     "scale_up_inside_same_farm": false
   },
   "teacher": {
-    "workers": 2,
-    "threads_per_worker": 1
+    "workers": 6,
+    "threads_per_worker": 1,
+    "max_in_flight": 8,
+    "minimum_workers": 1,
+    "ram_backpressure_high": 0.85,
+    "ram_hard_stop": 0.92,
+    "high_pressure_action": "PAUSE_DISPATCH_AND_GRACEFULLY_RETIRE_ONE_WORKER",
+    "hard_pressure_action": "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_TEACHER_JOB",
+    "scale_up_inside_same_farm": false
   },
   "cache_policy": {
     "cache_hit_first": true,
