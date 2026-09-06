@@ -1,0 +1,225 @@
+name: CB16 R10 8W Canonical Ladder V2
+
+on:
+  push:
+    branches:
+      - ai/v63-activation-r0
+    paths:
+      - .github/cb16-r10-ladder-trigger-v2.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cb16-r10-canonical-science-v2
+  cancel-in-progress: false
+
+env:
+  SOURCE_AUTHORITY_SHA: f056ae6a0722e3e92d71793024a6e6d3fe9af003
+  R102_8W_ROOT: /home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w
+  R103_8W_ROOT: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+  R104_CANONICAL_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+
+jobs:
+  canonical-phase-v2:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 1440
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          path: control
+
+      - name: Validate trigger
+        id: control
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path(os.environ['GITHUB_WORKSPACE']) / 'control/.github/cb16-r10-ladder-trigger-v2.json'
+          x = json.loads(p.read_text())
+          assert x.get('schema') == 'CB16_R10_8W_LADDER_TRIGGER_V2'
+          assert x.get('phase') in {'r102','r103','r104'}
+          assert x.get('source_sha') == os.environ['SOURCE_AUTHORITY_SHA']
+          assert x.get('final_holdout_2025_09_accessed') is False
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
+              f.write(f"phase={x['phase']}\n")
+              f.write(f"source_sha={x['source_sha']}\n")
+          print('TRIGGER_VALID=PASS')
+          print('phase=', x['phase'])
+          print('source_sha=', x['source_sha'])
+          PY
+
+      - name: Checkout frozen 8W source authority
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.control.outputs.source_sha }}
+          fetch-depth: 1
+          path: source
+
+      - name: Execute gated phase
+        id: execute
+        shell: bash
+        env:
+          PHASE: ${{ steps.control.outputs.phase }}
+          SOURCE_SHA: ${{ steps.control.outputs.source_sha }}
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-v2-${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          mkdir -p "$EVIDENCE_BASE"
+          set +e
+          python3 control/ci/run_r10_8w_phase_control.py \
+            --phase "$PHASE" \
+            --source-root "$GITHUB_WORKSPACE/source" \
+            --source-sha "$SOURCE_SHA" \
+            --evidence-base "$EVIDENCE_BASE" \
+            2>&1 | tee "$EVIDENCE_BASE/raw_execution.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "$rc" > "$EVIDENCE_BASE/exit_code.txt"
+          echo "PHASE_EXIT_CODE=$rc"
+          exit 0
+
+      - name: Materialize sanitized durable evidence
+        if: always()
+        shell: bash
+        working-directory: source
+        env:
+          PHASE: ${{ steps.control.outputs.phase }}
+          SOURCE_SHA: ${{ steps.control.outputs.source_sha }}
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-v2-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          e="$EVIDENCE_BASE/evidence"
+          mkdir -p "$e"
+          rc="$(cat "$EVIDENCE_BASE/exit_code.txt" 2>/dev/null || echo 255)"
+          if [ "$rc" = "0" ]; then verdict=PASS; else verdict=FAIL; fi
+
+          case "$PHASE" in
+            r102) result="$R102_8W_ROOT/FINAL_RESULT_R102.json"; blocker="$R102_8W_ROOT/EXECUTION_BLOCKER_RECEIPT_R1021.json" ;;
+            r103) result="$R103_8W_ROOT/FINAL_RESULT_R102.json"; blocker="$R103_8W_ROOT/EXECUTION_BLOCKER_RECEIPT_R103.json" ;;
+            r104) result="$R104_CANONICAL_ROOT/FINAL_RESULT_R102.json"; blocker="$R104_CANONICAL_ROOT/EXECUTION_BLOCKER_RECEIPT_R104.json" ;;
+          esac
+
+          cat > "$e/result.json" <<JSON
+          {
+            "schema": "CB16_GITHUB_R10_8W_PHASE_RESULT_V2",
+            "run_id": "${GITHUB_RUN_ID}",
+            "trigger_sha": "${GITHUB_SHA}",
+            "source_authority_sha": "$SOURCE_SHA",
+            "phase": "$PHASE",
+            "runtime_overlay": "R8_3_8W_RAM_ADAPTIVE",
+            "exit_code": $rc,
+            "verdict": "$verdict",
+            "scientific_semantics_changed": false,
+            "final_holdout_2025_09_accessed": false
+          }
+          JSON
+
+          cat > "$e/REPORT.md" <<MD
+          # CB16 R10 8W Canonical Phase Evidence V2
+          - run_id: ${GITHUB_RUN_ID}
+          - trigger_sha: ${GITHUB_SHA}
+          - source_authority_sha: $SOURCE_SHA
+          - phase: $PHASE
+          - runtime_overlay: R8_3_8W_RAM_ADAPTIVE
+          - exit_code: $rc
+          - verdict: $verdict
+          - final_holdout_2025_09_accessed: false
+          MD
+
+          if [ -f "$result" ]; then cp "$result" "$e/scientific_result.json"; fi
+          if [ -f "$blocker" ]; then cp "$blocker" "$e/engineering_blocker.json"; fi
+          if [ -f "$EVIDENCE_BASE/python_provision.json" ]; then cp "$EVIDENCE_BASE/python_provision.json" "$e/python_provision.json"; fi
+
+          python3 - "$EVIDENCE_BASE/raw_execution.log" "$e/sanitized_execution.log" <<'PY'
+          import os, re, sys
+          src, dst = sys.argv[1:]
+          text = open(src, 'r', encoding='utf-8', errors='replace').read() if os.path.exists(src) else 'NO_RAW_LOG\n'
+          pats = [
+              (re.compile(r'ghp_[A-Za-z0-9]{20,}'), '***REDACTED_GITHUB_TOKEN***'),
+              (re.compile(r'github_pat_[A-Za-z0-9_]{20,}'), '***REDACTED_GITHUB_PAT***'),
+              (re.compile(r'(CF-Access-Client-Secret\s*[:=]\s*)\S+', re.I), r'\1***REDACTED***'),
+              (re.compile(r'BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE KEY'), 'BEGIN REDACTED PRIVATE KEY'),
+              (re.compile(r'AKIA[0-9A-Z]{16}'), '***REDACTED_AWS_KEY***'),
+          ]
+          for p, repl in pats:
+              text = p.sub(repl, text)
+          open(dst, 'w', encoding='utf-8').write(text)
+          PY
+
+          if [ "$(stat -c%s "$e/sanitized_execution.log")" -gt $((8*1024*1024)) ]; then
+            split -b 8m -d -a 3 "$e/sanitized_execution.log" "$e/sanitized_execution.log.part."
+            rm "$e/sanitized_execution.log"
+          fi
+
+          python3 ci/check_repository_policy.py --root "$e"
+          (
+            cd "$e"
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          )
+
+      - name: Push phase evidence to ci-results
+        if: always()
+        shell: bash
+        working-directory: control
+        env:
+          PHASE: ${{ steps.control.outputs.phase }}
+          SOURCE_SHA: ${{ steps.control.outputs.source_sha }}
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-v2-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          wt="$RUNNER_TEMP/ci-results-r10-8w-v2-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          dest="runs/$SOURCE_SHA/github-actions-r10-8w-v2/$PHASE/$GITHUB_RUN_ID"
+          cleanup() {
+            cd "$GITHUB_WORKSPACE/control" >/dev/null 2>&1 || true
+            git worktree remove --force "$wt" >/dev/null 2>&1 || true
+            rm -rf "$wt"
+            git worktree prune >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          git worktree remove --force "$wt" >/dev/null 2>&1 || true
+          rm -rf "$wt"
+          git worktree prune
+          git fetch origin ci-results
+          git worktree add --detach "$wt" origin/ci-results
+          mkdir -p "$wt/$dest"
+          cp -a "$EVIDENCE_BASE/evidence/." "$wt/$dest/"
+          cd "$wt"
+          git config user.name "CB16 GitHub Canonical Runner"
+          git config user.email "canonical-runner@users.noreply.github.com"
+          git add "$dest"
+          if ! git diff --cached --quiet; then
+            git commit -m "r10-8w-v2-evidence: $SOURCE_SHA $PHASE run=$GITHUB_RUN_ID"
+          fi
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin ci-results
+            git rebase origin/ci-results
+            if git push origin HEAD:refs/heads/ci-results; then
+              pushed=1
+              break
+            fi
+            sleep $((attempt * 2))
+          done
+          test "$pushed" = "1"
+          git fetch origin ci-results
+          git cat-file -e "origin/ci-results:$dest/result.json"
+          git cat-file -e "origin/ci-results:$dest/REPORT.md"
+          git cat-file -e "origin/ci-results:$dest/SHA256SUMS"
+          echo "DURABLE_PHASE_EVIDENCE_VERIFY=PASS"
+
+      - name: Phase gate
+        if: always()
+        shell: bash
+        env:
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-v2-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          rc="$(cat "$EVIDENCE_BASE/exit_code.txt" 2>/dev/null || echo 255)"
+          echo "PHASE_GATE_EXIT_CODE=$rc"
+          test "$rc" = "0"
