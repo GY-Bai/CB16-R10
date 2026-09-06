@@ -1,0 +1,60 @@
+name: CB16 GH Runner WSS Qualification
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Qualification mode'
+        required: true
+        default: 'quick'
+        type: choice
+        options:
+          - quick
+          - long
+
+permissions:
+  contents: read
+
+jobs:
+  wss-qualification:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 75
+    steps:
+      - name: Environment identity
+        run: |
+          echo "whoami=$(whoami)"
+          echo "hostname=$(hostname)"
+          uname -a
+          python3 --version
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Git identity
+        run: |
+          echo "sha=$(git rev-parse HEAD)"
+          echo "branch=$(git rev-parse --abbrev-ref HEAD)"
+      - name: GPU info
+        run: nvidia-smi || true
+      - name: Proxy connectivity
+        run: |
+          set -e
+          for url in https://github.com/ https://api.github.com/; do
+            curl -sS -o /dev/null --connect-timeout 10 --max-time 30 -w "$url %{http_code}\n" "$url"
+          done
+      - name: Small writable check
+        run: |
+          set -e
+          p="${RUNNER_TEMP}/wss_canary"
+          printf test > "$p"
+          test -s "$p"
+          rm "$p"
+      - name: Quick complete
+        if: ${{ github.event.inputs.mode == 'quick' }}
+        run: echo "QUICK_DONE"
+      - name: Long heartbeat
+        if: ${{ github.event.inputs.mode == 'long' }}
+        run: |
+          for i in $(seq 1 90); do
+            echo "CB16_WSS_HEARTBEAT $i $(date -Is)"
+            sleep 30
+          done
