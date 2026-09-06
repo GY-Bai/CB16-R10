@@ -120,4 +120,4 @@ jobs:
         if: ${{ github.event.inputs.mode == 'failure' }}
         run: |
           echo "failure mode rc=$(cat ci_evidence/exit_code.txt)"
-          test "$(cat ci_evidence/exit_code.txt)" != "0"
+          test "$(cat ci_evidence/exit_code.txt)" = "0"
