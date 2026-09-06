@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 import sys
 from pathlib import Path
@@ -64,19 +65,27 @@ def _teacher_fixture():
     return parents, samples
 
 
-def test_r81_runtime_authority_exact_and_r10_batch_preserved():
+def test_r81_baseline_is_preserved_while_r82_active_overlay_is_six_workers():
     r = load_r102_runtime_parallelism(ROOT, live_environment_check=False)
     assert r.runtime_authority_content_hash == EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH
     assert r.runtime_profile_hash == EXPECTED_RUNTIME_PROFILE_HASH
     assert EXPECTED_RUNTIME_AUTHORITY_FILE_SHA256 == "f50757da882cee0f6def11ec9c6e38e1065f415032f7d1405b249beb997e92df"
-    assert r.h72_workers == 2
+    # Historical R8.1 authority remains immutable and still records 2 as its
+    # selected short-benchmark worker count.
+    limits = json.loads((ROOT / "authority/R8_1_qualification/R8_1_RUNTIME_LIMITS_FROZEN.json").read_text())
+    assert limits["h72_worker_scaling"]["selected_workers"] == 2
+    # Active R8.2 performance-only overlay starts H72 at six workers.
+    assert r.performance_overlay == "R8_2_6W_RAM_ADAPTIVE"
+    assert r.h72_workers == 6
     assert r.h72_threads_per_worker == 1
-    assert r.h72_max_in_flight == 4
+    assert r.h72_max_in_flight == 8
+    assert r.h72_minimum_workers == 1
     assert r.teacher_workers == 2
     assert r.teacher_threads_per_worker == 1
     assert r.experience_shards == 4
     assert r.gpu_qualified_train_batch_ceiling == 8192
-    # R8.1 provides a machine ceiling. R10.2 scientific training math remains frozen at 512.
+    assert r.cache_hit_first is True
+    assert r.runtime_scheduling_identity_is_not_scientific_cache_identity is True
     r10_batch = 512
     assert r10_batch <= r.gpu_qualified_train_batch_ceiling
     assert r10_batch == 512
@@ -84,7 +93,7 @@ def test_r81_runtime_authority_exact_and_r10_batch_preserved():
     assert r.do_not_run_h72_and_teacher_at_full_concurrency is True
 
 
-def test_h72_two_worker_results_equal_serial_exactly():
+def test_h72_active_six_worker_results_equal_serial_exactly():
     r = load_r102_runtime_parallelism(ROOT, live_environment_check=False)
     ts, bars, funding = _market_fixture()
     runtime = FrozenPhysicsRuntimeR102.load(ROOT)
