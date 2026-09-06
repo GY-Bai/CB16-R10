@@ -69,19 +69,19 @@ def _teacher_fixture():
     return parents, samples
 
 
-def test_r81_baseline_is_preserved_while_r82_active_overlay_is_six_workers():
+def test_r81_baseline_is_preserved_while_r83_active_overlay_is_eight_workers():
     r = load_r102_runtime_parallelism(ROOT, live_environment_check=False)
     assert r.runtime_authority_content_hash == EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH
     assert r.runtime_profile_hash == EXPECTED_RUNTIME_PROFILE_HASH
     assert EXPECTED_RUNTIME_AUTHORITY_FILE_SHA256 == "f50757da882cee0f6def11ec9c6e38e1065f415032f7d1405b249beb997e92df"
     limits = json.loads((ROOT / "authority/R8_1_qualification/R8_1_RUNTIME_LIMITS_FROZEN.json").read_text())
     assert limits["h72_worker_scaling"]["selected_workers"] == 2
-    assert r.performance_overlay == "R8_2_6W_RAM_ADAPTIVE"
-    assert r.h72_workers == 6
+    assert r.performance_overlay == "R8_3_8W_RAM_ADAPTIVE"
+    assert r.h72_workers == 8
     assert r.h72_threads_per_worker == 1
     assert r.h72_max_in_flight == 8
     assert r.h72_minimum_workers == 1
-    assert r.teacher_workers == 6
+    assert r.teacher_workers == 8
     assert r.teacher_threads_per_worker == 1
     assert r.experience_shards == 4
     assert r.gpu_qualified_train_batch_ceiling == 8192
@@ -94,7 +94,7 @@ def test_r81_baseline_is_preserved_while_r82_active_overlay_is_six_workers():
     assert r.do_not_run_h72_and_teacher_at_full_concurrency is True
 
 
-def test_h72_active_six_worker_results_equal_serial_exactly():
+def test_h72_active_eight_worker_results_equal_serial_exactly():
     r = load_r102_runtime_parallelism(ROOT, live_environment_check=False)
     ts, bars, funding = _market_fixture()
     runtime = FrozenPhysicsRuntimeR102.load(ROOT)
@@ -124,7 +124,7 @@ def test_h72_active_six_worker_results_equal_serial_exactly():
     assert branch_results == serial
 
 
-def test_teacher_active_six_worker_content_hashes_equal_serial():
+def test_teacher_active_eight_worker_content_hashes_equal_serial():
     r = load_r102_runtime_parallelism(ROOT, live_environment_check=False)
     parents, samples = _teacher_fixture()
     serial_train, serial_val = compile_teacher_evidence(samples, parents, workers=1, threads_per_worker=1, max_in_flight=1)
@@ -139,7 +139,7 @@ def test_teacher_active_six_worker_content_hashes_equal_serial():
 
 
 def test_ram_monitor_never_requests_worker_removal_below_one_effective_worker():
-    assert ram_action_r82(0.50, 6) == "NONE"
-    assert ram_action_r82(0.85, 6) == "RETIRE_ONE"
-    assert ram_action_r82(0.92, 6) == "KILL_ONE"
+    assert ram_action_r82(0.50, 8) == "NONE"
+    assert ram_action_r82(0.85, 8) == "RETIRE_ONE"
+    assert ram_action_r82(0.92, 8) == "KILL_ONE"
     assert ram_action_r82(0.99, 1) == "PAUSE"
