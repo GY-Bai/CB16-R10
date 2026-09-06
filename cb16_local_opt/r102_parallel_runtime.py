@@ -10,7 +10,8 @@ R8.2 execution policy:
 - RAM pressure is monitored from /proc/meminfo and the current cgroup;
 - at the high watermark, dispatch pauses and one worker is gracefully retired;
 - at the hard watermark, one active worker may be terminated and its pure H72 job requeued;
-- at least one worker is always retained.
+- at least one effective worker is always retained, including when retirement
+  requests are waiting behind active jobs.
 
 Worker-count changes are runtime scheduling only and must never invalidate an
 already materialized scientific cache.
@@ -307,9 +308,9 @@ def _bounded_process_map(
     retry = deque()
     results: dict[int, Any] = {}
     next_i = 0
-    desired_workers = workers
     last_ram_action_at = 0.0
     backpressure = False
+    retirement_tokens = 0
 
     def start_one() -> None:
         p = ctx.Process(
@@ -333,6 +334,9 @@ def _bounded_process_map(
     for _ in range(workers):
         start_one()
 
+    def effective_workers() -> int:
+        return max(0, len(procs) - retirement_tokens)
+
     def pending_count() -> int:
         return len(queued_indices) + len(active_by_pid)
 
@@ -355,108 +359,113 @@ def _bounded_process_map(
             queue_job(idx)
 
     fill_queue()
+    try:
+        while len(results) < len(jobs):
+            drained = False
+            while True:
+                try:
+                    kind, pid, idx, payload = result_q.get_nowait()
+                except queue.Empty:
+                    break
+                drained = True
+                if kind == "READY":
+                    continue
+                if kind == "START":
+                    queued_indices.discard(int(idx))
+                    active_by_pid[int(pid)] = int(idx)
+                    continue
+                if kind == "DONE":
+                    idx = int(idx)
+                    active_by_pid.pop(int(pid), None)
+                    queued_indices.discard(idx)
+                    results.setdefault(idx, payload)
+                    continue
+                if kind == "RETIRED":
+                    active_by_pid.pop(int(pid), None)
+                    p = procs.pop(int(pid), None)
+                    if retirement_tokens > 0:
+                        retirement_tokens -= 1
+                    if p is not None:
+                        expected_exit.add(int(pid))
+                        p.join(timeout=1.0)
+                    continue
+                if kind == "ERROR":
+                    active_by_pid.pop(int(pid), None)
+                    name, message, tb = payload
+                    raise RuntimeError(f"R102_H72_WORKER_ERROR:{name}:{message}\n{tb}")
+                raise RuntimeError(f"R102_UNKNOWN_H72_WORKER_MESSAGE:{kind}")
 
-    while len(results) < len(jobs):
-        drained = False
-        while True:
-            try:
-                kind, pid, idx, payload = result_q.get_nowait()
-            except queue.Empty:
-                break
-            drained = True
-            if kind == "READY":
-                continue
-            if kind == "START":
-                queued_indices.discard(int(idx))
-                active_by_pid[int(pid)] = int(idx)
-                continue
-            if kind == "DONE":
-                idx = int(idx)
-                active_by_pid.pop(int(pid), None)
-                queued_indices.discard(idx)
-                results.setdefault(idx, payload)
-                continue
-            if kind == "RETIRED":
-                active_by_pid.pop(int(pid), None)
-                p = procs.pop(int(pid), None)
-                if p is not None:
-                    expected_exit.add(int(pid))
-                    p.join(timeout=1.0)
-                continue
-            if kind == "ERROR":
-                active_by_pid.pop(int(pid), None)
-                name, message, tb = payload
-                raise RuntimeError(f"R102_H72_WORKER_ERROR:{name}:{message}\n{tb}")
-            raise RuntimeError(f"R102_UNKNOWN_H72_WORKER_MESSAGE:{kind}")
-
-        for pid, p in list(procs.items()):
-            if p.is_alive():
-                continue
-            p.join(timeout=0.1)
-            if pid in expected_exit or p.exitcode == 0:
+            for pid, p in list(procs.items()):
+                if p.is_alive():
+                    continue
+                p.join(timeout=0.1)
+                if pid in expected_exit or p.exitcode == 0:
+                    procs.pop(pid, None)
+                    active_by_pid.pop(pid, None)
+                    continue
+                idx = active_by_pid.pop(pid, None)
+                if idx is not None:
+                    retry.appendleft(idx)
                 procs.pop(pid, None)
-                active_by_pid.pop(pid, None)
-                continue
-            idx = active_by_pid.pop(pid, None)
-            if idx is not None:
-                retry.appendleft(idx)
-            procs.pop(pid, None)
-            raise RuntimeError(f"R102_H72_WORKER_UNEXPECTED_EXIT:{pid}:{p.exitcode}")
+                raise RuntimeError(f"R102_H72_WORKER_UNEXPECTED_EXIT:{pid}:{p.exitcode}")
 
-        now = time.monotonic()
-        sample = sample_ram_pressure_r82()
-        action = ram_action_r82(
-            sample.pressure,
-            len(procs),
-            high=float(ram_backpressure_high),
-            hard=float(ram_hard_stop),
-        )
-        backpressure = sample.pressure >= float(ram_backpressure_high)
+            now = time.monotonic()
+            sample = sample_ram_pressure_r82()
+            current_effective = effective_workers()
+            action = ram_action_r82(
+                sample.pressure,
+                current_effective,
+                high=float(ram_backpressure_high),
+                hard=float(ram_hard_stop),
+            )
+            backpressure = sample.pressure >= float(ram_backpressure_high)
 
-        if action in {"RETIRE_ONE", "KILL_ONE"} and now - last_ram_action_at >= float(ram_retire_cooldown_seconds):
-            last_ram_action_at = now
-            desired_workers = max(1, desired_workers - 1)
-            if action == "KILL_ONE" and active_by_pid:
-                victim = max(active_by_pid, key=_pid_rss_bytes)
-                idx = active_by_pid.pop(victim)
-                retry.appendleft(idx)
-                p = procs.pop(victim, None)
-                if p is not None and p.is_alive():
-                    expected_exit.add(victim)
-                    p.terminate()
-                    p.join(timeout=5.0)
-                print(
-                    f"[R10_RAM_MONITOR] hard pressure={sample.pressure:.4f}; "
-                    f"killed_worker={victim}; requeued_job={idx}; workers={len(procs)}",
-                    flush=True,
-                )
-            else:
-                job_q.put(None)
-                print(
-                    f"[R10_RAM_MONITOR] high pressure={sample.pressure:.4f}; "
-                    f"requested_worker_retirement; target_workers={desired_workers}",
-                    flush=True,
-                )
+            if action in {"RETIRE_ONE", "KILL_ONE"} and now - last_ram_action_at >= float(ram_retire_cooldown_seconds):
+                last_ram_action_at = now
+                if action == "KILL_ONE" and active_by_pid and current_effective > 1:
+                    victim = max(active_by_pid, key=_pid_rss_bytes)
+                    idx = active_by_pid.pop(victim)
+                    retry.appendleft(idx)
+                    p = procs.pop(victim, None)
+                    if p is not None and p.is_alive():
+                        expected_exit.add(victim)
+                        p.terminate()
+                        p.join(timeout=5.0)
+                    print(
+                        f"[R10_RAM_MONITOR] hard pressure={sample.pressure:.4f}; "
+                        f"killed_worker={victim}; requeued_job={idx}; effective_workers={effective_workers()}",
+                        flush=True,
+                    )
+                elif current_effective > 1:
+                    job_q.put(None)
+                    retirement_tokens += 1
+                    print(
+                        f"[R10_RAM_MONITOR] high pressure={sample.pressure:.4f}; "
+                        f"requested_worker_retirement; target_effective_workers={effective_workers()}",
+                        flush=True,
+                    )
 
-        fill_queue()
+            fill_queue()
+            if not drained:
+                time.sleep(float(ram_poll_seconds))
+            if effective_workers() <= 0 and len(results) < len(jobs):
+                raise RuntimeError("R102_ALL_H72_WORKERS_EXITED")
+    finally:
+        for _ in range(max(0, len(procs) - retirement_tokens)):
+            try:
+                job_q.put_nowait(None)
+            except queue.Full:
+                break
+        deadline = time.monotonic() + 10.0
+        for p in list(procs.values()):
+            remaining = max(0.0, deadline - time.monotonic())
+            p.join(timeout=remaining)
+            if p.is_alive():
+                p.terminate()
+                p.join(timeout=2.0)
+        job_q.close()
+        result_q.close()
 
-        if not drained:
-            time.sleep(float(ram_poll_seconds))
-
-        if not procs and len(results) < len(jobs):
-            raise RuntimeError("R102_ALL_H72_WORKERS_EXITED")
-
-    for _ in range(len(procs)):
-        job_q.put(None)
-    deadline = time.monotonic() + 10.0
-    for pid, p in list(procs.items()):
-        remaining = max(0.0, deadline - time.monotonic())
-        p.join(timeout=remaining)
-        if p.is_alive():
-            p.terminate()
-            p.join(timeout=2.0)
-    job_q.close()
-    result_q.close()
     return [results[i] for i in range(len(jobs))]
 
 
