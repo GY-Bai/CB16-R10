@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import getpass
+import os
+import pwd
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -17,13 +18,17 @@ class R104WriterContract:
     authorized: bool
 
 
+def _effective_username() -> str:
+    return pwd.getpwuid(os.geteuid()).pw_name
+
+
 def inspect_r104_writer_contract(
     run_root: str | Path,
     *,
     effective_user: str | None = None,
 ) -> R104WriterContract:
     root = Path(run_root).resolve()
-    user = effective_user or getpass.getuser()
+    user = effective_user or _effective_username()
     canonical = root == CANONICAL_R104_ROOT.resolve()
     authorized = (not canonical) or user == CANONICAL_R104_WRITER
     return R104WriterContract(
