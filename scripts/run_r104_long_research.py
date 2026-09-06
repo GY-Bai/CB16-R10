@@ -8,6 +8,7 @@ from cb16_local_opt.r102_common import ALL_SUPPORTED_SYMBOLS_R102
 from cb16_local_opt.r10_ci_reporting import append_scientific_summary, status_is_pass
 from cb16_local_opt.r10_host_bindings import host_binding
 from cb16_local_opt.r10_run_root_lock import RunRootExclusiveLock
+from cb16_local_opt.r104_writer_contract import enforce_r104_writer_contract
 
 DEFAULT_PACKAGE_ROOT='/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1'
 DEFAULT_DATA_ROOT='/data/cb16_hdd/binance_usdm_1m_funding_2020_2026'
@@ -75,6 +76,10 @@ def main() -> int:
     ap.add_argument('--parent-r101-root',default=host_binding('CB16_R10_PARENT_R101_ROOT',DEFAULT_PARENT_R101))
     ap.add_argument('--parent-g0',default=host_binding('CB16_R10_PARENT_G0',DEFAULT_PARENT_G0))
     ap.add_argument('--device',default='cuda'); a=ap.parse_args()
+    # The canonical R10.4 scientific runtime is a cb16-ci-only write domain.
+    # Manual/debug runs remain legal only with an explicit noncanonical --run-root.
+    # This is runtime safety only and is deliberately outside scientific/cache identity.
+    enforce_r104_writer_contract(a.run_root)
     prev=Path(a.r103_root)/'FINAL_RESULT_R102.json'; start=Path(a.r103_root)/'generations/G19/champion_after.pt'
     # run_campaign is recovery-first: existing R10.4 evidence cache and complete
     # generation receipts are reused. Runtime scheduling changes do not request a
