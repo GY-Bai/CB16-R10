@@ -1,0 +1,376 @@
+name: CB16 R10 8W Canonical Ladder
+
+on:
+  push:
+    branches:
+      - ai/v63-activation-r0
+    paths:
+      - .github/cb16-r10-ladder-trigger.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cb16-r10-canonical-science
+  cancel-in-progress: false
+
+env:
+  SOURCE_AUTHORITY_SHA: f056ae6a0722e3e92d71793024a6e6d3fe9af003
+  R102_8W_ROOT: /home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w
+  R103_8W_ROOT: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+  R104_CANONICAL_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+
+jobs:
+  canonical-phase:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 1440
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          path: control
+
+      - name: Validate trigger
+        id: control
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path(os.environ['GITHUB_WORKSPACE']) / 'control/.github/cb16-r10-ladder-trigger.json'
+          x = json.loads(p.read_text())
+          assert x.get('schema') == 'CB16_R10_8W_LADDER_TRIGGER_V1'
+          assert x.get('phase') in {'r102','r103','r104'}
+          assert x.get('source_sha') == os.environ['SOURCE_AUTHORITY_SHA']
+          assert x.get('final_holdout_2025_09_accessed') is False
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
+              f.write(f"phase={x['phase']}\n")
+              f.write(f"source_sha={x['source_sha']}\n")
+          print('TRIGGER_VALID=PASS')
+          print('phase=', x['phase'])
+          print('source_sha=', x['source_sha'])
+          PY
+
+      - name: Checkout frozen 8W source authority
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.control.outputs.source_sha }}
+          fetch-depth: 1
+          path: source
+
+      - name: Execute gated phase
+        id: execute
+        shell: bash
+        working-directory: source
+        env:
+          PHASE: ${{ steps.control.outputs.phase }}
+          SOURCE_SHA: ${{ steps.control.outputs.source_sha }}
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          mkdir -p "$EVIDENCE_BASE"
+          raw="$EVIDENCE_BASE/raw_execution.log"
+          rcfile="$EVIDENCE_BASE/exit_code.txt"
+          pyfile="$EVIDENCE_BASE/python_bin.txt"
+
+          set +e
+          (
+            set -euo pipefail
+            echo "CB16_R10_8W_PHASE=$PHASE"
+            echo "SOURCE_AUTHORITY_SHA=$SOURCE_SHA"
+            echo "TRIGGER_SHA=${GITHUB_SHA}"
+            echo "RUN_ID=${GITHUB_RUN_ID}"
+            echo "WHOAMI=$(whoami)"
+            test "$(whoami)" = "cb16-ci"
+
+            active="$(ps -eo pid=,comm=,args= | awk '$2 ~ /^python/ && $0 ~ /scripts\/run_r10(2|3|4)_/ {print}' || true)"
+            if [ -n "$active" ]; then
+              echo "ACTIVE_R10_SCIENTIFIC_PROCESS_DETECTED" >&2
+              echo "$active" >&2
+              exit 75
+            fi
+
+            choose_python() {
+              local c
+              for c in python3; do
+                if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import torch,numpy; assert torch.cuda.is_available()' >/dev/null 2>&1; then
+                  command -v "$c"
+                  return 0
+                fi
+              done
+              while IFS= read -r c; do
+                if "$c" -c 'import torch,numpy; assert torch.cuda.is_available()' >/dev/null 2>&1; then
+                  echo "$c"
+                  return 0
+                fi
+              done < <(find /data/cb16_ci /home/bgy/cb16_ssd -maxdepth 7 -type f -path '*/bin/python*' 2>/dev/null | sort -u)
+              return 1
+            }
+
+            PYBIN="$(choose_python)" || { echo "NO_CUDA_PYTHON_ENVIRONMENT" >&2; exit 78; }
+            echo "$PYBIN" > "$pyfile"
+            "$PYBIN" - <<'PY'
+          import json
+          import torch
+          from cb16_local_opt.r102_runtime_authority import load_r102_runtime_parallelism
+          r = load_r102_runtime_parallelism('.', live_environment_check=True)
+          assert r.performance_overlay == 'R8_3_8W_RAM_ADAPTIVE'
+          assert r.h72_workers == 8
+          assert r.teacher_workers == 8
+          assert r.h72_threads_per_worker == 1
+          assert r.teacher_threads_per_worker == 1
+          assert r.h72_max_in_flight == 8
+          assert r.cache_hit_first is True
+          assert r.runtime_scheduling_identity_is_not_scientific_cache_identity is True
+          print('R8_3_LIVE_RUNTIME_AUTHORITY=PASS')
+          print(json.dumps({
+              'torch': torch.__version__,
+              'cuda': torch.version.cuda,
+              'device': torch.cuda.get_device_name(0),
+              'capability': list(torch.cuda.get_device_capability(0)),
+              'overlay': r.performance_overlay,
+              'h72_workers': r.h72_workers,
+              'teacher_workers': r.teacher_workers,
+              'threads_per_worker': r.h72_threads_per_worker,
+              'max_in_flight': r.h72_max_in_flight,
+              'cache_hit_first': r.cache_hit_first,
+          }, sort_keys=True))
+          PY
+
+            write_qualification_authority() {
+              local root="$1"
+              mkdir -p "$root"
+              local p="$root/QUALIFICATION_AUTHORITY_R8_3_8W.json"
+              if [ -f "$p" ]; then
+                "$PYBIN" - "$p" "$SOURCE_SHA" <<'PY'
+          import json, sys
+          p, sha = sys.argv[1:]
+          x = json.load(open(p))
+          assert x['schema'] == 'CB16_R8_3_8W_QUALIFICATION_AUTHORITY_V1'
+          assert x['source_sha'] == sha
+          assert x['scientific_semantics_changed'] is False
+          assert x['final_holdout_2025_09_accessed'] is False
+          print('QUALIFICATION_AUTHORITY_REUSE=PASS')
+          PY
+              else
+                cat > "$p" <<JSON
+          {
+            "schema": "CB16_R8_3_8W_QUALIFICATION_AUTHORITY_V1",
+            "source_sha": "$SOURCE_SHA",
+            "purpose": "EXPLICIT_CONTROLLED_8W_FULL_QUALIFICATION",
+            "cache_policy": "CONTROLLED_REBUILD_ONLY_IN_DEDICATED_QUALIFICATION_ROOTS; CANONICAL_R104_CACHE_HIT_FIRST",
+            "scientific_semantics_changed": false,
+            "final_holdout_2025_09_accessed": false
+          }
+          JSON
+              fi
+            }
+
+            compare_result_identity() {
+              local candidate="$1"
+              local authority="$2"
+              "$PYBIN" - "$candidate" "$authority" <<'PY'
+          import json, sys
+          candidate, authority = map(lambda p: json.load(open(p)), sys.argv[1:])
+          keys = ['final_champion_semantic_sha256','attempts_completed','promotions','rejections']
+          for k in keys:
+              if candidate.get(k) != authority.get(k):
+                  raise SystemExit(f'RESULT_IDENTITY_MISMATCH:{k}:{candidate.get(k)}!={authority.get(k)}')
+          if not str(candidate.get('final_status','')).endswith('PASS'):
+              raise SystemExit(f'CANDIDATE_NOT_PASS:{candidate.get("final_status")}')
+          if not str(authority.get('final_status','')).endswith('PASS'):
+              raise SystemExit(f'AUTHORITY_NOT_PASS:{authority.get("final_status")}')
+          print('SCIENTIFIC_RESULT_IDENTITY_EQUIVALENCE=PASS')
+          print('final_champion_semantic_sha256=', candidate.get('final_champion_semantic_sha256'))
+          PY
+            }
+
+            case "$PHASE" in
+              r102)
+                write_qualification_authority "$R102_8W_ROOT"
+                echo "CACHE_POLICY=EXPLICIT_CONTROLLED_8W_QUALIFICATION_REBUILD"
+                "$PYBIN" scripts/run_r102_pipeline.py --run-root "$R102_8W_ROOT"
+                compare_result_identity \
+                  "$R102_8W_ROOT/FINAL_RESULT_R102.json" \
+                  "/home/bgy/cb16_ssd/runtime/R10_2/FINAL_RESULT_R102.json"
+                ;;
+              r103)
+                test -f "$R102_8W_ROOT/FINAL_RESULT_R102.json"
+                compare_result_identity \
+                  "$R102_8W_ROOT/FINAL_RESULT_R102.json" \
+                  "/home/bgy/cb16_ssd/runtime/R10_2/FINAL_RESULT_R102.json"
+                write_qualification_authority "$R103_8W_ROOT"
+                echo "CACHE_POLICY=EXPLICIT_CONTROLLED_8W_QUALIFICATION_REBUILD"
+                "$PYBIN" scripts/run_r103_expansion.py \
+                  --r102-root "$R102_8W_ROOT" \
+                  --run-root "$R103_8W_ROOT"
+                compare_result_identity \
+                  "$R103_8W_ROOT/FINAL_RESULT_R102.json" \
+                  "/home/bgy/cb16_ssd/runtime/R10_3/FINAL_RESULT_R102.json"
+                ;;
+              r104)
+                test -f "$R103_8W_ROOT/FINAL_RESULT_R102.json"
+                compare_result_identity \
+                  "$R103_8W_ROOT/FINAL_RESULT_R102.json" \
+                  "/home/bgy/cb16_ssd/runtime/R10_3/FINAL_RESULT_R102.json"
+                echo "CACHE_POLICY=CANONICAL_R104_CACHE_HIT_FIRST_RECOVERY"
+                "$PYBIN" scripts/run_r104_long_research.py \
+                  --r103-root "$R103_8W_ROOT" \
+                  --run-root "$R104_CANONICAL_ROOT"
+                ;;
+              *)
+                echo "UNKNOWN_PHASE=$PHASE" >&2
+                exit 64
+                ;;
+            esac
+          ) 2>&1 | tee "$raw"
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "$rc" > "$rcfile"
+          echo "PHASE_EXIT_CODE=$rc"
+          exit 0
+
+      - name: Materialize sanitized durable evidence
+        if: always()
+        shell: bash
+        working-directory: source
+        env:
+          PHASE: ${{ steps.control.outputs.phase }}
+          SOURCE_SHA: ${{ steps.control.outputs.source_sha }}
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE_BASE/evidence"
+          e="$EVIDENCE_BASE/evidence"
+          rc="$(cat "$EVIDENCE_BASE/exit_code.txt" 2>/dev/null || echo 255)"
+          if [ "$rc" = "0" ]; then verdict=PASS; else verdict=FAIL; fi
+
+          case "$PHASE" in
+            r102) result="$R102_8W_ROOT/FINAL_RESULT_R102.json"; blocker="$R102_8W_ROOT/EXECUTION_BLOCKER_RECEIPT_R1021.json" ;;
+            r103) result="$R103_8W_ROOT/FINAL_RESULT_R102.json"; blocker="$R103_8W_ROOT/EXECUTION_BLOCKER_RECEIPT_R103.json" ;;
+            r104) result="$R104_CANONICAL_ROOT/FINAL_RESULT_R102.json"; blocker="$R104_CANONICAL_ROOT/EXECUTION_BLOCKER_RECEIPT_R104.json" ;;
+          esac
+
+          cat > "$e/result.json" <<JSON
+          {
+            "schema": "CB16_GITHUB_R10_8W_PHASE_RESULT_V1",
+            "run_id": "${GITHUB_RUN_ID}",
+            "trigger_sha": "${GITHUB_SHA}",
+            "source_authority_sha": "$SOURCE_SHA",
+            "phase": "$PHASE",
+            "runtime_overlay": "R8_3_8W_RAM_ADAPTIVE",
+            "exit_code": $rc,
+            "verdict": "$verdict",
+            "scientific_semantics_changed": false,
+            "final_holdout_2025_09_accessed": false
+          }
+          JSON
+
+          cat > "$e/REPORT.md" <<MD
+          # CB16 R10 8W Canonical Phase Evidence
+          - run_id: ${GITHUB_RUN_ID}
+          - trigger_sha: ${GITHUB_SHA}
+          - source_authority_sha: $SOURCE_SHA
+          - phase: $PHASE
+          - runtime_overlay: R8_3_8W_RAM_ADAPTIVE
+          - exit_code: $rc
+          - verdict: $verdict
+          - final_holdout_2025_09_accessed: false
+          MD
+
+          if [ -f "$result" ]; then cp "$result" "$e/scientific_result.json"; fi
+          if [ -f "$blocker" ]; then cp "$blocker" "$e/engineering_blocker.json"; fi
+
+          python3 - "$EVIDENCE_BASE/raw_execution.log" "$e/sanitized_execution.log" <<'PY'
+          import re, sys
+          src, dst = sys.argv[1:]
+          text = open(src, 'r', encoding='utf-8', errors='replace').read() if __import__('os').path.exists(src) else 'NO_RAW_LOG\n'
+          pats = [
+              (re.compile(r'ghp_[A-Za-z0-9]{20,}'), '***REDACTED_GITHUB_TOKEN***'),
+              (re.compile(r'github_pat_[A-Za-z0-9_]{20,}'), '***REDACTED_GITHUB_PAT***'),
+              (re.compile(r'(CF-Access-Client-Secret\s*[:=]\s*)\S+', re.I), r'\1***REDACTED***'),
+              (re.compile(r'BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE KEY'), 'BEGIN REDACTED PRIVATE KEY'),
+              (re.compile(r'AKIA[0-9A-Z]{16}'), '***REDACTED_AWS_KEY***'),
+          ]
+          for p, repl in pats:
+              text = p.sub(repl, text)
+          open(dst, 'w', encoding='utf-8').write(text)
+          PY
+
+          if [ "$(stat -c%s "$e/sanitized_execution.log")" -gt $((8*1024*1024)) ]; then
+            split -b 8m -d -a 3 "$e/sanitized_execution.log" "$e/sanitized_execution.log.part."
+            rm "$e/sanitized_execution.log"
+          fi
+
+          python3 ci/check_repository_policy.py --root "$e"
+          (
+            cd "$e"
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          )
+
+      - name: Push phase evidence to ci-results
+        if: always()
+        shell: bash
+        working-directory: control
+        env:
+          PHASE: ${{ steps.control.outputs.phase }}
+          SOURCE_SHA: ${{ steps.control.outputs.source_sha }}
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          wt="$RUNNER_TEMP/ci-results-r10-8w-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          dest="runs/$SOURCE_SHA/github-actions-r10-8w/$PHASE/$GITHUB_RUN_ID"
+          cleanup() {
+            cd "$GITHUB_WORKSPACE/control" >/dev/null 2>&1 || true
+            git worktree remove --force "$wt" >/dev/null 2>&1 || true
+            rm -rf "$wt"
+            git worktree prune >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          git worktree remove --force "$wt" >/dev/null 2>&1 || true
+          rm -rf "$wt"
+          git worktree prune
+          git fetch origin ci-results
+          git worktree add --detach "$wt" origin/ci-results
+          mkdir -p "$wt/$dest"
+          cp -a "$EVIDENCE_BASE/evidence/." "$wt/$dest/"
+
+          cd "$wt"
+          git config user.name "CB16 GitHub Canonical Runner"
+          git config user.email "canonical-runner@users.noreply.github.com"
+          git add "$dest"
+          if ! git diff --cached --quiet; then
+            git commit -m "r10-8w-evidence: $SOURCE_SHA $PHASE run=$GITHUB_RUN_ID"
+          fi
+
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin ci-results
+            git rebase origin/ci-results
+            if git push origin HEAD:refs/heads/ci-results; then
+              pushed=1
+              break
+            fi
+            sleep $((attempt * 2))
+          done
+          test "$pushed" = "1"
+          git fetch origin ci-results
+          git cat-file -e "origin/ci-results:$dest/result.json"
+          git cat-file -e "origin/ci-results:$dest/REPORT.md"
+          git cat-file -e "origin/ci-results:$dest/SHA256SUMS"
+          echo "DURABLE_PHASE_EVIDENCE_VERIFY=PASS"
+
+      - name: Phase gate
+        if: always()
+        shell: bash
+        env:
+          EVIDENCE_BASE: ${{ runner.temp }}/cb16-r10-8w-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          rc="$(cat "$EVIDENCE_BASE/exit_code.txt" 2>/dev/null || echo 255)"
+          echo "PHASE_GATE_EXIT_CODE=$rc"
+          test "$rc" = "0"
