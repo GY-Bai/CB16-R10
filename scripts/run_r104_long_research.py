@@ -7,6 +7,7 @@ from cb16_local_opt.r102_campaign import run_campaign
 from cb16_local_opt.r102_common import ALL_SUPPORTED_SYMBOLS_R102
 from cb16_local_opt.r10_ci_reporting import append_scientific_summary, status_is_pass
 from cb16_local_opt.r10_host_bindings import host_binding
+from cb16_local_opt.r10_run_root_lock import RunRootExclusiveLock
 
 DEFAULT_PACKAGE_ROOT='/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1'
 DEFAULT_DATA_ROOT='/data/cb16_hdd/binance_usdm_1m_funding_2020_2026'
@@ -77,8 +78,10 @@ def main() -> int:
     prev=Path(a.r103_root)/'FINAL_RESULT_R102.json'; start=Path(a.r103_root)/'generations/G19/champion_after.pt'
     # run_campaign is recovery-first: existing R10.4 evidence cache and complete
     # generation receipts are reused. Runtime scheduling changes do not request a
-    # scientific cache rebuild.
-    r=run_campaign(package_root=a.package_root,data_root=a.data_root,run_root=a.run_root,parent_r101_root=a.parent_r101_root,parent_g0=a.parent_g0,device=a.device,symbols=ALL_SUPPORTED_SYMBOLS_R102,attempts=100,stride_hours=256,prehistory_hours=96,epochs=12,batch_size=512,lr=3e-4,profile_name='R10_4_LONG_100GEN_RESEARCH',prerequisite_result=prev,start_checkpoint=start)
+    # scientific cache rebuild. The run-root lock is runtime safety only and is
+    # deliberately outside scientific/cache identity.
+    with RunRootExclusiveLock(Path(a.run_root)):
+        r=run_campaign(package_root=a.package_root,data_root=a.data_root,run_root=a.run_root,parent_r101_root=a.parent_r101_root,parent_g0=a.parent_g0,device=a.device,symbols=ALL_SUPPORTED_SYMBOLS_R102,attempts=100,stride_hours=256,prehistory_hours=96,epochs=12,batch_size=512,lr=3e-4,profile_name='R10_4_LONG_100GEN_RESEARCH',prerequisite_result=prev,start_checkpoint=start)
     append_scientific_summary(r,'R10_4')
     print(json.dumps({'final_status':r.get('final_status'),'return_bundle':r.get('return_bundle')},indent=2))
     return 0 if status_is_pass(r,'R10_4') else 2
