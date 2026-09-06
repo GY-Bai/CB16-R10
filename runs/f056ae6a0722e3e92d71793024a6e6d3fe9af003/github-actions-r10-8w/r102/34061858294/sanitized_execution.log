@@ -1,0 +1,12 @@
+CB16_R10_8W_PHASE=r102
+SOURCE_AUTHORITY_SHA=f056ae6a0722e3e92d71793024a6e6d3fe9af003
+TRIGGER_SHA=f2b0de95d9517d23abe6693d236f9354981c059a
+RUN_ID=34061858294
+WHOAMI=cb16-ci
+PROVISION_PROFILE=r102
+Traceback (most recent call last):
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/provision/scripts/provision_python.py", line 323, in <module>
+    sys.exit(main())
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/provision/scripts/provision_python.py", line 310, in main
+    ap = argparse.ArgumentParser()
+NameError: name 'argparse' is not defined
