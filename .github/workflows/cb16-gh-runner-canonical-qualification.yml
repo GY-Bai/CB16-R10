@@ -100,27 +100,70 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -e
+          set -euo pipefail
+
           run_id="${{ github.run_id }}"
           sha="$(git rev-parse HEAD)"
+          rc="$(cat ci_evidence/exit_code.txt)"
+          if [ "$rc" = "0" ]; then verdict=PASS; else verdict=FAIL; fi
+
           wt="$RUNNER_TEMP/ci-results-wt"
+          dest="runs/$sha/github-actions-canary/$run_id"
+
+          cleanup() {
+            cd "$GITHUB_WORKSPACE" >/dev/null 2>&1 || true
+            git worktree remove --force "$wt" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
           rm -rf "$wt"
+          git fetch origin ci-results
+          git worktree add --detach "$wt" origin/ci-results
+
+          mkdir -p "$wt/$dest"
+          cp ci_evidence/result.json "$wt/$dest/result.json"
+          cp ci_evidence/REPORT.md "$wt/$dest/REPORT.md"
+          cp ci_evidence/runtime_metrics.json "$wt/$dest/runtime_metrics.json"
+          cp ci_evidence/sanitized_execution.log "$wt/$dest/sanitized_execution.log"
+          cp ci_evidence/SHA256SUMS "$wt/$dest/SHA256SUMS"
+
+          cd "$wt"
           git config user.name "CB16 GitHub Canonical Runner"
           git config user.email "canonical-runner@users.noreply.github.com"
+          git add "$dest"
+
+          if git diff --cached --quiet; then
+            echo "durable evidence already present; nothing to commit"
+          else
+            git commit -m "canonical-runner-evidence: $sha $verdict"
+          fi
+
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin ci-results
+            git rebase origin/ci-results
+            if git push origin HEAD:refs/heads/ci-results; then
+              pushed=1
+              break
+            fi
+            echo "ci-results push raced with another writer; retry=$attempt"
+            sleep $((attempt * 2))
+          done
+
+          if [ "$pushed" != "1" ]; then
+            echo "ci-results durable evidence push failed after retries" >&2
+            exit 1
+          fi
+
           git fetch origin ci-results
-          git worktree add -f "$wt" origin/ci-results
-          mkdir -p "$wt/runs/$sha/github-actions-canary/$run_id"
-          cp ci_evidence/result.json "$wt/runs/$sha/github-actions-canary/$run_id/result.json"
-          cp ci_evidence/REPORT.md "$wt/runs/$sha/github-actions-canary/$run_id/REPORT.md"
-          cp ci_evidence/runtime_metrics.json "$wt/runs/$sha/github-actions-canary/$run_id/runtime_metrics.json"
-          cp ci_evidence/sanitized_execution.log "$wt/runs/$sha/github-actions-canary/$run_id/sanitized_execution.log"
-          cp ci_evidence/SHA256SUMS "$wt/runs/$sha/github-actions-canary/$run_id/SHA256SUMS"
-          cd "$wt"
-          git add .
-          git commit -m "canonical-runner-evidence: $sha $verdict" || echo "nothing to commit"
-          git push origin ci-results
-          cd "$GITHUB_WORKSPACE"
-          git worktree remove --force "$wt"
+          remote_sha="$(git rev-parse origin/ci-results)"
+          git cat-file -e "origin/ci-results:$dest/result.json"
+          git cat-file -e "origin/ci-results:$dest/REPORT.md"
+          git cat-file -e "origin/ci-results:$dest/runtime_metrics.json"
+          git cat-file -e "origin/ci-results:$dest/sanitized_execution.log"
+          git cat-file -e "origin/ci-results:$dest/SHA256SUMS"
+          echo "CI_RESULTS_REMOTE_SHA=$remote_sha"
+          echo "DURABLE_EVIDENCE_REMOTE_VERIFY=PASS"
       - name: Failure canary marker
         if: ${{ github.event.inputs.mode == 'failure' }}
         run: |
