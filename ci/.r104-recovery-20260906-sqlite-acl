@@ -1,0 +1,5 @@
+R10.4 recovery trigger after systemd-namespace SQLite ACL recovery PASS.
+Parent source authority: 4df4bd099a1d17e9a251e887d17a8d508f9fdf6a
+Cache policy: CACHE_HIT_FIRST; no rebuild requested.
+Runtime: H72=6, Teacher=6, RAM adaptive.
+FINAL 2025-09 remains locked.
