@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-"""R10.2-R10.4 binding to the already-qualified Shanxi R8.1 runtime profile.
+"""R10 binding to R8.1 authority plus R8.2 performance-only execution overlay.
 
-Performance authority only. Scientific knobs (H72, chronology, Teacher semantics,
-optimizer epochs, R10 batch size, FINAL boundary) are never rewritten here.
-The compact R9 authority is hash-bound to the full R8.1 qualification return;
-R10 additionally vendors the exact R8.1 performance and final-profile JSONs so
-selected worker limits remain directly auditable without carrying burn-in telemetry.
+R8.1 remains the immutable hardware qualification baseline. R8.2 may change only
+runtime scheduling/resource controls; it cannot rewrite H72, chronology, Teacher
+semantics, optimizer epochs, scientific batch size, Physics, or FINAL boundaries.
 """
 
 import json
@@ -22,15 +20,19 @@ EXPECTED_RUNTIME_PROFILE_HASH = "98471292867fca6fa19cc383f4fd0ef7567deec01581f48
 EXPECTED_PERFORMANCE_FILE_SHA256 = "997492b1bdb9dcd7194a27719d890975aad27d2b80ffc9e713aada1a2eaeafca"
 EXPECTED_LIMITS_FILE_SHA256 = "ed193de8e27e4bc2b29c68865f47173842cc61cc5d237fe655900865505235b1"
 EXPECTED_FINAL_FILE_SHA256 = "842677cd1e79781b095745c8654a80719fa481affe4cc1d56fd5977faac2c504"
+EXPECTED_R8_2_OVERLAY_FILE_SHA256 = "73918693df4ebe4ed8a3bc8ca0f977fc0e9c2aeefe398c8f1e0df007b2a00a10"
 
 
 @dataclass(frozen=True)
 class R102RuntimeParallelism:
     runtime_authority_content_hash: str
     runtime_profile_hash: str
+    performance_overlay: str
+    performance_overlay_file_sha256: str
     h72_workers: int
     h72_threads_per_worker: int
     h72_max_in_flight: int
+    h72_minimum_workers: int
     teacher_workers: int
     teacher_threads_per_worker: int
     experience_shards: int
@@ -46,6 +48,8 @@ class R102RuntimeParallelism:
     gpu_qualified_train_batch_ceiling: int
     gpu_cpu_torch_threads: int
     single_cuda_owner: bool
+    cache_hit_first: bool
+    runtime_scheduling_identity_is_not_scientific_cache_identity: bool
 
     def as_dict(self) -> dict[str, Any]:
         return {**self.__dict__, "scientific_semantics_changed": False}
@@ -62,13 +66,14 @@ def load_r102_runtime_parallelism(
     *,
     live_environment_check: bool = False,
 ) -> R102RuntimeParallelism:
-    # Runtime-performance authority belongs to the exact Git source lineage, not
-    # to the separately mounted Shanxi frozen-asset package. Keep package_root in
-    # the API for caller compatibility but always bind R8.1 receipts from source.
+    # Performance authority belongs to the exact Git source lineage, not the
+    # separately mounted Shanxi frozen-asset package. package_root remains only
+    # for caller compatibility.
     root = Path(__file__).resolve().parents[1]
     saved_path = root / "authority" / "SHANXI_RUNTIME_AUTHORITY_R9.json"
     limits_path = root / "authority" / "R8_1_qualification" / "R8_1_RUNTIME_LIMITS_FROZEN.json"
     final_path = root / "authority" / "R8_1_qualification" / "FINAL_QUALIFICATION_R8_1.json"
+    overlay_path = root / "configs" / "R10_RUNTIME_PERFORMANCE_R8_2.json"
 
     if sha256_file(saved_path) != EXPECTED_RUNTIME_AUTHORITY_FILE_SHA256:
         raise RuntimeError("R8_1_SAVED_RUNTIME_AUTHORITY_FILE_SHA256_MISMATCH")
@@ -76,10 +81,14 @@ def load_r102_runtime_parallelism(
         raise RuntimeError("R8_1_RUNTIME_LIMITS_FILE_SHA256_MISMATCH")
     if sha256_file(final_path) != EXPECTED_FINAL_FILE_SHA256:
         raise RuntimeError("R8_1_FINAL_FILE_SHA256_MISMATCH")
+    if sha256_file(overlay_path) != EXPECTED_R8_2_OVERLAY_FILE_SHA256:
+        raise RuntimeError("R8_2_PERFORMANCE_OVERLAY_FILE_SHA256_MISMATCH")
 
     saved = _load_json(saved_path)
     limits = _load_json(limits_path)
     final = _load_json(final_path)
+    overlay = _load_json(overlay_path)
+
     if saved.get("content_hash") != EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH:
         raise RuntimeError("R8_1_SAVED_RUNTIME_AUTHORITY_CONTENT_HASH_MISMATCH")
     if saved.get("runtime_profile_hash") != EXPECTED_RUNTIME_PROFILE_HASH:
@@ -120,9 +129,56 @@ def load_r102_runtime_parallelism(
     if pipe.get("do_not_run_h72_and_teacher_at_full_concurrency") is not True:
         raise RuntimeError("R8_1_STAGE_CONCURRENCY_POLICY_DRIFT")
 
-    # Optional live checks are deliberately narrow: this adapter must never
-    # retune a machine or modify packages. The V6.3 Provisioner owns package
-    # preparation; campaign prestart owns CUDA availability/device receipts.
+    if overlay.get("schema") != "CB16_R10_RUNTIME_PERFORMANCE_R8_2_V1":
+        raise RuntimeError("R8_2_OVERLAY_SCHEMA_MISMATCH")
+    if overlay.get("status") != "ACTIVE_PERFORMANCE_ONLY_OVERRIDE":
+        raise RuntimeError("R8_2_OVERLAY_NOT_ACTIVE")
+    if overlay.get("base_runtime_authority_content_hash") != EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH:
+        raise RuntimeError("R8_2_BASE_AUTHORITY_HASH_MISMATCH")
+    if overlay.get("base_runtime_profile_hash") != EXPECTED_RUNTIME_PROFILE_HASH:
+        raise RuntimeError("R8_2_BASE_PROFILE_HASH_MISMATCH")
+    if overlay.get("scientific_semantics_changed") is not False:
+        raise RuntimeError("R8_2_OVERLAY_SCIENTIFIC_SEMANTICS_CHANGED")
+    scientific = overlay.get("scientific_values_preserved") or {}
+    required_preserved = {
+        "horizon_hours": 72,
+        "training_batch_size": 512,
+        "epochs_per_attempt": 12,
+        "learning_rate": 0.0003,
+        "teacher_semantics_changed": False,
+        "physics_changed": False,
+        "chronology_changed": False,
+        "purge_changed": False,
+        "final_holdout_policy_changed": False,
+    }
+    for k, expected in required_preserved.items():
+        if scientific.get(k) != expected:
+            raise RuntimeError(f"R8_2_SCIENTIFIC_PRESERVATION_DRIFT:{k}")
+
+    h72 = overlay.get("h72") or {}
+    teacher = overlay.get("teacher") or {}
+    cache = overlay.get("cache_policy") or {}
+    h72_workers = int(h72.get("workers_start", 0))
+    h72_threads = int(h72.get("threads_per_worker", 0))
+    h72_in_flight = int(h72.get("max_in_flight", 0))
+    h72_minimum = int(h72.get("minimum_workers", 0))
+    ram_high = float(h72.get("ram_backpressure_high", 0.0))
+    ram_hard = float(h72.get("ram_hard_stop", 0.0))
+    if h72_workers != 6:
+        raise RuntimeError("R8_2_H72_WORKER_START_DRIFT")
+    if h72_threads != 1 or h72_minimum != 1:
+        raise RuntimeError("R8_2_H72_THREAD_OR_MINIMUM_DRIFT")
+    if h72_in_flight < h72_workers:
+        raise RuntimeError("R8_2_H72_MAX_IN_FLIGHT_LT_WORKERS")
+    if not (0.0 < ram_high < ram_hard < 1.0):
+        raise RuntimeError("R8_2_RAM_THRESHOLDS_INVALID")
+    if h72.get("hard_pressure_action") != "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_H72_JOB":
+        raise RuntimeError("R8_2_HARD_RAM_ACTION_DRIFT")
+    if cache.get("cache_hit_first") is not True:
+        raise RuntimeError("R8_2_CACHE_HIT_FIRST_DISABLED")
+    if cache.get("runtime_scheduling_identity_is_not_scientific_cache_identity") is not True:
+        raise RuntimeError("R8_2_RUNTIME_IDENTITY_ILLEGALLY_INVALIDATES_CACHE")
+
     if live_environment_check:
         import torch
         if not torch.cuda.is_available():
@@ -134,22 +190,27 @@ def load_r102_runtime_parallelism(
     return R102RuntimeParallelism(
         runtime_authority_content_hash=EXPECTED_RUNTIME_AUTHORITY_CONTENT_HASH,
         runtime_profile_hash=EXPECTED_RUNTIME_PROFILE_HASH,
-        h72_workers=int(cpu["h72_workers"]),
-        h72_threads_per_worker=int(cpu["h72_threads_per_worker"]),
-        h72_max_in_flight=int(cpu["h72_max_in_flight"]),
-        teacher_workers=int(cpu["teacher_workers"]),
-        teacher_threads_per_worker=int(cpu["teacher_threads_per_worker"]),
+        performance_overlay="R8_2_6W_RAM_ADAPTIVE",
+        performance_overlay_file_sha256=EXPECTED_R8_2_OVERLAY_FILE_SHA256,
+        h72_workers=h72_workers,
+        h72_threads_per_worker=h72_threads,
+        h72_max_in_flight=h72_in_flight,
+        h72_minimum_workers=h72_minimum,
+        teacher_workers=int(teacher.get("workers", cpu["teacher_workers"])),
+        teacher_threads_per_worker=int(teacher.get("threads_per_worker", cpu["teacher_threads_per_worker"])),
         experience_shards=int(io["experience_shards"]),
         sqlite_synchronous=str(io["sqlite_synchronous"]),
         loader_prefetch=int(pipe["loader_prefetch"]),
         max_stage_concurrency=int(pipe["max_stage_concurrency"]),
         do_not_run_h72_and_teacher_at_full_concurrency=bool(pipe["do_not_run_h72_and_teacher_at_full_concurrency"]),
-        ram_backpressure_high=float(lim["ram_backpressure_high"]),
-        ram_hard_stop=float(lim["ram_hard_stop"]),
+        ram_backpressure_high=ram_high,
+        ram_hard_stop=ram_hard,
         vram_backpressure_high=float(lim["vram_backpressure_high"]),
         disk_free_hard_stop_gib=float(lim["disk_free_hard_stop_gib"]),
         gpu_rollout_chunk_rows=int(gpu["rollout_chunk_rows"]),
         gpu_qualified_train_batch_ceiling=int(gpu["train_batch"]),
         gpu_cpu_torch_threads=int(gpu["cpu_torch_threads"]),
         single_cuda_owner=bool(gpu["single_cuda_owner"]),
+        cache_hit_first=True,
+        runtime_scheduling_identity_is_not_scientific_cache_identity=True,
     )

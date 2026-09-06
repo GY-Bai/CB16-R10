@@ -1,0 +1,49 @@
+{
+  "schema": "CB16_R10_4_1_6W_RAM_ADAPTIVE_RUNTIME_RECEIPT_V1",
+  "status": "PERFORMANCE_ONLY_REPAIR_IMPLEMENTED__UNIT_QUALIFICATION_PENDING",
+  "parent_r104_trigger_sha": "fc1378357e6ad5c2efd19d6d53eca767ba7f96d6",
+  "parent_r104_result": {
+    "ci_verdict": "FAIL",
+    "failure_class": "ENGINEERING_OPERATIONAL_ERROR",
+    "scientific_verdict_changed": false,
+    "final_holdout_2025_09_accessed": false,
+    "run_started_utc": "2026-09-05T23:55:23Z",
+    "run_finished_utc": "2026-09-06T02:02:09Z"
+  },
+  "r8_1_baseline": {
+    "runtime_authority_content_hash": "07afedc7d42f78ed28506fc6e95a4f5193d131290991f159f3a3fd30e5820383",
+    "runtime_profile_hash": "98471292867fca6fa19cc383f4fd0ef7567deec01581f488198916d99a9363a0",
+    "selected_h72_workers": 2,
+    "short_benchmark_groups": 12
+  },
+  "r8_2_performance_overlay": {
+    "h72_workers_start": 6,
+    "h72_threads_per_worker": 1,
+    "h72_max_in_flight": 8,
+    "h72_minimum_workers": 1,
+    "ram_backpressure_high": 0.85,
+    "ram_hard_stop": 0.92,
+    "high_pressure_action": "PAUSE_DISPATCH_AND_GRACEFULLY_RETIRE_ONE_WORKER",
+    "hard_pressure_action": "TERMINATE_ONE_ACTIVE_WORKER_AND_REQUEUE_PURE_H72_JOB",
+    "scale_up_inside_same_farm": false
+  },
+  "cache_policy": {
+    "cache_hit_first": true,
+    "existing_r104_evidence_cache_must_be_reused_if_identity_and_integrity_match": true,
+    "runtime_worker_count_change_does_not_invalidate_scientific_cache": true,
+    "no_rebuild_for_scheduling_only_change": true,
+    "rebuild_allowed_only_for_input_identity_change_corruption_or_explicit_control": true
+  },
+  "scientific_semantics": {
+    "h72_changed": false,
+    "physics_changed": false,
+    "teacher_changed": false,
+    "dependence_grouping_changed": false,
+    "chronology_changed": false,
+    "purge_changed": false,
+    "training_batch_size_changed": false,
+    "epochs_changed": false,
+    "learning_rate_changed": false,
+    "final_holdout_policy_changed": false
+  }
+}
