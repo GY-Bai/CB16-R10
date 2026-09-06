@@ -1,0 +1,9 @@
+# CB16 R10 8W Canonical Phase Evidence V2
+- run_id: 34062033600
+- trigger_sha: 02e64ab98d484e40065ae22b28118080378d9e52
+- source_authority_sha: f056ae6a0722e3e92d71793024a6e6d3fe9af003
+- phase: r102
+- runtime_overlay: R8_3_8W_RAM_ADAPTIVE
+- exit_code: 1
+- verdict: FAIL
+- final_holdout_2025_09_accessed: false

@@ -1,0 +1,34 @@
+WHOAMI= cb16-ci
+PROVISION_PROFILE= r102
+PROVISION_CACHE_HIT= True
+PROVISION_INSTALLER= uv
+CUDA_PYTHON_ENV=PASS 2.8.0+cu126 12.6 NVIDIA GeForce GTX 1060 6GB
+R8_3_LIVE_RUNTIME_AUTHORITY=PASS
+{"cache_hit_first": true, "h72_workers": 8, "max_in_flight": 8, "overlay": "R8_3_8W_RAM_ADAPTIVE", "teacher_workers": 8, "threads": 1}
+QUALIFICATION_AUTHORITY_CREATED=PASS
+CACHE_POLICY=EXPLICIT_CONTROLLED_8W_QUALIFICATION_REBUILD
+EXEC /data/cb16_ci/venvs/d694c7fb79763f19c6d86072427222b7e25a571467e148043569d5bb0498b86f/bin/python scripts/run_r102_pipeline.py --run-root /home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w
+Traceback (most recent call last):
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/scripts/run_r102_pipeline.py", line 66, in <module>
+    rc=main()
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/scripts/run_r102_pipeline.py", line 58, in main
+    result=run_campaign(package_root=args.package_root,data_root=args.data_root,run_root=args.run_root,parent_r101_root=args.parent_r101_root,parent_g0=args.parent_g0,device=args.device,attempts=5,stride_hours=512,prehistory_hours=96,epochs=12,batch_size=512,lr=3e-4,verify_checksum_samples=True,verify_all_cache_checksums=args.verify_all_cache_checksums,profile_name='R10_2_5GEN_QUALIFICATION')
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/cb16_local_opt/r102_campaign.py", line 170, in run_campaign
+    adoption = adopt_parent_r101(
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/cb16_local_opt/r102_parent_adoption.py", line 63, in adopt_parent_r101
+    mode = hardlink_or_copy(src, dst)
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/source/cb16_local_opt/r102_common.py", line 88, in hardlink_or_copy
+    d.unlink(missing_ok=True)
+  File "/usr/lib/python3.10/pathlib.py", line 1206, in unlink
+    self._accessor.unlink(self)
+OSError: [Errno 30] Read-only file system: '/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1/assets/operator/runtime/kronos_model_l5.safetensors'
+Traceback (most recent call last):
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/control/ci/run_r10_8w_phase_control.py", line 171, in <module>
+    raise SystemExit(main())
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/control/ci/run_r10_8w_phase_control.py", line 144, in main
+    run([str(py), "scripts/run_r102_pipeline.py", "--run-root", str(R102_ROOT)], cwd=source_root)
+  File "/data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10/control/ci/run_r10_8w_phase_control.py", line 22, in run
+    subprocess.run(cmd, cwd=cwd, check=True)
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/data/cb16_ci/venvs/d694c7fb79763f19c6d86072427222b7e25a571467e148043569d5bb0498b86f/bin/python', 'scripts/run_r102_pipeline.py', '--run-root', '/home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w']' returned non-zero exit status 1.
