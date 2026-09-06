@@ -93,25 +93,21 @@ jobs:
               exit 75
             fi
 
-            choose_python() {
-              local c
-              for c in python3; do
-                if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import torch,numpy; assert torch.cuda.is_available()' >/dev/null 2>&1; then
-                  command -v "$c"
-                  return 0
-                fi
-              done
-              while IFS= read -r c; do
-                if "$c" -c 'import torch,numpy; assert torch.cuda.is_available()' >/dev/null 2>&1; then
-                  echo "$c"
-                  return 0
-                fi
-              done < <(find /data/cb16_ci /home/bgy/cb16_ssd -maxdepth 7 -type f -path '*/bin/python*' 2>/dev/null | sort -u)
-              return 1
-            }
-
-            PYBIN="$(choose_python)" || { echo "NO_CUDA_PYTHON_ENVIRONMENT" >&2; exit 78; }
+            echo "PROVISION_PROFILE=$PHASE"
+            python3 provision/scripts/provision_python.py \
+              --profile "$PHASE" \
+              --out "$EVIDENCE_BASE/python_provision.json"
+            PYBIN="$(python3 - "$EVIDENCE_BASE/python_provision.json" <<'PY'
+          import json, os, sys
+          x = json.load(open(sys.argv[1]))
+          py = os.path.join(x['python']['venv'], 'bin', 'python')
+          print(py)
+          PY
+          )"
+            test -x "$PYBIN" || { echo "PROVISIONED_PYTHON_NOT_EXECUTABLE=$PYBIN" >&2; exit 78; }
             echo "$PYBIN" > "$pyfile"
+            "$PYBIN" -c 'import torch,numpy; assert torch.cuda.is_available(); print("CUDA_PYTHON_ENV=PASS", torch.__version__, torch.version.cuda, torch.cuda.get_device_name(0))'
+
             "$PYBIN" - <<'PY'
           import json
           import torch
@@ -283,11 +279,12 @@ jobs:
 
           if [ -f "$result" ]; then cp "$result" "$e/scientific_result.json"; fi
           if [ -f "$blocker" ]; then cp "$blocker" "$e/engineering_blocker.json"; fi
+          if [ -f "$EVIDENCE_BASE/python_provision.json" ]; then cp "$EVIDENCE_BASE/python_provision.json" "$e/python_provision.json"; fi
 
           python3 - "$EVIDENCE_BASE/raw_execution.log" "$e/sanitized_execution.log" <<'PY'
-          import re, sys
+          import re, sys, os
           src, dst = sys.argv[1:]
-          text = open(src, 'r', encoding='utf-8', errors='replace').read() if __import__('os').path.exists(src) else 'NO_RAW_LOG\n'
+          text = open(src, 'r', encoding='utf-8', errors='replace').read() if os.path.exists(src) else 'NO_RAW_LOG\n'
           pats = [
               (re.compile(r'ghp_[A-Za-z0-9]{20,}'), '***REDACTED_GITHUB_TOKEN***'),
               (re.compile(r'github_pat_[A-Za-z0-9_]{20,}'), '***REDACTED_GITHUB_PAT***'),
@@ -330,7 +327,6 @@ jobs:
             git worktree prune >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
-
           git worktree remove --force "$wt" >/dev/null 2>&1 || true
           rm -rf "$wt"
           git worktree prune
@@ -338,7 +334,6 @@ jobs:
           git worktree add --detach "$wt" origin/ci-results
           mkdir -p "$wt/$dest"
           cp -a "$EVIDENCE_BASE/evidence/." "$wt/$dest/"
-
           cd "$wt"
           git config user.name "CB16 GitHub Canonical Runner"
           git config user.email "canonical-runner@users.noreply.github.com"
@@ -346,7 +341,6 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "r10-8w-evidence: $SOURCE_SHA $PHASE run=$GITHUB_RUN_ID"
           fi
-
           pushed=0
           for attempt in 1 2 3; do
             git fetch origin ci-results
