@@ -1,0 +1,34 @@
+{
+  "schema": "CB16_HOST_CANONICAL_PACKAGE_NAMESPACE_READY_V1",
+
+  "signal": "HOST_READY_CANONICAL_PACKAGES_R10_2_TO_R20_PLUS",
+
+  "canonical_runner_service": "cb16-github-canonical-runner.service",
+  "canonical_runner_user": "cb16-ci",
+
+  "legacy_r10_2_package_root": "/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1",
+
+  "future_package_namespace": "/home/bgy/m3-infra/CB16_CANONICAL_PACKAGES",
+
+  "legacy_r10_2_runner_sandbox_write": "PASS",
+  "canonical_namespace_runner_sandbox_write": "PASS",
+  "generic_m3_infra_write_denied": "PASS",
+
+  "future_release_systemd_patch_expected": false,
+
+  "canonical_runner_active": true,
+  "qualification_runner_active": true,
+  "cb16_ci_worker_active": true,
+  "wss_proxy_active": true,
+
+  "r102_started": false,
+  "r103_started": false,
+  "r104_started": false,
+
+  "cache_deleted": false,
+  "generations_deleted": false,
+  "experience_lake_modified": false,
+
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}
