@@ -103,19 +103,24 @@ jobs:
           set -e
           run_id="${{ github.run_id }}"
           sha="$(git rev-parse HEAD)"
+          wt="$RUNNER_TEMP/ci-results-wt"
+          rm -rf "$wt"
           git config user.name "CB16 GitHub Canonical Runner"
           git config user.email "canonical-runner@users.noreply.github.com"
-          git fetch origin ci-results:ci-results || git checkout --orphan ci-results
-          git checkout ci-results || true
-          mkdir -p "runs/$sha/github-actions-canary/$run_id"
-          cp ci_evidence/result.json "runs/$sha/github-actions-canary/$run_id/result.json"
-          cp ci_evidence/REPORT.md "runs/$sha/github-actions-canary/$run_id/REPORT.md"
-          cp ci_evidence/runtime_metrics.json "runs/$sha/github-actions-canary/$run_id/runtime_metrics.json"
-          cp ci_evidence/sanitized_execution.log "runs/$sha/github-actions-canary/$run_id/sanitized_execution.log"
-          cp ci_evidence/SHA256SUMS "runs/$sha/github-actions-canary/$run_id/SHA256SUMS"
+          git fetch origin ci-results
+          git worktree add -f "$wt" origin/ci-results
+          mkdir -p "$wt/runs/$sha/github-actions-canary/$run_id"
+          cp ci_evidence/result.json "$wt/runs/$sha/github-actions-canary/$run_id/result.json"
+          cp ci_evidence/REPORT.md "$wt/runs/$sha/github-actions-canary/$run_id/REPORT.md"
+          cp ci_evidence/runtime_metrics.json "$wt/runs/$sha/github-actions-canary/$run_id/runtime_metrics.json"
+          cp ci_evidence/sanitized_execution.log "$wt/runs/$sha/github-actions-canary/$run_id/sanitized_execution.log"
+          cp ci_evidence/SHA256SUMS "$wt/runs/$sha/github-actions-canary/$run_id/SHA256SUMS"
+          cd "$wt"
           git add .
           git commit -m "canonical-runner-evidence: $sha $verdict" || echo "nothing to commit"
           git push origin ci-results
+          cd "$GITHUB_WORKSPACE"
+          git worktree remove --force "$wt"
       - name: Failure canary marker
         if: ${{ github.event.inputs.mode == 'failure' }}
         run: |
