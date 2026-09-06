@@ -47,15 +47,14 @@ jobs:
           echo "R104_FS_CANARY=PASS"
       - name: Raw execution capture
         run: |
-          set -o pipefail
+          set -u
           mkdir -p ci_evidence
           echo "run_id=${{ github.run_id }}" > ci_evidence/run.info
           echo "commit_sha=$(git rev-parse HEAD)" >> ci_evidence/run.info
           if [ "${{ github.event.inputs.mode }}" = "failure" ]; then
-            ( echo "intentional failure"; exit 7 ) 2>&1 | tee raw_execution.log
-            rc=${PIPESTATUS[0]}
+            ( echo "intentional failure"; exit 7 ) > raw_execution.log 2>&1 || rc=$?
           else
-            ( echo "cheap canary ok"; uname -a ) 2>&1 | tee raw_execution.log
+            ( echo "cheap canary ok"; uname -a ) > raw_execution.log 2>&1
             rc=0
           fi
           echo "rc=$rc"
