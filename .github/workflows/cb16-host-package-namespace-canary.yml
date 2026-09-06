@@ -1,0 +1,44 @@
+name: CB16 Host Canonical Package Namespace Canary
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host-capability:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 15
+    steps:
+      - name: Identity
+        run: |
+          echo "whoami=$(whoami)"
+          echo "id=$(id)"
+      - name: R10.2 legacy runner sandbox write canary
+        run: |
+          set -e
+          p=/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1/.cb16_runner_sandbox_canary
+          touch "$p"
+          test -f "$p"
+          rm "$p"
+          echo "R10_2_RUNNER_SANDBOX_WRITE=PASS"
+      - name: Canonical namespace runner sandbox write canary
+        run: |
+          set -e
+          d=/home/bgy/m3-infra/CB16_CANONICAL_PACKAGES/.cb16_runner_sandbox_canary
+          mkdir "$d"
+          touch "$d/test"
+          test -f "$d/test"
+          rm "$d/test"
+          rmdir "$d"
+          echo "CANONICAL_NAMESPACE_RUNNER_SANDBOX_WRITE=PASS"
+      - name: Negative generic m3-infra write denied
+        run: |
+          set -e
+          p=/home/bgy/m3-infra/.cb16_should_not_be_writable
+          if touch "$p" 2>/dev/null; then
+            echo "GENERIC_M3_INFRA_WRITE_DENIED=FAIL"
+            exit 1
+          fi
+          test ! -e "$p"
+          echo "GENERIC_M3_INFRA_WRITE_DENIED=PASS"
