@@ -1,0 +1,15 @@
+{
+  "schema": "CB16_R10_8W_LADDER_STATE_V2",
+  "source_sha": "f056ae6a0722e3e92d71793024a6e6d3fe9af003",
+  "phase": "r102",
+  "handled_run_id": 34062033600,
+  "run_conclusion": "failure",
+  "classification": "ENGINEERING_RUNTIME_BLOCKER",
+  "error_code": "PACKAGE_ROOT_READ_ONLY_DURING_PARENT_ADOPTION",
+  "blocked_path": "/home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1/assets/operator/runtime/kronos_model_l5.safetensors",
+  "scientific_verdict_changed": false,
+  "r103_advanced": false,
+  "r104_advanced": false,
+  "final_holdout_2025_09_accessed": false,
+  "durable_evidence": "ci-results:runs/f056ae6a0722e3e92d71793024a6e6d3fe9af003/github-actions-r10-8w-v2/r102/34062033600"
+}
