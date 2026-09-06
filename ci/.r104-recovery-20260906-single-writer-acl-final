@@ -1,0 +1,7 @@
+R10.4 single-writer recovery trigger after final CAS ACL qualification PASS.
+Parent source authority: a5eda26d2a992bc8380c7a4e5ac12dcfdf6f5b03
+Host preflight: 577197/577197 CAS readable; 4/4 SQLite mode=rw; new CAS creation PASS.
+Runtime safety: exclusive R10.4 run-root lock qualified; old bgy R104 absent.
+Cache policy: CACHE_HIT_FIRST; no cache/generation deletion or rebuild requested.
+Runtime: H72=6, Teacher=6, RAM adaptive.
+FINAL 2025-09 remains locked.
