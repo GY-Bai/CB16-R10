@@ -31,8 +31,7 @@ from .r102_controls import run_f0_f1_f2_f3_controls
 from .r102_evidence_cache import build_real_evidence_cache, load_parent_physics_states, load_teacher_samples
 from .r102_learning import (
     TRAIN_TEACHER_CONFIG_R102, VAL_TEACHER_CONFIG_R102,
-    evidence_summary, policy_behavior_fingerprint,
-    soft_teacher_loss, train_challenger,
+    evidence_summary,
 )
 from .r102_market import preflight_all_ten_data
 from .r102_parent_adoption import adopt_parent_r101
@@ -43,6 +42,11 @@ from .r2_event_journal import R2BufferedEventSink, R2EventJournal
 from .r2_evidence_storage import R2EvidenceStore
 from .r2_learning_bridge import materialize_training_evidence_r2, seal_generation_snapshot_r2
 from .r2_sequential_audit import audit_r2_store_sequential
+from .r2_training_incremental import (
+    evaluate_policy_r2,
+    prepare_evidence_batch_r2,
+    train_challenger_r2,
+)
 from .typed_central_brain_r10 import build_g0_brain_r10
 
 
@@ -88,13 +92,6 @@ def _load_state(path: Path):
     if isinstance(obj, Mapping):
         return obj
     raise RuntimeError("CHECKPOINT_STATE_NOT_FOUND")
-
-
-def _validation_loss(model, evidence, parents, device: str) -> dict[str, float]:
-    model.eval()
-    with torch.inference_mode():
-        _, metrics = soft_teacher_loss(model, evidence, parents, device=device)
-    return metrics
 
 
 def _promotion(before: Mapping[str, float], after: Mapping[str, float], minimum: float = 0.001) -> dict[str, Any]:
@@ -244,6 +241,21 @@ def run_campaign_r2(
     if not controls_path.exists():
         atomic_write_json(controls_path, controls)
 
+    # P1 runtime-only preparation: immutable evidence tensors are created once and
+    # reused for all generations.  This does not enter scientific identity.
+    train_batch = prepare_evidence_batch_r2(train_evidence, parents, device=device)
+    val_batch = prepare_evidence_batch_r2(val_evidence, parents, device=device)
+    prepared_evidence = {
+        "schema":"CB16_R2_PREPARED_EVIDENCE_RUNTIME_V1",
+        "train_rows":train_batch.rows,
+        "validation_rows":val_batch.rows,
+        "train_independent_groups":train_batch.independent_groups,
+        "validation_independent_groups":val_batch.independent_groups,
+        "device":str(device),
+        "scientific_semantics_changed":False,
+    }
+    atomic_write_json(rr / "R2_PREPARED_EVIDENCE_RUNTIME.json", prepared_evidence)
+
     model = build_g0_brain_r10("TIER_1", seed=24680, device=device)
     checkpoint = root / "authority/g0_parent/central_brain_g0_r10_2_parent.pt" if start_checkpoint is None else Path(start_checkpoint)
     if start_checkpoint is None and sha256_file(checkpoint) != G0_FILE_SHA256:
@@ -281,8 +293,7 @@ def run_campaign_r2(
                 continue
 
             parent_hash = champion_hash
-            before_behavior = policy_behavior_fingerprint(model,val_evidence,parents,device=device)
-            before_val = _validation_loss(model,val_evidence,parents,device)
+            before_val, before_behavior = evaluate_policy_r2(model, val_batch)
 
             sink = R2BufferedEventSink(events)
             on_policy = run_real_on_policy_trace(
@@ -301,12 +312,20 @@ def run_campaign_r2(
             )
             challenger = build_g0_brain_r10("TIER_1",seed=24680,device=device)
             challenger.load_state_dict(model.state_dict(),strict=True)
-            train_receipt = train_challenger(
-                model=challenger,train_evidence=train_evidence,val_evidence=val_evidence,
-                parents=parents,device=device,generation=g,snapshot_hash=snap.content_hash,
+            train_receipt, after_behavior = train_challenger_r2(
+                model=challenger,
+                train_batch=train_batch,
+                val_batch=val_batch,
+                validation_before=before_val,
+                device=device,generation=g,snapshot_hash=snap.content_hash,
                 receipt_dir=gd,epochs=epochs,batch_size=batch_size,lr=lr,
             )
-            after_behavior = policy_behavior_fingerprint(challenger,val_evidence,parents,device=device)
+            if after_behavior is None:
+                # Crash-recovery path only: training was already durable but the
+                # generation result had not yet been committed.
+                recovered_val, after_behavior = evaluate_policy_r2(challenger, val_batch)
+                if recovered_val != train_receipt["validation_after"]:
+                    raise RuntimeError("R2_RECOVERED_VALIDATION_RECEIPT_MISMATCH")
             tournament = _promotion(before_val,train_receipt["validation_after"])
             challenger_info = _save_brain(gd/"challenger.pt",challenger,generation=g+1,role="CHALLENGER",parent_hash=parent_hash)
             if tournament["decision"] == "PROMOTE":
@@ -372,6 +391,7 @@ def run_campaign_r2(
         "final_champion_semantic_sha256":champion_hash,
         "teacher_semantics":"PROBABILISTIC_DISTRIBUTIONAL_NO_BEST_ACTION_LABEL",
         "compiled_teacher_authority":teacher_authority,
+        "prepared_evidence_runtime":prepared_evidence,
         "storage_semantics":"IMMUTABLE_EVIDENCE_ONCE_PLUS_TINY_GENERATION_MANIFESTS",
         "storage_materialization":asdict(materialize_receipt),
         "storage_stats":store_stats,"storage_audit":storage_audit,
@@ -387,6 +407,8 @@ def run_campaign_r2(
             "champion_challenger_lifecycle_correct":lifecycle_ok,
             "evidence_payload_not_rematerialized_per_generation":storage_reuse_ok,
             "compiled_teacher_authority_verified":True,
+            "prepared_evidence_batches_reused":True,
+            "validation_and_behavior_forward_fused":True,
         },
     }
     atomic_write_json(final_path,result)
