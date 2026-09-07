@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run repository policy
         run: python3 ci/check_repository_policy.py --root .
-      - name: Compile P0 and R11 Python sources
+      - name: Compile P0 and complete R11 integration sources
         run: |
           python3 -m py_compile \
             cb16_local_opt/r102_teacher_incremental.py \
@@ -20,19 +20,40 @@ jobs:
             cb16_local_opt/r2_campaign.py \
             cb16_local_opt/rearchitecture_authority_r11.py \
             cb16_local_opt/teacher_vectorized_r11.py \
+            cb16_local_opt/teacher_scheduler_r11.py \
+            cb16_local_opt/teacher_runtime_r11.py \
+            cb16_local_opt/training_runtime_r11.py \
+            cb16_local_opt/market_runtime_cache_r11.py \
+            cb16_local_opt/trace_runtime_r11.py \
+            cb16_local_opt/evidence_store_r11.py \
+            cb16_local_opt/event_journal_r11.py \
+            cb16_local_opt/checkpoint_store_r11.py \
+            cb16_local_opt/runtime_events_r11.py \
+            cb16_local_opt/runtime_protocols_r11.py \
+            cb16_local_opt/orchestrator_r11.py \
+            cb16_local_opt/integration_adapters_r11.py \
             scripts/run_r104_long_research.py \
             scripts/run_r2_native_qualification_v2.py \
-            tests/test_r102_teacher_incremental.py \
-            tests/test_r102_evidence_incremental.py \
-            tests/test_r2_frozen_guard.py \
-            tests/test_r2_evidence_storage_incremental.py \
+            scripts/run_r11_teacher_vectorized_qualification.py \
+            scripts/run_r11_teacher_topology_benchmark.py \
             tests/test_rearchitecture_authority_r11.py \
-            tests/test_teacher_vectorized_r11.py
+            tests/test_teacher_vectorized_r11.py \
+            tests/test_teacher_runtime_r11.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_r11_trace_runtime.py \
+            tests/test_r11_evidence_store.py \
+            tests/test_r11_event_journal.py \
+            tests/test_r11_checkpoint_store.py \
+            tests/test_r11_storage_lifecycle.py \
+            tests/test_r11_async_orchestrator.py \
+            tests/test_r11_task_f_integration.py
       - name: Verify R11 semantic freeze
         run: python3 -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
-      - name: Run dependency-free P0 and R11 unit tests
+      - name: Run dependency-free storage/control tests
         run: |
           python3 -m unittest \
             tests.test_r2_frozen_guard \
             tests.test_r2_evidence_storage_incremental \
-            tests.test_rearchitecture_authority_r11
+            tests.test_rearchitecture_authority_r11 \
+            tests.test_r11_evidence_store \
+            tests.test_r11_event_journal
