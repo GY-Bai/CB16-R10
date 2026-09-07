@@ -17,17 +17,41 @@ concurrency:
 
 jobs:
   native-r2-qualification:
-    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
     timeout-minutes: 120
     env:
       LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
       R103_ROOT: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
       R2_QUAL_HDD_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
+      R2_RUNNER_UNIT: cb16-github-runner.service
     steps:
       - name: Checkout R2 source
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Fail closed unless WSS least-privilege sandbox is qualified
+        shell: bash
+        run: |
+          set -euo pipefail
+          cgroup="$(cat /proc/self/cgroup)"
+          grep -q '/system.slice/cb16-github-runner.service' <<<"$cgroup"
+          protect_system="$(systemctl show "$R2_RUNNER_UNIT" -p ProtectSystem --value)"
+          protect_home="$(systemctl show "$R2_RUNNER_UNIT" -p ProtectHome --value)"
+          rw="$(systemctl show "$R2_RUNNER_UNIT" -p ReadWritePaths --value)"
+          bro="$(systemctl show "$R2_RUNNER_UNIT" -p BindReadOnlyPaths --value)"
+          test "$protect_system" = strict
+          test "$protect_home" = tmpfs
+          grep -Fq '/data/cb16_ci/github-runner-qualification/actions-runner' <<<"$rw"
+          grep -Fq "$R2_QUAL_HDD_ROOT" <<<"$rw"
+          grep -Fq "$R103_ROOT" <<<"$bro"
+          test -d "$R103_ROOT" -a -r "$R103_ROOT" -a -x "$R103_ROOT"
+          test -d "$LEGACY_R104_ROOT" -a -r "$LEGACY_R104_ROOT"
+          r103_opts="$(findmnt -n -o OPTIONS -T "$R103_ROOT")"
+          r104_opts="$(findmnt -n -o OPTIONS -T "$LEGACY_R104_ROOT")"
+          case ",$r103_opts," in *,ro,*) ;; *) echo "R103_AUTHORITY_NOT_RO=$r103_opts" >&2; exit 74 ;; esac
+          case ",$r104_opts," in *,ro,*) ;; *) echo "R104_AUTHORITY_NOT_RO=$r104_opts" >&2; exit 74 ;; esac
+          echo 'R2_WSS_LEAST_PRIVILEGE_SANDBOX=PASS'
 
       - name: Refuse overlap with legacy R10.4 writer
         shell: bash
@@ -59,6 +83,7 @@ jobs:
           assert x['python']['network_install_attempted'] is False
           assert x['python']['public_index_fallback_used'] is False
           assert x['python']['public_direct_fallback_used'] is False
+          assert x['python']['package_hash_validation_used'] is False
           print(x['python']['venv'] + '/bin/python')
           PY
           )"
@@ -82,6 +107,7 @@ jobs:
             exit 76
           fi
           touch "$PAYLOAD/.write_canary"
+          sync "$PAYLOAD/.write_canary"
           rm -f "$PAYLOAD/.write_canary"
           META_SRC="$(findmnt -n -o SOURCE -T "$META")"
           PAYLOAD_SRC="$(findmnt -n -o SOURCE -T "$PAYLOAD")"
