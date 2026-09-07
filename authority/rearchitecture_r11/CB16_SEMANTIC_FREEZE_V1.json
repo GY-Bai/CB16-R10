@@ -1,0 +1,223 @@
+{
+  "schema": "CB16_R11_SEMANTIC_FREEZE_V1",
+  "status": "FROZEN",
+  "purpose": "Freeze the scientific body of CB16 while explicitly allowing a clean-slate performance/runtime rearchitecture.",
+  "scientific_semantics_changed": false,
+  "rule": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "immutable": {
+    "historical_market_dataset": {
+      "storage_class": "SHANXI_LOCAL_READ_ONLY",
+      "expected_root": "/data/cb16_hdd/binance_usdm_1m_funding_2020_2026",
+      "provision_contract": "provision/assets/binance_usdm_1m_funding_2020_2026.json",
+      "provision_manifest_sha256": "afd5641bbc76f43e8be0fa7f415e0057553ba0563bc8edba8f825e7f7f92407a",
+      "discovered_size_bytes": 1299366537,
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT",
+        "XRPUSDT",
+        "ADAUSDT",
+        "DOGEUSDT",
+        "DOTUSDT",
+        "LINKUSDT",
+        "LTCUSDT",
+        "SOLUSDT"
+      ],
+      "kline_interval": "1m",
+      "mutation": "FORBIDDEN",
+      "network_repair_or_redownload_during_scientific_runtime": "FORBIDDEN",
+      "seal_requirement": {
+        "status": "MUST_BE_MATERIALIZED_FROM_EXISTING_SHANXI_BYTES_BEFORE_R11_SCIENTIFIC_EXECUTION",
+        "algorithm": "SHA256_EACH_MONTHLY_KLINE_AND_FUNDING_ARCHIVE_PLUS_RELATIVE_PATH_AND_SIZE__CANONICAL_MANIFEST_SHA256",
+        "note": "The existing provision record is discovery-level and does not contain a whole-dataset content SHA. R11 therefore seals the already-present bytes read-only; it never repairs, replaces, appends, or downloads data while sealing."
+      }
+    },
+    "frozen_sensory_organs": {
+      "extraction_contract": "assets/FROZEN_LAYER_EXTRACTION_CONTRACT_R10.json",
+      "operator48": {
+        "foundation": "NeoQuasar/Kronos-small + NeoQuasar/Kronos-Tokenizer-base",
+        "tap": "D45 = Layer5 last-token state - Layer4 last-token state",
+        "micro_input": "60 complete 1m OHLCV",
+        "macro_input": "32 complete 1h OHLCV",
+        "output": "concat(Micro24,Macro24)=Operator48",
+        "kronos_model_prefix_semantic_sha256": "b17dd3cb0f8fdb97e2327debb004a9c791f615d21b77432c2d2b3c4efb149cdc",
+        "kronos_tokenizer_prefix_semantic_sha256": "b315317b2ea619c13f7b9b3a87da085750ced2965e85e97fe17a5f32eb8cf089",
+        "reducer_sha256": "c61b20341ea7d859842821bfd401baad17b210d02317da6324be7de9d3d54423"
+      },
+      "medium48": {
+        "foundation": "google/timesfm-2.5-200m-transformers",
+        "input": "64 complete 1h Close values",
+        "tap": "Layer3 last-token 1280D",
+        "post_tap": "frozen StandardScaler -> Linear(1280,96) -> GELU -> Linear(96,48), seed24680",
+        "timesfm_layer3_prefix_semantic_sha256": "23eab66683b2581927d2d78ffcdb7c15b6d40ff7da2cd13e2277451c9bdebb2c",
+        "adapter_sha256": "897ba29937817b225df73c6ad2b5bbf183d2a18a0488dcdcff5d7b43ade436c2"
+      },
+      "risk_sidecar": {
+        "Ordered4H30": "six ordered non-overlapping 4h OHLCV slots from the latest 24 complete hourly bars",
+        "mode": "SHADOW_ONLY_TASK_GATED"
+      },
+      "remote": "OFF",
+      "gradient_authority": "ZERO"
+    },
+    "central_brain_architecture": {
+      "tier": "TIER_1",
+      "input_boundary": {
+        "Operator48": 48,
+        "Medium48": 48,
+        "AccountState6": 6
+      },
+      "trainable_graph": [
+        "Operator48 -> Linear(48,64) -> SiLU",
+        "Medium48 -> Linear(48,64) -> SiLU",
+        "AccountState6 -> Linear(6,32) -> SiLU",
+        "concat(64,64,32) -> Linear(160,256) -> SiLU -> Linear(256,256) -> SiLU",
+        "Direction: Linear(256,128) -> SiLU -> Linear(128,3) -> softmax",
+        "DirectionEmbedding: probability-weighted Embedding(3,8)",
+        "RequestedRisk: concat(Shared256,DirectionEmbedding8) -> Linear(264,128) -> SiLU -> Linear(128,64) -> SiLU -> Linear(64,1) -> sigmoid"
+      ],
+      "parameter_count": 189052,
+      "action_composition": {
+        "direction_class": "argmax(direction_probs)",
+        "mapping": {"0": "SHORT", "1": "FLAT", "2": "LONG"},
+        "requested_risk_range": [0.0, 1.0],
+        "flat_requested_risk": 0.0,
+        "requested_risk_is_confidence": false
+      },
+      "organ_inputs_detached_from_autograd": true,
+      "trainable_authority": [
+        "Operator Brain Stem",
+        "Medium Brain Stem",
+        "Account Brain Stem",
+        "Shared Decision Core",
+        "Direction Head",
+        "Requested-Risk Head"
+      ]
+    },
+    "authority_separation": {
+      "principle": "TRUTH != BELIEF != DECISION != PERMISSION",
+      "action_intent_contract": "authority/control_plane_r1/ACTION_INTENT_SCHEMA_V1.json",
+      "risk_authority_contract": "authority/control_plane_r1/RISK_AUTHORITY_CONTRACT_V1.json",
+      "account_physics_contract": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "physics_contract_sha256": "d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "risk_supervisor_sha256": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6",
+      "brain_proposes": "ActionIntent(direction, requested_risk)",
+      "supervisor_owns_permission": true,
+      "physics_owns_execution_and_account_transition": true,
+      "external_organs_own_permission": false
+    },
+    "probabilistic_learning_semantics": {
+      "target": "P(U | I_t, a)",
+      "realized_outcome_role": "ONE_REALIZATION_SAMPLE_NOT_CORRECT_ACTION_LABEL",
+      "teacher_semantics": "PROBABILISTIC_DISTRIBUTIONAL_NO_BEST_ACTION_LABEL",
+      "utility": "72h net log-equity growth under frozen account physics",
+      "dependence_rule": "all account/action branches sharing symbol and decision future count as one independent future dependence group",
+      "train_teacher": {
+        "mode": "BLOCKED_CROSSFIT",
+        "folds": 5,
+        "embargo_groups": 1,
+        "k_dependence_groups": 64,
+        "min_train_dependence_groups": 32,
+        "min_effective_dependence_n": 12.0,
+        "max_nearest_distance": 8.0,
+        "distance_temperature": 2.0,
+        "direction_softmax_temperature": 0.002,
+        "lane": "CENTER"
+      },
+      "validation_teacher": {
+        "mode": "PREQUENTIAL",
+        "k_dependence_groups": 64,
+        "min_train_dependence_groups": 32,
+        "min_effective_dependence_n": 12.0,
+        "max_nearest_distance": 8.0,
+        "distance_temperature": 2.0,
+        "direction_softmax_temperature": 0.002,
+        "lane": "CENTER"
+      },
+      "student_objective": {
+        "direction": "soft-target cross entropy",
+        "sizing": "SmoothL1(requested_risk, beta=0.05)",
+        "dependence_group_weighting": "inverse rows per future dependence group, normalized to mean 1",
+        "forbidden": [
+          "realized path profit as correct-action label",
+          "hindsight label leakage",
+          "teacher/future tensors entering student autograd except through admitted loss"
+        ]
+      },
+      "champion_challenger": {
+        "challenger_starts_from_champion": true,
+        "promotion_basis": "frozen validation probabilistic Teacher target loss",
+        "F0_F1_F2_F3_are_promotion_drivers": false,
+        "rejected_challenger_becomes_parent": false
+      }
+    },
+    "historical_knowledge_policy": {
+      "recent_evidence_may_recalibrate_current_authority": true,
+      "recent_evidence_may_erase_historical_information": false,
+      "hand_engineered_cycle_or_regime_activation_engine": "FORBIDDEN",
+      "hand_engineered_chronological_belief_expiry": "FORBIDDEN",
+      "recurrence_should_be_represented": "IMPLICITLY_BY_LEARNED_WEIGHTS_AND_CURRENT_INPUT_RESPONSE"
+    }
+  },
+  "mutable_infra": {
+    "allowed_without_scientific_architecture_change": [
+      "CPU/GPU stage scheduling",
+      "heterogeneous and asynchronous execution",
+      "worker/process/thread topology",
+      "12-worker or adaptive CPU farms",
+      "AVX2/NumPy vectorization",
+      "shared memory and mmap",
+      "columnar/binary internal representations",
+      "cache layout and content-addressed persistence",
+      "SSD/HDD placement",
+      "queueing and backpressure",
+      "prefetch and pinned-memory transfer",
+      "FP32 CUDA batching",
+      "CUDA Graph capture for graph-safe static FP32 regions",
+      "kernel launch reduction",
+      "fused mathematically-equivalent optimizer execution",
+      "checkpoint/storage/recovery format",
+      "crash/restart implementation",
+      "CI orchestration and runner topology",
+      "Python module boundaries and source-code organization"
+    ],
+    "not_allowed_as_infra_only_change": [
+      "changing the ten-symbol historical bytes",
+      "changing frozen sensory taps/weights/reducers/adapters",
+      "changing Central Brain functional architecture",
+      "changing action/permission/physics authority boundaries",
+      "changing the probabilistic feedback meaning",
+      "turning realized outcome into a label",
+      "adding handcrafted recurrence/cycle rules",
+      "changing the learning objective or optimizer rule without separate scientific qualification"
+    ]
+  },
+  "hardware_target": {
+    "cpu": "AMD Ryzen 7 3700X, 8C/16T",
+    "gpu": "NVIDIA GeForce GTX 1060 6GB, Pascal sm_61",
+    "canonical_gpu_arithmetic": "FP32",
+    "forbidden_assumptions": [
+      "Tensor Cores",
+      "fast FP16 arithmetic",
+      "BF16",
+      "TF32",
+      "Triton/Inductor support"
+    ],
+    "candidate_runtime_optimizations": [
+      "12 single-thread CPU workers after memory deduplication",
+      "AVX2-friendly contiguous Teacher arrays",
+      "shared immutable Teacher index",
+      "static FP32 GPU buffers",
+      "CUDA Graph for fixed-shape graph-safe training/inference regions"
+    ]
+  },
+  "qualification_policy": {
+    "legacy_code": "ORACLE_ONLY_NOT_RUNTIME_AUTHORITY",
+    "frozen_data_and_asset_identity": "EXACT",
+    "physics_and_permission_behavior": "EXACT",
+    "architecture_and_gradient_ownership": "EXACT",
+    "probabilistic_teacher_discrete_decisions": "EXACT",
+    "floating_point_reimplementation": "TIGHT_NUMERICAL_EQUIVALENCE_PLUS_DOWNSTREAM_INVARIANTS",
+    "bitwise_legacy_training_trajectory_required": false,
+    "scientific_contract_equivalence_required": true
+  }
+}
