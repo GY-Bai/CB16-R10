@@ -2,12 +2,11 @@ from __future__ import annotations
 
 """R11 FP32 training/evaluation runtime for the frozen TIER_1 Central Brain.
 
-Scientific semantics are frozen by CB16_SEMANTIC_FREEZE_V1.json. This module only
-changes execution: evidence is packed/transferred once per split, batches reuse
-static FP32 buffers, validation loss and behavior fingerprint share one forward,
-and evaluation is content-addressed by policy/evidence hashes.
-
-Legacy R10.2 training remains a qualification oracle, not runtime authority.
+Scientific semantics are frozen by CB16_SEMANTIC_FREEZE_V1.json. This module
+only changes execution: admitted evidence is packed once, campaign tensors stay
+resident, minibatch storage is reused, CPU permutations are transferred once per
+generation, validation/fingerprint share one forward, and graph/telemetry paths
+are explicitly optional. Legacy R10.2 remains an oracle, not runtime authority.
 """
 
 import copy
@@ -15,6 +14,7 @@ import hashlib
 import json
 import math
 import os
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -22,6 +22,17 @@ from typing import Any, Callable, Mapping, Sequence
 import numpy as np
 import torch
 import torch.nn.functional as F
+
+from .gpu_runtime_r11 import (
+    CUDA_GRAPH_DISABLED_FALLBACK,
+    GPUExecutionProfileR11,
+    H2DBenchmarkResultR11,
+    RuntimeTelemetryR11,
+    TelemetryConfigR11,
+    inspect_gpu_execution_profile_r11,
+    prepare_epoch_permutations_r11,
+    transfer_host_tensor_r11,
+)
 
 
 TIER1_PARAMETER_COUNT_R11 = 189_052
@@ -43,7 +54,6 @@ GRADIENT_OWNER_PREFIXES_R11: Mapping[str, tuple[str, ...]] = {
 }
 AUTHORIZED_GRADIENT_OWNERS_R11 = frozenset(GRADIENT_OWNER_PREFIXES_R11)
 
-# One contiguous FP32 tensor per admitted evidence split.
 _OP = slice(0, 48)
 _MED = slice(48, 96)
 _ACC = slice(96, 102)
@@ -99,16 +109,24 @@ def _device(device: str | torch.device) -> torch.device:
     dev = torch.device(device)
     if dev.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("R11_CUDA_REQUESTED_BUT_UNAVAILABLE")
+    if dev.type == "cuda" and dev.index is None:
+        dev = torch.device("cuda", torch.cuda.current_device())
     return dev
 
 
 def _disable_noncanonical_cuda_math() -> None:
-    # GTX1060/sm_61 canonical path is explicit FP32. These switches are harmless
-    # on Pascal but fail closed against accidental TF32 assumptions on other GPUs.
     if hasattr(torch.backends, "cuda") and hasattr(torch.backends.cuda, "matmul"):
         torch.backends.cuda.matmul.allow_tf32 = False
     if hasattr(torch.backends, "cudnn") and hasattr(torch.backends.cudnn, "allow_tf32"):
         torch.backends.cudnn.allow_tf32 = False
+
+
+def _assert_finite_scalar_r11(value: torch.Tensor, message: str) -> None:
+    finite = torch.isfinite(value)
+    if value.device.type == "cuda" and hasattr(torch, "_assert_async"):
+        torch._assert_async(finite, message)
+    elif not bool(finite.item()):
+        raise RuntimeError(message)
 
 
 def assert_tier1_fp32_runtime_r11(model: torch.nn.Module) -> None:
@@ -130,7 +148,7 @@ def assert_tier1_fp32_runtime_r11(model: torch.nn.Module) -> None:
 
 
 def group_weights_r11(dependence_group_ids: Sequence[str]) -> np.ndarray:
-    """Exact R10.2 dependence-group weighting: inverse rows/group, mean normalized."""
+    """Exact R10.2 weighting: inverse rows/group, normalized to mean one."""
     if not dependence_group_ids:
         raise RuntimeError("R11_NO_ADMITTED_EVIDENCE")
     counts: dict[str, int] = {}
@@ -171,13 +189,17 @@ class R11TrainingConfig:
 
 @dataclass(frozen=True)
 class PreparedEvidenceR11:
-    """Immutable admitted evidence resident on one device in one FP32 allocation."""
+    """Immutable admitted evidence in one contiguous FP32 device allocation."""
 
     parent_ids: tuple[str, ...]
     dependence_group_ids: tuple[str, ...]
     packed: torch.Tensor
     evidence_hash: str
     host_to_device_transfers: int
+    h2d_strategy: str = "CPU_RESIDENT"
+    h2d_non_blocking: bool = False
+    h2d_latency_ms: float | None = 0.0
+    h2d_benchmark: Mapping[str, Any] | None = None
 
     @property
     def rows(self) -> int:
@@ -234,7 +256,10 @@ class PreparedEvidenceR11:
         parents: Mapping[str, Any],
         *,
         device: str | torch.device,
-        pin_memory: bool = True,
+        pin_memory: bool | None = None,
+        h2d_benchmark_hook: (
+            Callable[[torch.Tensor, torch.device], H2DBenchmarkResultR11] | None
+        ) = None,
     ) -> "PreparedEvidenceR11":
         admitted = [e for e in evidence if bool(e.admission.admitted)]
         if not admitted:
@@ -277,27 +302,29 @@ class PreparedEvidenceR11:
 
         host = torch.from_numpy(packed_np)
         dev = _device(device)
-        transfers = 0
-        if dev.type == "cuda":
-            if pin_memory:
-                host = host.pin_memory()
-            packed = host.to(dev, dtype=torch.float32, non_blocking=bool(pin_memory))
-            transfers = 1
-        else:
-            packed = host
+        packed, transfer = transfer_host_tensor_r11(
+            host,
+            dev,
+            pin_memory=pin_memory,
+            benchmark_hook=h2d_benchmark_hook,
+        )
         packed.requires_grad_(False)
         out = cls(
             parent_ids=parent_ids,
             dependence_group_ids=group_ids,
             packed=packed,
             evidence_hash=digest.hexdigest(),
-            host_to_device_transfers=transfers,
+            host_to_device_transfers=1 if dev.type == "cuda" else 0,
+            h2d_strategy=transfer.strategy,
+            h2d_non_blocking=transfer.non_blocking,
+            h2d_latency_ms=transfer.transfer_ms,
+            h2d_benchmark=(
+                None if transfer.benchmark is None else transfer.benchmark.as_dict()
+            ),
         )
         out.validate()
         return out
 
-    # Compatibility adapter for callers that still hold R10.2 evidence objects.
-    # Only the frozen evidence-contract fields above are consumed.
     from_legacy_evidence = from_evidence
 
 
@@ -313,21 +340,32 @@ def prepare_evidence_campaign_r11(
     validation_evidence: Sequence[Any],
     parents: Mapping[str, Any],
     device: str | torch.device,
-    pin_memory: bool = True,
+    pin_memory: bool | None = None,
+    h2d_benchmark_hook: (
+        Callable[[torch.Tensor, torch.device], H2DBenchmarkResultR11] | None
+    ) = None,
 ) -> PreparedCampaignR11:
-    """Campaign-level prepare-once boundary; no generation-loop tensor rebuilding."""
+    """Campaign-level prepare-once boundary; no generation-loop tensor rebuild."""
     return PreparedCampaignR11(
         train=PreparedEvidenceR11.from_evidence(
-            train_evidence, parents, device=device, pin_memory=pin_memory
+            train_evidence,
+            parents,
+            device=device,
+            pin_memory=pin_memory,
+            h2d_benchmark_hook=h2d_benchmark_hook,
         ),
         validation=PreparedEvidenceR11.from_evidence(
-            validation_evidence, parents, device=device, pin_memory=pin_memory
+            validation_evidence,
+            parents,
+            device=device,
+            pin_memory=pin_memory,
+            h2d_benchmark_hook=h2d_benchmark_hook,
         ),
     )
 
 
 class StaticPreparedBatchR11:
-    """Reusable device-resident FP32 batch buffer."""
+    """Reusable device-resident FP32 minibatch buffer."""
 
     def __init__(self, *, batch_capacity: int, device: str | torch.device):
         if batch_capacity <= 0:
@@ -338,6 +376,10 @@ class StaticPreparedBatchR11:
             (self.batch_capacity, _PACK_WIDTH), dtype=torch.float32, device=self.device
         )
         self._active_rows = 0
+
+    @property
+    def storage_data_ptr(self) -> int:
+        return int(self._packed.data_ptr())
 
     @property
     def packed(self) -> torch.Tensor:
@@ -389,10 +431,9 @@ class LossBreakdownR11:
     sizing_loss: torch.Tensor
 
 
-def student_loss_from_outputs_r11(
-    outputs: Mapping[str, torch.Tensor], batch: Any
+def _student_loss_impl_r11(
+    outputs: Mapping[str, torch.Tensor], batch: Any, *, validate_weight_denom: bool
 ) -> LossBreakdownR11:
-    """Frozen admitted Student objective: CE_soft + SmoothL1(beta=.05), group weighted."""
     target_p = batch.direction_target_probs.detach()
     risk_target = batch.requested_risk_target.detach()
     weight = batch.group_weight.detach()
@@ -404,17 +445,24 @@ def student_loss_from_outputs_r11(
         outputs["requested_risk_raw"], risk_target, reduction="none", beta=SMOOTH_L1_BETA_R11
     )
     denom = weight.sum()
-    if not torch.isfinite(denom) or float(denom.detach().cpu()) <= 0.0:
-        raise RuntimeError("R11_INVALID_GROUP_WEIGHT_DENOMINATOR")
+    if validate_weight_denom:
+        if not torch.isfinite(denom).item() or float(denom.detach().cpu()) <= 0.0:
+            raise RuntimeError("R11_INVALID_GROUP_WEIGHT_DENOMINATOR")
     direction = (row_direction * weight).sum() / denom
     sizing = (row_sizing * weight).sum() / denom
-    # Preserve the legacy FP32 reduction order for differential equivalence.
     total = ((row_direction + row_sizing) * weight).sum() / denom
     return LossBreakdownR11(loss=total, direction_loss=direction, sizing_loss=sizing)
 
 
+def student_loss_from_outputs_r11(
+    outputs: Mapping[str, torch.Tensor], batch: Any
+) -> LossBreakdownR11:
+    """Frozen objective: soft CE + SmoothL1(beta=.05), dependence-group weighted."""
+    return _student_loss_impl_r11(outputs, batch, validate_weight_denom=True)
+
+
 def gradient_group_norms_r11(model: torch.nn.Module) -> dict[str, float]:
-    """One-device-reduction gradient guard; one small D2H sync for all six owners."""
+    """Reduce all six owner norms on device, then perform one small D2H copy."""
     device = next(model.parameters()).device
     reductions: list[torch.Tensor] = []
     for _owner, prefixes in GRADIENT_OWNER_PREFIXES_R11.items():
@@ -457,7 +505,6 @@ def _forward_model(model: torch.nn.Module, batch: Any) -> Mapping[str, torch.Ten
 def forward_prepared_r11(
     model: torch.nn.Module, prepared: PreparedEvidenceR11
 ) -> Mapping[str, torch.Tensor]:
-    """Public differential/integration adapter for the frozen Central Brain forward."""
     prepared.validate()
     assert_tier1_fp32_runtime_r11(model)
     if next(model.parameters()).device != prepared.packed.device:
@@ -473,18 +520,25 @@ class _CapturedEvalGraphR11:
 
 
 class EvaluationRuntimeR11:
-    """Single-forward validation + behavior fingerprint with policy/evidence cache."""
+    """Single-forward validation/fingerprint with bounded result/graph buffers."""
 
     def __init__(
         self,
         *,
         enable_cuda_graph: bool = True,
         cuda_graph_capability: Callable[[torch.device], bool] | None = None,
+        max_cached_results: int = 32,
+        max_cuda_graphs: int = 2,
+        max_behavior_buffers: int = 2,
     ):
         self.enable_cuda_graph = bool(enable_cuda_graph)
         self._capability = cuda_graph_capability or self._default_graph_capability
-        self._cache: dict[tuple[str, str], dict[str, Any]] = {}
-        self._graphs: dict[tuple[Any, ...], _CapturedEvalGraphR11] = {}
+        self.max_cached_results = max(1, int(max_cached_results))
+        self.max_cuda_graphs = max(1, int(max_cuda_graphs))
+        self.max_behavior_buffers = max(1, int(max_behavior_buffers))
+        self._cache: OrderedDict[tuple[str, str], dict[str, Any]] = OrderedDict()
+        self._graphs: OrderedDict[tuple[Any, ...], _CapturedEvalGraphR11] = OrderedDict()
+        self._behavior_buffers: OrderedDict[tuple[str, int, int], torch.Tensor] = OrderedDict()
         self.cache_hits = 0
         self.cache_misses = 0
 
@@ -497,26 +551,55 @@ class EvaluationRuntimeR11:
             and hasattr(torch.cuda, "graph")
         )
 
+    @staticmethod
+    def _put_bounded(store: OrderedDict, key: Any, value: Any, limit: int) -> None:
+        if key in store:
+            store.pop(key)
+        store[key] = value
+        while len(store) > limit:
+            store.popitem(last=False)
+
     def clear_cache(self) -> None:
         self._cache.clear()
         self.cache_hits = 0
         self.cache_misses = 0
 
+    def clear_cuda_state(self) -> None:
+        self._graphs.clear()
+        self._behavior_buffers.clear()
+
+    def resource_stats(self) -> dict[str, int]:
+        return {
+            "evaluation_cache_entries": len(self._cache),
+            "cuda_graph_entries": len(self._graphs),
+            "behavior_buffer_entries": len(self._behavior_buffers),
+        }
+
     def _eager_forward(
         self, model: torch.nn.Module, prepared: PreparedEvidenceR11
-    ) -> tuple[Mapping[str, torch.Tensor], str]:
-        return model(prepared.operator48, prepared.medium48, prepared.account6), "EAGER_FP32"
+    ) -> tuple[Mapping[str, torch.Tensor], str, str]:
+        return (
+            model(prepared.operator48, prepared.medium48, prepared.account6),
+            "EAGER_FP32",
+            CUDA_GRAPH_DISABLED_FALLBACK,
+        )
 
     def _graph_forward(
         self, model: torch.nn.Module, prepared: PreparedEvidenceR11
-    ) -> tuple[Mapping[str, torch.Tensor], str]:
+    ) -> tuple[Mapping[str, torch.Tensor], str, str]:
         device = prepared.packed.device
         if not self.enable_cuda_graph or not self._capability(device):
-            outputs, _ = self._eager_forward(model, prepared)
-            return outputs, "EAGER_FP32_CUDA_GRAPH_FALLBACK"
+            outputs, _, status = self._eager_forward(model, prepared)
+            return outputs, "EAGER_FP32_CUDA_GRAPH_FALLBACK", status
 
         parameter_storage = tuple(int(p.data_ptr()) for p in model.parameters())
-        key = (id(model), parameter_storage, prepared.rows, device.index)
+        key = (
+            id(model),
+            parameter_storage,
+            prepared.evidence_hash,
+            prepared.rows,
+            device.index,
+        )
         try:
             captured = self._graphs.get(key)
             if captured is None:
@@ -535,29 +618,40 @@ class EvaluationRuntimeR11:
                 captured = _CapturedEvalGraphR11(
                     static_pack=static_pack, graph=graph, outputs=outputs
                 )
-                self._graphs[key] = captured
-            captured.static_pack.copy_(prepared.packed)
+                self._put_bounded(self._graphs, key, captured, self.max_cuda_graphs)
+            else:
+                self._graphs.move_to_end(key)
             captured.graph.replay()
-            return captured.outputs, "CUDA_GRAPH_FP32"
+            return captured.outputs, "CUDA_GRAPH_FP32", "CUDA_GRAPH_ACTIVE"
         except Exception:
-            # Graph support is a performance capability, never a scientific prerequisite.
             self._graphs.pop(key, None)
-            outputs, _ = self._eager_forward(model, prepared)
-            return outputs, "EAGER_FP32_CUDA_GRAPH_FALLBACK"
+            outputs, _, _ = self._eager_forward(model, prepared)
+            return outputs, "EAGER_FP32_CUDA_GRAPH_FALLBACK", CUDA_GRAPH_DISABLED_FALLBACK
 
-    @staticmethod
+    def _behavior_buffer(self, outputs: Mapping[str, torch.Tensor]) -> torch.Tensor:
+        probs = outputs["direction_probs"]
+        rows = int(probs.shape[0])
+        device = probs.device
+        key = (device.type, -1 if device.index is None else int(device.index), rows)
+        buffer = self._behavior_buffers.get(key)
+        if buffer is None:
+            buffer = torch.empty((rows, 5), dtype=torch.float32, device=device)
+            self._put_bounded(
+                self._behavior_buffers, key, buffer, self.max_behavior_buffers
+            )
+        else:
+            self._behavior_buffers.move_to_end(key)
+        return buffer
+
     def _behavior_fingerprint(
-        model: torch.nn.Module, outputs: Mapping[str, torch.Tensor]
+        self, model: torch.nn.Module, outputs: Mapping[str, torch.Tensor]
     ) -> dict[str, Any]:
         action = model.compose_action(outputs)
-        arr = np.concatenate(
-            [
-                outputs["direction_probs"].detach().cpu().numpy(),
-                outputs["requested_risk_raw"].detach().cpu().numpy()[:, None],
-                action["direction"].detach().cpu().numpy().astype(np.float32)[:, None],
-            ],
-            axis=1,
-        ).astype(np.float32)
+        packed = self._behavior_buffer(outputs)
+        packed[:, :3].copy_(outputs["direction_probs"])
+        packed[:, 3].copy_(outputs["requested_risk_raw"])
+        packed[:, 4].copy_(action["direction"].to(dtype=torch.float32))
+        arr = packed.detach().cpu().numpy()
         return {
             "rows": int(arr.shape[0]),
             "sha256": _sha256_obj(arr.tolist()),
@@ -581,6 +675,7 @@ class EvaluationRuntimeR11:
         key = (policy_hash, prepared.evidence_hash)
         if use_cache and key in self._cache:
             self.cache_hits += 1
+            self._cache.move_to_end(key)
             return copy.deepcopy(self._cache[key])
         self.cache_misses += 1
 
@@ -588,8 +683,10 @@ class EvaluationRuntimeR11:
         model.eval()
         try:
             with torch.inference_mode():
-                outputs, mode = self._graph_forward(model, prepared)
-                loss = student_loss_from_outputs_r11(outputs, prepared)
+                outputs, mode, graph_status = self._graph_forward(model, prepared)
+                loss = _student_loss_impl_r11(
+                    outputs, prepared, validate_weight_denom=False
+                )
                 behavior = self._behavior_fingerprint(model, outputs)
                 result = {
                     "schema": "CB16_R11_EVALUATION_RESULT_V1",
@@ -601,13 +698,14 @@ class EvaluationRuntimeR11:
                     "sizing_loss": float(loss.sizing_loss.detach().cpu()),
                     "behavior_fingerprint": behavior,
                     "execution_mode": mode,
+                    "cuda_graph_status": graph_status,
                     "dtype": "torch.float32",
                     "amp": False,
                 }
         finally:
             model.train(was_training)
         if use_cache:
-            self._cache[key] = copy.deepcopy(result)
+            self._put_bounded(self._cache, key, copy.deepcopy(result), self.max_cached_results)
         return result
 
 
@@ -622,7 +720,7 @@ class TrainingStepResultR11:
 
 
 class SnapshotConsumptionGuardR11:
-    """Commit/recover a trained challenger without double-consuming a snapshot."""
+    """Commit/recover a challenger without consuming one snapshot twice."""
 
     def __init__(self, receipt_dir: str | Path, generation: int):
         root = Path(receipt_dir)
@@ -690,7 +788,7 @@ class SnapshotConsumptionGuardR11:
 
 
 class TrainingRuntimeR11:
-    """Prepared-evidence, static-buffer AdamW runtime for the canonical FP32 path."""
+    """Prepared-evidence, static-buffer AdamW runtime for canonical FP32 execution."""
 
     def __init__(
         self,
@@ -698,22 +796,117 @@ class TrainingRuntimeR11:
         device: str | torch.device,
         config: R11TrainingConfig | None = None,
         evaluation_runtime: EvaluationRuntimeR11 | None = None,
+        telemetry_config: TelemetryConfigR11 | None = None,
     ):
         self.device = _device(device)
         self.config = config or R11TrainingConfig()
         self.config.validate()
         _disable_noncanonical_cuda_math()
+        self.execution_profile: GPUExecutionProfileR11 = inspect_gpu_execution_profile_r11(
+            self.device
+        )
         self.evaluation_runtime = evaluation_runtime or EvaluationRuntimeR11(
             enable_cuda_graph=True
         )
+        self.telemetry = RuntimeTelemetryR11(telemetry_config or TelemetryConfigR11())
         self._batch_buffer = StaticPreparedBatchR11(
             batch_capacity=self.config.batch_size, device=self.device
         )
+        self._step_index = 0
 
     def build_optimizer(self, model: torch.nn.Module) -> torch.optim.AdamW:
         assert_tier1_fp32_runtime_r11(model)
         return torch.optim.AdamW(
             model.parameters(), lr=float(self.config.lr), weight_decay=float(self.config.weight_decay)
+        )
+
+    def resource_stats(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
+            "static_batch_buffer_data_ptr": self._batch_buffer.storage_data_ptr,
+            "static_batch_capacity": self._batch_buffer.batch_capacity,
+            "execution_profile": self.execution_profile.as_dict(),
+        }
+        out.update(self.evaluation_runtime.resource_stats())
+        if self.device.type == "cuda" and torch.cuda.is_available():
+            out.update(
+                {
+                    "cuda_memory_allocated_bytes": int(torch.cuda.memory_allocated(self.device)),
+                    "cuda_memory_reserved_bytes": int(torch.cuda.memory_reserved(self.device)),
+                }
+            )
+        return out
+
+    def _validate_step_boundary(
+        self, model: torch.nn.Module, prepared: PreparedEvidenceR11
+    ) -> None:
+        assert_tier1_fp32_runtime_r11(model)
+        if prepared.packed.device != self.device:
+            raise RuntimeError("R11_PREPARED_EVIDENCE_DEVICE_DRIFT")
+        if next(model.parameters()).device != self.device:
+            raise RuntimeError("R11_MODEL_DEVICE_DRIFT")
+
+    def _train_step(
+        self,
+        *,
+        model: torch.nn.Module,
+        optimizer: torch.optim.Optimizer,
+        prepared: PreparedEvidenceR11,
+        ids: torch.Tensor,
+        runtime_prevalidated: bool,
+        collect_diagnostics: bool,
+        materialize_result: bool,
+    ) -> TrainingStepResultR11 | None:
+        if not runtime_prevalidated:
+            self._validate_step_boundary(model, prepared)
+        timer = self.telemetry.begin_step(self._step_index, self.device)
+        self._step_index += 1
+
+        batch = self._batch_buffer.load(prepared, ids)
+        if timer is not None:
+            timer.mark("batch_ready")
+        optimizer.zero_grad(set_to_none=True)
+        outputs = _forward_model(model, batch)
+        loss = _student_loss_impl_r11(outputs, batch, validate_weight_denom=False)
+        _assert_finite_scalar_r11(loss.loss, "R11_NONFINITE_TRAIN_LOSS")
+        if timer is not None:
+            timer.mark("forward_done")
+        loss.loss.backward()
+        if timer is not None:
+            timer.mark("backward_done")
+
+        norms: dict[str, float] = {}
+        owners = frozenset()
+        if collect_diagnostics:
+            norms = gradient_group_norms_r11(model)
+            owners = frozenset(k for k, v in norms.items() if v > 0.0 and math.isfinite(v))
+            if owners != AUTHORIZED_GRADIENT_OWNERS_R11:
+                raise RuntimeError(f"R11_GRADIENT_OWNER_SET_DRIFT:{sorted(owners)}")
+            if any(not math.isfinite(v) or v <= 0.0 for v in norms.values()):
+                raise RuntimeError(f"R11_AUTHORIZED_GRADIENT_DISCONNECT:{norms}")
+
+        pre_clip = torch.nn.utils.clip_grad_norm_(
+            model.parameters(), max_norm=float(self.config.max_grad_norm)
+        )
+        _assert_finite_scalar_r11(pre_clip, "R11_NONFINITE_PRECLIP_GRADIENT_NORM")
+        if timer is not None:
+            timer.mark("clip_checks_done")
+        optimizer.step()
+        if timer is not None:
+            timer.mark("optimizer_done")
+        self.telemetry.record_step(timer)
+
+        if not materialize_result:
+            return None
+        if not collect_diagnostics:
+            norms = gradient_group_norms_r11(model)
+            owners = frozenset(k for k, v in norms.items() if v > 0.0 and math.isfinite(v))
+        return TrainingStepResultR11(
+            loss=float(loss.loss.detach().cpu()),
+            direction_loss=float(loss.direction_loss.detach().cpu()),
+            sizing_loss=float(loss.sizing_loss.detach().cpu()),
+            gradient_group_norms=norms,
+            gradient_owner_set=owners,
+            pre_clip_grad_norm=float(pre_clip.detach().cpu()),
         )
 
     def train_one_step(
@@ -724,38 +917,18 @@ class TrainingRuntimeR11:
         prepared: PreparedEvidenceR11,
         ids: torch.Tensor,
     ) -> TrainingStepResultR11:
-        assert_tier1_fp32_runtime_r11(model)
-        if prepared.packed.device != self.device:
-            raise RuntimeError("R11_PREPARED_EVIDENCE_DEVICE_DRIFT")
-        if next(model.parameters()).device != self.device:
-            raise RuntimeError("R11_MODEL_DEVICE_DRIFT")
-        batch = self._batch_buffer.load(prepared, ids)
-        optimizer.zero_grad(set_to_none=True)
-        outputs = _forward_model(model, batch)
-        loss = student_loss_from_outputs_r11(outputs, batch)
-        if not torch.isfinite(loss.loss).item():
-            raise RuntimeError("R11_NONFINITE_TRAIN_LOSS")
-        loss.loss.backward()
-        norms = gradient_group_norms_r11(model)
-        owners = frozenset(k for k, v in norms.items() if v > 0.0 and math.isfinite(v))
-        if owners != AUTHORIZED_GRADIENT_OWNERS_R11:
-            raise RuntimeError(f"R11_GRADIENT_OWNER_SET_DRIFT:{sorted(owners)}")
-        if any(not math.isfinite(v) or v <= 0.0 for v in norms.values()):
-            raise RuntimeError(f"R11_AUTHORIZED_GRADIENT_DISCONNECT:{norms}")
-        pre_clip = torch.nn.utils.clip_grad_norm_(
-            model.parameters(), max_norm=float(self.config.max_grad_norm)
+        result = self._train_step(
+            model=model,
+            optimizer=optimizer,
+            prepared=prepared,
+            ids=ids,
+            runtime_prevalidated=False,
+            collect_diagnostics=True,
+            materialize_result=True,
         )
-        if not torch.isfinite(pre_clip).item():
-            raise RuntimeError("R11_NONFINITE_PRECLIP_GRADIENT_NORM")
-        optimizer.step()
-        return TrainingStepResultR11(
-            loss=float(loss.loss.detach().cpu()),
-            direction_loss=float(loss.direction_loss.detach().cpu()),
-            sizing_loss=float(loss.sizing_loss.detach().cpu()),
-            gradient_group_norms=norms,
-            gradient_owner_set=owners,
-            pre_clip_grad_norm=float(pre_clip.detach().cpu()),
-        )
+        if result is None:
+            raise AssertionError("R11_INTERNAL_STEP_RESULT_MISSING")
+        return result
 
     def train_challenger(
         self,
@@ -775,7 +948,7 @@ class TrainingRuntimeR11:
         ):
             raise RuntimeError("R11_CAMPAIGN_DEVICE_DRIFT")
         model.to(self.device)
-        assert_tier1_fp32_runtime_r11(model)
+        self._validate_step_boundary(model, campaign.train)
 
         guard = SnapshotConsumptionGuardR11(receipt_dir, int(generation))
         recovered = guard.recover_if_consumed(
@@ -794,24 +967,41 @@ class TrainingRuntimeR11:
         )
         model.train()
         optimizer = self.build_optimizer(model)
-        generator = torch.Generator(device="cpu")
-        generator.manual_seed(self.config.generation_base_seed + int(generation))
+        generation_seed = self.config.generation_base_seed + int(generation)
+        permutations, permutation_h2d_transfers = prepare_epoch_permutations_r11(
+            rows=campaign.train.rows,
+            epochs=int(self.config.epochs),
+            seed=generation_seed,
+            device=self.device,
+        )
 
+        batches_per_epoch = math.ceil(campaign.train.rows / int(self.config.batch_size))
+        expected_steps = int(self.config.epochs) * batches_per_epoch
         last_step: TrainingStepResultR11 | None = None
         steps = 0
-        for _epoch in range(int(self.config.epochs)):
-            # Generate exactly the R10.2 CPU permutation, but transfer it once per epoch.
-            permutation_cpu = torch.randperm(campaign.train.rows, generator=generator)
-            permutation = permutation_cpu.to(self.device)
+        self.telemetry.sample_device(self.device)
+        for epoch in range(int(self.config.epochs)):
+            permutation = permutations[epoch]
             for start in range(0, campaign.train.rows, int(self.config.batch_size)):
                 ids = permutation[start : start + int(self.config.batch_size)]
-                last_step = self.train_one_step(
-                    model=model, optimizer=optimizer, prepared=campaign.train, ids=ids
+                is_first = steps == 0
+                is_last = steps == expected_steps - 1
+                result = self._train_step(
+                    model=model,
+                    optimizer=optimizer,
+                    prepared=campaign.train,
+                    ids=ids,
+                    runtime_prevalidated=True,
+                    collect_diagnostics=bool(is_first or is_last),
+                    materialize_result=bool(is_last),
                 )
+                if result is not None:
+                    last_step = result
                 steps += 1
+        self.telemetry.sample_device(self.device)
 
-        if last_step is None:
-            raise RuntimeError("R11_ZERO_OPTIMIZER_STEPS")
+        if last_step is None or steps != expected_steps:
+            raise RuntimeError("R11_ZERO_OR_MISMATCHED_OPTIMIZER_STEPS")
         after = _clone_state_dict(model)
         update_norms = _update_group_norms(before, after)
         if any(v <= 0.0 or not math.isfinite(v) for v in update_norms.values()):
@@ -833,11 +1023,31 @@ class TrainingRuntimeR11:
             "lr": float(self.config.lr),
             "weight_decay": float(self.config.weight_decay),
             "gradient_clip_max_norm": float(self.config.max_grad_norm),
-            "generation_seed": int(self.config.generation_base_seed + int(generation)),
+            "generation_seed": int(generation_seed),
+            "permutation_host_to_device_transfers": int(permutation_h2d_transfers),
             "train_evidence_hash": campaign.train.evidence_hash,
             "validation_evidence_hash": campaign.validation.evidence_hash,
             "train_host_to_device_transfers": campaign.train.host_to_device_transfers,
             "validation_host_to_device_transfers": campaign.validation.host_to_device_transfers,
+            "train_h2d": {
+                "strategy": campaign.train.h2d_strategy,
+                "non_blocking": campaign.train.h2d_non_blocking,
+                "latency_ms": campaign.train.h2d_latency_ms,
+                "benchmark": campaign.train.h2d_benchmark,
+            },
+            "validation_h2d": {
+                "strategy": campaign.validation.h2d_strategy,
+                "non_blocking": campaign.validation.h2d_non_blocking,
+                "latency_ms": campaign.validation.h2d_latency_ms,
+                "benchmark": campaign.validation.h2d_benchmark,
+            },
+            "static_buffers": {
+                "campaign_train_resident": True,
+                "campaign_validation_resident": True,
+                "reusable_minibatch_buffer": True,
+                "minibatch_buffer_data_ptr": self._batch_buffer.storage_data_ptr,
+            },
+            "gpu_execution_profile": self.execution_profile.as_dict(),
             "parameter_l2_delta": _state_l2_delta(before, after),
             "gradient_group_norms_last_step": last_step.gradient_group_norms,
             "gradient_owner_set_last_step": sorted(last_step.gradient_owner_set),
@@ -845,6 +1055,8 @@ class TrainingRuntimeR11:
             "challenger_semantic_sha256": policy_hash_r11(model),
             "validation_before": validation_before,
             "validation_after": validation_after,
+            "telemetry": self.telemetry.snapshot(),
+            "runtime_resources": self.resource_stats(),
             "external_frozen_organ_gradients": "NOT_IN_AUTOGRAD_GRAPH__INPUT_VALUES_DETACHED",
             "teacher_future_autograd": "TARGET_VALUES_ONLY_THROUGH_ADMITTED_STUDENT_LOSS",
         }
@@ -855,3 +1067,27 @@ class TrainingRuntimeR11:
             receipt=receipt,
         )
         return receipt
+
+
+__all__ = [
+    "AUTHORIZED_GRADIENT_OWNERS_R11",
+    "CANONICAL_BATCH_SIZE_R11",
+    "CANONICAL_EPOCHS_R11",
+    "CUDA_GRAPH_DISABLED_FALLBACK",
+    "EvaluationRuntimeR11",
+    "PreparedCampaignR11",
+    "PreparedEvidenceR11",
+    "R11TrainingConfig",
+    "SnapshotConsumptionGuardR11",
+    "StaticPreparedBatchR11",
+    "TrainingRuntimeR11",
+    "TrainingStepResultR11",
+    "assert_tier1_fp32_runtime_r11",
+    "forward_prepared_r11",
+    "gradient_group_norms_r11",
+    "gradient_owner_set_r11",
+    "group_weights_r11",
+    "policy_hash_r11",
+    "prepare_evidence_campaign_r11",
+    "student_loss_from_outputs_r11",
+]
