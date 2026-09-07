@@ -28,14 +28,17 @@ def main() -> int:
     print(json.dumps({
         "schema": result["schema"],
         "status": result["status"],
+        "input_samples_total": result["input_samples_total"],
         "sample_count": result["sample_count"],
+        "discarded_sample_count": result["discarded_sample_count"],
+        "input_schema_counts": result["input_schema_counts"],
         "stage_bucket_count": result["stage_bucket_count"],
         "generation_count_observed": result["generation_count_observed"],
         "writes_to_canonical_run_root": result["safety"]["writes_to_canonical_run_root"],
         "scientific_semantics_changed": result["safety"]["scientific_semantics_changed"],
         "final_holdout_2025_09_accessed": result["safety"]["final_holdout_2025_09_accessed"],
     }, indent=2, sort_keys=True))
-    return 0
+    return 0 if result["status"] == "PASS" else 2
 
 
 if __name__ == "__main__":
