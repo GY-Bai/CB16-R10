@@ -1,10 +1,16 @@
 {
-  "schema": "CB16_R2_LIVE_PROGRESS_TRIGGER_V2",
-  "purpose": "READ_ONLY_DYNAMIC_ACTIVE_R2_PROCESS_HARDWARE_AND_PRIVATE_RUN_PROGRESS_SNAPSHOT",
-  "target_native_run_id": 34145527881,
-  "target_native_job_id": 101816635770,
-  "expected_head_sha": "43db989566b794567205b76de898f672ee6fdaba",
+  "schema": "CB16_R2_LIVE_PROGRESS_TRIGGER_V3",
+  "purpose": "READ_ONLY_OBSERVE_OPTIMIZED_INCREMENTAL_R2_NATIVE_V2",
+  "target_native_run_id": 34155102019,
+  "target_native_job_id": 101845180740,
+  "expected_head_sha": "d6e30501a127eb56e9218cb7454f36f0ac8fa09f",
   "observer_discovery_mode": "ACTIVE_V2_PROCESS_CMDLINE_PLUS_PROC_ROOT_NAMESPACE",
+  "expected_runtime_focus": [
+    "TEACHER_8_WORKER_COLD_OR_VERIFIED_WARM_AUTHORITY",
+    "CPU_RAM_GPU_UTILIZATION",
+    "R2_HDD_PERSISTENT_TEACHER_AUTHORITY",
+    "G00_G01_REPLAY_PROGRESS"
+  ],
   "writes_to_r2_payload": false,
   "canonical_r104_modified": false,
   "scientific_semantics_changed": false,
