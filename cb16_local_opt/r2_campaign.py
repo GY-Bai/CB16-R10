@@ -337,6 +337,9 @@ def run_campaign_r2(
         event_audit = events.audit()
         store.checkpoint("TRUNCATE"); events.checkpoint("TRUNCATE")
         store_stats = store.stats()
+        # Qualification and downstream gates need the physical lane count.  This
+        # is runtime/storage metadata only and does not enter scientific identity.
+        store_stats["payload_lanes"] = len(payloads)
         store.close(); events.close()
 
     frozen_pass = frozen_authority_hashes(root) == frozen_before
