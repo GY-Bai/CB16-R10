@@ -127,14 +127,18 @@ jobs:
           sync "$canary"
           rm -f "$canary"
 
-          META_SRC="$(findmnt -n -o SOURCE -T "$META")"
-          PAYLOAD_SRC="$(findmnt -n -o SOURCE -T "$PAYLOAD")"
+          META_SRC_RAW="$(findmnt -n -o SOURCE -T "$META")"
+          PAYLOAD_SRC_RAW="$(findmnt -n -o SOURCE -T "$PAYLOAD")"
+          META_SRC="${META_SRC_RAW%%[*}"
+          PAYLOAD_SRC="${PAYLOAD_SRC_RAW%%[*}"
           {
             echo "RUN_ROOT=$RUN"
             echo "METADATA_ROOT=$META"
             echo "PAYLOAD_ROOT=$PAYLOAD"
-            echo "METADATA_SOURCE=$META_SRC"
-            echo "PAYLOAD_SOURCE=$PAYLOAD_SRC"
+            echo "METADATA_SOURCE_RAW=$META_SRC_RAW"
+            echo "PAYLOAD_SOURCE_RAW=$PAYLOAD_SRC_RAW"
+            echo "METADATA_BLOCK_DEVICE=$META_SRC"
+            echo "PAYLOAD_BLOCK_DEVICE=$PAYLOAD_SRC"
             echo '=== metadata ==='
             findmnt -T "$META" -o TARGET,SOURCE,FSTYPE,OPTIONS
             echo '=== payload ==='
@@ -147,7 +151,7 @@ jobs:
           test "$PAYLOAD_SRC" = '/dev/sda1'
           case "$META_SRC" in
             /dev/mapper/ubuntu--vg-ubuntu--lv|/dev/sdb3|/dev/sdb) ;;
-            *) echo "UNEXPECTED_METADATA_DEVICE=$META_SRC" >&2; exit 76 ;;
+            *) echo "UNEXPECTED_METADATA_DEVICE=$META_SRC raw=$META_SRC_RAW" >&2; exit 76 ;;
           esac
           echo "run=$RUN" >> "$GITHUB_OUTPUT"
           echo "meta=$META" >> "$GITHUB_OUTPUT"
