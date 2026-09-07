@@ -21,19 +21,54 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p canary
-          printf 'CB16_ARTIFACT_CHANNEL_CANARY_V1\nrun=%s\nattempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > canary/payload.txt
+          printf 'CB16_ARTIFACT_CHANNEL_CANARY_V2\nrun=%s\nattempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > canary/payload.txt
           sha256sum canary/payload.txt | tee canary/SHA256SUMS
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Probe sanitized Actions Results endpoint
+        shell: bash
+        run: |
+          set -u
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+          u=os.environ.get('ACTIONS_RESULTS_URL','')
+          p=urlsplit(u) if u else None
+          print('ACTIONS_RESULTS_URL_PRESENT=', bool(u))
+          if p:
+              print('ACTIONS_RESULTS_SCHEME=', p.scheme)
+              print('ACTIONS_RESULTS_HOST=', p.hostname)
+              print('ACTIONS_RESULTS_PATH=', p.path)
+          print('HTTPS_PROXY_PRESENT=', bool(os.environ.get('https_proxy') or os.environ.get('HTTPS_PROXY')))
+          PY
+          if [ -n "${ACTIONS_RESULTS_URL:-}" ]; then
+            base="${ACTIONS_RESULTS_URL%/}"
+            set +e
+            code="$(curl -sS --max-time 15 -o /tmp/cb16-artifact-twirp-probe.out -w '%{http_code}' \
+              -X POST \
+              -H 'Content-Type: application/json' \
+              --data '{}' \
+              "$base/twirp/github.actions.results.api.v1.ArtifactService/CreateArtifact")"
+            rc=$?
+            set -e
+            echo "TWIRP_POST_CURL_RC=$rc"
+            echo "TWIRP_POST_HTTP_CODE=$code"
+            if [ "$rc" -ne 0 ]; then
+              echo 'TWIRP_POST_REACHABILITY=FAIL'
+            else
+              echo 'TWIRP_POST_REACHABILITY=PASS'
+            fi
+          fi
+
+      - name: Upload artifact v7
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-artifact-channel-canary-${{ github.run_id }}-${{ github.run_attempt }}
           path: canary
           if-no-files-found: error
           retention-days: 1
 
-      - name: Download same artifact
-        uses: actions/download-artifact@v4
+      - name: Download same artifact v7
+        uses: actions/download-artifact@v7
         with:
           name: cb16-artifact-channel-canary-${{ github.run_id }}-${{ github.run_attempt }}
           path: downloaded
