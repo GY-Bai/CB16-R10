@@ -1,6 +1,6 @@
 {
-  "schema": "CB16_R2_NATIVE_QUALIFICATION_TRIGGER_V1",
-  "purpose": "RUN_TWO_GENERATION_NATIVE_R2_EQUIVALENCE_WITH_TRUE_SSD_METADATA_HDD_PAYLOAD",
+  "schema": "CB16_R2_NATIVE_QUALIFICATION_TRIGGER_V2",
+  "purpose": "RERUN_TWO_GENERATION_NATIVE_R2_EQUIVALENCE_AFTER_PROVISION_CLI_FIX",
   "attempts": 2,
   "metadata_tier": "/tmp on /dev/sdb root SSD",
   "payload_tier": "/data on /dev/sda HDD",
