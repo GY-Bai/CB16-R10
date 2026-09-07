@@ -1,0 +1,131 @@
+name: CB16 R11 Stage2 Task A Shanxi Micro Benchmark
+
+on:
+  push:
+    branches:
+      - ai/r11-stage2-task-a-cpu-throughput-r1
+    paths:
+      - .github/cb16-r11-stage2-task-a-micro-trigger.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-shanxi-wss-qualification-runner-queue
+  cancel-in-progress: false
+
+jobs:
+  task-a-micro-benchmark:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 5
+    env:
+      LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      BLIS_NUM_THREADS: '1'
+      VECLIB_MAXIMUM_THREADS: '1'
+    steps:
+      - name: Checkout Task A branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Verify micro-benchmark authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          test -d "$LEGACY_R104_ROOT/evidence_cache"
+          python3 -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache')
+          m=json.loads((root/'REAL_EVIDENCE_CACHE_MANIFEST_R102.json').read_text())
+          assert int(m.get('stride_hours', -1)) == 256
+          assert m.get('final_holdout_2025_09_accessed') is False
+          print('TASK_A_MICRO_AUTHORITY_BOUNDARY=PASS')
+          PY
+
+      - name: Reuse verified canonical R10.4 Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out ci_evidence/python_provision.json
+          PYBIN="$(python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/python_provision.json'))
+          assert x['status']=='READY'
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE'
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          )"
+          test -x "$PYBIN"
+          echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
+          "$PYBIN" - <<'PY'
+          import numpy, torch, threadpoolctl
+          print('TORCH=' + torch.__version__)
+          print('NUMPY=' + numpy.__version__)
+          print('THREADPOOLCTL=' + threadpoolctl.__version__)
+          PY
+
+      - name: Compile Task A micro-benchmark
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" -m py_compile \
+            cb16_local_opt/cpu_runtime_r11.py \
+            cb16_local_opt/teacher_scheduler_r11.py \
+            cb16_local_opt/teacher_runtime_r11.py \
+            cb16_local_opt/trace_runtime_r11.py \
+            scripts/run_r11_stage2_task_a_micro_benchmark.py
+
+      - name: Run real-machine Task A micro-benchmark
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v -o ci_evidence/time_verbose.txt \
+            "$PY" scripts/run_r11_stage2_task_a_micro_benchmark.py \
+              --legacy-r104-root "$LEGACY_R104_ROOT" \
+              --block-targets 64 \
+              --trace-groups 24 \
+              --out ci_evidence/task_a_micro_benchmark.json \
+              2>&1 | tee ci_evidence/task_a_micro_stdout.log
+
+      - name: Gate correctness identity and benchmark scope
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/task_a_micro_benchmark.json'))
+          assert x['status']=='PASS'
+          assert x['scientific_semantics_changed'] is False
+          assert x['new_scientific_verdict'] is False
+          assert x['final_holdout_payload_read'] is False
+          assert x['raw_1m_archive_read'] is False
+          assert x['teacher']['identity_exact_across_all_runs'] is True
+          assert x['trace']['identity_exact_across_all_runs'] is True
+          assert x['cpu_budget']['blas_threads'] == 1
+          assert x['cpu_budget']['topology_in_scientific_identity'] is False
+          print('TASK_A_REAL_MACHINE_MICRO_BENCHMARK=PASS')
+          PY
+
+      - name: Upload Task A micro-benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cb16-r11-stage2-task-a-micro-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          if-no-files-found: warn
+          retention-days: 30
