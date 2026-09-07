@@ -1,0 +1,24 @@
+Command exited with non-zero status 2
+	Command being timed: "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/bin/python scripts/run_r2_native_qualification_v2.py --package-root /data/cb16_ci/r2-authority/package_r102 --r103-root /data/cb16_ci/r2-authority/r103 --legacy-r104-root /data/cb16_hdd/cb16_runtime/R10_4 --run-root /tmp/cb16-r2-native-v2-34145527881-1/run --metadata-root /tmp/cb16-r2-native-v2-34145527881-1/meta --payload-root /data/cb16_hdd/cb16_diagnostics/r2_native/native-v2-34145527881-1/payload --attempts 2 --out ci_evidence/native_result.json"
+	User time (seconds): 30799.07
+	System time (seconds): 217.81
+	Percent of CPU this job got: 685%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:15:23
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1782508
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 306
+	Minor (reclaiming a frame) page faults: 67385457
+	Voluntary context switches: 401927
+	Involuntary context switches: 151700
+	Swaps: 0
+	File system inputs: 122264
+	File system outputs: 101464
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 2
