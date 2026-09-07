@@ -96,6 +96,7 @@ jobs:
           set -euo pipefail
           test -d "$PACKAGE_ROOT"
           test -d "$LEGACY_R104_ROOT/evidence_cache"
+          test -d "$R11_DIAG_ROOT"
           pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
           r104_opts="$(findmnt -n -o OPTIONS -T "$LEGACY_R104_ROOT")"
           case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_AUTHORITY_NOT_RO=$pkg_opts" >&2; exit 74 ;; esac
@@ -151,12 +152,40 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root . \
             | tee ci_evidence/semantic_freeze.log
 
+      - name: Fail closed unless metadata is SSD and payload is HDD
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee ci_evidence/storage_guard.txt
+          import json, os
+          from pathlib import Path
+
+          def device(path):
+              st=os.stat(path)
+              major,minor=os.major(st.st_dev),os.minor(st.st_dev)
+              resolved=Path(f'/sys/dev/block/{major}:{minor}').resolve()
+              rotational=None
+              for q in (resolved/'queue/rotational', resolved.parent/'queue/rotational'):
+                  if q.is_file():
+                      rotational=int(q.read_text().strip())
+                      break
+              return {'path':path,'major':major,'minor':minor,'name':resolved.name,'rotational':rotational}
+
+          ssd=device('/var/tmp')
+          hdd=device(os.environ['R11_DIAG_ROOT'])
+          print(json.dumps({'ssd':ssd,'hdd':hdd},sort_keys=True))
+          assert (ssd['major'],ssd['minor']) != (hdd['major'],hdd['minor']), 'SSD_HDD_SAME_BLOCK_DEVICE'
+          assert ssd['rotational'] == 0, f"SSD_PATH_NOT_NONROTATIONAL:{ssd}"
+          assert hdd['rotational'] == 1, f"HDD_PATH_NOT_ROTATIONAL:{hdd}"
+          PY
+          echo 'CB16_R11_STAGE2_STORAGE_PLACEMENT=PASS'
+
       - name: Prepare disposable SSD and HDD burst roots
         id: roots
         shell: bash
         run: |
           set -euo pipefail
-          SSD_ROOT="/data/cb16_ci/r11-stage2-burst-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          SSD_ROOT="/var/tmp/cb16-r11-stage2-burst-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           HDD_ROOT="$R11_DIAG_ROOT/r11-stage2-burst-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf "$SSD_ROOT" "$HDD_ROOT"
           mkdir -p "$SSD_ROOT" "$HDD_ROOT" ci_evidence/burst-control
@@ -179,8 +208,8 @@ jobs:
               --work-root "$GITHUB_WORKSPACE/ci_evidence/burst-control" \
               --ssd-work-root "$SSD_ROOT" \
               --hdd-work-root "$HDD_ROOT" \
-              --ssd-path /data/cb16_ci \
-              --hdd-path /data/cb16_hdd \
+              --ssd-path /var/tmp \
+              --hdd-path "$R11_DIAG_ROOT" \
               --out "$GITHUB_WORKSPACE/ci_evidence/CB16_R11_STAGE2_BURST_QUALIFICATION_V1.json" \
               2>&1 | tee ci_evidence/stage2_burst.log
 
@@ -204,6 +233,10 @@ jobs:
           assert x['scientific_semantics_changed'] is False
           assert x['acceptance']['pass'] is True, x['acceptance']['failures']
           assert x['status']=='PASS'
+          ssd=x['io']['ssd']
+          hdd=x['io']['hdd']
+          assert ssd is not None and hdd is not None
+          assert ssd['device'] != hdd['device']
           print('CB16_R11_STAGE2_BURST_QUALIFICATION=PASS')
           PY
 
