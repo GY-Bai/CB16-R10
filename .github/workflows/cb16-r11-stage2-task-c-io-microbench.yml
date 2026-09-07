@@ -22,6 +22,8 @@ jobs:
   task-c-io-microbench:
     runs-on: [self-hosted, shanxi, cb16-wss-qualification]
     timeout-minutes: 5
+    env:
+      R11_DIAG_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
     steps:
       - name: Checkout exact Task C commit
         uses: actions/checkout@v6
@@ -84,14 +86,31 @@ jobs:
           PY: ${{ steps.py.outputs.python }}
         run: |
           set -euo pipefail
-          HDD_BASE=/data/cb16_hdd
-          test -d "$HDD_BASE"
-          test -w "$HDD_BASE"
-          if [ -d /data/cb16_ssd ] && [ -w /data/cb16_ssd ]; then
-            META_BASE=/data/cb16_ssd
-          else
-            META_BASE="$RUNNER_TEMP"
-          fi
+          META_BASE=/var/tmp
+          HDD_BASE="$R11_DIAG_ROOT"
+          test -d "$META_BASE" && test -w "$META_BASE"
+          test -d "$HDD_BASE" && test -w "$HDD_BASE"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          def device(path):
+              st=os.stat(path)
+              major,minor=os.major(st.st_dev),os.minor(st.st_dev)
+              resolved=Path(f'/sys/dev/block/{major}:{minor}').resolve()
+              rotational=None
+              for q in (resolved/'queue/rotational', resolved.parent/'queue/rotational'):
+                  if q.is_file():
+                      rotational=int(q.read_text().strip())
+                      break
+              return major,minor,rotational,resolved.name
+          ssd=device('/var/tmp')
+          hdd=device(os.environ['R11_DIAG_ROOT'])
+          print('TASK_C_SSD_DEVICE=',ssd)
+          print('TASK_C_HDD_DEVICE=',hdd)
+          assert ssd[:2] != hdd[:2], 'TASK_C_SSD_HDD_SAME_DEVICE'
+          assert ssd[2] == 0, f'TASK_C_METADATA_NOT_SSD:{ssd}'
+          assert hdd[2] == 1, f'TASK_C_PAYLOAD_NOT_HDD:{hdd}'
+          PY
           BENCH_TAG="task-c-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           META_ROOT="$META_BASE/$BENCH_TAG"
           PAYLOAD_ROOT="$HDD_BASE/.cb16_task_c_microbench/$BENCH_TAG"
