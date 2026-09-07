@@ -24,7 +24,7 @@ jobs:
       R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
     steps:
       - name: Checkout R2 source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -297,7 +297,7 @@ jobs:
       - name: Upload sanitized qualification evidence
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r2-storage-qualification-${{ github.run_id }}-${{ github.run_attempt }}
           path: ci_evidence

@@ -20,7 +20,7 @@ jobs:
       CANONICAL_WORKSPACE: /data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10
       CANONICAL_DIAG: /data/cb16_ci/github-runner-canonical/_diag
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 

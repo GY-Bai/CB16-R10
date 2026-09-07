@@ -1,64 +1,26 @@
-name: CB16 Node24 Actions Migration
+name: CB16 Node24 Actions Policy
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - ai/r2-evidence-storage-r0
     paths:
-      - .github/cb16-node24-actions-migration-trigger.json
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
 
 permissions:
-  contents: write
-
-concurrency:
-  group: cb16-node24-actions-migration
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  migrate-node24-actions:
-    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
-    timeout-minutes: 15
+  node24-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout with Node24-native action
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
-
-      - name: Migrate all repository workflows to Node24-native action majors
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          root = Path('.github/workflows')
-          replacements = {
-              'actions/checkout@v4': 'actions/checkout@v6',
-              'actions/checkout@v3': 'actions/checkout@v6',
-              'actions/checkout@v2': 'actions/checkout@v6',
-              'actions/checkout@v1': 'actions/checkout@v6',
-              'actions/upload-artifact@v4': 'actions/upload-artifact@v7',
-              'actions/upload-artifact@v3': 'actions/upload-artifact@v7',
-              'actions/upload-artifact@v2': 'actions/upload-artifact@v7',
-              'actions/upload-artifact@v1': 'actions/upload-artifact@v7',
-              'actions/download-artifact@v4': 'actions/download-artifact@v7',
-              'actions/download-artifact@v3': 'actions/download-artifact@v7',
-              'actions/download-artifact@v2': 'actions/download-artifact@v7',
-              'actions/download-artifact@v1': 'actions/download-artifact@v7',
-          }
-          changed=[]
-          for p in sorted(root.glob('*.y*ml')):
-              text=p.read_text()
-              new=text
-              for old, repl in replacements.items():
-                  new=new.replace(old,repl)
-              if new != text:
-                  p.write_text(new)
-                  changed.append(str(p))
-          print('NODE24_MIGRATED_FILES=', len(changed))
-          for p in changed:
-              print('MIGRATED', p)
-          PY
+          fetch-depth: 1
 
       - name: Enforce Node24 action policy
         shell: bash
@@ -68,45 +30,28 @@ jobs:
           import re
           from pathlib import Path
 
-          # Split the forbidden opt-out token so this lint rule does not flag
-          # its own source text as a policy violation.
           forbidden_opt_out = 'ACTIONS_ALLOW_USE_' + 'UNSECURE_NODE_VERSION'
-
+          checks = [
+              (r'actions/checkout@v(?:1|2|3|4)(?:\b|\.)', 'checkout pre-Node24 major'),
+              (r'actions/upload-artifact@v(?:1|2|3|4)(?:\b|\.)', 'upload-artifact legacy major'),
+              (r'actions/download-artifact@v(?:1|2|3|4)(?:\b|\.)', 'download-artifact legacy major'),
+              (re.escape(forbidden_opt_out), 'forbidden Node20 opt-out'),
+          ]
           errors=[]
+          inventory=[]
           for p in sorted(Path('.github/workflows').glob('*.y*ml')):
               text=p.read_text()
-              checks=[
-                  (r'actions/checkout@v(?:1|2|3|4)(?:\b|\.)', 'checkout pre-Node24 major'),
-                  (r'actions/upload-artifact@v(?:1|2|3|4)(?:\b|\.)', 'upload-artifact legacy major'),
-                  (r'actions/download-artifact@v(?:1|2|3|4)(?:\b|\.)', 'download-artifact legacy major'),
-                  (re.escape(forbidden_opt_out), 'forbidden Node20 opt-out'),
-              ]
               for pat, desc in checks:
-                  if re.search(pat,text):
+                  if re.search(pat, text):
                       errors.append(f'{p}: {desc}')
+              for i, line in enumerate(text.splitlines(), 1):
+                  if 'uses:' in line:
+                      inventory.append(f'{p}:{i}:{line.strip()}')
+          print('--- action inventory ---')
+          print('\n'.join(inventory))
           if errors:
               print('NODE24_ACTION_POLICY=FAIL')
               print('\n'.join(errors))
               raise SystemExit(1)
           print('NODE24_ACTION_POLICY=PASS')
-          print('--- action inventory ---')
-          for p in sorted(Path('.github/workflows').glob('*.y*ml')):
-              for i,line in enumerate(p.read_text().splitlines(),1):
-                  if 'uses:' in line:
-                      print(f'{p}:{i}:{line.strip()}')
           PY
-
-      - name: Commit migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          BRANCH="$GITHUB_REF_NAME"
-          git config user.name 'cb16-node24-migration-ci'
-          git config user.email '37661207+GY-Bai@users.noreply.github.com'
-          git add .github/workflows
-          if git diff --cached --quiet; then
-            echo 'NODE24_MIGRATION_NO_CHANGES=true'
-          else
-            git commit -m 'ci: migrate GitHub Actions to Node24-native majors'
-            git push origin "HEAD:$BRANCH"
-          fi

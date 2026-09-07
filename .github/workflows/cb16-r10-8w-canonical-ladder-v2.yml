@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 1440
     steps:
       - name: Checkout control plane
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -55,7 +55,7 @@ jobs:
           PY
 
       - name: Checkout frozen 8W source authority
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ steps.control.outputs.source_sha }}
           fetch-depth: 1
