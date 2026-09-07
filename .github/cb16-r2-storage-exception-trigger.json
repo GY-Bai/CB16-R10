@@ -1,6 +1,6 @@
 {
-  "schema": "CB16_R2_WSS_STORAGE_EXCEPTION_TRIGGER_V2",
-  "purpose": "QUALIFY_WSS_UNIT_PRIVATE_R103_AND_R102_PACKAGE_RO_ALIASES_PLUS_R2_NATIVE_RW_LANE",
+  "schema": "CB16_R2_WSS_STORAGE_EXCEPTION_TRIGGER_V3",
+  "purpose": "RERUN_FULL_WSS_R2_AUTHORITY_ALIAS_CANARY_WITH_PER_FILE_DIAGNOSTICS",
   "protect_system": "strict",
   "protect_home": "yes",
   "r103_authority_alias": "/data/cb16_ci/r2-authority/r103",
