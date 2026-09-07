@@ -36,19 +36,16 @@ jobs:
           cgroup="$(cat /proc/self/cgroup)"
           printf '%s\n' "$cgroup"
           grep -q '/system.slice/cb16-github-runner.service' <<<"$cgroup"
-
           protect_system="$(systemctl show "$UNIT" -p ProtectSystem --value)"
           protect_home="$(systemctl show "$UNIT" -p ProtectHome --value)"
           rw="$(systemctl show "$UNIT" -p ReadWritePaths --value)"
           bro="$(systemctl show "$UNIT" -p BindReadOnlyPaths --value)"
           dropins="$(systemctl show "$UNIT" -p DropInPaths --value)"
-
           echo "PROTECT_SYSTEM=$protect_system"
           echo "PROTECT_HOME=$protect_home"
           echo "READ_WRITE_PATHS=$rw"
           echo "BIND_READ_ONLY_PATHS=$bro"
           echo "DROP_INS=$dropins"
-
           test "$protect_system" = strict
           test "$protect_home" = yes
           grep -Fq '/data/cb16_ci/github-runner-qualification/actions-runner' <<<"$rw"
@@ -65,12 +62,10 @@ jobs:
           test -x "$R103_ROOT"
           first_readable="$(find "$R103_ROOT" -maxdepth 2 -type f -readable -print -quit)"
           test -n "$first_readable"
-
           if test -r "$R103_HOST_SOURCE" || test -x "$R103_HOST_SOURCE"; then
             echo 'DIRECT_HOME_R103_UNEXPECTEDLY_VISIBLE' >&2
             exit 1
           fi
-
           findmnt -T "$R103_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
           r103_opts="$(findmnt -n -o OPTIONS -T "$R103_ROOT")"
           case ",$r103_opts," in *,ro,*) ;; *) echo "R103_ALIAS_NOT_READ_ONLY=$r103_opts" >&2; exit 1 ;; esac
@@ -84,21 +79,21 @@ jobs:
           test -d "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_MISSING=$PACKAGE_ROOT" >&2; exit 1; }
           test -r "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_NOT_READABLE=$PACKAGE_ROOT" >&2; exit 1; }
           test -x "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_NOT_TRAVERSABLE=$PACKAGE_ROOT" >&2; exit 1; }
-
           echo '=== package alias mount ==='
           findmnt -T "$PACKAGE_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
           pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
           echo "PACKAGE_ALIAS_OPTIONS=$pkg_opts"
           case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_ALIAS_NOT_READ_ONLY=$pkg_opts" >&2; exit 1 ;; esac
-
           failed=0
           for rel in \
             assets/operator/runtime/kronos_model_l5.safetensors \
             assets/operator/runtime/kronos_tokenizer_encode.safetensors \
             assets/operator/operator_reducers_v1.npz \
             assets/medium/runtime/timesfm_layer3.safetensors \
+            assets/medium/CANONICAL_NONLINEAR48_SEED24680_PORTABLE.npz \
             authority/control_plane_r1/risk_supervisor_r1.py \
-            authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json; do
+            authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json \
+            authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/runtime/account_physics_runtime_r0.py; do
             p="$PACKAGE_ROOT/$rel"
             if [ -e "$p" ]; then
               echo "PACKAGE_FILE_EXISTS=true path=$rel"
@@ -115,14 +110,12 @@ jobs:
               failed=1
             fi
           done
-
           if test -r "$PACKAGE_HOST_SOURCE" || test -x "$PACKAGE_HOST_SOURCE"; then
             echo 'DIRECT_HOME_PACKAGE_UNEXPECTEDLY_VISIBLE' >&2
             failed=1
           else
             echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
           fi
-
           if [ "$failed" -ne 0 ]; then
             echo 'R102_PACKAGE_AUTHORITY_ALIAS=FAIL_CONTENT_GATE' >&2
             exit 1
@@ -148,7 +141,6 @@ jobs:
           root_opts="$(findmnt -n -o OPTIONS -T "$R2_WRITE_ROOT")"
           echo "R2_WRITE_ROOT_OPTIONS=$root_opts"
           case ",$root_opts," in *,rw,*) ;; *) echo "R2_WRITE_ROOT_NOT_RW=$root_opts" >&2; exit 1 ;; esac
-
           canary="$R2_WRITE_ROOT/.storage-exception-canary-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           trap 'rm -f "$canary"' EXIT
           printf '%s\n' "r2-wss-storage-exception-canary" > "$canary"
