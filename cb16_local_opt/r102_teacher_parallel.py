@@ -16,13 +16,12 @@ from collections import deque
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from .probabilistic_teacher_r6 import DependenceAwareProbabilisticTeacherR6
 from .r102_parallel_runtime import ram_action_r82, sample_ram_pressure_r82
+from .r102_teacher_incremental import ExactIncrementalTeacherR6
 
 _TRAIN_TEACHER = None
 _VAL_TEACHER = None
-_TRAIN_INDEX = None
-_VAL_INDEX = None
+_INDEX = None
 _TRAIN_GROUPS = None
 
 
@@ -35,25 +34,25 @@ def _set_threads(threads: int) -> None:
 
 
 def _teacher_init(samples, train_groups, train_config, val_config, threads: int) -> None:
-    global _TRAIN_TEACHER, _VAL_TEACHER, _TRAIN_INDEX, _VAL_INDEX, _TRAIN_GROUPS
+    global _TRAIN_TEACHER, _VAL_TEACHER, _INDEX, _TRAIN_GROUPS
     _set_threads(threads)
     _TRAIN_GROUPS = set(train_groups)
-    _TRAIN_TEACHER = DependenceAwareProbabilisticTeacherR6(train_config)
-    _VAL_TEACHER = DependenceAwareProbabilisticTeacherR6(val_config)
-    _TRAIN_INDEX = _TRAIN_TEACHER.index(samples)
-    _VAL_INDEX = _VAL_TEACHER.index(samples)
+    _TRAIN_TEACHER = ExactIncrementalTeacherR6(train_config)
+    _VAL_TEACHER = ExactIncrementalTeacherR6(val_config)
+    # TeacherIndexR6 is a pure function of samples and is independent of config.
+    # Build exactly once per worker rather than once for TRAIN and once for VALIDATION.
+    _INDEX = _TRAIN_TEACHER.index(samples)
 
 
 def _compile_one(job: tuple[int, str, str]):
     ordinal, lane, parent_id = job
     if lane == "TRAIN":
         teacher = _TRAIN_TEACHER
-        index = _TRAIN_INDEX
     elif lane == "VALIDATION":
         teacher = _VAL_TEACHER
-        index = _VAL_INDEX
     else:
         raise RuntimeError(f"UNKNOWN_TEACHER_LANE:{lane}")
+    index = _INDEX
     if teacher is None or index is None or _TRAIN_GROUPS is None:
         raise RuntimeError("R102_TEACHER_WORKER_NOT_INITIALIZED")
     if parent_id not in index.rows_by_parent:
