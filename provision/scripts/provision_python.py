@@ -2,6 +2,7 @@
 """Create or reuse a CB16 Python environment for a resolved environment manifest."""
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -97,8 +98,6 @@ def _python_satisfies(spec: str) -> bool:
 
 def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     env = os.environ.copy()
-    # Host-local routing/index configuration may live in provision.env. Values are
-    # never emitted into public evidence; only coarse installer/fallback status is.
     for key in (
         "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_FIND_LINKS",
         "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
@@ -225,12 +224,10 @@ def provision(profile: str) -> dict:
             if reqs:
                 cmd = ["uv", "pip", "install", "--python", str(venv_python)]
                 cmd += ["--index-strategy", "unsafe-best-match"]
-                # Allow multiple fallback PEP-503 mirrors via whitespace-separated UV_EXTRA_INDEX_URL.
                 for extra in (install_env.get("UV_EXTRA_INDEX_URL") or "").split():
                     cmd += ["--extra-index-url", extra]
                 find_links = install_env.get("UV_FIND_LINKS") or install_env.get("PIP_FIND_LINKS")
                 if find_links:
-                    # Flat wheel directories may also be repeated/fallback.
                     for fl in find_links.split():
                         cmd += ["--find-links", fl]
                 for r in reqs:
