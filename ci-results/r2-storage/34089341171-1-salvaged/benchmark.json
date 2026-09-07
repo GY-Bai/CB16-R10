@@ -1,0 +1,43 @@
+{
+  "audit": {
+    "errors": [],
+    "evidence_sets": 1,
+    "generation_snapshots": 100,
+    "pass": true,
+    "payload_lanes": 1,
+    "payload_objects": 9714,
+    "schema": "CB16_R2_EVIDENCE_STORE_AUDIT_V1"
+  },
+  "final_holdout_2025_09_accessed": false,
+  "first_created_payload_count": 9714,
+  "first_index_commit_seconds": 1.5137392478063703,
+  "first_materialize_wall_seconds": 5.422551652183756,
+  "first_pack_write_seconds": 0.2750639538280666,
+  "generation_snapshot_mean_seconds": 0.07976045201299713,
+  "generation_snapshot_total_seconds": 7.976045201299712,
+  "generations": 100,
+  "logical_generation_evidence_memberships": 971400,
+  "materialization_amplification_reduction": 100.0,
+  "metadata_root": "/data/cb16_ci/github-runner-canonical/_work/_temp/cb16-r2-bench-34089341171-1",
+  "objects": 9714,
+  "payload_lanes": 1,
+  "payload_roots": [
+    "/data/cb16_ci/r2-qual/bench-34089341171-1"
+  ],
+  "physical_unique_payload_objects": 9714,
+  "reuse_created_payload_count": 0,
+  "reuse_materialize_wall_seconds": 2.2357171000912786,
+  "schema": "CB16_R2_STORAGE_BENCHMARK_R0",
+  "scientific_semantics_changed": false,
+  "stats": {
+    "evidence_catalog_objects": 9714,
+    "evidence_sets": 1,
+    "generation_snapshots": 100,
+    "payload_objects": 9714,
+    "raw_bytes": 47800994,
+    "schema": "CB16_R2_EVIDENCE_STORE_STATS_V1",
+    "stored_bytes": 4324651
+  },
+  "status": "PASS",
+  "writes_to_canonical_run_root": false
+}

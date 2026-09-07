@@ -1,0 +1,13 @@
+{
+  "bytes_scanned": 24016662,
+  "errors": [],
+  "evidence_sets": 1,
+  "generation_snapshots": 0,
+  "pass": true,
+  "payload_lanes": 1,
+  "payload_objects": 9714,
+  "physical_order": "LANE_SEGMENT_OFFSET_ASCENDING",
+  "schema": "CB16_R2_SEQUENTIAL_PACK_AUDIT_V1",
+  "segments": 1,
+  "sequential_readahead_hint": true
+}

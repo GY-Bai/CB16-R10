@@ -1,0 +1,6 @@
+=== metadata mount ===
+TARGET        SOURCE              FSTYPE OPTIONS
+/data/cb16_ci /dev/sda1[/cb16_ci] ext4   rw,nosuid,noatime
+=== payload mount ===
+TARGET        SOURCE              FSTYPE OPTIONS
+/data/cb16_ci /dev/sda1[/cb16_ci] ext4   rw,nosuid,noatime

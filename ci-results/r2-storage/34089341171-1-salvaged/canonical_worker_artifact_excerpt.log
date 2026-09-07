@@ -1,0 +1,250 @@
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #2) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #3) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+[2026-09-07 06:35:43Z ERR  JobServerQueue] Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+[2026-09-07 06:35:43Z ERR  JobServerQueue] System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+[2026-09-07 06:35:43Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, /data/cb16_ci/github-runner-canonical/_diag/blocks/34bf3096-3bea-4ac9-96e2-492bc166606c_981c95d5-1ba3-4ad6-b818-8ae1d80f8e65.1
+[2026-09-07 06:36:06Z INFO JobServerQueue] Catch exception during file upload to results, keep going since the process is best effort.
+[2026-09-07 06:36:06Z ERR  JobServerQueue] System.AggregateException: Retry failed after 4 tries. Retry settings can be adjusted in ClientOptions.Retry or by configuring a custom retry policy in ClientOptions.RetryPolicy. (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.")
+ ---> Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Storage.Blobs.BlockBlobRestClient.UploadAsync(Int64 contentLength, Stream body, Nullable`1 timeout, Byte[] transactionalContentMD5, String blobContentType, String blobContentEncoding, String blobContentLanguage, Byte[] blobContentMD5, String blobCacheControl, IDictionary`2 metadata, String leaseId, String blobContentDisposition, String encryptionKey, String encryptionKeySha256, Nullable`1 encryptionAlgorithm, String encryptionScope, Nullable`1 tier, Nullable`1 ifModifiedSince, Nullable`1 ifUnmodifiedSince, String ifMatch, String ifNoneMatch, String ifTags, String blobTagsString, Nullable`1 immutabilityPolicyExpiry, Nullable`1 immutabilityPolicyMode, Nullable`1 legalHold, Byte[] transactionalContentCrc64, String structuredBodyType, Nullable`1 structuredContentLength, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.Specialized.BlockBlobClient.UploadInternal(Stream content, BlobHttpHeaders blobHttpHeaders, IDictionary`2 metadata, IDictionary`2 tags, BlobRequestConditions conditions, Nullable`1 accessTier, BlobImmutabilityPolicy immutabilityPolicy, Nullable`1 legalHold, IProgress`1 progressHandler, UploadTransferValidationOptions transferValidationOverride, String operationName, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.Specialized.BlockBlobClient.<>c__DisplayClass65_0.<<GetPartitionedUploaderBehaviors>b__0>d.MoveNext()
+   at Azure.Storage.PartitionedUploader`2.UploadInternal(Stream content, Nullable`1 expectedContentLength, TServiceSpecificData args, IProgress`1 progressHandler, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.BlobClient.StagedUploadInternal(Stream content, BlobUploadOptions options, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.BlobClient.UploadAsync(Stream content, BlobUploadOptions options, CancellationToken cancellationToken)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadBlockFileAsync(String url, String blobStorageType, FileStream file, CancellationToken cancellationToken, Dictionary`2 customHeaders)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadLogFile(String file, Boolean finalize, Boolean firstBlock, String sasUrl, String blobStorageType, CancellationToken cancellationToken, Dictionary`2 customHeaders)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadResultsStepLogAsync(String planId, String jobId, Guid stepId, String file, Boolean finalize, Boolean firstBlock, Int64 lineCount, CancellationToken cancellationToken)
+   at GitHub.Runner.Common.JobServerQueue.<UploadResultsStepLogFile>b__63_0(ResultsUploadFileInfo file)
+   at GitHub.Runner.Common.JobServerQueue.UploadResultsFile(ResultsUploadFileInfo file, ResultsFileUploadHandler uploadHandler)
+   at GitHub.Runner.Common.JobServerQueue.UploadResultsStepLogFile(ResultsUploadFileInfo file)
+   at GitHub.Runner.Common.JobServerQueue.ProcessResultsUploadQueueAsync(Boolean runOnce)
+ ---> (Inner Exception #1) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #2) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #3) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+[2026-09-07 06:36:06Z ERR  JobServerQueue] Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+[2026-09-07 06:36:06Z ERR  JobServerQueue] System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+[2026-09-07 06:36:06Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, /data/cb16_ci/github-runner-canonical/_diag/blocks/34bf3096-3bea-4ac9-96e2-492bc166606c_7f7a76f0-15cb-495c-8875-4cf1d2756e7c.1
+[2026-09-07 06:36:30Z INFO JobServerQueue] Catch exception during file upload to results, keep going since the process is best effort.
+[2026-09-07 06:36:30Z ERR  JobServerQueue] System.AggregateException: Retry failed after 4 tries. Retry settings can be adjusted in ClientOptions.Retry or by configuring a custom retry policy in ClientOptions.RetryPolicy. (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.")
+ ---> Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Storage.Blobs.BlockBlobRestClient.UploadAsync(Int64 contentLength, Stream body, Nullable`1 timeout, Byte[] transactionalContentMD5, String blobContentType, String blobContentEncoding, String blobContentLanguage, Byte[] blobContentMD5, String blobCacheControl, IDictionary`2 metadata, String leaseId, String blobContentDisposition, String encryptionKey, String encryptionKeySha256, Nullable`1 encryptionAlgorithm, String encryptionScope, Nullable`1 tier, Nullable`1 ifModifiedSince, Nullable`1 ifUnmodifiedSince, String ifMatch, String ifNoneMatch, String ifTags, String blobTagsString, Nullable`1 immutabilityPolicyExpiry, Nullable`1 immutabilityPolicyMode, Nullable`1 legalHold, Byte[] transactionalContentCrc64, String structuredBodyType, Nullable`1 structuredContentLength, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.Specialized.BlockBlobClient.UploadInternal(Stream content, BlobHttpHeaders blobHttpHeaders, IDictionary`2 metadata, IDictionary`2 tags, BlobRequestConditions conditions, Nullable`1 accessTier, BlobImmutabilityPolicy immutabilityPolicy, Nullable`1 legalHold, IProgress`1 progressHandler, UploadTransferValidationOptions transferValidationOverride, String operationName, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.Specialized.BlockBlobClient.<>c__DisplayClass65_0.<<GetPartitionedUploaderBehaviors>b__0>d.MoveNext()
+   at Azure.Storage.PartitionedUploader`2.UploadInternal(Stream content, Nullable`1 expectedContentLength, TServiceSpecificData args, IProgress`1 progressHandler, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.BlobClient.StagedUploadInternal(Stream content, BlobUploadOptions options, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.BlobClient.UploadAsync(Stream content, BlobUploadOptions options, CancellationToken cancellationToken)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadBlockFileAsync(String url, String blobStorageType, FileStream file, CancellationToken cancellationToken, Dictionary`2 customHeaders)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadLogFile(String file, Boolean finalize, Boolean firstBlock, String sasUrl, String blobStorageType, CancellationToken cancellationToken, Dictionary`2 customHeaders)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadResultsStepLogAsync(String planId, String jobId, Guid stepId, String file, Boolean finalize, Boolean firstBlock, Int64 lineCount, CancellationToken cancellationToken)
+   at GitHub.Runner.Common.JobServerQueue.<UploadResultsStepLogFile>b__63_0(ResultsUploadFileInfo file)
+   at GitHub.Runner.Common.JobServerQueue.UploadResultsFile(ResultsUploadFileInfo file, ResultsFileUploadHandler uploadHandler)
+   at GitHub.Runner.Common.JobServerQueue.UploadResultsStepLogFile(ResultsUploadFileInfo file)
+   at GitHub.Runner.Common.JobServerQueue.ProcessResultsUploadQueueAsync(Boolean runOnce)
+ ---> (Inner Exception #1) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #2) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #3) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+[2026-09-07 06:36:30Z ERR  JobServerQueue] Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+[2026-09-07 06:36:30Z ERR  JobServerQueue] System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+[2026-09-07 06:36:30Z INFO JobServerQueue] Starting upload of job log file to results service ResultsLog, /data/cb16_ci/github-runner-canonical/_diag/blocks/34bf3096-3bea-4ac9-96e2-492bc166606c_76cd00ef-1095-5ceb-a3d1-ad1494ffc4e0.1
+[2026-09-07 06:36:55Z INFO JobServerQueue] Catch exception during file upload to results, keep going since the process is best effort.
+[2026-09-07 06:36:55Z ERR  JobServerQueue] System.AggregateException: Retry failed after 4 tries. Retry settings can be adjusted in ClientOptions.Retry or by configuring a custom retry policy in ClientOptions.RetryPolicy. (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.") (The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'.")
+ ---> Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Storage.Blobs.BlockBlobRestClient.UploadAsync(Int64 contentLength, Stream body, Nullable`1 timeout, Byte[] transactionalContentMD5, String blobContentType, String blobContentEncoding, String blobContentLanguage, Byte[] blobContentMD5, String blobCacheControl, IDictionary`2 metadata, String leaseId, String blobContentDisposition, String encryptionKey, String encryptionKeySha256, Nullable`1 encryptionAlgorithm, String encryptionScope, Nullable`1 tier, Nullable`1 ifModifiedSince, Nullable`1 ifUnmodifiedSince, String ifMatch, String ifNoneMatch, String ifTags, String blobTagsString, Nullable`1 immutabilityPolicyExpiry, Nullable`1 immutabilityPolicyMode, Nullable`1 legalHold, Byte[] transactionalContentCrc64, String structuredBodyType, Nullable`1 structuredContentLength, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.Specialized.BlockBlobClient.UploadInternal(Stream content, BlobHttpHeaders blobHttpHeaders, IDictionary`2 metadata, IDictionary`2 tags, BlobRequestConditions conditions, Nullable`1 accessTier, BlobImmutabilityPolicy immutabilityPolicy, Nullable`1 legalHold, IProgress`1 progressHandler, UploadTransferValidationOptions transferValidationOverride, String operationName, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.Specialized.BlockBlobClient.<>c__DisplayClass65_0.<<GetPartitionedUploaderBehaviors>b__0>d.MoveNext()
+   at Azure.Storage.PartitionedUploader`2.UploadInternal(Stream content, Nullable`1 expectedContentLength, TServiceSpecificData args, IProgress`1 progressHandler, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.BlobClient.StagedUploadInternal(Stream content, BlobUploadOptions options, Boolean async, CancellationToken cancellationToken)
+   at Azure.Storage.Blobs.BlobClient.UploadAsync(Stream content, BlobUploadOptions options, CancellationToken cancellationToken)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadBlockFileAsync(String url, String blobStorageType, FileStream file, CancellationToken cancellationToken, Dictionary`2 customHeaders)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadLogFile(String file, Boolean finalize, Boolean firstBlock, String sasUrl, String blobStorageType, CancellationToken cancellationToken, Dictionary`2 customHeaders)
+   at GitHub.Services.Results.Client.ResultsHttpClient.UploadResultsJobLogAsync(String planId, String jobId, String file, Boolean finalize, Boolean firstBlock, Int64 lineCount, CancellationToken cancellationToken)
+   at GitHub.Runner.Common.JobServerQueue.<UploadResultsJobLogFile>b__64_0(ResultsUploadFileInfo file)
+   at GitHub.Runner.Common.JobServerQueue.UploadResultsFile(ResultsUploadFileInfo file, ResultsFileUploadHandler uploadHandler)
+   at GitHub.Runner.Common.JobServerQueue.UploadResultsJobLogFile(ResultsUploadFileInfo file)
+   at GitHub.Runner.Common.JobServerQueue.ProcessResultsUploadQueueAsync(Boolean runOnce)
+ ---> (Inner Exception #1) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #2) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+ ---> (Inner Exception #3) Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)<---
+[2026-09-07 06:36:55Z ERR  JobServerQueue] Azure.RequestFailedException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+ ---> System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   --- End of inner exception stack trace ---
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineTransportPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.ResponseBodyPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.HttpPipelineSynchronousPolicy.InnerProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline)
+   at Azure.Core.Pipeline.RedirectPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+   at Azure.Core.Pipeline.RetryPolicy.ProcessAsync(HttpMessage message, ReadOnlyMemory`1 pipeline, Boolean async)
+[2026-09-07 06:36:55Z ERR  JobServerQueue] System.Net.Http.HttpRequestException: The proxy tunnel request to proxy 'http://127.0.0.1:33128/' failed with status code '503'."
+   at Azure.Core.Pipeline.HttpClientTransport.ProcessSyncOrAsync(HttpMessage message, Boolean async)
+[2026-09-07 06:36:55Z INFO JobServerQueue] Tried to upload 10 file(s) to results, success rate: 0/10.
+[2026-09-07 06:36:55Z INFO JobServerQueue] Results upload queue drained.
