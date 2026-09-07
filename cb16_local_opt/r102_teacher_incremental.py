@@ -2,17 +2,16 @@ from __future__ import annotations
 
 """P0 incremental Teacher compilation for R10.2/R2.
 
-This module preserves the frozen R6 Teacher semantics while removing two classes of
-pure recomputation:
+The frozen R6 Teacher mathematics are preserved.  This module removes two pure
+recomputation classes:
 
-1) the same compiled Teacher evidence can be reused across replay/campaign runs when
-   the immutable source files, Teacher protocols, and compiler implementation hashes
-   are identical;
-2) within one target parent, normalization and context distances are computed once
-   and reused across the complete action/risk grid.
+* compiled Teacher evidence is content-addressed and reused across replay/runs when
+  source truth, protocols, implementation and numerical runtime identity match;
+* normalization and target/context geometry are computed once per target parent and
+  reused across the complete action/risk grid.
 
-The cache is fail-closed and content addressed. Scheduling parameters (worker count,
-threads, queue depth) are deliberately excluded from scientific identity.
+Scheduling parameters are deliberately excluded from scientific identity.  Cache
+publication and reuse are fail-closed.
 """
 
 import gzip
@@ -23,7 +22,7 @@ import tempfile
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 
@@ -42,20 +41,16 @@ from .r102_common import canonical_json_bytes, sha256_file, sha256_obj
 from .r102_evidence_cache import ParentContextR102
 
 
-COMPILED_TEACHER_CACHE_SCHEMA = "CB16_R102_COMPILED_TEACHER_AUTHORITY_V1"
-COMPILED_TEACHER_IDENTITY_SCHEMA = "CB16_R102_COMPILED_TEACHER_IDENTITY_V1"
-COMPILED_TEACHER_PAYLOAD_SCHEMA = "CB16_R102_COMPILED_TEACHER_PAYLOAD_V1"
-COMPILER_SEMANTICS = "R6_EXACT_DISTRIBUTIONAL_TEACHER__P0_GEOMETRY_REUSE_V1"
+COMPILED_TEACHER_CACHE_SCHEMA = "CB16_R102_COMPILED_TEACHER_AUTHORITY_V2"
+COMPILED_TEACHER_IDENTITY_SCHEMA = "CB16_R102_COMPILED_TEACHER_IDENTITY_V2"
+COMPILED_TEACHER_PAYLOAD_SCHEMA = "CB16_R102_COMPILED_TEACHER_PAYLOAD_V2"
+COMPILED_TEACHER_RECEIPT_SCHEMA = "CB16_R102_COMPILED_TEACHER_RECEIPT_V2"
+COMPILER_SEMANTICS = "R6_EXACT_DISTRIBUTIONAL_TEACHER__P0_GEOMETRY_REUSE_V2"
+NONFINITE_TAG = "__cb16_nonfinite_float_v1__"
 
 
 class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
-    """Exact R6 Teacher with target-local geometry reuse.
-
-    The base implementation recomputes normalization and feature distances once per
-    action/risk branch.  Here those values are computed once per target parent and
-    reused across the branch grid.  Candidate selection, weighting, quantiles,
-    admission rules, and output dataclasses remain byte-for-byte semantic equivalents.
-    """
+    """Exact R6 Teacher with target-local geometry reuse."""
 
     def _prepare_geometry(
         self,
@@ -64,29 +59,24 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
         train_deps: Sequence[str],
         index: TeacherIndexR6,
         feature_override: Mapping[str, tuple[float, ...]] | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, float]:
         mean, std = self._normalization(
             train_deps=train_deps,
             index=index,
             feature_override=feature_override,
         )
-        t = (np.asarray(target_features, dtype=np.float64) - mean) / std
-        distance_by_parent: dict[str, float] = {}
+        target = (np.asarray(target_features, dtype=np.float64) - mean) / std
+        distances: dict[str, float] = {}
         for dep in train_deps:
-            for p in index.parents_by_dependence_group[dep]:
+            for parent_id in index.parents_by_dependence_group[dep]:
                 feat = (
-                    feature_override[p]
+                    feature_override[parent_id]
                     if feature_override is not None
-                    else index.rows_by_parent[p][0].context_features
+                    else index.rows_by_parent[parent_id][0].context_features
                 )
                 z = (np.asarray(feat, dtype=np.float64) - mean) / std
-                distance_by_parent[p] = float(np.sqrt(np.mean((z - t) ** 2)))
-        return {
-            "mean": mean,
-            "std": std,
-            "target": t,
-            "distance_by_parent": distance_by_parent,
-        }
+                distances[parent_id] = float(np.sqrt(np.mean((z - target) ** 2)))
+        return distances
 
     def _predictive_law_from_geometry(
         self,
@@ -100,9 +90,9 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
         candidates = []
         for dep in train_deps:
             best = None
-            for p in index.parents_by_dependence_group[dep]:
+            for parent_id in index.parents_by_dependence_group[dep]:
                 match = [
-                    s for s in index.rows_by_parent[p]
+                    s for s in index.rows_by_parent[parent_id]
                     if s.direction == direction
                     and abs(s.requested_risk - risk) <= 1e-12
                 ]
@@ -110,8 +100,11 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
                     continue
                 if len(match) != 1:
                     raise RuntimeError("DUPLICATE_ACTION_BRANCH_WITHIN_PARENT")
-                dist = float(distance_by_parent[p])
-                row = (dist, p, float(match[0].realized_utility))
+                row = (
+                    float(distance_by_parent[parent_id]),
+                    parent_id,
+                    float(match[0].realized_utility),
+                )
                 if best is None or row[:2] < best[:2]:
                     best = row
             if best is not None:
@@ -121,30 +114,32 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
             return None
         candidates.sort(key=lambda x: (x[0], x[1], x[2]))
         selected = candidates[: min(self.config.k_dependence_groups, len(candidates))]
-        d = np.asarray([x[0] for x in selected], dtype=np.float64)
-        y = np.asarray([x[3] for x in selected], dtype=np.float64)
+        distances = np.asarray([x[0] for x in selected], dtype=np.float64)
+        utility = np.asarray([x[3] for x in selected], dtype=np.float64)
         deps = [x[1] for x in selected]
-        w = np.exp(-0.5 * (d / self.config.distance_temperature) ** 2) + 1e-12
-        w /= w.sum()
-        q = weighted_quantile(
-            y,
-            w,
+        weights = np.exp(
+            -0.5 * (distances / self.config.distance_temperature) ** 2
+        ) + 1e-12
+        weights /= weights.sum()
+        quantiles = weighted_quantile(
+            utility,
+            weights,
             np.asarray(self.config.quantile_levels, dtype=np.float64),
         )
-        mu = float(np.sum(w * y))
-        var = float(np.sum(w * (y - mu) ** 2))
-        eff = float(1.0 / np.sum(w ** 2))
+        mean_utility = float(np.sum(weights * utility))
+        variance = float(np.sum(weights * (utility - mean_utility) ** 2))
+        effective_n = float(1.0 / np.sum(weights ** 2))
         return DependenceAwarePredictiveLawR6(
             direction=direction,
             requested_risk=float(risk),
-            mean_utility=mu,
-            std_utility=math.sqrt(max(0.0, var)),
+            mean_utility=mean_utility,
+            std_utility=math.sqrt(max(0.0, variance)),
             quantile_levels=self.config.quantile_levels,
-            quantiles=tuple(float(x) for x in q),
-            effective_dependence_n=eff,
+            quantiles=tuple(float(x) for x in quantiles),
+            effective_dependence_n=effective_n,
             unique_dependence_groups=len(deps),
-            nearest_distance=float(d[0]),
-            max_distance_used=float(d[-1]),
+            nearest_distance=float(distances[0]),
+            max_distance_used=float(distances[-1]),
             support_dependence_group_hash=canonical_hash(deps),
         )
 
@@ -174,31 +169,30 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
         )
         laws = []
         if train_deps:
-            geometry = self._prepare_geometry(
+            distances = self._prepare_geometry(
                 target_features=target_features,
                 train_deps=train_deps,
                 index=index,
                 feature_override=feature_override,
             )
-            distance_by_parent = geometry["distance_by_parent"]
-            for d, r in grid:
+            for direction, risk in grid:
                 law = self._predictive_law_from_geometry(
                     train_deps=train_deps,
                     index=index,
-                    direction=d,
-                    risk=r,
-                    distance_by_parent=distance_by_parent,
+                    direction=direction,
+                    risk=risk,
+                    distance_by_parent=distances,
                 )
                 if law is not None:
                     laws.append(law)
 
         best_by_direction = {}
-        for d in (-1, 0, 1):
-            x = [l for l in laws if l.direction == d]
-            if x:
-                best_by_direction[d] = max(
-                    x,
-                    key=lambda l: (l.mean_utility, -l.requested_risk),
+        for direction in (-1, 0, 1):
+            candidates = [law for law in laws if law.direction == direction]
+            if candidates:
+                best_by_direction[direction] = max(
+                    candidates,
+                    key=lambda law: (law.mean_utility, -law.requested_risk),
                 )
 
         reasons = []
@@ -206,17 +200,17 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
             reasons.append("INSUFFICIENT_TRAIN_DEPENDENCE_GROUPS")
         if set(best_by_direction) != {-1, 0, 1}:
             reasons.append("ACTION_GRID_SUPPORT_INCOMPLETE")
-        min_eff = min(
-            (l.effective_dependence_n for l in best_by_direction.values()),
+        minimum_effective_n = min(
+            (law.effective_dependence_n for law in best_by_direction.values()),
             default=0.0,
         )
-        max_nearest = max(
-            (l.nearest_distance for l in best_by_direction.values()),
+        maximum_nearest = max(
+            (law.nearest_distance for law in best_by_direction.values()),
             default=float("inf"),
         )
-        if min_eff < self.config.min_effective_dependence_n:
+        if minimum_effective_n < self.config.min_effective_dependence_n:
             reasons.append("INSUFFICIENT_EFFECTIVE_DEPENDENCE_SUPPORT")
-        if max_nearest > self.config.max_nearest_distance:
+        if maximum_nearest > self.config.max_nearest_distance:
             reasons.append("TARGET_OUTSIDE_SUPPORTED_CONTEXT")
 
         if set(best_by_direction) == {-1, 0, 1}:
@@ -240,17 +234,17 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
             status="ADMITTED" if not reasons else "EVIDENCE_NOT_READY",
             lane=self.config.lane,
             unique_train_dependence_groups=len(train_deps),
-            minimum_action_effective_dependence_n=float(min_eff),
-            maximum_action_nearest_distance=float(max_nearest),
+            minimum_action_effective_dependence_n=float(minimum_effective_n),
+            maximum_action_nearest_distance=float(maximum_nearest),
             reasons=tuple(reasons),
             protocol_hash=self.config.content_hash,
         )
-        dep = index.parent_dependence_group[target_parent]
+        target_dep = index.parent_dependence_group[target_parent]
         return DependenceAwareTeacherEvidenceR6(
             evidence_id=f"R6E:{target_parent}:{self.config.content_hash[:12]}",
             parent_id=target_parent,
             student_context_object_id=rows[0].student_context_object_id,
-            target_dependence_group_id=dep,
+            target_dependence_group_id=target_dep,
             timestamp=rows[0].timestamp,
             teacher_version=self.config.teacher_version,
             teacher_protocol_hash=self.config.content_hash,
@@ -262,6 +256,40 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
             sizing_weight=self.config.sizing_weight if admission.admitted else 0.0,
             admission=admission,
         )
+
+
+def _encode_cache_json(obj: Any) -> Any:
+    """Encode legal Teacher infinities while keeping JSON strict and deterministic.
+
+    Rejected early-support evidence can legitimately contain +inf nearest-distance.
+    NaN is never legitimate and remains a hard failure.
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj):
+            raise RuntimeError("R102_COMPILED_TEACHER_NAN_REFUSED")
+        if math.isinf(obj):
+            return {NONFINITE_TAG: "POS_INF" if obj > 0 else "NEG_INF"}
+        return obj
+    if isinstance(obj, dict):
+        return {str(k): _encode_cache_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_encode_cache_json(v) for v in obj]
+    return obj
+
+
+def _decode_cache_json(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        if set(obj) == {NONFINITE_TAG}:
+            tag = obj[NONFINITE_TAG]
+            if tag == "POS_INF":
+                return float("inf")
+            if tag == "NEG_INF":
+                return float("-inf")
+            raise RuntimeError("R102_COMPILED_TEACHER_NONFINITE_TAG_INVALID")
+        return {k: _decode_cache_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_decode_cache_json(v) for v in obj]
+    return obj
 
 
 def _evidence_from_obj(obj: Mapping[str, Any]) -> DependenceAwareTeacherEvidenceR6:
@@ -281,15 +309,19 @@ def _evidence_from_obj(obj: Mapping[str, Any]) -> DependenceAwareTeacherEvidence
         )
         for x in obj["action_laws"]
     )
-    a = obj["admission"]
+    admission_obj = obj["admission"]
     admission = EvidenceAdmissionReceiptR6(
-        status=str(a["status"]),
-        lane=str(a["lane"]),
-        unique_train_dependence_groups=int(a["unique_train_dependence_groups"]),
-        minimum_action_effective_dependence_n=float(a["minimum_action_effective_dependence_n"]),
-        maximum_action_nearest_distance=float(a["maximum_action_nearest_distance"]),
-        reasons=tuple(str(x) for x in a["reasons"]),
-        protocol_hash=str(a["protocol_hash"]),
+        status=str(admission_obj["status"]),
+        lane=str(admission_obj["lane"]),
+        unique_train_dependence_groups=int(admission_obj["unique_train_dependence_groups"]),
+        minimum_action_effective_dependence_n=float(
+            admission_obj["minimum_action_effective_dependence_n"]
+        ),
+        maximum_action_nearest_distance=float(
+            admission_obj["maximum_action_nearest_distance"]
+        ),
+        reasons=tuple(str(x) for x in admission_obj["reasons"]),
+        protocol_hash=str(admission_obj["protocol_hash"]),
     )
     return DependenceAwareTeacherEvidenceR6(
         evidence_id=str(obj["evidence_id"]),
@@ -311,12 +343,17 @@ def _evidence_from_obj(obj: Mapping[str, Any]) -> DependenceAwareTeacherEvidence
 
 def _write_deterministic_gzip_json(path: Path, obj: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    encoded = _encode_cache_json(obj)
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=path.name + ".", suffix=".tmp", dir=path.parent
+    )
     tmp = Path(tmp_name)
     try:
         with os.fdopen(fd, "wb") as raw:
-            with gzip.GzipFile(filename="", mode="wb", fileobj=raw, compresslevel=4, mtime=0) as gz:
-                gz.write(canonical_json_bytes(obj))
+            with gzip.GzipFile(
+                filename="", mode="wb", fileobj=raw, compresslevel=4, mtime=0
+            ) as gz:
+                gz.write(canonical_json_bytes(encoded))
             raw.flush()
             os.fsync(raw.fileno())
         os.replace(tmp, path)
@@ -325,8 +362,9 @@ def _write_deterministic_gzip_json(path: Path, obj: Any) -> None:
 
 
 def _load_gzip_json(path: Path) -> Any:
-    with gzip.open(path, "rb") as f:
-        return json.loads(f.read())
+    with gzip.open(path, "rb") as handle:
+        encoded = json.loads(handle.read())
+    return _decode_cache_json(encoded)
 
 
 def teacher_authority_identity(
@@ -339,17 +377,24 @@ def teacher_authority_identity(
     branches_sha = str(source_identity.get("branches_sha256", ""))
     if len(parents_sha) != 64 or len(branches_sha) != 64:
         raise RuntimeError("R102_TEACHER_SOURCE_IDENTITY_MISSING_SHA256")
-    core_path = Path(__import__("cb16_local_opt.probabilistic_teacher_r6", fromlist=["x"]).__file__).resolve()
-    this_path = Path(__file__).resolve()
+    r6_path = Path(
+        __import__("cb16_local_opt.probabilistic_teacher_r6", fromlist=["x"]).__file__
+    ).resolve()
+    r5_path = Path(
+        __import__("cb16_local_opt.probabilistic_teacher_r5", fromlist=["x"]).__file__
+    ).resolve()
     return {
         "schema": COMPILED_TEACHER_IDENTITY_SCHEMA,
         "source_parents_sha256": parents_sha,
         "source_branches_sha256": branches_sha,
         "train_teacher_protocol_hash": train_config.content_hash,
         "validation_teacher_protocol_hash": val_config.content_hash,
-        "teacher_core_file_sha256": sha256_file(core_path),
-        "incremental_compiler_file_sha256": sha256_file(this_path),
+        "teacher_r6_file_sha256": sha256_file(r6_path),
+        "weighted_quantile_r5_file_sha256": sha256_file(r5_path),
+        "incremental_compiler_file_sha256": sha256_file(Path(__file__).resolve()),
+        "numpy_version": np.__version__,
         "compiler_semantics": COMPILER_SEMANTICS,
+        "payload_encoding": "STRICT_JSON_WITH_TAGGED_INFINITY_V1",
         "scheduler_parameters_in_scientific_identity": False,
     }
 
@@ -364,33 +409,39 @@ def _compile_exact(
     threads_per_worker: int,
     max_in_flight: int,
 ):
-    train_parent_ids = sorted(p.parent_id for p in parents.values() if p.split == "TRAIN")
-    val_parent_ids = sorted(p.parent_id for p in parents.values() if p.split == "VALIDATION")
-    train_groups = {p.dependence_group_id for p in parents.values() if p.split == "TRAIN"}
+    train_parent_ids = sorted(
+        p.parent_id for p in parents.values() if p.split == "TRAIN"
+    )
+    val_parent_ids = sorted(
+        p.parent_id for p in parents.values() if p.split == "VALIDATION"
+    )
+    train_groups = {
+        p.dependence_group_id for p in parents.values() if p.split == "TRAIN"
+    }
     if int(workers) <= 1:
         train_teacher = ExactIncrementalTeacherR6(train_config)
         val_teacher = ExactIncrementalTeacherR6(val_config)
-        # TeacherIndexR6 depends only on samples, not Teacher config.  Build once.
+        # TeacherIndexR6 is a pure function of samples and independent of config.
         index = train_teacher.index(samples)
-        train_e = [
+        train_evidence = [
             train_teacher.compile_one(
-                target_parent=p,
+                target_parent=parent_id,
                 index=index,
                 eligible_train_dependence_groups=train_groups,
             )
-            for p in train_parent_ids
-            if p in index.rows_by_parent
+            for parent_id in train_parent_ids
+            if parent_id in index.rows_by_parent
         ]
-        val_e = [
+        val_evidence = [
             val_teacher.compile_one(
-                target_parent=p,
+                target_parent=parent_id,
                 index=index,
                 eligible_train_dependence_groups=train_groups,
             )
-            for p in val_parent_ids
-            if p in index.rows_by_parent
+            for parent_id in val_parent_ids
+            if parent_id in index.rows_by_parent
         ]
-        return train_e, val_e
+        return train_evidence, val_evidence
 
     from .r102_teacher_parallel import compile_teacher_evidence_process_farm_r102
 
@@ -418,14 +469,26 @@ def compile_teacher_evidence_incremental(
     workers: int | None = None,
     threads_per_worker: int | None = None,
     max_in_flight: int | None = None,
-) -> tuple[list[DependenceAwareTeacherEvidenceR6], list[DependenceAwareTeacherEvidenceR6], dict[str, Any]]:
+) -> tuple[
+    list[DependenceAwareTeacherEvidenceR6],
+    list[DependenceAwareTeacherEvidenceR6],
+    dict[str, Any],
+]:
     if workers is None or threads_per_worker is None or max_in_flight is None:
         from .r102_runtime_authority import load_r102_runtime_parallelism
 
-        rp = load_r102_runtime_parallelism(Path(__file__).resolve().parents[1], live_environment_check=False)
-        workers = rp.teacher_workers if workers is None else workers
-        threads_per_worker = rp.teacher_threads_per_worker if threads_per_worker is None else threads_per_worker
-        max_in_flight = rp.h72_max_in_flight if max_in_flight is None else max_in_flight
+        runtime = load_r102_runtime_parallelism(
+            Path(__file__).resolve().parents[1], live_environment_check=False
+        )
+        workers = runtime.teacher_workers if workers is None else workers
+        threads_per_worker = (
+            runtime.teacher_threads_per_worker
+            if threads_per_worker is None
+            else threads_per_worker
+        )
+        max_in_flight = (
+            runtime.h72_max_in_flight if max_in_flight is None else max_in_flight
+        )
 
     identity = teacher_authority_identity(
         source_identity=source_identity,
@@ -444,10 +507,13 @@ def compile_teacher_evidence_incremental(
         manifest = json.loads(manifest_path.read_text())
         if manifest.get("schema") != COMPILED_TEACHER_CACHE_SCHEMA:
             raise RuntimeError("R102_COMPILED_TEACHER_SCHEMA_MISMATCH")
-        if manifest.get("authority_hash") != authority_hash or manifest.get("identity") != identity:
+        if (
+            manifest.get("authority_hash") != authority_hash
+            or manifest.get("identity") != identity
+        ):
             raise RuntimeError("R102_COMPILED_TEACHER_IDENTITY_CONFLICT")
-        observed = sha256_file(payload_path)
-        if observed != manifest.get("payload_sha256"):
+        observed_payload_sha = sha256_file(payload_path)
+        if observed_payload_sha != manifest.get("payload_sha256"):
             raise RuntimeError("R102_COMPILED_TEACHER_PAYLOAD_HASH_MISMATCH")
         started = time.perf_counter()
         payload = _load_gzip_json(payload_path)
@@ -455,25 +521,25 @@ def compile_teacher_evidence_incremental(
             raise RuntimeError("R102_COMPILED_TEACHER_PAYLOAD_SCHEMA_MISMATCH")
         if payload.get("authority_hash") != authority_hash:
             raise RuntimeError("R102_COMPILED_TEACHER_PAYLOAD_IDENTITY_MISMATCH")
-        train_e = [_evidence_from_obj(x) for x in payload["train"]]
-        val_e = [_evidence_from_obj(x) for x in payload["validation"]]
+        train_evidence = [_evidence_from_obj(x) for x in payload["train"]]
+        val_evidence = [_evidence_from_obj(x) for x in payload["validation"]]
         receipt = {
-            "schema": "CB16_R102_COMPILED_TEACHER_RECEIPT_V1",
+            "schema": COMPILED_TEACHER_RECEIPT_SCHEMA,
             "mode": "REUSED_VERIFIED_AUTHORITY",
             "authority_hash": authority_hash,
             "payload_path": str(payload_path),
-            "payload_sha256": observed,
-            "train_count": len(train_e),
-            "validation_count": len(val_e),
+            "payload_sha256": observed_payload_sha,
+            "train_count": len(train_evidence),
+            "validation_count": len(val_evidence),
             "compile_seconds": 0.0,
             "load_seconds": time.perf_counter() - started,
             "scientific_semantics_changed": False,
             "scheduler_parameters_in_scientific_identity": False,
         }
-        return train_e, val_e, receipt
+        return train_evidence, val_evidence, receipt
 
     started = time.perf_counter()
-    train_e, val_e = _compile_exact(
+    train_evidence, val_evidence = _compile_exact(
         samples=samples,
         parents=parents,
         train_config=train_config,
@@ -486,8 +552,8 @@ def compile_teacher_evidence_incremental(
     payload = {
         "schema": COMPILED_TEACHER_PAYLOAD_SCHEMA,
         "authority_hash": authority_hash,
-        "train": [asdict(x) for x in train_e],
-        "validation": [asdict(x) for x in val_e],
+        "train": [asdict(x) for x in train_evidence],
+        "validation": [asdict(x) for x in val_evidence],
     }
     _write_deterministic_gzip_json(payload_path, payload)
     payload_sha = sha256_file(payload_path)
@@ -497,26 +563,26 @@ def compile_teacher_evidence_incremental(
         "identity": identity,
         "payload_path": str(payload_path),
         "payload_sha256": payload_sha,
-        "train_count": len(train_e),
-        "validation_count": len(val_e),
+        "train_count": len(train_evidence),
+        "validation_count": len(val_evidence),
         "scientific_semantics_changed": False,
         "scheduler_parameters_in_scientific_identity": False,
     }
-    # Manifest is the publication seal; payload without a manifest is never authority.
+    # Manifest is the publication seal.  Orphan payloads are never authority.
     tmp = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
     tmp.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     os.replace(tmp, manifest_path)
     receipt = {
-        "schema": "CB16_R102_COMPILED_TEACHER_RECEIPT_V1",
+        "schema": COMPILED_TEACHER_RECEIPT_SCHEMA,
         "mode": "COMPILED_AND_PUBLISHED",
         "authority_hash": authority_hash,
         "payload_path": str(payload_path),
         "payload_sha256": payload_sha,
-        "train_count": len(train_e),
-        "validation_count": len(val_e),
+        "train_count": len(train_evidence),
+        "validation_count": len(val_evidence),
         "compile_seconds": compile_seconds,
         "load_seconds": 0.0,
         "scientific_semantics_changed": False,
         "scheduler_parameters_in_scientific_identity": False,
     }
-    return train_e, val_e, receipt
+    return train_evidence, val_evidence, receipt
