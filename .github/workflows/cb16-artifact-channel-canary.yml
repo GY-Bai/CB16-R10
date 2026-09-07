@@ -21,8 +21,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p canary
-          printf 'CB16_ARTIFACT_CHANNEL_CANARY_V2\nrun=%s\nattempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > canary/payload.txt
-          sha256sum canary/payload.txt | tee canary/SHA256SUMS
+          printf 'CB16_ARTIFACT_CHANNEL_CANARY_V3\nrun=%s\nattempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > canary/payload.txt
+          (cd canary && sha256sum payload.txt | tee SHA256SUMS)
 
       - name: Probe sanitized Actions Results endpoint
         shell: bash
