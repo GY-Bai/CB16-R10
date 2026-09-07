@@ -23,6 +23,8 @@ jobs:
       UNIT: cb16-github-runner.service
       R103_HOST_SOURCE: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
       R103_ROOT: /data/cb16_ci/r2-authority/r103
+      PACKAGE_HOST_SOURCE: /home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1
+      PACKAGE_ROOT: /data/cb16_ci/r2-authority/package_r102
       R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
       R2_WRITE_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
       VERIFIED_PY: /data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/bin/python
@@ -52,6 +54,7 @@ jobs:
           grep -Fq '/data/cb16_ci/github-runner-qualification/actions-runner' <<<"$rw"
           grep -Fq "$R2_WRITE_ROOT" <<<"$rw"
           grep -Fq "$R103_HOST_SOURCE:$R103_ROOT" <<<"$bro"
+          grep -Fq "$PACKAGE_HOST_SOURCE:$PACKAGE_ROOT" <<<"$bro"
 
       - name: Verify R10.3 is exposed only through read-only authority alias
         shell: bash
@@ -60,22 +63,45 @@ jobs:
           test -d "$R103_ROOT"
           test -r "$R103_ROOT"
           test -x "$R103_ROOT"
-          test -z "$(find "$R103_ROOT" -maxdepth 2 -type f -readable -print -quit | grep '^$' || true)" || true
           first_readable="$(find "$R103_ROOT" -maxdepth 2 -type f -readable -print -quit)"
           test -n "$first_readable"
 
-          # ProtectHome=yes must continue to hide the original /home authority path.
           if test -r "$R103_HOST_SOURCE" || test -x "$R103_HOST_SOURCE"; then
-            echo 'DIRECT_HOME_AUTHORITY_UNEXPECTEDLY_VISIBLE' >&2
+            echo 'DIRECT_HOME_R103_UNEXPECTEDLY_VISIBLE' >&2
             exit 1
           fi
 
-          echo '=== R10.3 authority alias mount ==='
           findmnt -T "$R103_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
           r103_opts="$(findmnt -n -o OPTIONS -T "$R103_ROOT")"
           case ",$r103_opts," in *,ro,*) ;; *) echo "R103_ALIAS_NOT_READ_ONLY=$r103_opts" >&2; exit 1 ;; esac
           echo 'R103_AUTHORITY_ALIAS=READ_ONLY'
           echo 'R103_DIRECT_HOME_VIEW=HIDDEN'
+
+      - name: Verify frozen R10.2 package is exposed only through read-only authority alias
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$PACKAGE_ROOT"
+          for rel in \
+            assets/operator/runtime/kronos_model_l5.safetensors \
+            assets/operator/runtime/kronos_tokenizer_encode.safetensors \
+            assets/operator/operator_reducers_v1.npz \
+            assets/medium/runtime/timesfm_layer3.safetensors \
+            authority/control_plane_r1/risk_supervisor_r1.py \
+            authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json; do
+            test -r "$PACKAGE_ROOT/$rel"
+          done
+
+          if test -r "$PACKAGE_HOST_SOURCE" || test -x "$PACKAGE_HOST_SOURCE"; then
+            echo 'DIRECT_HOME_PACKAGE_UNEXPECTEDLY_VISIBLE' >&2
+            exit 1
+          fi
+
+          findmnt -T "$PACKAGE_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
+          case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_ALIAS_NOT_READ_ONLY=$pkg_opts" >&2; exit 1 ;; esac
+          echo 'R102_PACKAGE_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
 
       - name: Verify R10.4 remains readable but not writable
         shell: bash
@@ -83,7 +109,6 @@ jobs:
           set -euo pipefail
           test -d "$R104_ROOT"
           test -r "$R104_ROOT"
-          echo '=== R10.4 authority mount ==='
           findmnt -T "$R104_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
           r104_opts="$(findmnt -n -o OPTIONS -T "$R104_ROOT")"
           case ",$r104_opts," in *,ro,*) ;; *) echo "R104_NOT_READ_ONLY=$r104_opts" >&2; exit 1 ;; esac
@@ -129,7 +154,9 @@ jobs:
           echo 'PROTECT_SYSTEM=strict'
           echo 'PROTECT_HOME=yes'
           echo 'R103_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R102_PACKAGE_AUTHORITY_ALIAS=READ_ONLY'
           echo 'R103_DIRECT_HOME_VIEW=HIDDEN'
+          echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
           echo 'R104_AUTHORITY_VIEW=READ_ONLY'
           echo 'DIAGNOSTICS_WRITE=PASS'
           echo 'CANONICAL_CAMPAIGN_MODIFIED=false'
