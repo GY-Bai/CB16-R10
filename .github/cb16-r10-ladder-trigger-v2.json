@@ -1,9 +1,9 @@
 {
   "schema": "CB16_R10_8W_LADDER_TRIGGER_V2",
-  "phase": "r103",
+  "phase": "r104",
   "source_sha": "f056ae6a0722e3e92d71793024a6e6d3fe9af003",
-  "request": "FULL_R10_3_8W_QUALIFICATION",
-  "cache_policy": "EXPLICIT_CONTROLLED_REBUILD_IN_DEDICATED_QUALIFICATION_ROOT",
-  "control_revision": "R102_8W_PASS_ADVANCE_R103_1",
+  "request": "FULL_R10_4_8W_CANONICAL_RECOVERY",
+  "cache_policy": "CANONICAL_R104_CACHE_HIT_FIRST_RECOVERY",
+  "control_revision": "R103_DURABLE_PASS_ADVANCE_R104_1",
   "final_holdout_2025_09_accessed": false
 }
