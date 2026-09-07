@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 5
     env:
       R11_DIAG_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - name: Checkout exact Task C commit
         uses: actions/checkout@v6
