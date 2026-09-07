@@ -53,18 +53,19 @@ def event(i: int, generation: int = 0) -> EventItemR11:
 
 
 def config(root: Path, **kwargs) -> IOThroughputConfigR11:
-    return IOThroughputConfigR11(
-        evidence_metadata_root=root / "ssd" / "evidence",
-        evidence_payload_roots=(root / "hdd",),
-        journal_root=root / "ssd" / "journal",
-        checkpoint_root=root / "ssd" / "checkpoints",
-        segment_target_bytes=1 << 20,
-        evidence_codec="none",
-        queue_max_items=8,
-        writer_batch_max_objects=64,
-        writer_batch_max_bytes=1 << 20,
-        **kwargs,
-    )
+    values = {
+        "evidence_metadata_root": root / "ssd" / "evidence",
+        "evidence_payload_roots": (root / "hdd",),
+        "journal_root": root / "ssd" / "journal",
+        "checkpoint_root": root / "ssd" / "checkpoints",
+        "segment_target_bytes": 1 << 20,
+        "evidence_codec": "none",
+        "queue_max_items": 8,
+        "writer_batch_max_objects": 64,
+        "writer_batch_max_bytes": 1 << 20,
+    }
+    values.update(kwargs)
+    return IOThroughputConfigR11(**values)
 
 
 class TestR11IOThroughput(unittest.TestCase):
