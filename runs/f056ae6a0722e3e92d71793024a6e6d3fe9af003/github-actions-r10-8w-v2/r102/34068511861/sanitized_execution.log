@@ -1,0 +1,26 @@
+WHOAMI= cb16-ci
+PROVISION_PROFILE= r102
+PROVISION_CACHE_HIT= True
+PROVISION_INSTALLER= uv
+CUDA_PYTHON_ENV=PASS 2.8.0+cu126 12.6 NVIDIA GeForce GTX 1060 6GB
+R8_3_LIVE_RUNTIME_AUTHORITY=PASS
+{"cache_hit_first": true, "h72_workers": 8, "max_in_flight": 8, "overlay": "R8_3_8W_RAM_ADAPTIVE", "teacher_workers": 8, "threads": 1}
+QUALIFICATION_AUTHORITY_REUSE=PASS
+CACHE_POLICY=EXPLICIT_CONTROLLED_8W_QUALIFICATION_REBUILD
+EXEC /data/cb16_ci/venvs/d694c7fb79763f19c6d86072427222b7e25a571467e148043569d5bb0498b86f/bin/python scripts/run_r102_pipeline.py --run-root /home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w
+{
+  "final_status": "R10_2_REAL_HISTORICAL_LEARNING_PIPELINE_PASS",
+  "attempts_completed": 5,
+  "promotions": 2,
+  "rejections": 3,
+  "final_champion_semantic_sha256": "754b80861aa11a6e14e801d4bad80865420142d05ef34a85f65ca4f16ae6c528",
+  "return_bundle": {
+    "path": "/home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w/CB16_R10_2_RETURN_RECEIPTS_R0.tar.gz",
+    "sha256": "abd4b756225efef8e46857f8e1ad9f30e5348ca138f8c8fa8bfd447edf1de1f4",
+    "size": 3553270
+  }
+}
+SCIENTIFIC_RESULT_IDENTITY_EQUIVALENCE=PASS
+final_champion_semantic_sha256= 754b80861aa11a6e14e801d4bad80865420142d05ef34a85f65ca4f16ae6c528
+PHASE_CONTROL=PASS
+FINAL_HOLDOUT_2025_09_ACCESSED=NO
