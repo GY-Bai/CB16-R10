@@ -1,0 +1,47 @@
+{
+  "schema": "CB16_R2_STORAGE_HOST_BINDING_R0",
+  "host_role": "SHANXI_CANONICAL_TRAINING_HOST",
+  "status": "QUALIFICATION_BINDING_NOT_YET_PRODUCTION_AUTHORITY",
+  "physical_devices": {
+    "metadata_ssd": {
+      "device": "/dev/sdb",
+      "model": "CT500MX500SSD1",
+      "transport": "SATA",
+      "root_chain": "/dev/mapper/ubuntu--vg-ubuntu--lv -> /dev/sdb3 -> /dev/sdb",
+      "recommended_root": "/var/lib/cb16-r2"
+    },
+    "payload_hdd": {
+      "device": "/dev/sda",
+      "partition": "/dev/sda1",
+      "model": "ST1000DM010-2EP1",
+      "transport": "SATA",
+      "mount": "/data",
+      "recommended_root": "/data/cb16_r2_store"
+    }
+  },
+  "placement": {
+    "metadata": [
+      "sqlite_wal",
+      "locator_index",
+      "evidence_set_manifests",
+      "generation_snapshots",
+      "hot_event_journal",
+      "recovery_metadata"
+    ],
+    "payload": [
+      "immutable_evidence_pack_segments"
+    ]
+  },
+  "physical_payload_lanes": 1,
+  "lane_rule": "ONE_MECHANICAL_HDD_EQUALS_ONE_SEQUENTIAL_APPEND_LANE",
+  "metadata_payload_different_physical_devices": true,
+  "qualification_metadata_root": "/var/lib/cb16-r2-qual",
+  "qualification_payload_root": "/data/cb16_r2_qual",
+  "production_metadata_root_template": "/var/lib/cb16-r2/{campaign_id}",
+  "production_payload_root": "/data/cb16_r2_store",
+  "notes": [
+    "/tmp is qualification scratch only and must not become persistent metadata authority.",
+    "Do not create multiple logical payload lanes on /dev/sda; that would destroy HDD sequentiality.",
+    "Current R10.4 remains untouched until R2 qualification completes."
+  ]
+}
