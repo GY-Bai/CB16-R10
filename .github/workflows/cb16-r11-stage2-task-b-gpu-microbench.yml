@@ -80,6 +80,7 @@ jobs:
         shell: bash
         env:
           PY: ${{ steps.py.outputs.python }}
+          PYTHONPATH: ${{ github.workspace }}
           CUDA_VISIBLE_DEVICES: "0"
         run: |
           set -euo pipefail
