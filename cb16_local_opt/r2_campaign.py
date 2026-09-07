@@ -30,13 +30,15 @@ from .r102_common import (
 from .r102_controls import run_f0_f1_f2_f3_controls
 from .r102_evidence_cache import build_real_evidence_cache, load_parent_physics_states, load_teacher_samples
 from .r102_learning import (
-    compile_teacher_evidence, evidence_summary, policy_behavior_fingerprint,
+    TRAIN_TEACHER_CONFIG_R102, VAL_TEACHER_CONFIG_R102,
+    evidence_summary, policy_behavior_fingerprint,
     soft_teacher_loss, train_challenger,
 )
 from .r102_market import preflight_all_ten_data
 from .r102_parent_adoption import adopt_parent_r101
 from .r102_physics import FrozenPhysicsRuntimeR102
 from .r102_policy_trace import run_real_on_policy_trace
+from .r102_teacher_incremental import compile_teacher_evidence_incremental
 from .r2_event_journal import R2BufferedEventSink, R2EventJournal
 from .r2_evidence_storage import R2EvidenceStore
 from .r2_learning_bridge import materialize_training_evidence_r2, seal_generation_snapshot_r2
@@ -141,6 +143,7 @@ def run_campaign_r2(
     codec: str = "zstd",
     segment_target_bytes: int = 256 * 1024 * 1024,
     storage_min_free_bytes: int = 10 * (1 << 30),
+    teacher_cache_root: str | Path | None = None,
 ) -> dict[str, Any]:
     root = Path(package_root).resolve()
     rr = Path(run_root).resolve(); rr.mkdir(parents=True, exist_ok=True)
@@ -209,10 +212,26 @@ def run_campaign_r2(
     parents, samples = load_teacher_samples(cache_manifest["parents_file"], cache_manifest["branches_file"])
     parent_states = load_parent_physics_states(cache_manifest["parent_states_file"])
     physics_runtime = FrozenPhysicsRuntimeR102.load(root)
-    train_evidence, val_evidence = compile_teacher_evidence(samples, parents)
+
+    compiled_root = (
+        Path(teacher_cache_root).resolve()
+        if teacher_cache_root is not None
+        else (meta / "compiled_teacher_authority")
+    )
+    train_evidence, val_evidence, teacher_authority = compile_teacher_evidence_incremental(
+        samples=samples,
+        parents=parents,
+        source_identity=cache_manifest,
+        cache_root=compiled_root,
+        train_config=TRAIN_TEACHER_CONFIG_R102,
+        val_config=VAL_TEACHER_CONFIG_R102,
+    )
+    atomic_write_json(rr / "COMPILED_TEACHER_AUTHORITY_RECEIPT_R102.json", teacher_authority)
     teacher_summary = {
         "schema":"CB16_R2_TEACHER_EVIDENCE_SUMMARY_V1",
         "train":evidence_summary(train_evidence),"validation":evidence_summary(val_evidence),
+        "compiled_teacher_authority_hash":teacher_authority["authority_hash"],
+        "compiled_teacher_authority_mode":teacher_authority["mode"],
     }
     if teacher_summary["train"]["admitted_dependence_groups"] < 32:
         raise RuntimeError("R2_TRAIN_TEACHER_SUPPORT_NOT_READY")
@@ -349,6 +368,7 @@ def run_campaign_r2(
         "rejections":sum(x["tournament"]["decision"]=="REJECT" for x in generation_results),
         "final_champion_semantic_sha256":champion_hash,
         "teacher_semantics":"PROBABILISTIC_DISTRIBUTIONAL_NO_BEST_ACTION_LABEL",
+        "compiled_teacher_authority":teacher_authority,
         "storage_semantics":"IMMUTABLE_EVIDENCE_ONCE_PLUS_TINY_GENERATION_MANIFESTS",
         "storage_materialization":asdict(materialize_receipt),
         "storage_stats":store_stats,"storage_audit":storage_audit,
@@ -363,6 +383,7 @@ def run_campaign_r2(
             "on_policy_Brain_to_Physics_H72_trace":traces_ok,
             "champion_challenger_lifecycle_correct":lifecycle_ok,
             "evidence_payload_not_rematerialized_per_generation":storage_reuse_ok,
+            "compiled_teacher_authority_verified":True,
         },
     }
     atomic_write_json(final_path,result)
