@@ -1,0 +1,8 @@
+{
+  "schema": "CB16_RUNNER_UNIT_HARDENING_DIAGNOSTIC_TRIGGER_V1",
+  "purpose": "READ_ONLY_INSPECT_EXACT_SYSTEMD_HARDENING_CAUSING_DATA_READ_ONLY_NAMESPACE",
+  "host_mutation": false,
+  "canonical_r104_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}
