@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """R11 FP32 training/evaluation runtime for the frozen TIER_1 Central Brain.
 
-Scientific semantics are frozen by CB16_SEMANTIC_FREEZE_V1.json.  This module only
+Scientific semantics are frozen by CB16_SEMANTIC_FREEZE_V1.json. This module only
 changes execution: evidence is packed/transferred once per split, batches reuse
 static FP32 buffers, validation loss and behavior fingerprint share one forward,
 and evaluation is content-addressed by policy/evidence hashes.
@@ -28,6 +28,10 @@ TIER1_PARAMETER_COUNT_R11 = 189_052
 SMOOTH_L1_BETA_R11 = 0.05
 GRADIENT_CLIP_MAX_NORM_R11 = 10.0
 GENERATION_BASE_SEED_R11 = 24_680
+CANONICAL_EPOCHS_R11 = 12
+CANONICAL_BATCH_SIZE_R11 = 512
+CANONICAL_LR_R11 = 3e-4
+CANONICAL_WEIGHT_DECAY_R11 = 1e-4
 
 GRADIENT_OWNER_PREFIXES_R11: Mapping[str, tuple[str, ...]] = {
     "Operator Brain Stem": ("operator_encoder",),
@@ -99,7 +103,7 @@ def _device(device: str | torch.device) -> torch.device:
 
 
 def _disable_noncanonical_cuda_math() -> None:
-    # GTX1060/sm_61 canonical path is explicit FP32.  These switches are harmless
+    # GTX1060/sm_61 canonical path is explicit FP32. These switches are harmless
     # on Pascal but fail closed against accidental TF32 assumptions on other GPUs.
     if hasattr(torch.backends, "cuda") and hasattr(torch.backends.cuda, "matmul"):
         torch.backends.cuda.matmul.allow_tf32 = False
@@ -116,7 +120,6 @@ def assert_tier1_fp32_runtime_r11(model: torch.nn.Module) -> None:
         raise RuntimeError("R11_NON_FP32_PARAMETER_FORBIDDEN")
     if any(not p.requires_grad for _, p in params):
         raise RuntimeError("R11_AUTHORIZED_BRAIN_PARAMETER_NOT_TRAINABLE")
-
     unmatched = [
         name
         for name, _ in params
@@ -139,10 +142,10 @@ def group_weights_r11(dependence_group_ids: Sequence[str]) -> np.ndarray:
 
 @dataclass(frozen=True)
 class R11TrainingConfig:
-    epochs: int = 12
-    batch_size: int = 512
-    lr: float = 3e-4
-    weight_decay: float = 1e-4
+    epochs: int = CANONICAL_EPOCHS_R11
+    batch_size: int = CANONICAL_BATCH_SIZE_R11
+    lr: float = CANONICAL_LR_R11
+    weight_decay: float = CANONICAL_WEIGHT_DECAY_R11
     max_grad_norm: float = GRADIENT_CLIP_MAX_NORM_R11
     generation_base_seed: int = GENERATION_BASE_SEED_R11
     amp_enabled: bool = False
@@ -155,10 +158,15 @@ class R11TrainingConfig:
             raise RuntimeError("R11_NON_FP32_RUNTIME_DTYPE_FORBIDDEN")
         if self.max_grad_norm != GRADIENT_CLIP_MAX_NORM_R11:
             raise RuntimeError("R11_GRADIENT_CLIP_SEMANTIC_DRIFT")
-        if self.epochs <= 0 or self.batch_size <= 0:
-            raise ValueError("R11_INVALID_TRAINING_SHAPE")
-        if self.lr <= 0.0 or self.weight_decay < 0.0:
-            raise ValueError("R11_INVALID_ADAMW_HYPERPARAMETER")
+        if self.generation_base_seed != GENERATION_BASE_SEED_R11:
+            raise RuntimeError("R11_GENERATION_SEED_RULE_DRIFT")
+        if (
+            self.epochs != CANONICAL_EPOCHS_R11
+            or self.batch_size != CANONICAL_BATCH_SIZE_R11
+            or self.lr != CANONICAL_LR_R11
+            or self.weight_decay != CANONICAL_WEIGHT_DECAY_R11
+        ):
+            raise RuntimeError("R11_ADAMW_TRAINING_RULE_DRIFT")
 
 
 @dataclass(frozen=True)
@@ -231,7 +239,6 @@ class PreparedEvidenceR11:
         admitted = [e for e in evidence if bool(e.admission.admitted)]
         if not admitted:
             raise RuntimeError("R11_NO_ADMITTED_EVIDENCE")
-
         parent_ids = tuple(str(e.parent_id) for e in admitted)
         if len(set(parent_ids)) != len(parent_ids):
             raise RuntimeError("R11_DUPLICATED_ADMITTED_PARENT")
@@ -243,7 +250,6 @@ class PreparedEvidenceR11:
         dp = np.asarray([e.direction_target_probs for e in admitted], dtype=np.float32)
         rt = np.asarray([e.requested_risk_target for e in admitted], dtype=np.float32)[:, None]
         w = group_weights_r11(group_ids)[:, None]
-
         if op.shape != (len(admitted), 48) or med.shape != (len(admitted), 48):
             raise RuntimeError("R11_FROZEN_SENSORY_DIMENSION_DRIFT")
         if acc.shape != (len(admitted), 6):
@@ -478,7 +484,7 @@ class EvaluationRuntimeR11:
         self.enable_cuda_graph = bool(enable_cuda_graph)
         self._capability = cuda_graph_capability or self._default_graph_capability
         self._cache: dict[tuple[str, str], dict[str, Any]] = {}
-        self._graphs: dict[tuple[int, int, int | None], _CapturedEvalGraphR11] = {}
+        self._graphs: dict[tuple[Any, ...], _CapturedEvalGraphR11] = {}
         self.cache_hits = 0
         self.cache_misses = 0
 
@@ -509,13 +515,13 @@ class EvaluationRuntimeR11:
             outputs, _ = self._eager_forward(model, prepared)
             return outputs, "EAGER_FP32_CUDA_GRAPH_FALLBACK"
 
-        key = (id(model), prepared.rows, device.index)
+        parameter_storage = tuple(int(p.data_ptr()) for p in model.parameters())
+        key = (id(model), parameter_storage, prepared.rows, device.index)
         try:
             captured = self._graphs.get(key)
             if captured is None:
                 static_pack = torch.empty_like(prepared.packed)
                 static_pack.copy_(prepared.packed)
-                # Warm up on a side stream so allocator state is stable before capture.
                 stream = torch.cuda.Stream(device=device)
                 stream.wait_stream(torch.cuda.current_stream(device))
                 with torch.cuda.stream(stream):
@@ -794,8 +800,7 @@ class TrainingRuntimeR11:
         last_step: TrainingStepResultR11 | None = None
         steps = 0
         for _epoch in range(int(self.config.epochs)):
-            # The permutation itself is generated on CPU exactly as R10.2.  It is moved
-            # once per epoch instead of once per mini-batch.
+            # Generate exactly the R10.2 CPU permutation, but transfer it once per epoch.
             permutation_cpu = torch.randperm(campaign.train.rows, generator=generator)
             permutation = permutation_cpu.to(self.device)
             for start in range(0, campaign.train.rows, int(self.config.batch_size)):
