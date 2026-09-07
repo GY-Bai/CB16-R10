@@ -1,0 +1,409 @@
+{
+  "attempts": 2,
+  "canonical_r104_modified": false,
+  "compiled_teacher_authority_hash": "3ab74ddedabba368c3529812e1e18bf6942e111074053c7bcb00f8e6d0225759",
+  "compiled_teacher_first_invocation_mode_inferred": "COLD_COMPILED_AND_PUBLISHED",
+  "compiled_teacher_manifest_existed_before_native_run": false,
+  "compiled_teacher_manifests_after": [
+    "3ab74ddedabba368c3529812e1e18bf6942e111074053c7bcb00f8e6d0225759.manifest.json"
+  ],
+  "compiled_teacher_manifests_before": [],
+  "compiled_teacher_persistent_binding": {
+    "canonical_r104_modified": false,
+    "final_holdout_2025_09_accessed": false,
+    "metadata_binding": "/tmp/cb16-r2-native-v2-34155102019-1/meta/compiled_teacher_authority",
+    "mode": "TRANSIENT_METADATA_SYMLINK_TO_PERSISTENT_R2_HDD_AUTHORITY",
+    "persistent_root": "/data/cb16_hdd/cb16_diagnostics/r2_native/compiled_teacher_authority",
+    "schema": "CB16_R2_COMPILED_TEACHER_PERSISTENT_BINDING_V1",
+    "scientific_semantics_changed": false
+  },
+  "compiled_teacher_replay_mode": "REUSED_VERIFIED_AUTHORITY",
+  "compiled_teacher_replay_reused_verified_authority": true,
+  "event_journal_audit": {
+    "corrupt": [],
+    "events": 96,
+    "pass": true,
+    "schema": "CB16_R2_EVENT_JOURNAL_AUDIT_V1"
+  },
+  "final_holdout_2025_09_accessed": false,
+  "first_final_status": "R2_NATIVE_R104_EQUIVALENCE_R0_PASS",
+  "first_materialization": {
+    "created_payload_count": 9714,
+    "evidence_set_hash": "31978f3234268fe102839cf5d10d07a69dd7c257973bd162d59c3342251bd03b",
+    "index_commit_seconds": 4.063764492981136,
+    "object_count": 9714,
+    "pack_write_seconds": 1.7557644359767437,
+    "raw_bytes": 75161683,
+    "reused_payload_count": 0,
+    "schema": "CB16_R2_MATERIALIZE_RECEIPT_V1",
+    "storage_amplification_model": "O(N_CONTENT_ONCE + G_TINY_SNAPSHOTS)",
+    "stored_bytes": 24967748,
+    "total_seconds": 9.104461845010519,
+    "unique_payload_count": 9714
+  },
+  "first_run_seconds": 754.0393934699241,
+  "frozen_adoption_reuse": {
+    "destination": "/tmp/cb16-r2-native-v2-34155102019-1/run/PARENT_ADOPTION_RECEIPT_R102.json",
+    "final_holdout_2025_09_accessed": false,
+    "package_root_modified": false,
+    "parent_adoption_reexecuted": false,
+    "schema": "CB16_R2_FROZEN_ADOPTION_REUSE_V1",
+    "scientific_semantics_changed": false,
+    "source": "/data/cb16_hdd/cb16_runtime/R10_4/PARENT_ADOPTION_RECEIPT_R102.json"
+  },
+  "gate": {
+    "first_campaign_pass": true,
+    "legacy_scientific_equivalence_pass": true,
+    "replay_campaign_pass": true,
+    "replay_created_zero_new_payloads": true,
+    "replay_generation_files_byte_identical": true,
+    "single_hdd_payload_lane": true,
+    "source_legacy_cache_unchanged": true,
+    "storage_and_event_audits_pass": true
+  },
+  "generation_equivalence": [
+    {
+      "exact": {
+        "behavior_after.sha256": {
+          "equal": true,
+          "legacy": "49c6f93b270e31e0a77f4d5f2727234fa753c0aaa3663618ba38fb1a7349a10e",
+          "r2": "49c6f93b270e31e0a77f4d5f2727234fa753c0aaa3663618ba38fb1a7349a10e"
+        },
+        "behavior_before.sha256": {
+          "equal": true,
+          "legacy": "e8d7cf94c459ddf5e09b9a7ea3c59a2cf53891366a73fd2e883f9dea60415888",
+          "r2": "e8d7cf94c459ddf5e09b9a7ea3c59a2cf53891366a73fd2e883f9dea60415888"
+        },
+        "challenger.semantic_sha256": {
+          "equal": true,
+          "legacy": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+          "r2": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+        },
+        "champion_after.semantic_sha256": {
+          "equal": true,
+          "legacy": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+          "r2": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+        },
+        "on_policy_real_trace.matured": {
+          "equal": true,
+          "legacy": 24,
+          "r2": 24
+        },
+        "on_policy_real_trace.trace_count": {
+          "equal": true,
+          "legacy": 24,
+          "r2": 24
+        },
+        "parent_champion_semantic_sha256": {
+          "equal": true,
+          "legacy": "dc588f527ba8bab2cc1ce411a2808890bc08c2b92cfe9e35eb7b0b1f2d998c2a",
+          "r2": "dc588f527ba8bab2cc1ce411a2808890bc08c2b92cfe9e35eb7b0b1f2d998c2a"
+        },
+        "tournament.decision": {
+          "equal": true,
+          "legacy": "PROMOTE",
+          "r2": "PROMOTE"
+        },
+        "training.challenger_semantic_sha256": {
+          "equal": true,
+          "legacy": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+          "r2": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+        },
+        "training.optimizer_steps": {
+          "equal": true,
+          "legacy": 228,
+          "r2": 228
+        }
+      },
+      "expected_identity_difference": {
+        "training_snapshot_hash": {
+          "legacy": "fde4d14985c2e453cf65895aba0e4332f8c2ae36c082fdb03105cf8f5b4be8f5",
+          "must_match": false,
+          "r2": "67d8dc74c5d505c7e07c7114874d5daf1a3a832c0b85bf56db255074c6a95595",
+          "reason": "R2 snapshot authority intentionally references immutable evidence-set membership rather than legacy generation-specific ExperienceObjects"
+        }
+      },
+      "generation": 0,
+      "mismatches": [],
+      "numeric": {
+        "tournament.relative_improvement": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 0.0567422512131759,
+          "r2": 0.0567422512131759,
+          "tolerance": 1e-10
+        },
+        "training.parameter_l2_delta": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 4.6498680604392515,
+          "r2": 4.6498680604392515,
+          "tolerance": 4.6498680604392514e-10
+        },
+        "training.validation_after.direction_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.0643593072891235,
+          "r2": 1.0643593072891235,
+          "tolerance": 1.0643593072891236e-10
+        },
+        "training.validation_after.loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.1914623975753784,
+          "r2": 1.1914623975753784,
+          "tolerance": 1.1914623975753785e-10
+        },
+        "training.validation_after.sizing_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 0.12710292637348175,
+          "r2": 0.12710292637348175,
+          "tolerance": 1e-10
+        },
+        "validation_before.direction_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.1171292066574097,
+          "r2": 1.1171292066574097,
+          "tolerance": 1.1171292066574097e-10
+        },
+        "validation_before.loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.263135552406311,
+          "r2": 1.263135552406311,
+          "tolerance": 1.263135552406311e-10
+        },
+        "validation_before.sizing_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 0.14600633084774017,
+          "r2": 0.14600633084774017,
+          "tolerance": 1e-10
+        }
+      },
+      "pass": true
+    },
+    {
+      "exact": {
+        "behavior_after.sha256": {
+          "equal": true,
+          "legacy": "8631cc2e8a0e98f46dbd4c10ac9a8fd701a02c6baaaf72537d9dde78357bcaab",
+          "r2": "8631cc2e8a0e98f46dbd4c10ac9a8fd701a02c6baaaf72537d9dde78357bcaab"
+        },
+        "behavior_before.sha256": {
+          "equal": true,
+          "legacy": "49c6f93b270e31e0a77f4d5f2727234fa753c0aaa3663618ba38fb1a7349a10e",
+          "r2": "49c6f93b270e31e0a77f4d5f2727234fa753c0aaa3663618ba38fb1a7349a10e"
+        },
+        "challenger.semantic_sha256": {
+          "equal": true,
+          "legacy": "8e3bc5883966965741ff52c0eff824341f58343d41c5883088f2752474b7ac6c",
+          "r2": "8e3bc5883966965741ff52c0eff824341f58343d41c5883088f2752474b7ac6c"
+        },
+        "champion_after.semantic_sha256": {
+          "equal": true,
+          "legacy": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+          "r2": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+        },
+        "on_policy_real_trace.matured": {
+          "equal": true,
+          "legacy": 24,
+          "r2": 24
+        },
+        "on_policy_real_trace.trace_count": {
+          "equal": true,
+          "legacy": 24,
+          "r2": 24
+        },
+        "parent_champion_semantic_sha256": {
+          "equal": true,
+          "legacy": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+          "r2": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+        },
+        "tournament.decision": {
+          "equal": true,
+          "legacy": "REJECT",
+          "r2": "REJECT"
+        },
+        "training.challenger_semantic_sha256": {
+          "equal": true,
+          "legacy": "8e3bc5883966965741ff52c0eff824341f58343d41c5883088f2752474b7ac6c",
+          "r2": "8e3bc5883966965741ff52c0eff824341f58343d41c5883088f2752474b7ac6c"
+        },
+        "training.optimizer_steps": {
+          "equal": true,
+          "legacy": 228,
+          "r2": 228
+        }
+      },
+      "expected_identity_difference": {
+        "training_snapshot_hash": {
+          "legacy": "4c5ff11b29b850a189075881bafe5570f377cac6b8404068636cb2235c825563",
+          "must_match": false,
+          "r2": "17ac89ab2214686df68e9b451f56175b407c64f5eb9479ce978a3565ebc596cf",
+          "reason": "R2 snapshot authority intentionally references immutable evidence-set membership rather than legacy generation-specific ExperienceObjects"
+        }
+      },
+      "generation": 1,
+      "mismatches": [],
+      "numeric": {
+        "tournament.relative_improvement": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": -0.007119865696967126,
+          "r2": -0.007119865696967126,
+          "tolerance": 1e-10
+        },
+        "training.parameter_l2_delta": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 2.933469285371886,
+          "r2": 2.933469285371886,
+          "tolerance": 2.933469285371886e-10
+        },
+        "training.validation_after.direction_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.0699377059936523,
+          "r2": 1.0699377059936523,
+          "tolerance": 1.0699377059936524e-10
+        },
+        "training.validation_after.loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.1999454498291016,
+          "r2": 1.1999454498291016,
+          "tolerance": 1.1999454498291016e-10
+        },
+        "training.validation_after.sizing_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 0.1300078183412552,
+          "r2": 0.1300078183412552,
+          "tolerance": 1e-10
+        },
+        "validation_before.direction_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.0643593072891235,
+          "r2": 1.0643593072891235,
+          "tolerance": 1.0643593072891236e-10
+        },
+        "validation_before.loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 1.1914623975753784,
+          "r2": 1.1914623975753784,
+          "tolerance": 1.1914623975753785e-10
+        },
+        "validation_before.sizing_loss": {
+          "abs_diff": 0.0,
+          "equal": true,
+          "legacy": 0.12710292637348175,
+          "r2": 0.12710292637348175,
+          "tolerance": 1e-10
+        }
+      },
+      "pass": true
+    }
+  ],
+  "market_cache_authority_mode": "SYMLINK_TO_FROZEN_R104_READ_ONLY_AUTHORITY",
+  "market_cache_payload_files_copied": false,
+  "market_cache_source_files_unchanged": true,
+  "market_cache_source_root": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache",
+  "market_cache_symbol_count": 10,
+  "market_cache_target_root": "/tmp/cb16-r2-native-v2-34155102019-1/run/evidence_cache/market_cache",
+  "metadata_root": "/tmp/cb16-r2-native-v2-34155102019-1/meta",
+  "package_authority_mode": "READ_ONLY_SYSTEMD_ALIAS",
+  "package_root_modified": false,
+  "parent_adoption_reexecuted": false,
+  "payload_root": "/data/cb16_hdd/cb16_diagnostics/r2_native/native-v2-34155102019-1/payload",
+  "profile": "R2_NATIVE_R104_EQUIVALENCE_R0",
+  "replay_final_status": "R2_NATIVE_R104_EQUIVALENCE_R0_PASS",
+  "replay_generation_files_unchanged": true,
+  "replay_materialization": {
+    "created_payload_count": 0,
+    "evidence_set_hash": "31978f3234268fe102839cf5d10d07a69dd7c257973bd162d59c3342251bd03b",
+    "index_commit_seconds": 0.0,
+    "object_count": 9714,
+    "pack_write_seconds": 0.0,
+    "raw_bytes": 75161683,
+    "reused_payload_count": 9714,
+    "schema": "CB16_R2_MATERIALIZE_RECEIPT_V1",
+    "storage_amplification_model": "O(N_CONTENT_ONCE + G_TINY_SNAPSHOTS)",
+    "stored_bytes": 0,
+    "total_seconds": 0.0,
+    "unique_payload_count": 9714
+  },
+  "replay_seconds": 22.100880295038223,
+  "run_root": "/tmp/cb16-r2-native-v2-34155102019-1/run",
+  "same_final_champion_after_replay": true,
+  "schema": "CB16_R2_NATIVE_EQUIVALENCE_QUALIFICATION_V1",
+  "scientific_semantics_changed": false,
+  "source_cache_binding": {
+    "copied_compact_receipts": [
+      "TEN_SYMBOL_DATA_PREFLIGHT_R102.json",
+      "F0_F1_F2_F3_CONTROLS_R102.json"
+    ],
+    "final_holdout_2025_09_accessed": false,
+    "mode": "READ_ONLY_LEGACY_CACHE_REFERENCE_VIA_COPIED_MANIFEST",
+    "schema": "CB16_R2_EXTERNAL_EVIDENCE_CACHE_BINDING_V1",
+    "scientific_semantics_changed": false,
+    "source_cache_root": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache",
+    "source_files": [
+      {
+        "manifest_key": "parents_file",
+        "mtime_ns": 1788604839834397015,
+        "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/PARENT_CONTEXTS_R102.jsonl.gz",
+        "sha256": "2da52363c313b26fa7cc5286021b59f604dc2ed3fcdd6ea805d400d8b39b805a",
+        "size": 3125557
+      },
+      {
+        "manifest_key": "parent_states_file",
+        "mtime_ns": 1788604840330375852,
+        "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/PARENT_PHYSICS_STATES_R102.jsonl.gz",
+        "sha256": "51af58d34319d47730217c652cb9d210987bbeb5f0d976e187fb861b7e38b1c7",
+        "size": 1829334
+      },
+      {
+        "manifest_key": "branches_file",
+        "mtime_ns": 1788604840990347701,
+        "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/COUNTERFACTUAL_BRANCHES_H72_R102.jsonl.gz",
+        "sha256": "5b3423ba6829f81cec658c3733e820091948735cf876b36098dff92894a066f0",
+        "size": 2017571
+      }
+    ],
+    "source_manifest": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/REAL_EVIDENCE_CACHE_MANIFEST_R102.json",
+    "source_manifest_sha256": "6619ce5f0b1ac0c588332f9f43343dee5e31bc8b81024993e1b26b6fbf54599e",
+    "source_payload_files_copied": false,
+    "source_payload_files_modified": false,
+    "target_manifest": "/tmp/cb16-r2-native-v2-34155102019-1/run/evidence_cache/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+  },
+  "source_cache_unchanged": true,
+  "status": "PASS",
+  "storage_audit": {
+    "bytes_scanned": 25521446,
+    "errors": [],
+    "evidence_sets": 1,
+    "generation_snapshots": 2,
+    "pass": true,
+    "payload_lanes": 1,
+    "payload_objects": 9714,
+    "physical_order": "LANE_SEGMENT_OFFSET_ASCENDING",
+    "schema": "CB16_R2_SEQUENTIAL_PACK_AUDIT_V1",
+    "segments": 1,
+    "sequential_readahead_hint": true
+  },
+  "storage_stats": {
+    "evidence_catalog_objects": 9714,
+    "evidence_sets": 1,
+    "generation_snapshots": 2,
+    "payload_lanes": 1,
+    "payload_objects": 9714,
+    "raw_bytes": 75161683,
+    "schema": "CB16_R2_EVIDENCE_STORE_STATS_V1",
+    "stored_bytes": 24967748
+  }
+}

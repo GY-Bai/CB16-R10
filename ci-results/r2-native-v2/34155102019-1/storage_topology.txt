@@ -1,0 +1,44 @@
+RUN_ROOT=/tmp/cb16-r2-native-v2-34155102019-1/run
+METADATA_ROOT=/tmp/cb16-r2-native-v2-34155102019-1/meta
+PAYLOAD_ROOT=/data/cb16_hdd/cb16_diagnostics/r2_native/native-v2-34155102019-1/payload
+METADATA_SOURCE_RAW=/dev/mapper/ubuntu--vg-ubuntu--lv[/tmp/systemd-private-6aa5908355384a17b187a86874f56bd4-cb16-github-runner.service-tHXvXZ/tmp]
+PAYLOAD_SOURCE_RAW=/dev/sda1[/cb16_hdd/cb16_diagnostics/r2_native]
+METADATA_BLOCK_DEVICE=/dev/mapper/ubuntu--vg-ubuntu--lv
+PAYLOAD_BLOCK_DEVICE=/dev/sda1
+=== metadata ===
+TARGET SOURCE                                                                                                                         FSTYPE OPTIONS
+/tmp   /dev/mapper/ubuntu--vg-ubuntu--lv[/tmp/systemd-private-6aa5908355384a17b187a86874f56bd4-cb16-github-runner.service-tHXvXZ/tmp] ext4   rw,nosuid,relatime
+=== payload ===
+TARGET                                    SOURCE                                          FSTYPE OPTIONS
+/data/cb16_hdd/cb16_diagnostics/r2_native /dev/sda1[/cb16_hdd/cb16_diagnostics/r2_native] ext4   rw,nosuid,noatime
+=== devices ===
+NAME                      KNAME  TYPE ROTA   SIZE FSTYPE      MOUNTPOINTS                                              MODEL            TRAN
+loop0                     loop0  loop    0   1.4M squashfs    /snap/bandwhich/268                                                       
+loop1                     loop1  loop    0 255.1M squashfs    /snap/clash/1833                                                          
+loop2                     loop2  loop    0  55.5M squashfs    /snap/core18/2947                                                         
+loop3                     loop3  loop    0  55.5M squashfs    /snap/core18/2999                                                         
+loop4                     loop4  loop    0  63.8M squashfs    /snap/core20/2769                                                         
+loop5                     loop5  loop    0  63.8M squashfs    /snap/core20/2866                                                         
+loop7                     loop7  loop    0    74M squashfs    /snap/core22/2411                                                         
+loop9                     loop9  loop    0 115.3M squashfs    /snap/lxd/40338                                                           
+loop10                    loop10 loop    0 238.4M squashfs    /snap/nextcloud/32537                                                     
+loop11                    loop11 loop    0 238.8M squashfs    /snap/nextcloud/32871                                                     
+loop12                    loop12 loop    0   1.3M squashfs    /snap/nvtop/309                                                           
+loop13                    loop13 loop    0   1.4M squashfs    /snap/nvtop/344                                                           
+loop14                    loop14 loop    0  50.1M squashfs    /snap/snapd/27591                                                         
+loop15                    loop15 loop    0  50.1M squashfs    /snap/snapd/27710                                                         
+loop16                    loop16 loop    0 115.3M squashfs    /snap/lxd/40575                                                           
+loop17                    loop17 loop    0    74M squashfs    /snap/core22/2437                                                         
+sda                       sda    disk    1 931.5G                                                                      ST1000DM010-2EP1 sata
+└─sda1                    sda1   part    1 931.5G ext4        /data/cb16_hdd/cb16_diagnostics/r2_native                                 
+                                                              /data/cb16_ci/github-runner-qualification/actions-runner                  
+                                                              /data                                                                     
+sdb                       sdb    disk    0 465.8G                                                                      CT500MX500SSD1   sata
+├─sdb1                    sdb1   part    0     1G vfat        /boot/efi                                                                 
+├─sdb2                    sdb2   part    0     2G ext4        /boot                                                                     
+└─sdb3                    sdb3   part    0 462.7G LVM2_member                                                                           
+  └─ubuntu--vg-ubuntu--lv dm-0   lvm     0   430G ext4        /var/tmp                                                                  
+                                                              /tmp                                                                      
+                                                              /data/cb16_ci/r2-authority/r103                                           
+                                                              /data/cb16_ci/r2-authority/package_r102                                   
+                                                              /                                                                         

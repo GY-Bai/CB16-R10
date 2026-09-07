@@ -1,0 +1,9 @@
+{
+  "destination": "/tmp/cb16-r2-native-v2-34155102019-1/run/PARENT_ADOPTION_RECEIPT_R102.json",
+  "final_holdout_2025_09_accessed": false,
+  "package_root_modified": false,
+  "parent_adoption_reexecuted": false,
+  "schema": "CB16_R2_FROZEN_ADOPTION_REUSE_V1",
+  "scientific_semantics_changed": false,
+  "source": "/data/cb16_hdd/cb16_runtime/R10_4/PARENT_ADOPTION_RECEIPT_R102.json"
+}
