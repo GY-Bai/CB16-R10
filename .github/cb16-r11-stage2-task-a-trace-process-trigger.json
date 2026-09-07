@@ -1,0 +1,8 @@
+{
+  "schema": "CB16_R11_STAGE2_TASK_A_TRACE_PROCESS_MICRO_TRIGGER_V1",
+  "branch": "ai/r11-stage2-task-a-cpu-throughput-r1",
+  "scope": "REAL_H72_THREAD_VS_FORK_PROCESS_ONLY",
+  "groups": 96,
+  "integrated_burst": false,
+  "final_holdout_access": false
+}
