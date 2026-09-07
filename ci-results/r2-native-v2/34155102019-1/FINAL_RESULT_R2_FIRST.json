@@ -1,0 +1,916 @@
+{
+  "attempts_completed": 2,
+  "attempts_requested": 2,
+  "compiled_teacher_authority": {
+    "authority_hash": "3ab74ddedabba368c3529812e1e18bf6942e111074053c7bcb00f8e6d0225759",
+    "compile_seconds": 711.8348528719507,
+    "load_seconds": 0.0,
+    "mode": "COMPILED_AND_PUBLISHED",
+    "payload_path": "/data/cb16_hdd/cb16_diagnostics/r2_native/compiled_teacher_authority/3ab74ddedabba368c3529812e1e18bf6942e111074053c7bcb00f8e6d0225759.teacher.json.gz",
+    "payload_sha256": "e279b3cfd36a9ff96a4da776fedd3f6c9f4a7d2812126758909bf2dbb4368312",
+    "scheduler_parameters_in_scientific_identity": false,
+    "schema": "CB16_R102_COMPILED_TEACHER_RECEIPT_V3",
+    "scientific_semantics_changed": false,
+    "train_count": 9714,
+    "validation_count": 1320
+  },
+  "controls": {
+    "F3_minus_F2": -2.7757502398820678e-05,
+    "controls": {
+      "F0_CLIMATOLOGY": {
+        "coverage50": 0.23223905723905724,
+        "coverage80": 0.4356060606060606,
+        "coverage90": 0.547979797979798,
+        "independent_validation_groups": 220,
+        "missing_laws": 0,
+        "qcrps": 0.0034559856044072282
+      },
+      "F1_ACCOUNT_ONLY": {
+        "coverage50": 0.5085016835016835,
+        "coverage80": 0.7840909090909091,
+        "coverage90": 0.8909090909090909,
+        "independent_validation_groups": 220,
+        "missing_laws": 0,
+        "qcrps": 0.002942127113818781
+      },
+      "F2_TRUE_MARKET_ACCOUNT": {
+        "coverage50": 0.5858585858585859,
+        "coverage80": 0.8037037037037037,
+        "coverage90": 0.9003367003367003,
+        "independent_validation_groups": 220,
+        "missing_laws": 0,
+        "qcrps": 0.0030780764945526184
+      },
+      "F3_SHUFFLED_MARKET_ACCOUNT": {
+        "coverage50": 0.5814814814814815,
+        "coverage80": 0.8195286195286196,
+        "coverage90": 0.897979797979798,
+        "independent_validation_groups": 220,
+        "missing_laws": 0,
+        "qcrps": 0.0030503189921537977
+      }
+    },
+    "interpretation": "TRUE_MARKET_NOT_BETTER_THAN_SHUFFLE",
+    "metric": "group_weighted_discrete_qCRPS_lower_is_better",
+    "no_result_rescue": true,
+    "schema": "CB16_R10_2_F0_F1_F2_F3_CONTROL_REPORT_V1",
+    "status": "DIAGNOSTIC_ONLY_NOT_PIPELINE_PASS_DRIVER"
+  },
+  "event_journal_audit": {
+    "corrupt": [],
+    "events": 96,
+    "pass": true,
+    "schema": "CB16_R2_EVENT_JOURNAL_AUDIT_V1"
+  },
+  "final_champion_semantic_sha256": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+  "final_holdout_2025_09_accessed": false,
+  "final_status": "R2_NATIVE_R104_EQUIVALENCE_R0_PASS",
+  "frozen_authority_runtime_guard": {
+    "end_hashes": {
+      "assets/medium/CANONICAL_NONLINEAR48_SEED24680_PORTABLE.npz": "897ba29937817b225df73c6ad2b5bbf183d2a18a0488dcdcff5d7b43ade436c2",
+      "assets/medium/runtime/timesfm_layer3.safetensors": "a39f126e43cdbcd3819b0974a8b604f4909ac4b9e096da15d05c3e2c80fe81a6",
+      "assets/operator/operator_reducers_v1.npz": "c61b20341ea7d859842821bfd401baad17b210d02317da6324be7de9d3d54423",
+      "assets/operator/runtime/kronos_model_l5.safetensors": "81878a7ac7ef9e9a7e86b8c5b82f8a5da12f2ca734e343f44e44546362858d40",
+      "assets/operator/runtime/kronos_tokenizer_encode.safetensors": "b1e8e2c332e5aabdc175cf2d0a36c57758c42a74614afab35ee24dd5c7ac685e",
+      "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json": "49bf9a7368fd23c4bc6d2174374dd2ab0f634c1eabd809de331e97a9d0319f39",
+      "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/runtime/account_physics_runtime_r0.py": "193f21b4b2e216ad8dcc9c36821be2d517e5d5280ea9ea0f92e479310b169e17",
+      "authority/control_plane_r1/risk_supervisor_r1.py": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6"
+    },
+    "full_hashes_unchanged": true,
+    "metadata_checks": 3,
+    "metadata_unchanged": true,
+    "pass": true,
+    "policy": "FULL_SHA256_START_AND_END__STRICT_STAT_EACH_GENERATION",
+    "schema": "CB16_R2_FROZEN_AUTHORITY_RUNTIME_GUARD_V1",
+    "scientific_semantics_changed": false,
+    "start_hashes": {
+      "assets/medium/CANONICAL_NONLINEAR48_SEED24680_PORTABLE.npz": "897ba29937817b225df73c6ad2b5bbf183d2a18a0488dcdcff5d7b43ade436c2",
+      "assets/medium/runtime/timesfm_layer3.safetensors": "a39f126e43cdbcd3819b0974a8b604f4909ac4b9e096da15d05c3e2c80fe81a6",
+      "assets/operator/operator_reducers_v1.npz": "c61b20341ea7d859842821bfd401baad17b210d02317da6324be7de9d3d54423",
+      "assets/operator/runtime/kronos_model_l5.safetensors": "81878a7ac7ef9e9a7e86b8c5b82f8a5da12f2ca734e343f44e44546362858d40",
+      "assets/operator/runtime/kronos_tokenizer_encode.safetensors": "b1e8e2c332e5aabdc175cf2d0a36c57758c42a74614afab35ee24dd5c7ac685e",
+      "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json": "49bf9a7368fd23c4bc6d2174374dd2ab0f634c1eabd809de331e97a9d0319f39",
+      "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/runtime/account_physics_runtime_r0.py": "193f21b4b2e216ad8dcc9c36821be2d517e5d5280ea9ea0f92e479310b169e17",
+      "authority/control_plane_r1/risk_supervisor_r1.py": "1fee663d23d400dca7900df5b839fdebe126b9190bac02069f4ea4a70451e9f6"
+    }
+  },
+  "generation_results": [
+    {
+      "behavior_after": {
+        "flat_rate": 0.44242424242424244,
+        "long_rate": 0.2787878787878788,
+        "mean_direction_probs": [
+          0.3384489119052887,
+          0.3429049849510193,
+          0.3186463713645935
+        ],
+        "mean_requested_risk": 0.2770388126373291,
+        "rows": 1320,
+        "sha256": "49c6f93b270e31e0a77f4d5f2727234fa753c0aaa3663618ba38fb1a7349a10e",
+        "short_rate": 0.2787878787878788
+      },
+      "behavior_before": {
+        "flat_rate": 0.5083333333333333,
+        "long_rate": 0.33484848484848484,
+        "mean_direction_probs": [
+          0.2737005650997162,
+          0.3590801954269409,
+          0.36721935868263245
+        ],
+        "mean_requested_risk": 0.2897928059101105,
+        "rows": 1320,
+        "sha256": "e8d7cf94c459ddf5e09b9a7ea3c59a2cf53891366a73fd2e883f9dea60415888",
+        "short_rate": 0.15681818181818183
+      },
+      "challenger": {
+        "file_sha256": "bec2cc718a66351e50a4577a04323c7f12539c24bf884dfa3337baacec88f85d",
+        "path": "/tmp/cb16-r2-native-v2-34155102019-1/run/generations/G00/challenger.pt",
+        "semantic_sha256": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+      },
+      "champion_after": {
+        "file_sha256": "77b773c97098b7d24533dd32b70e5ea2efb39302a32f1b344b536fdbca6ddc62",
+        "path": "/tmp/cb16-r2-native-v2-34155102019-1/run/generations/G00/champion_after.pt",
+        "semantic_sha256": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+      },
+      "frozen_authority_unchanged": true,
+      "generation_attempt": 0,
+      "on_policy_real_trace": {
+        "Brain_to_ActionIntent_to_Supervisor_to_exact_Physics_to_H72_Outcome": "PASS",
+        "generation": 0,
+        "matured": 24,
+        "r2_event_batch": {
+          "created_count": 48,
+          "generation": 0,
+          "input_count": 48,
+          "reused_count": 0,
+          "schema": "CB16_R2_EVENT_BATCH_RECEIPT_V1",
+          "transaction_seconds": 0.012644733069464564
+        },
+        "schema": "CB16_R10_2_ON_POLICY_REAL_TRACE_RECEIPT_V1",
+        "trace_count": 24,
+        "traces": [
+          {
+            "CausalTraceID": "R102TRACE:G0:P:ADAUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "fe97e3f326fd841cff8509b1e944ecaa7945ff7e1a44988aca4380f900a29578",
+            "direction": 1,
+            "outcome_ref": "8e03fb532d7133f335acbf7f36e346aaa4356f66a787eaf0e5a934dd90bf4768",
+            "requested_risk": 0.3159157335758209,
+            "status": "MATURED",
+            "utility": -0.0033157146500117757
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:BNBUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "66f7185e5f7ccd087ac533467e6186703353f01334bd02f4afc95a9e40f4d5c3",
+            "direction": 0,
+            "outcome_ref": "9e30ac3b835384af2561f937f3404533fd5936387fab615ff3bef006a27fc4d1",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:BTCUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "5bb5bfb461006e19274f7231916f9561030c7050abe4efeae70f5d2aa057dda4",
+            "direction": 0,
+            "outcome_ref": "aadcef67ed770bfc4b04d6f075cb46af25f06e6733fe3083cd7331dcb8c9b7e6",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:DOGEUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "69f72f4535b11dcd2a2e9aa32ce6c81d60ffbd2bf59faecb615a5482accc0e40",
+            "direction": 1,
+            "outcome_ref": "e096a38d0daaaaf71c202aedf5013dc0be423ce75c53c83d623788c232ca0ff0",
+            "requested_risk": 0.6736221313476562,
+            "status": "MATURED",
+            "utility": -0.007027156310354167
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:DOTUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "1e1d9e99f0ba3bc56c247ec74cc0482103d5b2268dcf91cf5a0602e07a005737",
+            "direction": 1,
+            "outcome_ref": "16b9c8539d0568f1e8372b923c22e21be3f95b017ced77a2bffa1fe354bff968",
+            "requested_risk": 0.22711893916130066,
+            "status": "MATURED",
+            "utility": -0.0023880534434801816
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:ETHUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "f4778dcaede126c937016dad34183b7abda4f99ec90c1a89859920c37e17c0d9",
+            "direction": 0,
+            "outcome_ref": "ca1061eb02a39d03794c1acc95d26bca6d5a0003341a88b43f994babbbad9a28",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:LINKUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "af008f0192e0235f8d68fd3f1998778e13c4e4552eb8feca3ee06fd37aa8fd4f",
+            "direction": 0,
+            "outcome_ref": "bafef2e97f152328978738cedd35b421a03cdf578e9d978265d513d5757af00f",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:LTCUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "f7e2eae2ac13b1f9ac5243add4777d072787cdf062c0f02a15bac5a0689eecc1",
+            "direction": 0,
+            "outcome_ref": "dc2d289476410d3944cdc30f7eaa2fcf35039a21ae5cc99b4a6cc612e0a8d81a",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:SOLUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "e6964aef73e10a2adb406153577c424ffa90f95f5008406372dadfee160e94cc",
+            "direction": 0,
+            "outcome_ref": "ad253e677e3b27cfb371f93337e044bd22afbbaadedbaeb990597a6cb2bb9708",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:XRPUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "95554244eff5447502b1ae2f00fcfa7ea58139eeb6a20e6bc02c676ec950d7c2",
+            "direction": 0,
+            "outcome_ref": "999a3b3abd5faf32bf8a7217b49bc10e6e6577a7803658cd1c1f6e037ea9842e",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:ADAUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "3b6c7f21a34e52c619eb0009813bb0ddf21ff025f11ad2488d795dc22c5e3d81",
+            "direction": 0,
+            "outcome_ref": "92921e06117d6fa8a810555a603829490ba06c5ebd1d19d6bfb989e8e5791733",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:BNBUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "03d3aeee53c3a4336bb852ece1ec75a0600305211f93757f2a08b45aef64c0ea",
+            "direction": -1,
+            "outcome_ref": "3ced3e37e0e3b98096cc10d552e2b1a3cd00ac343d4d01ef56fa6b64259b4ebc",
+            "requested_risk": 0.4298722445964813,
+            "status": "MATURED",
+            "utility": -0.004868423793964867
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:BTCUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "db509e1d98b5c0ca0b2485233e7ba2a7a9c85b230352c76c229411772bcfeed7",
+            "direction": 1,
+            "outcome_ref": "2499f02360e8569c0894988b10deb91eadba31243c03a76332d0521ce127c5d3",
+            "requested_risk": 0.37289756536483765,
+            "status": "MATURED",
+            "utility": -0.00418760607906589
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:DOGEUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "e3368998eecea61c196dd545746917aaf886906130bd055807641d572eb476bb",
+            "direction": -1,
+            "outcome_ref": "11ab98bcd52b30fc36ea815ff5fc25c8de217313dd6545e2e2111250deb61b85",
+            "requested_risk": 0.27311891317367554,
+            "status": "MATURED",
+            "utility": -0.002825136817071262
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:DOTUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "357772d62106b6b7b3e60f3dd7afe37c2d4b7c1a1a9d9b00d16af9652b0704ac",
+            "direction": 1,
+            "outcome_ref": "50dc511c5fbac5b4231c29648c6cdd790217e5bcaa8f5ea3389e0e908c8fb17f",
+            "requested_risk": 0.17973557114601135,
+            "status": "MATURED",
+            "utility": -0.0018980556069143452
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:ETHUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "e9c929069c1a8324afa486369dd3540169e0c05070114da2b70ca37e62d06618",
+            "direction": 1,
+            "outcome_ref": "70c9353c02840bb49c22d79da60ddb7bf5bcd869381bce3997283f9ef6969eac",
+            "requested_risk": 0.3906278610229492,
+            "status": "MATURED",
+            "utility": -0.004190348489000395
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:LINKUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "08bb6538e733d6b9ba89bb23c83a4fe8f1133014c44746ef377b953724464b17",
+            "direction": -1,
+            "outcome_ref": "1e12bbba60bd0362459b3b5bf5f1db26df1d879ff287c4ee5eeaddb750ea2679",
+            "requested_risk": 0.1788536012172699,
+            "status": "MATURED",
+            "utility": 0.005299368388356258
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:LTCUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "f4058643ce9309d83a7f777f943d105839b075857ccf6ec2df6fb46e5a2811d8",
+            "direction": 0,
+            "outcome_ref": "b1ae01c4b7cbbcb0079c3b2cb97a5c8e1668c1648582be74e2b21be4a68c75ee",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:SOLUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "f123585eb2cf9b4691abbc3a94683bc7b532150dfdeeacc757f81c74f2f8fd7b",
+            "direction": -1,
+            "outcome_ref": "e2e6442741198b1dbb5a0dfd611d323c22b7f30f7066c1fa429c52a5f574eb81",
+            "requested_risk": 0.33402422070503235,
+            "status": "MATURED",
+            "utility": -0.0034852613035475767
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:XRPUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "f8c413fc06b0b4b92d3fba93167c66798d0b9a99fefaceb7a2d638be68d6702e",
+            "direction": 0,
+            "outcome_ref": "cc042850aca450689ae57500988ece37c18667e25c526292678a5e6245dbc78f",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:ADAUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "2ea0d45aa9c11932e202439ed1c61c99358f665291ba17c379f7054e2263099c",
+            "direction": 0,
+            "outcome_ref": "b5399ada33cd526d014f27622d5ca1b51cacf9337f0a7c8d3da6accdeb656814",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:BNBUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "7f1f7c605beb2ad1b41fc2ec31b162fc7fa29ab6c796903628a63fcfaf536bcf",
+            "direction": 0,
+            "outcome_ref": "a9d33868d3ec9976aea21106ccc2055f412e72ff8c4a9bef853d0fce34f4e775",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:BTCUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "838f78fc4cd858cac7d49b0e589f306abe5fa095b8e7f213f951a94fa3dae670",
+            "direction": 0,
+            "outcome_ref": "69ad75d81a579fd7952d86a452f527ca2fada68ff5c1a6ecb41212cef849b5d9",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G0:P:DOGEUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "d93cff038dfe05b7412e1b2a18a2818341856d4c43848f6f82e59dec88270de0",
+            "direction": 0,
+            "outcome_ref": "d3255d6fc5429a3ecfdc0c93a7a749919c9525a102a642e3241fed95e7004d79",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          }
+        ],
+        "unique_dependence_groups": 24
+      },
+      "parent_champion_semantic_sha256": "dc588f527ba8bab2cc1ce411a2808890bc08c2b92cfe9e35eb7b0b1f2d998c2a",
+      "schema": "CB16_R2_GENERATION_RESULT_V1",
+      "tournament": {
+        "F0_F1_F2_F3_NOT_USED_FOR_PROMOTION": true,
+        "basis": "FROZEN_VALIDATION_PROBABILISTIC_TEACHER_TARGET_LOSS",
+        "decision": "PROMOTE",
+        "minimum_relative_improvement": 0.001,
+        "realized_single_path_profit_NOT_used_as_correct_action": true,
+        "relative_improvement": 0.0567422512131759,
+        "validation_loss_after": 1.1914623975753784,
+        "validation_loss_before": 1.263135552406311
+      },
+      "training": {
+        "amp": false,
+        "batch_size": 512,
+        "challenger_semantic_sha256": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+        "epochs": 12,
+        "external_frozen_organ_gradients": "NOT_IN_AUTOGRAD_GRAPH__INPUTS_DETACHED",
+        "generation": 0,
+        "gradient_group_norms_last_step": {
+          "Account Brain Stem": 0.010112210535845068,
+          "Direction Head": 0.04502665794748465,
+          "Medium Brain Stem": 0.06904523172584721,
+          "Operator Brain Stem": 0.16523830772662185,
+          "Requested-Risk Head": 0.017223141954020787,
+          "Shared Decision Core": 0.21592850537956143
+        },
+        "lr": 0.0003,
+        "optimizer": "AdamW_FP32",
+        "optimizer_steps": 228,
+        "parameter_l2_delta": 4.6498680604392515,
+        "schema": "CB16_R10_2_CHALLENGER_TRAINING_RECEIPT_V1",
+        "snapshot_hash": "67d8dc74c5d505c7e07c7114874d5daf1a3a832c0b85bf56db255074c6a95595",
+        "update_group_norms": {
+          "Account Brain Stem": 0.1618024666323981,
+          "Direction Head": 1.3782633626166672,
+          "Medium Brain Stem": 0.7643273524144822,
+          "Operator Brain Stem": 0.9592471918205937,
+          "Requested-Risk Head": 2.272701551724637,
+          "Shared Decision Core": 3.6091493768860765
+        },
+        "validation_after": {
+          "admitted_rows": 1320,
+          "direction_loss": 1.0643593072891235,
+          "independent_groups": 220,
+          "loss": 1.1914623975753784,
+          "sizing_loss": 0.12710292637348175
+        },
+        "validation_before": {
+          "admitted_rows": 1320,
+          "direction_loss": 1.1171292066574097,
+          "independent_groups": 220,
+          "loss": 1.263135552406311,
+          "sizing_loss": 0.14600633084774017
+        },
+        "weight_decay": 0.0001
+      },
+      "training_snapshot": {
+        "evidence_objects": 9714,
+        "evidence_set_hash": "31978f3234268fe102839cf5d10d07a69dd7c257973bd162d59c3342251bd03b",
+        "snapshot_hash": "67d8dc74c5d505c7e07c7114874d5daf1a3a832c0b85bf56db255074c6a95595",
+        "snapshot_id": "R102_G0_TRAINING_SNAPSHOT_R2",
+        "storage_semantics": "GENERATION_REFERENCES_IMMUTABLE_EVIDENCE_SET"
+      },
+      "validation_before": {
+        "admitted_rows": 1320,
+        "direction_loss": 1.1171292066574097,
+        "independent_groups": 220,
+        "loss": 1.263135552406311,
+        "sizing_loss": 0.14600633084774017
+      }
+    },
+    {
+      "behavior_after": {
+        "flat_rate": 0.5265151515151515,
+        "long_rate": 0.22575757575757577,
+        "mean_direction_probs": [
+          0.3379792273044586,
+          0.3539276719093323,
+          0.30809345841407776
+        ],
+        "mean_requested_risk": 0.2721450924873352,
+        "rows": 1320,
+        "sha256": "8631cc2e8a0e98f46dbd4c10ac9a8fd701a02c6baaaf72537d9dde78357bcaab",
+        "short_rate": 0.24772727272727274
+      },
+      "behavior_before": {
+        "flat_rate": 0.44242424242424244,
+        "long_rate": 0.2787878787878788,
+        "mean_direction_probs": [
+          0.3384489119052887,
+          0.3429049849510193,
+          0.3186463713645935
+        ],
+        "mean_requested_risk": 0.2770388126373291,
+        "rows": 1320,
+        "sha256": "49c6f93b270e31e0a77f4d5f2727234fa753c0aaa3663618ba38fb1a7349a10e",
+        "short_rate": 0.2787878787878788
+      },
+      "challenger": {
+        "file_sha256": "11d2aae61db5b0de7cddc69eadcfdc38dfd8361f5478ca4ee10de3e25b246a7c",
+        "path": "/tmp/cb16-r2-native-v2-34155102019-1/run/generations/G01/challenger.pt",
+        "semantic_sha256": "8e3bc5883966965741ff52c0eff824341f58343d41c5883088f2752474b7ac6c"
+      },
+      "champion_after": {
+        "file_sha256": "d734bee44db34f0308fba4b75c09629acc3c86c5a2243781f70dce1fd6644517",
+        "path": "/tmp/cb16-r2-native-v2-34155102019-1/run/generations/G01/champion_after.pt",
+        "semantic_sha256": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+      },
+      "frozen_authority_unchanged": true,
+      "generation_attempt": 1,
+      "on_policy_real_trace": {
+        "Brain_to_ActionIntent_to_Supervisor_to_exact_Physics_to_H72_Outcome": "PASS",
+        "generation": 1,
+        "matured": 24,
+        "r2_event_batch": {
+          "created_count": 48,
+          "generation": 1,
+          "input_count": 48,
+          "reused_count": 0,
+          "schema": "CB16_R2_EVENT_BATCH_RECEIPT_V1",
+          "transaction_seconds": 0.011936549097299576
+        },
+        "schema": "CB16_R10_2_ON_POLICY_REAL_TRACE_RECEIPT_V1",
+        "trace_count": 24,
+        "traces": [
+          {
+            "CausalTraceID": "R102TRACE:G1:P:ADAUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "80a65e536ed8e78879e5e771c28d8ffc6da59744d945356a8fd56613a376c30b",
+            "direction": 0,
+            "outcome_ref": "faefea05eca6ee59c3ae1e8641c2f4f09d283d1b6942c0756fb195b55adb2a18",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:BNBUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "e8a14c46b2fb83ecd591718b726922d296bbf912438582374e1fa6f2710caad0",
+            "direction": 0,
+            "outcome_ref": "9737f11350f6e286fdb9852d6fa60ff530939578a4722837170ce7b460521b73",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:BTCUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "01611dce201111e1822bc5594ac6d42bb782c55f886842520504588fc3e6233f",
+            "direction": 0,
+            "outcome_ref": "8e9af804ac45cec899b4a1329c41aad2c3d1a84798016362937f3e1e6828df44",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:DOGEUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "373141d261061c0a0a7edce3cc677eff5b835f7a1d5b42716a7c5949f783c3b2",
+            "direction": 1,
+            "outcome_ref": "3a4223abe50db66b27b4f4e99826708e896830e1eaebfdce950e26bf82af6fb6",
+            "requested_risk": 0.15671227872371674,
+            "status": "MATURED",
+            "utility": -0.0016304040598950768
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:DOTUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "d31e251540bf2f9863ebfedb102037db233eb562e362960452e21902cb641cc3",
+            "direction": 0,
+            "outcome_ref": "387038e7b38177cb7468655e7bc625988cc28bc714763bbe94b4e7b802937614",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:ETHUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "6f792e1aa336a33a177e7281e0d9bf639efb616d9264ddac87333b9e20619715",
+            "direction": 0,
+            "outcome_ref": "6617f47aa83d12144a08dae78f5884e067488998293a5474e48ab25ccc16b365",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:LINKUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "9d95fa091708f945c573b202ed2eb96d4c9aa35303435348a27286dc66f27732",
+            "direction": 0,
+            "outcome_ref": "21e7d6b5fbf2853221e1c865299a445368f2d9cad8c557c4ecd704e9c216e816",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:LTCUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "a50307de032a5f25197c1ab4f194ac688f407b5c1647605792cec8a22be366bf",
+            "direction": 0,
+            "outcome_ref": "a7aec0da7560ef75eaac709fea518dfaf599208945313dbb790c0ab63831d81c",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:SOLUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "2a3630e44c993777e8ae2c791935275595f5fc61c6c702aa14d158baed7e5751",
+            "direction": 0,
+            "outcome_ref": "0564d7a9d0f9dd41418a99d0f8fc53e9f27e4a4ad70f93feb191e8c598809236",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:XRPUSDT:1736294400000:CLEAN_FLAT_FULL",
+            "decision_ref": "4ac6353021a484aaaba6ef4983ee8797ecaa23e6cf9bc6d7e20ae5819b518fda",
+            "direction": 0,
+            "outcome_ref": "005b1e06a8130c00e9ec0ba1d6fb57c545e1bca18467a9141c4afd869907dd38",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:ADAUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "55a41480c39d0b2415fac373a667836c1ffeecce89977a15ec03c92efb4ad1c1",
+            "direction": 0,
+            "outcome_ref": "fc6b5d9cbff751a93e89c3059a7069d20f34d5038584838f046f173e558882ef",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:BNBUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "e9c8574d4b4501b124e8c78c06c04f6526586910a58229d75584dc3c42980647",
+            "direction": 1,
+            "outcome_ref": "a8feed46b24b8bac74337b0aa39c79c480e715595354a81dfc10e3fb4aff3670",
+            "requested_risk": 0.17403775453567505,
+            "status": "MATURED",
+            "utility": -0.001966133369459155
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:BTCUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "9017179141fc21f90e9bad0882569078183c22393be8ae08ae588ca4d8ed7880",
+            "direction": 1,
+            "outcome_ref": "93f80d8207ff3dae3d5a239c6b0018c89c9815bdf05992a7545173ea4022e02b",
+            "requested_risk": 0.1581108123064041,
+            "status": "MATURED",
+            "utility": -0.0017734292703360036
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:DOGEUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "0323910dc44f3106c56769f8aba68a4bbe7335c2b341772524b168e82e8f554b",
+            "direction": 1,
+            "outcome_ref": "7f7d6a1f367bf3b91d1818a92c5a020a7183b2f9a59b5332aee674435116dfaa",
+            "requested_risk": 0.26055166125297546,
+            "status": "MATURED",
+            "utility": -0.0027230617289398782
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:DOTUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "70d0d26149e69bea913a0a850e6560d695ee3b24764f30435a7ea4af422b0f8f",
+            "direction": 0,
+            "outcome_ref": "f4005b5dadf4443e1adffaa12fd3975ea6d2786fea03b6c8f66e265b8248a1f0",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:ETHUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "ccce9e57b10d386c5e74f32422ce26c42dc99de4ce4e7e6f71a876565623acb5",
+            "direction": 1,
+            "outcome_ref": "6f2e9ea1de41b3088e2fe6744d412bc464ae890a7a0652339ed0e42b8e2e94f8",
+            "requested_risk": 0.20215235650539398,
+            "status": "MATURED",
+            "utility": -0.002166339208050128
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:LINKUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "1dbf43993f81e5585c4f1a03ddcb38a521216951e53f17a92058ece1b60a0ecd",
+            "direction": 1,
+            "outcome_ref": "24ca407da36bc169d9257ab4ea8c5584cd2726faf8046e3630e956d3a54faf55",
+            "requested_risk": 0.1773538440465927,
+            "status": "MATURED",
+            "utility": -0.0018516537300190862
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:LTCUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "ea3e6b412f34fbbbe020ad46b9e7aa016f5d37db2c0b8dcbf41fcbd6849620e9",
+            "direction": 0,
+            "outcome_ref": "aab476d8931d43745951f77a8afc61ba5fd1dd473cc83d262f1a470188e59717",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:SOLUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "e62b18d79e5a095704bda727c001bf59a5576812b0b9630530a41de6cd6a31f2",
+            "direction": 1,
+            "outcome_ref": "0f5e980b465f5f153cb4a6397c1b26b726c730946938767e4dd5fbe1cf1193c1",
+            "requested_risk": 0.26374390721321106,
+            "status": "MATURED",
+            "utility": -0.002747788133189931
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:XRPUSDT:1737216000000:CLEAN_FLAT_FULL",
+            "decision_ref": "4cfdd7d3879dacfdbbe11cdfeee595ad7887d6c52e6aff7528f333a5292783b9",
+            "direction": 0,
+            "outcome_ref": "627f4907c1ff495b02526ffe2bd48ed78f9d259d64c1122186da05d8bd15525f",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:ADAUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "e368889d5935d6c71d3cdee98c03a2fccdc7f13aa339d20d4e3f750595da00b5",
+            "direction": 1,
+            "outcome_ref": "0b87666c387e39a67848bb19734d0cc9fadb65f5c02f2317521889884696cb4d",
+            "requested_risk": 0.21929313242435455,
+            "status": "MATURED",
+            "utility": -0.002370496926326831
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:BNBUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "ae0a2162efb2353dbc207b01119e9e8573bee10aaa828c84ba220f709275213f",
+            "direction": 0,
+            "outcome_ref": "04e6744adb3b7dd0cd9fc3297f04926091ab649ee717347a3ab36e128b534cb3",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:BTCUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "91ca350edafc81b0481dfc96050712defa9249c18adc1764bde1f3c6479de1ac",
+            "direction": 0,
+            "outcome_ref": "0273dc15a5e151a3fe21facd3f6b2eb3b2841bfe9404ba4a373b9afee9abdf1d",
+            "requested_risk": 0.0,
+            "status": "MATURED",
+            "utility": 0.0
+          },
+          {
+            "CausalTraceID": "R102TRACE:G1:P:DOGEUSDT:1738137600000:CLEAN_FLAT_FULL",
+            "decision_ref": "9b0408023677e8b45622bd0810ecb901d9e99593cb1bbcd22302d812676ef530",
+            "direction": 1,
+            "outcome_ref": "f7d7807abbe87b7e456006767b9b879fb6a4ae3286edf20f737a11624177df19",
+            "requested_risk": 0.23605406284332275,
+            "status": "MATURED",
+            "utility": -0.002556172225030874
+          }
+        ],
+        "unique_dependence_groups": 24
+      },
+      "parent_champion_semantic_sha256": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+      "schema": "CB16_R2_GENERATION_RESULT_V1",
+      "tournament": {
+        "F0_F1_F2_F3_NOT_USED_FOR_PROMOTION": true,
+        "basis": "FROZEN_VALIDATION_PROBABILISTIC_TEACHER_TARGET_LOSS",
+        "decision": "REJECT",
+        "minimum_relative_improvement": 0.001,
+        "realized_single_path_profit_NOT_used_as_correct_action": true,
+        "relative_improvement": -0.007119865696967126,
+        "validation_loss_after": 1.1999454498291016,
+        "validation_loss_before": 1.1914623975753784
+      },
+      "training": {
+        "amp": false,
+        "batch_size": 512,
+        "challenger_semantic_sha256": "8e3bc5883966965741ff52c0eff824341f58343d41c5883088f2752474b7ac6c",
+        "epochs": 12,
+        "external_frozen_organ_gradients": "NOT_IN_AUTOGRAD_GRAPH__INPUTS_DETACHED",
+        "generation": 1,
+        "gradient_group_norms_last_step": {
+          "Account Brain Stem": 0.010519785668704382,
+          "Direction Head": 0.025359688870119607,
+          "Medium Brain Stem": 0.10651500380277716,
+          "Operator Brain Stem": 0.18371039946649048,
+          "Requested-Risk Head": 0.03177026831498513,
+          "Shared Decision Core": 0.22682186868962723
+        },
+        "lr": 0.0003,
+        "optimizer": "AdamW_FP32",
+        "optimizer_steps": 228,
+        "parameter_l2_delta": 2.933469285371886,
+        "schema": "CB16_R10_2_CHALLENGER_TRAINING_RECEIPT_V1",
+        "snapshot_hash": "17ac89ab2214686df68e9b451f56175b407c64f5eb9479ce978a3565ebc596cf",
+        "update_group_norms": {
+          "Account Brain Stem": 0.1555359487231913,
+          "Direction Head": 1.3641028823813701,
+          "Medium Brain Stem": 0.4219808843436707,
+          "Operator Brain Stem": 0.6144347489686596,
+          "Requested-Risk Head": 1.4883767099036556,
+          "Shared Decision Core": 1.9873124528061958
+        },
+        "validation_after": {
+          "admitted_rows": 1320,
+          "direction_loss": 1.0699377059936523,
+          "independent_groups": 220,
+          "loss": 1.1999454498291016,
+          "sizing_loss": 0.1300078183412552
+        },
+        "validation_before": {
+          "admitted_rows": 1320,
+          "direction_loss": 1.0643593072891235,
+          "independent_groups": 220,
+          "loss": 1.1914623975753784,
+          "sizing_loss": 0.12710292637348175
+        },
+        "weight_decay": 0.0001
+      },
+      "training_snapshot": {
+        "evidence_objects": 9714,
+        "evidence_set_hash": "31978f3234268fe102839cf5d10d07a69dd7c257973bd162d59c3342251bd03b",
+        "snapshot_hash": "17ac89ab2214686df68e9b451f56175b407c64f5eb9479ce978a3565ebc596cf",
+        "snapshot_id": "R102_G1_TRAINING_SNAPSHOT_R2",
+        "storage_semantics": "GENERATION_REFERENCES_IMMUTABLE_EVIDENCE_SET"
+      },
+      "validation_before": {
+        "admitted_rows": 1320,
+        "direction_loss": 1.0643593072891235,
+        "independent_groups": 220,
+        "loss": 1.1914623975753784,
+        "sizing_loss": 0.12710292637348175
+      }
+    }
+  ],
+  "incremental_payload_recovery": {
+    "discovered_payloads": 0,
+    "full_payload_hash_audit_still_required_at_qualification_boundary": true,
+    "indexed_prefix_bytes_skipped": 0,
+    "mode": "VERIFY_LAST_INDEXED_RECORD_THEN_SCAN_APPEND_TAIL",
+    "schema": "CB16_R2_INCREMENTAL_PAYLOAD_RECOVERY_V1",
+    "segments": [],
+    "tail_bytes_scanned": 0,
+    "total_pack_bytes": 0,
+    "truncated_tails": []
+  },
+  "integrity": {
+    "champion_challenger_lifecycle_correct": true,
+    "compiled_teacher_authority_verified": true,
+    "evidence_payload_not_rematerialized_per_generation": true,
+    "frozen_authority_full_hash_boundary_only": true,
+    "frozen_authority_unchanged": true,
+    "full_payload_hash_audit_retained": true,
+    "h72_physics_still_executed_per_generation": true,
+    "market_trace_context_reused": true,
+    "on_policy_Brain_to_Physics_H72_trace": true,
+    "parameter_to_behavior_changed": true,
+    "payload_recovery_scans_only_unindexed_tail": true,
+    "prepared_evidence_batches_reused": true,
+    "real_evidence_gradients_connected": true,
+    "snapshots_nonempty": true,
+    "validation_and_behavior_forward_fused": true
+  },
+  "mechanistic_pipeline_pass": true,
+  "prepared_evidence_runtime": {
+    "device": "cuda",
+    "schema": "CB16_R2_PREPARED_EVIDENCE_RUNTIME_V1",
+    "scientific_semantics_changed": false,
+    "train_independent_groups": 1619,
+    "train_rows": 9714,
+    "validation_independent_groups": 220,
+    "validation_rows": 1320
+  },
+  "prepared_trace_runtime": {
+    "champion_inference_still_per_generation": true,
+    "device": "cuda",
+    "h72_physics_still_per_generation": true,
+    "loaded_symbols": [
+      "ADAUSDT",
+      "BNBUSDT",
+      "BTCUSDT",
+      "DOGEUSDT",
+      "DOTUSDT",
+      "ETHUSDT",
+      "LINKUSDT",
+      "LTCUSDT",
+      "SOLUSDT",
+      "XRPUSDT"
+    ],
+    "market_npz_loaded_once_per_campaign": true,
+    "schema": "CB16_R2_PREPARED_TRACE_RUNTIME_V1",
+    "scientific_semantics_changed": false,
+    "trace_parent_count": 24
+  },
+  "profile_name": "R2_NATIVE_R104_EQUIVALENCE_R0",
+  "promotions": 1,
+  "rejections": 1,
+  "schema": "CB16_R2_REAL_HISTORICAL_LEARNING_FINAL_RESULT_V1",
+  "storage_audit": {
+    "bytes_scanned": 25521446,
+    "errors": [],
+    "evidence_sets": 1,
+    "generation_snapshots": 2,
+    "pass": true,
+    "payload_lanes": 1,
+    "payload_objects": 9714,
+    "physical_order": "LANE_SEGMENT_OFFSET_ASCENDING",
+    "schema": "CB16_R2_SEQUENTIAL_PACK_AUDIT_V1",
+    "segments": 1,
+    "sequential_readahead_hint": true
+  },
+  "storage_materialization": {
+    "created_payload_count": 9714,
+    "evidence_set_hash": "31978f3234268fe102839cf5d10d07a69dd7c257973bd162d59c3342251bd03b",
+    "index_commit_seconds": 4.063764492981136,
+    "object_count": 9714,
+    "pack_write_seconds": 1.7557644359767437,
+    "raw_bytes": 75161683,
+    "reused_payload_count": 0,
+    "schema": "CB16_R2_MATERIALIZE_RECEIPT_V1",
+    "storage_amplification_model": "O(N_CONTENT_ONCE + G_TINY_SNAPSHOTS)",
+    "stored_bytes": 24967748,
+    "total_seconds": 9.104461845010519,
+    "unique_payload_count": 9714
+  },
+  "storage_semantics": "IMMUTABLE_EVIDENCE_ONCE_PLUS_TINY_GENERATION_MANIFESTS",
+  "storage_stats": {
+    "evidence_catalog_objects": 9714,
+    "evidence_sets": 1,
+    "generation_snapshots": 2,
+    "payload_lanes": 1,
+    "payload_objects": 9714,
+    "raw_bytes": 75161683,
+    "schema": "CB16_R2_EVIDENCE_STORE_STATS_V1",
+    "stored_bytes": 24967748
+  },
+  "teacher_evidence_summary": {
+    "compiled_teacher_authority_hash": "3ab74ddedabba368c3529812e1e18bf6942e111074053c7bcb00f8e6d0225759",
+    "compiled_teacher_authority_mode": "COMPILED_AND_PUBLISHED",
+    "schema": "CB16_R2_TEACHER_EVIDENCE_SUMMARY_V1",
+    "train": {
+      "admitted": 9714,
+      "admitted_dependence_groups": 1619,
+      "rejected": 0,
+      "rejection_reasons": {},
+      "teacher_protocol_hashes": [
+        "48564ba9d59a32a790929de8071b8b111cf8b0e7eb29eea03a035b579bc65fbc"
+      ],
+      "total": 9714
+    },
+    "validation": {
+      "admitted": 1320,
+      "admitted_dependence_groups": 220,
+      "rejected": 0,
+      "rejection_reasons": {},
+      "teacher_protocol_hashes": [
+        "91def43467573ea567110237da1e798f3c8b6a14f69afdb002eca2a432b9f4c4"
+      ],
+      "total": 1320
+    }
+  },
+  "teacher_semantics": "PROBABILISTIC_DISTRIBUTIONAL_NO_BEST_ACTION_LABEL"
+}

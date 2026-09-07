@@ -1,0 +1,9 @@
+{
+  "schema": "CB16_UV_HOST_ENV_DOWNLOAD_TRIGGER_V1",
+  "purpose": "FULL_DISPOSABLE_UV_INSTALL_WITH_HOST_ENVIRONMENT_ROUTING_ONLY",
+  "repository_selected_channel_arguments": false,
+  "package_hash_validation_used": false,
+  "direct_package_version_equivalence_required": true,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

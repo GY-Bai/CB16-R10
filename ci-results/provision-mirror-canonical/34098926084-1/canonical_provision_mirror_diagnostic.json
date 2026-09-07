@@ -1,0 +1,43 @@
+{
+  "env_files": [
+    {
+      "entries": {
+        "HF_ENDPOINT": "https://hf-mirror.com",
+        "PIP_EXTRA_INDEX_URL": "https://mirrors.aliyun.com/pytorch-wheels/cu126/",
+        "PIP_INDEX_URL": "https://mirrors.volces.com/pypi/simple/",
+        "PIP_NO_CACHE_DIR": "<SET>",
+        "UV_EXTRA_INDEX_URL": "https://mirrors.cloud.tencent.com/pypi/simple/ https://mirrors.aliyun.com/pypi/simple/",
+        "UV_FIND_LINKS": "https://mirrors.aliyun.com/pytorch-wheels/cu126/",
+        "UV_INDEX_URL": "https://mirrors.volces.com/pypi/simple/",
+        "UV_NO_CACHE": "<SET>"
+      },
+      "exists": true,
+      "path": "/etc/cb16-ci/provision.env"
+    },
+    {
+      "entries": {},
+      "exists": false,
+      "path": "/data/cb16_ci/provision.env"
+    }
+  ],
+  "find_links": [],
+  "process_env": {
+    "HTTPS_PROXY": "http://127.0.0.1:33128",
+    "HTTP_PROXY": "http://127.0.0.1:33128",
+    "NO_PROXY": "<SET>",
+    "http_proxy": "http://127.0.0.1:33128",
+    "https_proxy": "http://127.0.0.1:33128",
+    "no_proxy": "<SET>"
+  },
+  "requirements_direct_indexes": [
+    "https://download.pytorch.org/whl/cu126"
+  ],
+  "schema": "CB16_CANONICAL_PROVISION_MIRROR_DIAGNOSTIC_V1",
+  "verified_r104_venv": {
+    "exists": true,
+    "python": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/bin/python",
+    "rc": 0,
+    "stdout": "2.8.0+cu126\n12.6\nTrue\nNVIDIA GeForce GTX 1060 6GB"
+  },
+  "whoami": "cb16-ci"
+}

@@ -1,0 +1,7 @@
+{
+  "schema": "CB16_RUNNER_WATCHDOG_TRIGGER_R0",
+  "purpose": "qualify WSS-side observation and noninteractive recovery authority for canonical runner",
+  "canonical_service": "cb16-github-canonical-runner.service",
+  "wss_service": "cb16-github-runner.service",
+  "restart_requested": false
+}

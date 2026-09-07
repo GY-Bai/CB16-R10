@@ -1,0 +1,326 @@
+name: CB16 R2 Storage Qualification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-storage-trigger.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cb16-r2-storage-qualification
+  cancel-in-progress: false
+
+jobs:
+  r2-storage-qualification:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 180
+    env:
+      LEGACY_LAKE: /data/cb16_hdd/cb16_runtime/R10_4/experience_lake
+      R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+    steps:
+      - name: Checkout R2 source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Select lightweight R2 Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -x /data/cb16_ci/venvs/r2-storage/bin/python ]; then
+            p=/data/cb16_ci/venvs/r2-storage/bin/python
+          else
+            p=/usr/bin/python3.10
+          fi
+          echo "python=$p" >> "$GITHUB_OUTPUT"
+          "$p" --version
+
+      - name: Syntax and R2 semantic unit gates
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          "$PY" -m py_compile \
+            cb16_local_opt/r2_evidence_storage.py \
+            cb16_local_opt/r2_event_journal.py \
+            cb16_local_opt/r2_sequential_audit.py \
+            cb16_local_opt/r2_legacy_migration.py \
+            cb16_local_opt/r2_campaign.py \
+            scripts/qualify_r2_legacy_migration.py \
+            scripts/benchmark_r2_evidence_storage.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m unittest \
+            tests.test_r2_evidence_storage \
+            tests.test_r2_event_journal \
+            tests.test_r2_legacy_migration \
+            -v 2>&1 | tee ci_evidence/unittest.log
+
+      - name: Detect legacy R10.4 process
+        id: r104
+        shell: bash
+        run: |
+          set -euo pipefail
+          if pgrep -f 'run_r104_long_research.py' >/dev/null 2>&1; then
+            echo 'running=true' >> "$GITHUB_OUTPUT"
+            pgrep -af 'run_r104_long_research.py' | tee ci_evidence/r104_process.txt
+          else
+            echo 'running=false' >> "$GITHUB_OUTPUT"
+            echo 'R10.4 process not running' | tee ci_evidence/r104_process.txt
+          fi
+
+      - name: Real G60/G61 projection canary
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/qualify_r2_legacy_migration.py \
+            --legacy-lake-root "$LEGACY_LAKE" \
+            --generations 60 61 \
+            --limit 16 \
+            --verify-only \
+            --out ci_evidence/sample_canary.json \
+            > ci_evidence/sample_canary.stdout
+          "$PY" - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/sample_canary.json'))
+          assert x['status']=='PASS'
+          assert x['all_projection_hashes_equal'] is True
+          assert x['all_projection_mismatches_zero'] is True
+          assert x['all_metadata_mismatches_zero'] is True
+          assert [g['legacy_object_count'] for g in x['generations']]==[16,16]
+          print('REAL_SAMPLE_CANARY=PASS')
+          PY
+
+      - name: Prepare full qualification roots
+        if: ${{ steps.r104.outputs.running == 'false' }}
+        id: roots
+        shell: bash
+        run: |
+          set -euo pipefail
+          META="$RUNNER_TEMP/cb16-r2-full-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          PAYLOAD="/data/cb16_ci/r2-qual/full-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          BENCH_META="$RUNNER_TEMP/cb16-r2-bench-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          BENCH_PAYLOAD="/data/cb16_ci/r2-qual/bench-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$META" "$PAYLOAD" "$BENCH_META" "$BENCH_PAYLOAD"
+          mkdir -p "$META" "$PAYLOAD" "$BENCH_META" "$BENCH_PAYLOAD"
+          echo "meta=$META" >> "$GITHUB_OUTPUT"
+          echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
+          echo "bench_meta=$BENCH_META" >> "$GITHUB_OUTPUT"
+          echo "bench_payload=$BENCH_PAYLOAD" >> "$GITHUB_OUTPUT"
+          {
+            echo '=== metadata mount ==='
+            findmnt -T "$META" -o TARGET,SOURCE,FSTYPE,OPTIONS
+            echo '=== payload mount ==='
+            findmnt -T "$PAYLOAD" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          } | tee ci_evidence/storage_topology.txt
+
+      - name: Full real G60/G61 legacy to R2 migration
+        if: ${{ steps.r104.outputs.running == 'false' }}
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+          META: ${{ steps.roots.outputs.meta }}
+          PAYLOAD: ${{ steps.roots.outputs.payload }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/qualify_r2_legacy_migration.py \
+            --legacy-lake-root "$LEGACY_LAKE" \
+            --generations 60 61 \
+            --metadata-root "$META" \
+            --payload-root "$PAYLOAD" \
+            --codec zstd \
+            --out ci_evidence/full_migration.json \
+            > ci_evidence/full_migration.stdout
+
+      - name: Sequential physical-order pack audit
+        if: ${{ steps.r104.outputs.running == 'false' }}
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+          META: ${{ steps.roots.outputs.meta }}
+          PAYLOAD: ${{ steps.roots.outputs.payload }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" - <<'PY'
+          import json, os
+          from cb16_local_opt.r2_evidence_storage import R2EvidenceStore
+          from cb16_local_opt.r2_sequential_audit import audit_r2_store_sequential
+          store=R2EvidenceStore(metadata_root=os.environ['META'], payload_roots=[os.environ['PAYLOAD']], codec='zstd', sqlite_synchronous='FULL', recover_on_open=True)
+          try:
+              x=audit_r2_store_sequential(store, verify_payloads=True)
+          finally:
+              store.close()
+          open('ci_evidence/sequential_audit.json','w').write(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          assert x['pass'] is True
+          assert x['payload_lanes']==1
+          print('SEQUENTIAL_AUDIT=PASS')
+          PY
+
+      - name: R2 9714 x 100 storage benchmark
+        if: ${{ steps.r104.outputs.running == 'false' }}
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+          BENCH_META: ${{ steps.roots.outputs.bench_meta }}
+          BENCH_PAYLOAD: ${{ steps.roots.outputs.bench_payload }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/benchmark_r2_evidence_storage.py \
+            --metadata-root "$BENCH_META" \
+            --payload-root "$BENCH_PAYLOAD" \
+            --objects 9714 \
+            --generations 100 \
+            --payload-bytes 3072 \
+            --codec zstd \
+            --out ci_evidence/benchmark.json \
+            > ci_evidence/benchmark.stdout
+
+      - name: Materialize qualification verdict
+        if: always()
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+          R104_RUNNING: ${{ steps.r104.outputs.running }}
+        run: |
+          set -euo pipefail
+          "$PY" - <<'PY'
+          import json, os, pathlib
+          p=pathlib.Path('ci_evidence')
+          def load(name):
+              f=p/name
+              return json.loads(f.read_text()) if f.exists() else None
+          sample=load('sample_canary.json')
+          full=load('full_migration.json')
+          audit=load('sequential_audit.json')
+          bench=load('benchmark.json')
+          running=os.environ.get('R104_RUNNING','')=='true'
+          errors=[]
+          if sample is None or sample.get('status')!='PASS' or not sample.get('all_projection_hashes_equal'):
+              errors.append('REAL_SAMPLE_CANARY_FAIL')
+          mode='DEFERRED_CANONICAL_IO_CONTENTION' if running else 'FULL'
+          if not running:
+              if full is None: errors.append('FULL_MIGRATION_MISSING')
+              else:
+                  gs=full.get('generations',[])
+                  if [g.get('legacy_object_count') for g in gs] != [9714,9714]: errors.append('LEGACY_COUNTS_NOT_9714')
+                  if not full.get('all_projection_hashes_equal'): errors.append('PROJECTION_HASH_MISMATCH')
+                  if not full.get('all_materialized_evidence_set_hashes_equal'): errors.append('EVIDENCE_SET_HASH_MISMATCH')
+                  if len(gs)!=2 or not (gs[0].get('created_payload_count',0)>0 and gs[1].get('created_payload_count')==0): errors.append('R2_REUSE_GATE_FAIL')
+              if audit is None or audit.get('pass') is not True or audit.get('payload_lanes')!=1: errors.append('SEQUENTIAL_AUDIT_FAIL')
+              if bench is None or bench.get('status')!='PASS': errors.append('BENCHMARK_FAIL')
+              elif bench.get('reuse_created_payload_count') != 0 or bench.get('payload_lanes') != 1: errors.append('BENCHMARK_REUSE_OR_LANE_FAIL')
+          verdict='FAIL' if errors else ('PASS_DEFERRED' if running else 'PASS_FULL')
+          result={
+              'schema':'CB16_R2_STORAGE_CI_QUALIFICATION_V1',
+              'source_sha':os.environ.get('GITHUB_SHA'),
+              'run_id':os.environ.get('GITHUB_RUN_ID'),
+              'r104_running':running,
+              'mode':mode,
+              'verdict':verdict,
+              'errors':errors,
+              'sample_canary':sample,
+              'full_migration':full,
+              'sequential_audit':audit,
+              'benchmark':bench,
+              'canonical_campaign_modified':False,
+              'scientific_semantics_changed':False,
+              'final_holdout_2025_09_accessed':False,
+          }
+          (p/'result.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          (p/'REPORT.md').write_text(
+              '# CB16 R2 Storage Qualification\n\n'
+              f'- source_sha: {result["source_sha"]}\n'
+              f'- mode: {mode}\n'
+              f'- verdict: {verdict}\n'
+              f'- r104_running: {running}\n'
+              f'- errors: {errors}\n'
+          )
+          print(json.dumps({'verdict':verdict,'mode':mode,'errors':errors},sort_keys=True))
+          PY
+          (cd ci_evidence && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Probe GitHub artifact backend connectivity
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '=== DNS ==='
+            getent ahosts results-receiver.actions.githubusercontent.com
+            echo '=== results receiver health ==='
+            curl -fsS --connect-timeout 10 --max-time 20 \
+              https://results-receiver.actions.githubusercontent.com/health
+            echo
+            echo 'curl_exit='$?
+          } 2>&1 | tee ci_evidence/artifact_connectivity.txt
+          exit 0
+
+      - name: Persist sanitized qualification evidence to R2 branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="$RUNNER_TEMP/cb16-r2-ci-result-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP"
+          mkdir -p "$SNAP"
+          for f in \
+            result.json REPORT.md benchmark.json full_migration.json \
+            sequential_audit.json sample_canary.json SHA256SUMS \
+            storage_topology.txt unittest.log artifact_connectivity.txt; do
+            if [ -f "ci_evidence/$f" ]; then cp "ci_evidence/$f" "$SNAP/$f"; fi
+          done
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/r2-storage/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-r2-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if git diff --cached --quiet; then
+            echo 'No sanitized CI evidence changes to persist.'
+          else
+            git commit -m "ci-results: R2 storage qualification ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+            git push origin "HEAD:$BRANCH"
+          fi
+
+      - name: Upload sanitized qualification evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r2-storage-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Cleanup disposable full migration roots
+        if: always() && steps.r104.outputs.running == 'false'
+        shell: bash
+        run: |
+          rm -rf \
+            '${{ steps.roots.outputs.meta }}' \
+            '${{ steps.roots.outputs.payload }}' \
+            '${{ steps.roots.outputs.bench_meta }}' \
+            '${{ steps.roots.outputs.bench_payload }}'
+
+      - name: Final gate
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/result.json'))
+          print('R2_STORAGE_VERDICT=',x['verdict'])
+          assert x['verdict'] in {'PASS_DEFERRED','PASS_FULL'}
+          PY

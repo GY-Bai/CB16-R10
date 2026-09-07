@@ -1,0 +1,118 @@
+{
+  "copied_compact_receipts": [
+    "TEN_SYMBOL_DATA_PREFLIGHT_R102.json",
+    "F0_F1_F2_F3_CONTROLS_R102.json"
+  ],
+  "final_holdout_2025_09_accessed": false,
+  "market_cache_binding": "SYMLINK_TO_FROZEN_R104_READ_ONLY_AUTHORITY",
+  "market_cache_files": [
+    {
+      "mtime_ns": 1788600255955155586,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/BTCUSDT.hourly_r102.npz",
+      "size": 905241,
+      "symbol": "BTCUSDT"
+    },
+    {
+      "mtime_ns": 1788600255751151278,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/ETHUSDT.hourly_r102.npz",
+      "size": 922936,
+      "symbol": "ETHUSDT"
+    },
+    {
+      "mtime_ns": 1788600300184059477,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/BNBUSDT.hourly_r102.npz",
+      "size": 868559,
+      "symbol": "BNBUSDT"
+    },
+    {
+      "mtime_ns": 1788600300540066516,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/XRPUSDT.hourly_r102.npz",
+      "size": 811313,
+      "symbol": "XRPUSDT"
+    },
+    {
+      "mtime_ns": 1788600344588910481,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/ADAUSDT.hourly_r102.npz",
+      "size": 835360,
+      "symbol": "ADAUSDT"
+    },
+    {
+      "mtime_ns": 1788600341480852658,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/DOGEUSDT.hourly_r102.npz",
+      "size": 802582,
+      "symbol": "DOGEUSDT"
+    },
+    {
+      "mtime_ns": 1788600381193572785,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/DOTUSDT.hourly_r102.npz",
+      "size": 749008,
+      "symbol": "DOTUSDT"
+    },
+    {
+      "mtime_ns": 1788600389277714547,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/LINKUSDT.hourly_r102.npz",
+      "size": 854416,
+      "symbol": "LINKUSDT"
+    },
+    {
+      "mtime_ns": 1788600425470330252,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/LTCUSDT.hourly_r102.npz",
+      "size": 816621,
+      "symbol": "LTCUSDT"
+    },
+    {
+      "mtime_ns": 1788600428246376236,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache/SOLUSDT.hourly_r102.npz",
+      "size": 791350,
+      "symbol": "SOLUSDT"
+    }
+  ],
+  "market_cache_payload_files_copied": false,
+  "market_cache_source_files_unchanged": true,
+  "market_cache_symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "ADAUSDT",
+    "DOGEUSDT",
+    "DOTUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "SOLUSDT"
+  ],
+  "mode": "READ_ONLY_LEGACY_CACHE_REFERENCE_VIA_COPIED_MANIFEST_AND_MARKET_CACHE_SYMLINK",
+  "schema": "CB16_R2_EXTERNAL_EVIDENCE_CACHE_BINDING_V2",
+  "scientific_semantics_changed": false,
+  "source_cache_root": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache",
+  "source_files": [
+    {
+      "manifest_key": "parents_file",
+      "mtime_ns": 1788604839834397015,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/PARENT_CONTEXTS_R102.jsonl.gz",
+      "sha256": "2da52363c313b26fa7cc5286021b59f604dc2ed3fcdd6ea805d400d8b39b805a",
+      "size": 3125557
+    },
+    {
+      "manifest_key": "parent_states_file",
+      "mtime_ns": 1788604840330375852,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/PARENT_PHYSICS_STATES_R102.jsonl.gz",
+      "sha256": "51af58d34319d47730217c652cb9d210987bbeb5f0d976e187fb861b7e38b1c7",
+      "size": 1829334
+    },
+    {
+      "manifest_key": "branches_file",
+      "mtime_ns": 1788604840990347701,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/COUNTERFACTUAL_BRANCHES_H72_R102.jsonl.gz",
+      "sha256": "5b3423ba6829f81cec658c3733e820091948735cf876b36098dff92894a066f0",
+      "size": 2017571
+    }
+  ],
+  "source_manifest": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/REAL_EVIDENCE_CACHE_MANIFEST_R102.json",
+  "source_manifest_sha256": "6619ce5f0b1ac0c588332f9f43343dee5e31bc8b81024993e1b26b6fbf54599e",
+  "source_market_cache_root": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/market_cache",
+  "source_payload_files_copied": false,
+  "source_payload_files_modified": false,
+  "target_manifest": "/tmp/cb16-r2-native-v2-34145527881-1/run/evidence_cache/REAL_EVIDENCE_CACHE_MANIFEST_R102.json",
+  "target_market_cache_root": "/tmp/cb16-r2-native-v2-34145527881-1/run/evidence_cache/market_cache"
+}

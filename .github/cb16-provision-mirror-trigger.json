@@ -1,0 +1,7 @@
+{
+  "schema": "CB16_PROVISION_MIRROR_DIAGNOSTIC_TRIGGER_V1",
+  "purpose": "READ_ONLY_SANITIZED_SHANXI_PIP_UV_MIRROR_AND_VERIFIED_VENV_DIAGNOSTIC",
+  "host_mutation": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

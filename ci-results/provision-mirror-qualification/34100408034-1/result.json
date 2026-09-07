@@ -1,0 +1,236 @@
+{
+  "errors": [],
+  "final_holdout_2025_09_accessed": false,
+  "host_mirror": {
+    "direct_route_pass": true,
+    "effective_route_pass": true,
+    "final_holdout_2025_09_accessed": false,
+    "network_install_attempted": false,
+    "public_pytorch_index_present": false,
+    "requirements_embedded_indexes": [],
+    "route_probes": [
+      {
+        "direct_control": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.volces.com",
+            "path": "/pypi/simple/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "FORCED_DIRECT_CONTROL",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.volces.com",
+            "path": "/pypi/simple/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "EFFECTIVE_PROVISION_ENV",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective_matches_direct_reachability": true,
+        "endpoint": {
+          "host": "mirrors.volces.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        }
+      },
+      {
+        "direct_control": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.aliyun.com",
+            "path": "/pytorch-wheels/cu126/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "FORCED_DIRECT_CONTROL",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.aliyun.com",
+            "path": "/pytorch-wheels/cu126/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "EFFECTIVE_PROVISION_ENV",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective_matches_direct_reachability": true,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pytorch-wheels/cu126/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        }
+      },
+      {
+        "direct_control": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.cloud.tencent.com",
+            "path": "/pypi/simple/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "FORCED_DIRECT_CONTROL",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.cloud.tencent.com",
+            "path": "/pypi/simple/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "EFFECTIVE_PROVISION_ENV",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective_matches_direct_reachability": true,
+        "endpoint": {
+          "host": "mirrors.cloud.tencent.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        }
+      },
+      {
+        "direct_control": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.aliyun.com",
+            "path": "/pypi/simple/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "FORCED_DIRECT_CONTROL",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective": {
+          "curl_rc": 0,
+          "endpoint": {
+            "host": "mirrors.aliyun.com",
+            "path": "/pypi/simple/",
+            "port": null,
+            "scheme": "https",
+            "userinfo_redacted": true
+          },
+          "http_code": "200",
+          "mode": "EFFECTIVE_PROVISION_ENV",
+          "reachable": true,
+          "stderr_class": "NONE"
+        },
+        "effective_matches_direct_reachability": true,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        }
+      }
+    ],
+    "route_summary": {
+      "all_package_mirror_hosts_bypass_proxy": true,
+      "configured_package_mirror_host_count": 3,
+      "embedded_index_directive_count": 0,
+      "index_policy": "HOST_MIRROR_REQUIRED",
+      "mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS",
+      "package_mirror_hosts_in_no_proxy_count": 3,
+      "pip_extra_index_present": true,
+      "pip_find_links_present": true,
+      "pip_primary_index_present": true,
+      "proxy_present": true,
+      "uv_extra_index_present": true,
+      "uv_find_links_present": true,
+      "uv_primary_index_present": true,
+      "values_redacted": true
+    },
+    "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V3",
+    "scientific_semantics_changed": false,
+    "status": "PASS"
+  },
+  "network_install_attempted": false,
+  "schema": "CB16_PROVISION_MIRROR_CI_QUALIFICATION_V1",
+  "scientific_semantics_changed": false,
+  "status": "PASS",
+  "verified_r104_python": {
+    "environment_id": "r104",
+    "expected": {
+      "environment_hash": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+      "python_version": "3.10.12",
+      "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+      "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+    },
+    "failure_reasons": [],
+    "final_holdout_2025_09_accessed": false,
+    "host_route_summary": {
+      "pip_route_key_present": true,
+      "process_route_key_present": true,
+      "provision_env_present": true,
+      "provision_env_readable": true,
+      "proxy_route_key_present": false,
+      "standard_pip_config_present": false,
+      "standard_uv_config_present": false,
+      "uv_route_key_present": true,
+      "values_redacted": true
+    },
+    "mode": "VERIFIED_CANONICAL_R104_VENV_REUSE",
+    "observed": {
+      "import_cuda_canary_pass": true,
+      "python_executable": true,
+      "python_version": "3.10.12",
+      "ready_environment_hash": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+      "ready_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+      "ready_present": true,
+      "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+      "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+    },
+    "python": {
+      "cache_hit": true,
+      "installer": "verified_existing_uv_environment",
+      "network_install_attempted": false,
+      "public_direct_fallback_used": false,
+      "public_index_fallback_used": false,
+      "python_version": "3.10.12",
+      "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+      "status": "READY",
+      "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+    },
+    "schema": "CB16_R104_VERIFIED_PYTHON_REUSE_V1",
+    "scientific_semantics_changed": false,
+    "status": "READY"
+  }
+}

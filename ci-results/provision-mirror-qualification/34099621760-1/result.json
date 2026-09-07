@@ -1,0 +1,83 @@
+{
+  "errors": [
+    "HOST_MIRROR_QUALIFICATION_FAIL",
+    "VERIFIED_R104_PYTHON_FAIL"
+  ],
+  "final_holdout_2025_09_accessed": false,
+  "host_mirror": {
+    "final_holdout_2025_09_accessed": false,
+    "network_install_attempted": false,
+    "public_pytorch_index_present": false,
+    "requirements_embedded_indexes": [],
+    "route_probes": [
+      {
+        "curl_rc": 56,
+        "endpoint": {
+          "host": "mirrors.volces.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "000",
+        "reachable": false
+      },
+      {
+        "curl_rc": 56,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pytorch-wheels/cu126/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "000",
+        "reachable": false
+      },
+      {
+        "curl_rc": 56,
+        "endpoint": {
+          "host": "mirrors.cloud.tencent.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "000",
+        "reachable": false
+      },
+      {
+        "curl_rc": 56,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "000",
+        "reachable": false
+      }
+    ],
+    "route_summary": {
+      "embedded_index_directive_count": 0,
+      "index_policy": "HOST_MIRROR_REQUIRED",
+      "pip_extra_index_present": true,
+      "pip_find_links_present": true,
+      "pip_primary_index_present": true,
+      "proxy_present": true,
+      "uv_extra_index_present": true,
+      "uv_find_links_present": true,
+      "uv_primary_index_present": true,
+      "values_redacted": true
+    },
+    "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V1",
+    "scientific_semantics_changed": false,
+    "status": "FAIL"
+  },
+  "network_install_attempted": false,
+  "schema": "CB16_PROVISION_MIRROR_CI_QUALIFICATION_V1",
+  "scientific_semantics_changed": false,
+  "status": "FAIL",
+  "verified_r104_python": null
+}

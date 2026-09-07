@@ -1,0 +1,182 @@
+name: CB16 R2 WSS Storage Exception Canary
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-storage-exception-trigger.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r2-wss-storage-exception-canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 10
+    env:
+      UNIT: cb16-github-runner.service
+      R103_HOST_SOURCE: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+      R103_ROOT: /data/cb16_ci/r2-authority/r103
+      PACKAGE_HOST_SOURCE: /home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1
+      PACKAGE_ROOT: /data/cb16_ci/r2-authority/package_r102
+      R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      R2_WRITE_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
+      VERIFIED_PY: /data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/bin/python
+    steps:
+      - name: Verify WSS sandbox identity and least privilege
+        shell: bash
+        run: |
+          set -euo pipefail
+          cgroup="$(cat /proc/self/cgroup)"
+          printf '%s\n' "$cgroup"
+          grep -q '/system.slice/cb16-github-runner.service' <<<"$cgroup"
+          protect_system="$(systemctl show "$UNIT" -p ProtectSystem --value)"
+          protect_home="$(systemctl show "$UNIT" -p ProtectHome --value)"
+          rw="$(systemctl show "$UNIT" -p ReadWritePaths --value)"
+          bro="$(systemctl show "$UNIT" -p BindReadOnlyPaths --value)"
+          dropins="$(systemctl show "$UNIT" -p DropInPaths --value)"
+          echo "PROTECT_SYSTEM=$protect_system"
+          echo "PROTECT_HOME=$protect_home"
+          echo "READ_WRITE_PATHS=$rw"
+          echo "BIND_READ_ONLY_PATHS=$bro"
+          echo "DROP_INS=$dropins"
+          test "$protect_system" = strict
+          test "$protect_home" = yes
+          grep -Fq '/data/cb16_ci/github-runner-qualification/actions-runner' <<<"$rw"
+          grep -Fq "$R2_WRITE_ROOT" <<<"$rw"
+          grep -Fq "$R103_HOST_SOURCE:$R103_ROOT" <<<"$bro"
+          grep -Fq "$PACKAGE_HOST_SOURCE:$PACKAGE_ROOT" <<<"$bro"
+
+      - name: Verify R10.3 is exposed only through read-only authority alias
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$R103_ROOT"
+          test -r "$R103_ROOT"
+          test -x "$R103_ROOT"
+          first_readable="$(find "$R103_ROOT" -maxdepth 2 -type f -readable -print -quit)"
+          test -n "$first_readable"
+          if test -r "$R103_HOST_SOURCE" || test -x "$R103_HOST_SOURCE"; then
+            echo 'DIRECT_HOME_R103_UNEXPECTEDLY_VISIBLE' >&2
+            exit 1
+          fi
+          findmnt -T "$R103_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          r103_opts="$(findmnt -n -o OPTIONS -T "$R103_ROOT")"
+          case ",$r103_opts," in *,ro,*) ;; *) echo "R103_ALIAS_NOT_READ_ONLY=$r103_opts" >&2; exit 1 ;; esac
+          echo 'R103_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R103_DIRECT_HOME_VIEW=HIDDEN'
+
+      - name: Verify frozen R10.2 package is exposed only through read-only authority alias
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_MISSING=$PACKAGE_ROOT" >&2; exit 1; }
+          test -r "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_NOT_READABLE=$PACKAGE_ROOT" >&2; exit 1; }
+          test -x "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_NOT_TRAVERSABLE=$PACKAGE_ROOT" >&2; exit 1; }
+          echo '=== package alias mount ==='
+          findmnt -T "$PACKAGE_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
+          echo "PACKAGE_ALIAS_OPTIONS=$pkg_opts"
+          case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_ALIAS_NOT_READ_ONLY=$pkg_opts" >&2; exit 1 ;; esac
+          failed=0
+          for rel in \
+            assets/operator/runtime/kronos_model_l5.safetensors \
+            assets/operator/runtime/kronos_tokenizer_encode.safetensors \
+            assets/operator/operator_reducers_v1.npz \
+            assets/medium/runtime/timesfm_layer3.safetensors \
+            assets/medium/CANONICAL_NONLINEAR48_SEED24680_PORTABLE.npz \
+            authority/control_plane_r1/risk_supervisor_r1.py \
+            authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json \
+            authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/runtime/account_physics_runtime_r0.py; do
+            p="$PACKAGE_ROOT/$rel"
+            if [ -e "$p" ]; then
+              echo "PACKAGE_FILE_EXISTS=true path=$rel"
+            else
+              echo "PACKAGE_FILE_EXISTS=false path=$rel" >&2
+              failed=1
+              continue
+            fi
+            if [ -r "$p" ]; then
+              echo "PACKAGE_FILE_READABLE=true path=$rel"
+            else
+              echo "PACKAGE_FILE_READABLE=false path=$rel" >&2
+              stat -c 'PACKAGE_FILE_STAT=%A %a %U %G %n' "$p" || true
+              failed=1
+            fi
+          done
+          if test -r "$PACKAGE_HOST_SOURCE" || test -x "$PACKAGE_HOST_SOURCE"; then
+            echo 'DIRECT_HOME_PACKAGE_UNEXPECTEDLY_VISIBLE' >&2
+            failed=1
+          else
+            echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
+          fi
+          if [ "$failed" -ne 0 ]; then
+            echo 'R102_PACKAGE_AUTHORITY_ALIAS=FAIL_CONTENT_GATE' >&2
+            exit 1
+          fi
+          echo 'R102_PACKAGE_AUTHORITY_ALIAS=READ_ONLY'
+
+      - name: Verify R10.4 remains readable but not writable
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$R104_ROOT"
+          test -r "$R104_ROOT"
+          findmnt -T "$R104_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          r104_opts="$(findmnt -n -o OPTIONS -T "$R104_ROOT")"
+          case ",$r104_opts," in *,ro,*) ;; *) echo "R104_NOT_READ_ONLY=$r104_opts" >&2; exit 1 ;; esac
+          echo 'R104_AUTHORITY_VIEW=READ_ONLY'
+
+      - name: Verify only R2 qualification payload lane is writable
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$R2_WRITE_ROOT"
+          root_opts="$(findmnt -n -o OPTIONS -T "$R2_WRITE_ROOT")"
+          echo "R2_WRITE_ROOT_OPTIONS=$root_opts"
+          case ",$root_opts," in *,rw,*) ;; *) echo "R2_WRITE_ROOT_NOT_RW=$root_opts" >&2; exit 1 ;; esac
+          canary="$R2_WRITE_ROOT/.storage-exception-canary-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'rm -f "$canary"' EXIT
+          printf '%s\n' "r2-wss-storage-exception-canary" > "$canary"
+          sync "$canary"
+          test -s "$canary"
+          rm -f "$canary"
+          trap - EXIT
+          echo 'DIAGNOSTICS_WRITE=PASS'
+
+      - name: Verify reused CUDA environment remains functional
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x "$VERIFIED_PY"
+          "$VERIFIED_PY" - <<'PY'
+          import torch, numpy, pandas, lightgbm
+          assert torch.__version__ == '2.8.0+cu126'
+          assert torch.cuda.is_available()
+          print('TORCH=' + torch.__version__)
+          print('GPU=' + torch.cuda.get_device_name(0))
+          print('CUDA_CANARY=PASS')
+          PY
+
+      - name: Final least-privilege gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'R2_WSS_STORAGE_EXCEPTION_CANARY=PASS'
+          echo 'PROTECT_SYSTEM=strict'
+          echo 'PROTECT_HOME=yes'
+          echo 'R103_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R102_PACKAGE_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R103_DIRECT_HOME_VIEW=HIDDEN'
+          echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
+          echo 'R104_AUTHORITY_VIEW=READ_ONLY'
+          echo 'DIAGNOSTICS_WRITE=PASS'
+          echo 'CANONICAL_CAMPAIGN_MODIFIED=false'
+          echo 'SCIENTIFIC_SEMANTICS_CHANGED=false'
+          echo 'FINAL_HOLDOUT_2025_09_ACCESSED=false'

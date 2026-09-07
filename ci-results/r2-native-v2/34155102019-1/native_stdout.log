@@ -1,0 +1,13 @@
+{
+  "final_champion": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+  "first_created_payload_count": 9714,
+  "first_run_seconds": 754.0393934699241,
+  "generation_equivalence": [
+    true,
+    true
+  ],
+  "replay_created_payload_count": 0,
+  "replay_seconds": 22.100880295038223,
+  "status": "PASS"
+}
+R2_NATIVE_V2_WRAPPER=PASS

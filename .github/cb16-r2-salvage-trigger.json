@@ -1,0 +1,6 @@
+{
+  "schema": "CB16_R2_EVIDENCE_SALVAGE_TRIGGER_R0",
+  "source_run_id": 34089341171,
+  "source_run_attempt": 1,
+  "mode": "read_only_from_canonical_workspace"
+}

@@ -1,0 +1,5 @@
+{
+  "schema": "CB16_ARTIFACT_CHANNEL_CANARY_TRIGGER_V3",
+  "reason": "verify artifact v7 round-trip after checksum-path fix",
+  "final_holdout_2025_09_accessed": false
+}

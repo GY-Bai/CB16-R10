@@ -1,0 +1,143 @@
+name: CB16 R2 Live Progress Observer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-live-progress-trigger.json
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 5
+    steps:
+      - name: Read-only live R2 process hardware and private-run progress snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== UTC ==='
+          date -u +%Y-%m-%dT%H:%M:%SZ
+          echo '=== HOST ==='
+          uptime || true
+          printf 'NPROC='; nproc || true
+          free -h || true
+
+          echo '=== ACTIVE R2 PROCESSES ==='
+          ps -eo pid=,ppid=,etimes=,pcpu=,pmem=,rss=,stat=,comm=,args= --sort=-pcpu \
+            | grep -E 'run_r2_native_qualification|run_campaign_r2|r102_policy_trace|python' \
+            | grep -v grep \
+            | head -80 || true
+
+          R2PID="$(ps -eo pid=,args= | awk '$0 ~ /scripts\/run_r2_native_qualification_v2\.py/ {print $1; exit}')"
+          echo "R2_V2_WRAPPER_PID=${R2PID:-NONE}"
+
+          RUN_ROOT=''
+          META_ROOT=''
+          PAYLOAD_ROOT=''
+          if [ -n "${R2PID:-}" ] && [ -r "/proc/$R2PID/cmdline" ]; then
+            mapfile -d '' ARGS < "/proc/$R2PID/cmdline" || true
+            for ((i=0; i<${#ARGS[@]}; i++)); do
+              case "${ARGS[$i]}" in
+                --run-root)      RUN_ROOT="${ARGS[$((i+1))]:-}" ;;
+                --metadata-root) META_ROOT="${ARGS[$((i+1))]:-}" ;;
+                --payload-root)  PAYLOAD_ROOT="${ARGS[$((i+1))]:-}" ;;
+              esac
+            done
+          fi
+          echo "DISCOVERED_RUN_ROOT=${RUN_ROOT:-NONE}"
+          echo "DISCOVERED_METADATA_ROOT=${META_ROOT:-NONE}"
+          echo "DISCOVERED_PAYLOAD_ROOT=${PAYLOAD_ROOT:-NONE}"
+
+          echo '=== GPU ==='
+          nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader || true
+          nvidia-smi --query-gpu=utilization.gpu,utilization.memory,memory.used,memory.total,power.draw,temperature.gpu --format=csv,noheader || true
+
+          echo '=== PROCESS IO ==='
+          for p in $(ps -eo pid=,args= | awk '$0 ~ /run_r2_native_qualification(_v2)?\.py/ {print $1}'); do
+            echo "PROC_IO_PID=$p"
+            cat "/proc/$p/io" 2>/dev/null || true
+          done
+
+          echo '=== PRIVATE RUN PROGRESS VIA ACTIVE PROCESS ROOT NAMESPACE ==='
+          PHASE='NO_ACTIVE_R2_V2_PROCESS'
+          if [ -n "${R2PID:-}" ] && [ -n "${RUN_ROOT:-}" ] && [ -d "/proc/$R2PID/root" ]; then
+            RUN="/proc/$R2PID/root$RUN_ROOT"
+            echo "PROC_ROOT_RUN=$RUN"
+            if [ -d "$RUN" ]; then
+              PHASE='PRE_GENERATION'
+              for f in \
+                R2_MARKET_CACHE_AUTHORITY_BINDING.json \
+                R2_EXTERNAL_EVIDENCE_CACHE_BINDING.json \
+                R2_TRAINING_EVIDENCE_MATERIALIZATION.json \
+                R2_TRAINING_EVIDENCE_MATERIALIZATION_FIRST.json \
+                R2_TRAINING_EVIDENCE_MATERIALIZATION_REPLAY.json \
+                FINAL_RESULT_R2_FIRST.json \
+                FINAL_RESULT_R2.json; do
+                if [ -f "$RUN/$f" ]; then
+                  echo "RECEIPT_PRESENT=$f"
+                  stat -c 'RECEIPT_STAT=%n size=%s mtime=%y' "$RUN/$f" || true
+                else
+                  echo "RECEIPT_ABSENT=$f"
+                fi
+              done
+
+              G00_RESULT=0
+              G01_RESULT=0
+              for g in 00 01; do
+                GD="$RUN/generations/G$g"
+                if [ -d "$GD" ]; then
+                  echo "GEN_DIR_PRESENT=G$g"
+                  find "$GD" -maxdepth 1 -type f -printf 'GEN_FILE=G'$g'/%f size=%s mtime=%TY-%Tm-%TdT%TH:%TM:%TS\n' 2>/dev/null | sort || true
+                else
+                  echo "GEN_DIR_ABSENT=G$g"
+                fi
+                if [ -f "$GD/GENERATION_RESULT.json" ]; then
+                  if [ "$g" = 00 ]; then G00_RESULT=1; else G01_RESULT=1; fi
+                fi
+              done
+
+              if [ -f "$RUN/FINAL_RESULT_R2.json" ]; then
+                PHASE='REPLAY_COMPLETE_OR_FINALIZING'
+              elif [ -f "$RUN/R2_TRAINING_EVIDENCE_MATERIALIZATION_REPLAY.json" ]; then
+                PHASE='REPLAY_ACTIVE'
+              elif [ -f "$RUN/FINAL_RESULT_R2_FIRST.json" ]; then
+                PHASE='FIRST_CAMPAIGN_COMPLETE_REPLAY_PENDING_OR_ACTIVE'
+              elif [ "$G01_RESULT" = 1 ]; then
+                PHASE='G01_COMPLETE_FIRST_CAMPAIGN_FINALIZING'
+              elif [ -d "$RUN/generations/G01" ]; then
+                PHASE='G01_ACTIVE'
+              elif [ "$G00_RESULT" = 1 ]; then
+                PHASE='G00_COMPLETE_G01_PENDING'
+              elif [ -d "$RUN/generations/G00" ]; then
+                PHASE='G00_ACTIVE_POST_MARKET_CACHE_BIND_IF_NO_ERROR'
+              fi
+            else
+              PHASE='ACTIVE_PROCESS_RUN_ROOT_NOT_ACCESSIBLE'
+            fi
+          fi
+          echo "R2_INFERRED_PHASE=$PHASE"
+
+          echo '=== STORAGE ==='
+          df -hT / /data/cb16_hdd/cb16_diagnostics/r2_native 2>/dev/null || true
+          if command -v iostat >/dev/null 2>&1; then
+            iostat -xz 1 2 || true
+          fi
+          ROOT=/data/cb16_hdd/cb16_diagnostics/r2_native
+          findmnt -T "$ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS || true
+          if [ -d "$ROOT" ]; then
+            echo "R2_FILE_COUNT=$(find "$ROOT" -type f 2>/dev/null | wc -l)"
+            du -sh "$ROOT" 2>/dev/null || true
+            find "$ROOT" -maxdepth 5 -type f -printf '%T@ %s %p\n' 2>/dev/null \
+              | sort -nr | head -40 || true
+          fi
+
+          echo 'OBSERVER_MODE=READ_ONLY_DYNAMIC_ACTIVE_PROCESS_DISCOVERY'
+          echo 'WRITES_PERFORMED=false'
+          echo 'CANONICAL_R104_MODIFIED=false'
+          echo 'SCIENTIFIC_SEMANTICS_CHANGED=false'
+          echo 'FINAL_HOLDOUT_2025_09_ACCESSED=false'

@@ -28,7 +28,7 @@ jobs:
           python3 --version
           nvidia-smi || true
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Git identity
@@ -119,9 +119,6 @@ jobs:
           }
           trap cleanup EXIT
 
-          # Self-hosted runners keep the repository metadata between runs.
-          # rm -rf alone does not unregister a Git worktree, so explicitly
-          # remove/prune both the legacy fixed path and the unique current path.
           git worktree remove --force "$legacy_wt" >/dev/null 2>&1 || true
           rm -rf "$legacy_wt"
           git worktree remove --force "$wt" >/dev/null 2>&1 || true

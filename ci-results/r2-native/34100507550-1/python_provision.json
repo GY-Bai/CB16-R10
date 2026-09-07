@@ -1,0 +1,47 @@
+{
+  "environment_id": "r104",
+  "expected": {
+    "environment_hash": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+    "python_version": "3.10.12",
+    "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  },
+  "failure_reasons": [],
+  "final_holdout_2025_09_accessed": false,
+  "host_route_summary": {
+    "pip_route_key_present": true,
+    "process_route_key_present": true,
+    "provision_env_present": true,
+    "provision_env_readable": true,
+    "proxy_route_key_present": false,
+    "standard_pip_config_present": false,
+    "standard_uv_config_present": false,
+    "uv_route_key_present": true,
+    "values_redacted": true
+  },
+  "mode": "VERIFIED_CANONICAL_R104_VENV_REUSE",
+  "observed": {
+    "import_cuda_canary_pass": true,
+    "python_executable": true,
+    "python_version": "3.10.12",
+    "ready_environment_hash": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+    "ready_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+    "ready_present": true,
+    "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  },
+  "python": {
+    "cache_hit": true,
+    "installer": "verified_existing_uv_environment",
+    "network_install_attempted": false,
+    "public_direct_fallback_used": false,
+    "public_index_fallback_used": false,
+    "python_version": "3.10.12",
+    "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+    "status": "READY",
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  },
+  "schema": "CB16_R104_VERIFIED_PYTHON_REUSE_V1",
+  "scientific_semantics_changed": false,
+  "status": "READY"
+}

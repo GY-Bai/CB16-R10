@@ -1,0 +1,11 @@
+test_host_mirror_policy_accepts_shanxi_shape (tests.test_provision_mirror_routing.ProvisionMirrorRoutingTests) ... ok
+test_host_mirror_policy_rejects_embedded_public_index (tests.test_provision_mirror_routing.ProvisionMirrorRoutingTests) ... ok
+test_host_mirror_policy_rejects_missing_accelerator_route (tests.test_provision_mirror_routing.ProvisionMirrorRoutingTests) ... ok
+test_pip_routes_bridge_to_uv (tests.test_provision_mirror_routing.ProvisionMirrorRoutingTests) ... ok
+test_r104_manifest_requires_host_mirror_and_repo_requirement_has_no_index_directive (tests.test_provision_mirror_routing.ProvisionMirrorRoutingTests) ... ok
+test_uv_routes_bridge_to_pip (tests.test_provision_mirror_routing.ProvisionMirrorRoutingTests) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.002s
+
+OK

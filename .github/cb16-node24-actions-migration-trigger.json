@@ -1,0 +1,5 @@
+{
+  "schema": "CB16_NODE24_ACTIONS_MIGRATION_TRIGGER_V3",
+  "reason": "rerun after fixing lint self-match; require repository-wide checkout v6 and artifact v7 migration before R2 native campaign integration",
+  "final_holdout_2025_09_accessed": false
+}

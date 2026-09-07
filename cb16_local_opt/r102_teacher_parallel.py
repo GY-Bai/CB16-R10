@@ -2,9 +2,12 @@ from __future__ import annotations
 
 """Adaptive bounded process farm for R10 probabilistic Teacher compilation.
 
-R8.2 starts six single-threaded Teacher workers. Scheduling is deterministic by
+R8.2 starts bounded single-threaded Teacher workers. Scheduling is deterministic by
 ordinal reordering. RAM pressure may retire workers or terminate one active pure
 Teacher job and requeue it; at least one worker is retained.
+
+The legacy caller defaults to the original R6 Teacher. R2 may explicitly opt in to
+the mathematically equivalent target-geometry reuse implementation.
 """
 
 import multiprocessing as mp
@@ -21,8 +24,7 @@ from .r102_parallel_runtime import ram_action_r82, sample_ram_pressure_r82
 
 _TRAIN_TEACHER = None
 _VAL_TEACHER = None
-_TRAIN_INDEX = None
-_VAL_INDEX = None
+_INDEX = None
 _TRAIN_GROUPS = None
 
 
@@ -34,26 +36,43 @@ def _set_threads(threads: int) -> None:
     os.environ["NUMEXPR_NUM_THREADS"] = n
 
 
-def _teacher_init(samples, train_groups, train_config, val_config, threads: int) -> None:
-    global _TRAIN_TEACHER, _VAL_TEACHER, _TRAIN_INDEX, _VAL_INDEX, _TRAIN_GROUPS
+def _teacher_class(*, incremental_geometry: bool):
+    if incremental_geometry:
+        # Lazy import avoids coupling the legacy Teacher entry point to R2 unless
+        # the caller explicitly requests the optimization.
+        from .r102_teacher_incremental import ExactIncrementalTeacherR6
+        return ExactIncrementalTeacherR6
+    return DependenceAwareProbabilisticTeacherR6
+
+
+def _teacher_init(
+    samples,
+    train_groups,
+    train_config,
+    val_config,
+    threads: int,
+    incremental_geometry: bool = False,
+) -> None:
+    global _TRAIN_TEACHER, _VAL_TEACHER, _INDEX, _TRAIN_GROUPS
     _set_threads(threads)
     _TRAIN_GROUPS = set(train_groups)
-    _TRAIN_TEACHER = DependenceAwareProbabilisticTeacherR6(train_config)
-    _VAL_TEACHER = DependenceAwareProbabilisticTeacherR6(val_config)
-    _TRAIN_INDEX = _TRAIN_TEACHER.index(samples)
-    _VAL_INDEX = _VAL_TEACHER.index(samples)
+    teacher_cls = _teacher_class(incremental_geometry=bool(incremental_geometry))
+    _TRAIN_TEACHER = teacher_cls(train_config)
+    _VAL_TEACHER = teacher_cls(val_config)
+    # TeacherIndexR6 is a pure function of samples and independent of config.
+    # Sharing the index is semantic-preserving for both legacy and R2 paths.
+    _INDEX = _TRAIN_TEACHER.index(samples)
 
 
 def _compile_one(job: tuple[int, str, str]):
     ordinal, lane, parent_id = job
     if lane == "TRAIN":
         teacher = _TRAIN_TEACHER
-        index = _TRAIN_INDEX
     elif lane == "VALIDATION":
         teacher = _VAL_TEACHER
-        index = _VAL_INDEX
     else:
         raise RuntimeError(f"UNKNOWN_TEACHER_LANE:{lane}")
+    index = _INDEX
     if teacher is None or index is None or _TRAIN_GROUPS is None:
         raise RuntimeError("R102_TEACHER_WORKER_NOT_INITIALIZED")
     if parent_id not in index.rows_by_parent:
@@ -84,8 +103,16 @@ def _teacher_worker_loop(
     train_config,
     val_config,
     threads_per_worker: int,
+    incremental_geometry: bool,
 ) -> None:
-    _teacher_init(samples, train_groups, train_config, val_config, threads_per_worker)
+    _teacher_init(
+        samples,
+        train_groups,
+        train_config,
+        val_config,
+        threads_per_worker,
+        incremental_geometry=incremental_geometry,
+    )
     pid = os.getpid()
     result_q.put(("READY", pid, None, None))
     while True:
@@ -118,10 +145,12 @@ def compile_teacher_evidence_process_farm_r102(
     ram_hard_stop: float = 0.92,
     ram_poll_seconds: float = 0.5,
     ram_retire_cooldown_seconds: float = 2.0,
+    incremental_geometry: bool = False,
 ):
     workers = int(workers)
     threads_per_worker = int(threads_per_worker)
     max_in_flight = int(max_in_flight)
+    incremental_geometry = bool(incremental_geometry)
     if workers <= 0 or threads_per_worker <= 0:
         raise ValueError("R102_INVALID_TEACHER_WORKER_CONFIG")
     if max_in_flight < workers:
@@ -138,7 +167,14 @@ def compile_teacher_evidence_process_farm_r102(
         return [], []
 
     if workers == 1:
-        _teacher_init(samples, set(train_groups), train_config, val_config, threads_per_worker)
+        _teacher_init(
+            samples,
+            set(train_groups),
+            train_config,
+            val_config,
+            threads_per_worker,
+            incremental_geometry=incremental_geometry,
+        )
         raw = [_compile_one(j) for j in jobs]
     else:
         ctx = mp.get_context("spawn")
@@ -166,6 +202,7 @@ def compile_teacher_evidence_process_farm_r102(
                     train_config,
                     val_config,
                     threads_per_worker,
+                    incremental_geometry,
                 ),
                 daemon=False,
             )

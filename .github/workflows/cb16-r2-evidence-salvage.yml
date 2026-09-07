@@ -1,0 +1,93 @@
+name: CB16 R2 Evidence Salvage
+
+on:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-salvage-trigger.json
+
+permissions:
+  contents: write
+
+jobs:
+  salvage:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 10
+    env:
+      SOURCE_RUN_ID: '34089341171'
+      SOURCE_RUN_ATTEMPT: '1'
+      CANONICAL_WORKSPACE: /data/cb16_ci/github-runner-canonical/_work/CB16-R10/CB16-R10
+      CANONICAL_DIAG: /data/cb16_ci/github-runner-canonical/_diag
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Salvage completed R2 evidence read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="$CANONICAL_WORKSPACE/ci_evidence"
+          test -d "$SRC"
+          DEST="$RUNNER_TEMP/r2-salvage-${SOURCE_RUN_ID}-${SOURCE_RUN_ATTEMPT}"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cp -a "$SRC"/. "$DEST"/
+
+          if [ -d "$CANONICAL_DIAG" ]; then
+            WLOG="$(ls -t "$CANONICAL_DIAG"/Worker_*.log 2>/dev/null | head -1 || true)"
+            RLOG="$(ls -t "$CANONICAL_DIAG"/Runner_*.log 2>/dev/null | head -1 || true)"
+            if [ -n "$WLOG" ]; then
+              tail -n 500 "$WLOG" > "$DEST/canonical_worker_tail.log" || true
+              grep -Ei 'artifact|blob|results-receiver|azure|upload|error|exception|timeout' "$WLOG" \
+                | tail -n 250 > "$DEST/canonical_worker_artifact_excerpt.log" || true
+            fi
+            if [ -n "$RLOG" ]; then
+              tail -n 250 "$RLOG" > "$DEST/canonical_runner_tail.log" || true
+            fi
+          fi
+
+          python3 - "$DEST" <<'PY'
+          import json, pathlib, sys
+          p=pathlib.Path(sys.argv[1])
+          def load(name):
+              f=p/name
+              return json.loads(f.read_text()) if f.exists() else None
+          result=load('result.json')
+          bench=load('benchmark.json')
+          full=load('full_migration.json')
+          audit=load('sequential_audit.json')
+          summary={
+              'result_verdict': result.get('verdict') if result else None,
+              'result_errors': result.get('errors') if result else None,
+              'benchmark': bench,
+              'full_migration': full,
+              'sequential_audit': audit,
+          }
+          (p/'SALVAGE_SUMMARY.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({
+              'result_verdict':summary['result_verdict'],
+              'benchmark_status':bench.get('status') if bench else None,
+              'audit_pass':audit.get('pass') if audit else None,
+          },sort_keys=True))
+          assert result and result.get('verdict')=='PASS_FULL'
+          assert bench and bench.get('status')=='PASS'
+          assert audit and audit.get('pass') is True
+          PY
+
+          SNAP="$RUNNER_TEMP/r2-salvage-snapshot"
+          rm -rf "$SNAP"
+          mv "$DEST" "$SNAP"
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          OUT="ci-results/r2-storage/${SOURCE_RUN_ID}-${SOURCE_RUN_ATTEMPT}-salvaged"
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+          cp -a "$SNAP"/. "$OUT"/
+          git config user.name 'cb16-r2-salvage-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$OUT"
+          git commit -m "ci-results: salvage R2 storage run ${SOURCE_RUN_ID}.${SOURCE_RUN_ATTEMPT}"
+          git push origin "HEAD:$BRANCH"

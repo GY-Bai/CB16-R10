@@ -4,6 +4,28 @@ jobs:
   guard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run repository policy
         run: python3 ci/check_repository_policy.py --root .
+      - name: Compile P0 incremental Python sources
+        run: |
+          python3 -m py_compile \
+            cb16_local_opt/r102_teacher_incremental.py \
+            cb16_local_opt/r102_teacher_parallel.py \
+            cb16_local_opt/r102_evidence_incremental.py \
+            cb16_local_opt/r2_training_incremental.py \
+            cb16_local_opt/r2_policy_trace_incremental.py \
+            cb16_local_opt/r2_frozen_guard.py \
+            cb16_local_opt/r2_evidence_storage_incremental.py \
+            cb16_local_opt/r2_campaign.py \
+            scripts/run_r104_long_research.py \
+            scripts/run_r2_native_qualification_v2.py \
+            tests/test_r102_teacher_incremental.py \
+            tests/test_r102_evidence_incremental.py \
+            tests/test_r2_frozen_guard.py \
+            tests/test_r2_evidence_storage_incremental.py
+      - name: Run dependency-free P0 unit tests
+        run: |
+          python3 -m unittest \
+            tests.test_r2_frozen_guard \
+            tests.test_r2_evidence_storage_incremental

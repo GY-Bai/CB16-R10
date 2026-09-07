@@ -1,0 +1,8 @@
+{
+  "schema": "CB16_RUNNER_STORAGE_SANDBOX_DIAGNOSTIC_TRIGGER_V1",
+  "purpose": "READ_ONLY_IDENTIFY_SYSTEMD_OR_MOUNT_POLICY_CAUSING_HDD_EROFS_FOR_R2_QUALIFICATION",
+  "host_mutation": false,
+  "canonical_r104_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

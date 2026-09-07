@@ -1,0 +1,7 @@
+{
+  "schema": "CB16_R2_WSS_STORAGE_CAPABILITY_TRIGGER_V1",
+  "purpose": "VERIFY_NONCANONICAL_WSS_RUNNER_CAN_EXECUTE_CANONICAL_VENV_AND_WRITE_HDD_DIAGNOSTICS_ROOT",
+  "canonical_r104_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

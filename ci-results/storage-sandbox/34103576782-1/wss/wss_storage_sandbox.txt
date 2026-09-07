@@ -1,0 +1,28 @@
+RUNNER_KIND=wss
+WHOAMI=cb16-ghrunner
+SELF_CGROUP_BEGIN
+0::/system.slice/cb16-github-runner.service
+SELF_CGROUP_END
+PID1=systemd
+FINDMNT_HDD_BEGIN
+TARGET SOURCE    FSTYPE OPTIONS
+/data  /dev/sda1 ext4   ro,nosuid,noatime
+FINDMNT_HDD_END
+FINDMNT_R104_BEGIN
+TARGET SOURCE    FSTYPE OPTIONS
+/data  /dev/sda1 ext4   ro,nosuid,noatime
+FINDMNT_R104_END
+FINDMNT_DIAG_BEGIN
+TARGET SOURCE    FSTYPE OPTIONS
+/data  /dev/sda1 ext4   ro,nosuid,noatime
+FINDMNT_DIAG_END
+STAT_BEGIN
+drwxrwxr-x 775 bgy bgy /data/cb16_hdd
+drwxrwxr-x 775 bgy bgy /data/cb16_hdd/cb16_runtime
+drwxrwxr-x 775 bgy bgy /data/cb16_hdd/cb16_runtime/R10_4
+drwxr-xr-x 755 cb16-ci cb16-ci /data/cb16_hdd/cb16_diagnostics
+STAT_END
+RUNNER_UNITS_BEGIN
+RUNNER_UNITS_END
+MOUNTINFO_HDD_BEGIN
+MOUNTINFO_HDD_END

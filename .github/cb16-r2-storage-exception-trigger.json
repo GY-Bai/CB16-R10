@@ -1,0 +1,15 @@
+{
+  "schema": "CB16_R2_WSS_STORAGE_EXCEPTION_TRIGGER_V4",
+  "purpose": "QUALIFY_FULL_WSS_R2_AUTHORITY_ALIASES_AFTER_EXACT_FILE_CB16_GHRUNNER_READ_ACL",
+  "protect_system": "strict",
+  "protect_home": "yes",
+  "r103_authority_alias": "/data/cb16_ci/r2-authority/r103",
+  "r102_package_authority_alias": "/data/cb16_ci/r2-authority/package_r102",
+  "r104_authority_access": "READ_ONLY",
+  "r2_write_root": "/data/cb16_hdd/cb16_diagnostics/r2_native",
+  "acl_scope": "EXACT_8_FROZEN_AUTHORITY_FILES_READ_ONLY_FOR_CB16_GHRUNNER",
+  "canonical_runner_modified": false,
+  "canonical_campaign_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

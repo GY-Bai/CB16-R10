@@ -1,0 +1,7 @@
+{
+  "schema": "CB16_PROVISION_MIRROR_QUALIFICATION_TRIGGER_V3",
+  "purpose": "QUALIFY_EFFECTIVE_PROVISION_ENV_WITH_NO_PROXY_FOR_HOST_DECLARED_SHANXI_PACKAGE_MIRRORS",
+  "network_install_attempted": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

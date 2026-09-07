@@ -1,0 +1,14 @@
+{
+  "created_payload_count": 9714,
+  "evidence_set_hash": "31978f3234268fe102839cf5d10d07a69dd7c257973bd162d59c3342251bd03b",
+  "index_commit_seconds": 2.989321440923959,
+  "object_count": 9714,
+  "pack_write_seconds": 1.757407768862322,
+  "raw_bytes": 75161683,
+  "reused_payload_count": 0,
+  "schema": "CB16_R2_MATERIALIZE_RECEIPT_V1",
+  "storage_amplification_model": "O(N_CONTENT_ONCE + G_TINY_SNAPSHOTS)",
+  "stored_bytes": 24967748,
+  "total_seconds": 7.587897034129128,
+  "unique_payload_count": 9714
+}

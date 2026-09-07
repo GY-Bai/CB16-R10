@@ -1,0 +1,189 @@
+name: CB16 Provision Mirror Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-provision-mirror-trigger.json
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose-provision-mirror:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Collect sanitized provision and mirror state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess, urllib.parse
+
+          out={
+            'schema':'CB16_SHANXI_PROVISION_MIRROR_DIAGNOSTIC_V1',
+            'env_files':[],
+            'process_env':{},
+            'tools':{},
+            'find_links':[],
+            'known_r104_venv':{},
+            'requirements_direct_indexes':[],
+          }
+
+          interesting={
+            'PIP_INDEX_URL','PIP_EXTRA_INDEX_URL','PIP_TRUSTED_HOST','PIP_FIND_LINKS','PIP_CONFIG_FILE',
+            'UV_INDEX_URL','UV_EXTRA_INDEX_URL','UV_DEFAULT_INDEX','UV_FIND_LINKS','UV_INDEX','UV_NO_INDEX',
+            'HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy',
+          }
+          secret_markers=('TOKEN','SECRET','PASSWORD','PASSWD','KEY','CREDENTIAL','AUTH')
+
+          def safe_value(k,v):
+            if any(x in k.upper() for x in secret_markers): return '<REDACTED_PRESENT>'
+            vals=[]
+            for raw in str(v).split():
+              try:
+                u=urllib.parse.urlsplit(raw)
+                if u.scheme and u.hostname:
+                  host=u.hostname
+                  port=f':{u.port}' if u.port else ''
+                  path=u.path or ''
+                  vals.append(f'{u.scheme}://{host}{port}{path}')
+                  continue
+              except Exception:
+                pass
+              if raw.startswith('/'):
+                vals.append(raw)
+              else:
+                vals.append('<SET>')
+            return ' '.join(vals)
+
+          for k in sorted(interesting):
+            if k in os.environ:
+              out['process_env'][k]=safe_value(k,os.environ[k])
+
+          for ep in ('/etc/cb16-ci/provision.env','/data/cb16_ci/provision.env'):
+            p=pathlib.Path(ep)
+            item={'path':ep,'exists':p.exists(),'entries':{}}
+            if p.exists():
+              try:
+                for line in p.read_text(errors='replace').splitlines():
+                  s=line.strip()
+                  if not s or s.startswith('#') or '=' not in s: continue
+                  k,v=s.split('=',1)
+                  k=k.strip(); v=v.strip()
+                  item['entries'][k]=safe_value(k,v)
+              except Exception as e:
+                item['read_error']=type(e).__name__
+            out['env_files'].append(item)
+
+          def run(cmd):
+            p=subprocess.run(cmd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+            return {'rc':p.returncode,'stdout':p.stdout[-12000:]}
+
+          out['tools']['python']=run(['python3','--version'])
+          out['tools']['pip']=run(['python3','-m','pip','--version'])
+          out['tools']['uv']=run(['bash','-lc','command -v uv >/dev/null && uv --version || true'])
+
+          # Do not dump pip config values verbatim because URLs may contain credentials.
+          pc=run(['python3','-m','pip','config','debug'])
+          sanitized=[]
+          for line in pc['stdout'].splitlines():
+            m=re.match(r'\s*([^=]+)=\s*[\'\"]?(.*?)[\'\"]?\s*$',line)
+            if m and any(x in m.group(1).upper() for x in ('INDEX','PROXY','TRUSTED','FIND_LINKS')):
+              sanitized.append(f'{m.group(1).strip()}={safe_value(m.group(1).strip(),m.group(2).strip())}')
+            elif 'env_var' in line or 'global.' in line or 'site.' in line or 'user.' in line:
+              sanitized.append(line[:300])
+          out['tools']['pip_config_debug_sanitized']={'rc':pc['rc'],'lines':sanitized}
+
+          merged={}
+          for item in out['env_files']:
+            merged.update(item.get('entries',{}))
+          merged.update(out['process_env'])
+          for k in ('PIP_FIND_LINKS','UV_FIND_LINKS'):
+            val=merged.get(k)
+            if not val: continue
+            for token in val.split():
+              if token.startswith('/'):
+                p=pathlib.Path(token)
+                rec={'key':k,'path':token,'exists':p.exists(),'is_dir':p.is_dir()}
+                if p.is_dir():
+                  wheels=list(p.rglob('*.whl'))
+                  rec['wheel_count']=len(wheels)
+                  rec['torch_wheel_count']=sum(1 for x in wheels if x.name.startswith('torch-'))
+                  rec['sample_torch_wheels']=[x.name for x in wheels if x.name.startswith('torch-')][:10]
+                out['find_links'].append(rec)
+
+          req=pathlib.Path('requirements-shanxi-pascal.txt')
+          if req.exists():
+            for line in req.read_text().splitlines():
+              s=line.strip()
+              if s.startswith('--extra-index-url') or s.startswith('--index-url'):
+                url=s.split(None,1)[1] if ' ' in s else ''
+                out['requirements_direct_indexes'].append(safe_value('INDEX_URL',url))
+
+          venv=pathlib.Path('/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba')
+          vi={'path':str(venv),'exists':venv.exists()}
+          py=venv/'bin/python'
+          if py.exists():
+            vi['python_exists']=True
+            vi['runtime']=run([str(py),'-c','import sys,torch,numpy,pandas,lightgbm,pytest; print(sys.version); print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO_GPU")'])
+            code="import importlib.metadata as m,hashlib,json; x=sorted((d.metadata.get('Name','').lower(),d.version) for d in m.distributions()); s=json.dumps(x,separators=(',',':')); print(hashlib.sha256(s.encode()).hexdigest()); print(len(x))"
+            vi['package_identity']=run([str(py),'-c',code])
+            ready=venv/'READY.json'
+            vi['ready_exists']=ready.exists()
+            if ready.exists():
+              try:
+                r=json.loads(ready.read_text())
+                vi['ready_summary']={k:r.get(k) for k in ('environment_id','environment_hash','environment_sha256','installer','python_version','resolved_packages_sha256','public_index_fallback_used','public_direct_fallback_used')}
+              except Exception as e:
+                vi['ready_error']=type(e).__name__
+          out['known_r104_venv']=vi
+
+          pathlib.Path('ci_evidence/provision_mirror_diagnostic.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({
+            'env_files':out['env_files'],
+            'process_env':out['process_env'],
+            'find_links':out['find_links'],
+            'known_r104_venv':out['known_r104_venv'],
+            'requirements_direct_indexes':out['requirements_direct_indexes'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Persist diagnostic evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="$RUNNER_TEMP/cb16-provision-mirror-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP" && mkdir -p "$SNAP"
+          cp -a ci_evidence/. "$SNAP"/
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/provision-mirror/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$DEST"
+          cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-provision-diagnostic-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if ! git diff --cached --quiet; then
+            git commit -m "ci-results: provision mirror diagnostic ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+            git push origin "HEAD:$BRANCH"
+          fi
+
+      - name: Upload diagnostic artifact
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-provision-mirror-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          retention-days: 14

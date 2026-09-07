@@ -2,7 +2,13 @@
   "schema": "CB16_ENVIRONMENT_V1",
   "id": "r104",
   "python": {
-    "requires": ">=3.10,<3.13"
+    "requires": ">=3.10,<3.13",
+    "installer_policy": "UV_REQUIRED",
+    "index_policy": "HOST_ENV_REQUIRED",
+    "allow_embedded_index_directives": false,
+    "allow_embedded_find_links": false,
+    "allow_public_index_fallback": false,
+    "package_identity_policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE"
   },
   "requirements": [
     "requirements-shanxi-pascal.txt",

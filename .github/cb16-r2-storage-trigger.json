@@ -1,0 +1,10 @@
+{
+  "schema": "CB16_R2_STORAGE_QUALIFICATION_TRIGGER_V1",
+  "requested_mode": "AUTO_FULL_WHEN_R104_STOPPED",
+  "legacy_generations": [60, 61],
+  "benchmark_objects": 9714,
+  "benchmark_generations": 100,
+  "canonical_campaign_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}

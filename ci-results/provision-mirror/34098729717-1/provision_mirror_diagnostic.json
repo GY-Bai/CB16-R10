@@ -1,0 +1,72 @@
+{
+  "env_files": [
+    {
+      "entries": {},
+      "exists": true,
+      "path": "/etc/cb16-ci/provision.env",
+      "read_error": "PermissionError"
+    },
+    {
+      "entries": {},
+      "exists": false,
+      "path": "/data/cb16_ci/provision.env"
+    }
+  ],
+  "find_links": [],
+  "known_r104_venv": {
+    "exists": true,
+    "package_identity": {
+      "rc": 0,
+      "stdout": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6\n62\n"
+    },
+    "path": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+    "python_exists": true,
+    "ready_exists": true,
+    "ready_summary": {
+      "environment_hash": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+      "environment_id": "r104",
+      "environment_sha256": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+      "installer": "uv",
+      "public_direct_fallback_used": false,
+      "public_index_fallback_used": false,
+      "python_version": "3.10.12",
+      "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6"
+    },
+    "runtime": {
+      "rc": 0,
+      "stdout": "3.10.12 (main, Jun 22 2026, 18:55:27) [GCC 11.4.0]\n2.8.0+cu126\n12.6\nTrue\nNVIDIA GeForce GTX 1060 6GB\n"
+    }
+  },
+  "process_env": {
+    "HTTPS_PROXY": "http://127.0.0.1:33128",
+    "HTTP_PROXY": "http://127.0.0.1:33128",
+    "NO_PROXY": "<SET>",
+    "http_proxy": "http://127.0.0.1:33128",
+    "https_proxy": "http://127.0.0.1:33128",
+    "no_proxy": "<SET>"
+  },
+  "requirements_direct_indexes": [
+    "https://download.pytorch.org/whl/cu126"
+  ],
+  "schema": "CB16_SHANXI_PROVISION_MIRROR_DIAGNOSTIC_V1",
+  "tools": {
+    "pip": {
+      "rc": 0,
+      "stdout": "pip 22.0.2 from /usr/lib/python3/dist-packages/pip (python 3.10)\n"
+    },
+    "pip_config_debug_sanitized": {
+      "lines": [
+        "env_var:"
+      ],
+      "rc": 0
+    },
+    "python": {
+      "rc": 0,
+      "stdout": "Python 3.10.12\n"
+    },
+    "uv": {
+      "rc": 0,
+      "stdout": "uv 0.12.6 (x86_64-unknown-linux-gnu)\n"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+name: CB16 R2 WSS Storage Capability
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-wss-storage-capability-trigger.json
+
+permissions:
+  contents: read
+
+jobs:
+  wss-storage-capability:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check GPU Python and safe HDD diagnostics write
+        shell: bash
+        run: |
+          set -euo pipefail
+          VENV=/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba
+          test -x "$VENV/bin/python"
+          "$VENV/bin/python" - <<'PY'
+          import torch
+          assert torch.__version__=='2.8.0+cu126'
+          assert torch.cuda.is_available()
+          print('TORCH='+torch.__version__)
+          print('GPU='+torch.cuda.get_device_name(0))
+          PY
+          ROOT="/data/cb16_hdd/cb16_diagnostics/r2_native_capability/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$ROOT"
+          touch "$ROOT/.write_canary"
+          sync "$ROOT/.write_canary"
+          echo "HDD_SOURCE=$(findmnt -n -o SOURCE -T "$ROOT")"
+          echo "HDD_OPTIONS=$(findmnt -n -o OPTIONS -T "$ROOT")"
+          echo "TMP_SOURCE=$(findmnt -n -o SOURCE -T /tmp)"
+          rm -rf "$ROOT"
+          echo 'WSS_R2_STORAGE_CAPABILITY=PASS'

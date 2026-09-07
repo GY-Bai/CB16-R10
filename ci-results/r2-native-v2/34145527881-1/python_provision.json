@@ -1,0 +1,217 @@
+{
+  "environment_id": "r104",
+  "expected": {
+    "environment_cache_key": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+    "package_identity_policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE",
+    "python_version": "3.10.12",
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  },
+  "failure_reasons": [],
+  "final_holdout_2025_09_accessed": false,
+  "host_route_summary": {
+    "pip_route_key_present": false,
+    "process_route_key_present": true,
+    "provision_env_present": true,
+    "provision_env_readable": false,
+    "proxy_route_key_present": false,
+    "uv_route_key_present": false,
+    "values_redacted": true
+  },
+  "mode": "VERIFIED_CANONICAL_R104_VENV_REUSE",
+  "observed": {
+    "direct_package_versions": {
+      "all_requirements_satisfied": true,
+      "mismatched_packages": [],
+      "packages": [
+        {
+          "name": "torch",
+          "requirement": "torch==2.8.0+cu126",
+          "satisfied": true,
+          "version": "2.8.0+cu126"
+        },
+        {
+          "name": "numpy",
+          "requirement": "numpy>=2.2,<2.5",
+          "satisfied": true,
+          "version": "2.2.6"
+        },
+        {
+          "name": "pandas",
+          "requirement": "pandas>=2.2,<2.4",
+          "satisfied": true,
+          "version": "2.3.3"
+        },
+        {
+          "name": "pyarrow",
+          "requirement": "pyarrow>=15",
+          "satisfied": true,
+          "version": "25.0.1"
+        },
+        {
+          "name": "safetensors",
+          "requirement": "safetensors>=0.5.3",
+          "satisfied": true,
+          "version": "0.8.0"
+        },
+        {
+          "name": "huggingface-hub",
+          "requirement": "huggingface-hub>=0.28",
+          "satisfied": true,
+          "version": "1.30.0"
+        },
+        {
+          "name": "einops",
+          "requirement": "einops>=0.8",
+          "satisfied": true,
+          "version": "0.8.2"
+        },
+        {
+          "name": "joblib",
+          "requirement": "joblib>=1.4",
+          "satisfied": true,
+          "version": "1.6.0"
+        },
+        {
+          "name": "scikit-learn",
+          "requirement": "scikit-learn>=1.5",
+          "satisfied": true,
+          "version": "1.7.2"
+        },
+        {
+          "name": "lightgbm",
+          "requirement": "lightgbm>=4.5",
+          "satisfied": true,
+          "version": "4.7.0"
+        },
+        {
+          "name": "tqdm",
+          "requirement": "tqdm>=4.66",
+          "satisfied": true,
+          "version": "4.70.0"
+        },
+        {
+          "name": "requests",
+          "requirement": "requests>=2.31",
+          "satisfied": true,
+          "version": "2.34.2"
+        },
+        {
+          "name": "pytest",
+          "requirement": "pytest>=8,<9",
+          "satisfied": true,
+          "version": "8.4.2"
+        }
+      ],
+      "policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE"
+    },
+    "environment_cache_key": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+    "environment_cache_key_is_package_integrity_gate": false,
+    "import_cuda_canary_pass": true,
+    "legacy_ready_package_hash_present_but_ignored": true,
+    "package_hash_validation_used": false,
+    "python_executable": true,
+    "python_version": "3.10.12",
+    "ready_environment_cache_key": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+    "ready_present": true,
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  },
+  "python": {
+    "cache_hit": true,
+    "direct_package_versions": {
+      "all_requirements_satisfied": true,
+      "mismatched_packages": [],
+      "packages": [
+        {
+          "name": "torch",
+          "requirement": "torch==2.8.0+cu126",
+          "satisfied": true,
+          "version": "2.8.0+cu126"
+        },
+        {
+          "name": "numpy",
+          "requirement": "numpy>=2.2,<2.5",
+          "satisfied": true,
+          "version": "2.2.6"
+        },
+        {
+          "name": "pandas",
+          "requirement": "pandas>=2.2,<2.4",
+          "satisfied": true,
+          "version": "2.3.3"
+        },
+        {
+          "name": "pyarrow",
+          "requirement": "pyarrow>=15",
+          "satisfied": true,
+          "version": "25.0.1"
+        },
+        {
+          "name": "safetensors",
+          "requirement": "safetensors>=0.5.3",
+          "satisfied": true,
+          "version": "0.8.0"
+        },
+        {
+          "name": "huggingface-hub",
+          "requirement": "huggingface-hub>=0.28",
+          "satisfied": true,
+          "version": "1.30.0"
+        },
+        {
+          "name": "einops",
+          "requirement": "einops>=0.8",
+          "satisfied": true,
+          "version": "0.8.2"
+        },
+        {
+          "name": "joblib",
+          "requirement": "joblib>=1.4",
+          "satisfied": true,
+          "version": "1.6.0"
+        },
+        {
+          "name": "scikit-learn",
+          "requirement": "scikit-learn>=1.5",
+          "satisfied": true,
+          "version": "1.7.2"
+        },
+        {
+          "name": "lightgbm",
+          "requirement": "lightgbm>=4.5",
+          "satisfied": true,
+          "version": "4.7.0"
+        },
+        {
+          "name": "tqdm",
+          "requirement": "tqdm>=4.66",
+          "satisfied": true,
+          "version": "4.70.0"
+        },
+        {
+          "name": "requests",
+          "requirement": "requests>=2.31",
+          "satisfied": true,
+          "version": "2.34.2"
+        },
+        {
+          "name": "pytest",
+          "requirement": "pytest>=8,<9",
+          "satisfied": true,
+          "version": "8.4.2"
+        }
+      ],
+      "policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE"
+    },
+    "installer": "verified_existing_uv_environment",
+    "network_install_attempted": false,
+    "package_hash_validation_used": false,
+    "public_direct_fallback_used": false,
+    "public_index_fallback_used": false,
+    "python_version": "3.10.12",
+    "status": "READY",
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  },
+  "schema": "CB16_R104_VERIFIED_PYTHON_REUSE_V2",
+  "scientific_semantics_changed": false,
+  "status": "READY"
+}

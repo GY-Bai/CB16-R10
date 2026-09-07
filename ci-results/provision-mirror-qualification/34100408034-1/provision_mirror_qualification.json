@@ -1,0 +1,181 @@
+{
+  "direct_route_pass": true,
+  "effective_route_pass": true,
+  "final_holdout_2025_09_accessed": false,
+  "network_install_attempted": false,
+  "public_pytorch_index_present": false,
+  "requirements_embedded_indexes": [],
+  "route_probes": [
+    {
+      "direct_control": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.volces.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "FORCED_DIRECT_CONTROL",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.volces.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "EFFECTIVE_PROVISION_ENV",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective_matches_direct_reachability": true,
+      "endpoint": {
+        "host": "mirrors.volces.com",
+        "path": "/pypi/simple/",
+        "port": null,
+        "scheme": "https",
+        "userinfo_redacted": true
+      }
+    },
+    {
+      "direct_control": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pytorch-wheels/cu126/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "FORCED_DIRECT_CONTROL",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pytorch-wheels/cu126/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "EFFECTIVE_PROVISION_ENV",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective_matches_direct_reachability": true,
+      "endpoint": {
+        "host": "mirrors.aliyun.com",
+        "path": "/pytorch-wheels/cu126/",
+        "port": null,
+        "scheme": "https",
+        "userinfo_redacted": true
+      }
+    },
+    {
+      "direct_control": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.cloud.tencent.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "FORCED_DIRECT_CONTROL",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.cloud.tencent.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "EFFECTIVE_PROVISION_ENV",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective_matches_direct_reachability": true,
+      "endpoint": {
+        "host": "mirrors.cloud.tencent.com",
+        "path": "/pypi/simple/",
+        "port": null,
+        "scheme": "https",
+        "userinfo_redacted": true
+      }
+    },
+    {
+      "direct_control": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "FORCED_DIRECT_CONTROL",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective": {
+        "curl_rc": 0,
+        "endpoint": {
+          "host": "mirrors.aliyun.com",
+          "path": "/pypi/simple/",
+          "port": null,
+          "scheme": "https",
+          "userinfo_redacted": true
+        },
+        "http_code": "200",
+        "mode": "EFFECTIVE_PROVISION_ENV",
+        "reachable": true,
+        "stderr_class": "NONE"
+      },
+      "effective_matches_direct_reachability": true,
+      "endpoint": {
+        "host": "mirrors.aliyun.com",
+        "path": "/pypi/simple/",
+        "port": null,
+        "scheme": "https",
+        "userinfo_redacted": true
+      }
+    }
+  ],
+  "route_summary": {
+    "all_package_mirror_hosts_bypass_proxy": true,
+    "configured_package_mirror_host_count": 3,
+    "embedded_index_directive_count": 0,
+    "index_policy": "HOST_MIRROR_REQUIRED",
+    "mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS",
+    "package_mirror_hosts_in_no_proxy_count": 3,
+    "pip_extra_index_present": true,
+    "pip_find_links_present": true,
+    "pip_primary_index_present": true,
+    "proxy_present": true,
+    "uv_extra_index_present": true,
+    "uv_find_links_present": true,
+    "uv_primary_index_present": true,
+    "values_redacted": true
+  },
+  "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V3",
+  "scientific_semantics_changed": false,
+  "status": "PASS"
+}

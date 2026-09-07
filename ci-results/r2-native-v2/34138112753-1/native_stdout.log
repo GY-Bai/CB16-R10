@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/data/cb16_ci/github-runner-qualification/actions-runner/_work/CB16-R10/CB16-R10/scripts/run_r2_native_qualification.py", line 387, in <module>
+    raise SystemExit(main())
+  File "/data/cb16_ci/github-runner-qualification/actions-runner/_work/CB16-R10/CB16-R10/scripts/run_r2_native_qualification.py", line 290, in main
+    first = run_campaign_r2(**kwargs)
+  File "/data/cb16_ci/github-runner-qualification/actions-runner/_work/CB16-R10/CB16-R10/cb16_local_opt/r2_campaign.py", line 269, in run_campaign_r2
+    on_policy = run_real_on_policy_trace(
+  File "/data/cb16_ci/github-runner-qualification/actions-runner/_work/CB16-R10/CB16-R10/cb16_local_opt/r102_policy_trace.py", line 48, in run_real_on_policy_trace
+    with np.load(hp, allow_pickle=False) as z:
+  File "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/lib/python3.10/site-packages/numpy/lib/_npyio_impl.py", line 451, in load
+    fid = stack.enter_context(open(os.fspath(file), "rb"))
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/cb16-r2-native-v2-34138112753-1/run/evidence_cache/market_cache/ADAUSDT.hourly_r102.npz'
