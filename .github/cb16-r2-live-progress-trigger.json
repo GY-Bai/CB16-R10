@@ -1,7 +1,8 @@
 {
   "schema": "CB16_R2_LIVE_PROGRESS_TRIGGER_V1",
-  "purpose": "READ_ONLY_SAME_HOST_PROCESS_GPU_PAYLOAD_PROGRESS_SNAPSHOT",
+  "purpose": "READ_ONLY_PRIVATE_RUN_RECEIPT_AND_PROCESS_PROGRESS_SNAPSHOT",
   "target_native_run_id": 34138112753,
+  "target_run_root": "/tmp/cb16-r2-native-v2-34138112753-1/run",
   "writes_to_r2_payload": false,
   "canonical_r104_modified": false,
   "scientific_semantics_changed": false,
