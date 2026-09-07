@@ -455,6 +455,7 @@ def _compile_exact(
         workers=int(workers),
         threads_per_worker=int(threads_per_worker),
         max_in_flight=int(max_in_flight),
+        incremental_geometry=True,
     )
 
 
