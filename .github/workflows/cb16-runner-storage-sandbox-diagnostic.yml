@@ -1,0 +1,111 @@
+name: CB16 Runner Storage Sandbox Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-runner-storage-sandbox-trigger.json
+
+permissions:
+  contents: write
+
+jobs:
+  canonical-sandbox:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Collect canonical runner sandbox evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          bash -c '
+            echo "RUNNER_KIND=canonical"
+            echo "WHOAMI=$(whoami)"
+            echo "SELF_CGROUP_BEGIN"; cat /proc/self/cgroup; echo "SELF_CGROUP_END"
+            echo "PID1=$(ps -p 1 -o comm=)"
+            echo "FINDMNT_HDD_BEGIN"; findmnt -T /data/cb16_hdd -o TARGET,SOURCE,FSTYPE,OPTIONS; echo "FINDMNT_HDD_END"
+            echo "FINDMNT_R104_BEGIN"; findmnt -T /data/cb16_hdd/cb16_runtime/R10_4 -o TARGET,SOURCE,FSTYPE,OPTIONS || true; echo "FINDMNT_R104_END"
+            echo "FINDMNT_DIAG_BEGIN"; findmnt -T /data/cb16_hdd/cb16_diagnostics -o TARGET,SOURCE,FSTYPE,OPTIONS || true; echo "FINDMNT_DIAG_END"
+            echo "STAT_BEGIN"; stat -c "%A %a %U %G %n" /data/cb16_hdd /data/cb16_hdd/cb16_runtime /data/cb16_hdd/cb16_runtime/R10_4 /data/cb16_hdd/cb16_diagnostics 2>&1 || true; echo "STAT_END"
+            echo "RUNNER_UNITS_BEGIN"
+            systemctl list-units --type=service --all --no-legend "actions.runner*" 2>/dev/null | sed -E "s/[[:space:]]+/ /g" || true
+            echo "RUNNER_UNITS_END"
+            units=$(systemctl list-units --type=service --all --no-legend "actions.runner*" 2>/dev/null | awk "{print \$1}" || true)
+            for u in $units; do
+              echo "UNIT_BEGIN=$u"
+              systemctl show "$u" -p Id -p User -p Group -p ProtectSystem -p ProtectHome -p PrivateTmp -p ReadOnlyPaths -p ReadWritePaths -p InaccessiblePaths -p BindReadOnlyPaths -p BindPaths -p RootDirectory -p RootImage -p DynamicUser -p SupplementaryGroups --no-pager 2>/dev/null || true
+              echo "UNIT_END=$u"
+            done
+            echo "MOUNTINFO_HDD_BEGIN"
+            grep -E " /data/cb16_hdd( |/)" /proc/self/mountinfo || true
+            echo "MOUNTINFO_HDD_END"
+          ' | tee ci_evidence/canonical_storage_sandbox.txt
+      - name: Persist canonical evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="/tmp/cb16-storage-sandbox-can-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP" && mkdir -p "$SNAP" && cp -a ci_evidence/. "$SNAP"/
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/storage-sandbox/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/canonical"
+          mkdir -p "$DEST" && cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-storage-sandbox-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if ! git diff --cached --quiet; then git commit -m "ci-results: canonical storage sandbox ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"; git push origin "HEAD:$BRANCH"; fi
+
+  wss-sandbox:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Collect WSS runner sandbox evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          bash -c '
+            echo "RUNNER_KIND=wss"
+            echo "WHOAMI=$(whoami)"
+            echo "SELF_CGROUP_BEGIN"; cat /proc/self/cgroup; echo "SELF_CGROUP_END"
+            echo "PID1=$(ps -p 1 -o comm=)"
+            echo "FINDMNT_HDD_BEGIN"; findmnt -T /data/cb16_hdd -o TARGET,SOURCE,FSTYPE,OPTIONS; echo "FINDMNT_HDD_END"
+            echo "FINDMNT_R104_BEGIN"; findmnt -T /data/cb16_hdd/cb16_runtime/R10_4 -o TARGET,SOURCE,FSTYPE,OPTIONS || true; echo "FINDMNT_R104_END"
+            echo "FINDMNT_DIAG_BEGIN"; findmnt -T /data/cb16_hdd/cb16_diagnostics -o TARGET,SOURCE,FSTYPE,OPTIONS || true; echo "FINDMNT_DIAG_END"
+            echo "STAT_BEGIN"; stat -c "%A %a %U %G %n" /data/cb16_hdd /data/cb16_hdd/cb16_runtime /data/cb16_hdd/cb16_runtime/R10_4 /data/cb16_hdd/cb16_diagnostics 2>&1 || true; echo "STAT_END"
+            echo "RUNNER_UNITS_BEGIN"
+            systemctl list-units --type=service --all --no-legend "actions.runner*" 2>/dev/null | sed -E "s/[[:space:]]+/ /g" || true
+            echo "RUNNER_UNITS_END"
+            units=$(systemctl list-units --type=service --all --no-legend "actions.runner*" 2>/dev/null | awk "{print \$1}" || true)
+            for u in $units; do
+              echo "UNIT_BEGIN=$u"
+              systemctl show "$u" -p Id -p User -p Group -p ProtectSystem -p ProtectHome -p PrivateTmp -p ReadOnlyPaths -p ReadWritePaths -p InaccessiblePaths -p BindReadOnlyPaths -p BindPaths -p RootDirectory -p RootImage -p DynamicUser -p SupplementaryGroups --no-pager 2>/dev/null || true
+              echo "UNIT_END=$u"
+            done
+            echo "MOUNTINFO_HDD_BEGIN"
+            grep -E " /data/cb16_hdd( |/)" /proc/self/mountinfo || true
+            echo "MOUNTINFO_HDD_END"
+          ' | tee ci_evidence/wss_storage_sandbox.txt
+      - name: Persist WSS evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="/tmp/cb16-storage-sandbox-wss-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP" && mkdir -p "$SNAP" && cp -a ci_evidence/. "$SNAP"/
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/storage-sandbox/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/wss"
+          mkdir -p "$DEST" && cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-storage-sandbox-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if ! git diff --cached --quiet; then git commit -m "ci-results: WSS storage sandbox ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"; git push origin "HEAD:$BRANCH"; fi
