@@ -1,0 +1,48 @@
+name: CB16 Artifact Channel Canary
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-artifact-canary-trigger.json
+
+permissions:
+  contents: read
+
+jobs:
+  artifact-canary:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 15
+    steps:
+      - name: Prepare deterministic canary
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p canary
+          printf 'CB16_ARTIFACT_CHANNEL_CANARY_V1\nrun=%s\nattempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > canary/payload.txt
+          sha256sum canary/payload.txt | tee canary/SHA256SUMS
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cb16-artifact-channel-canary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: canary
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Download same artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cb16-artifact-channel-canary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: downloaded
+
+      - name: Verify round trip
+        shell: bash
+        run: |
+          set -euo pipefail
+          diff -u canary/payload.txt downloaded/payload.txt
+          diff -u canary/SHA256SUMS downloaded/SHA256SUMS
+          (cd downloaded && sha256sum -c SHA256SUMS)
+          echo 'ARTIFACT_CHANNEL_CANARY=PASS'
