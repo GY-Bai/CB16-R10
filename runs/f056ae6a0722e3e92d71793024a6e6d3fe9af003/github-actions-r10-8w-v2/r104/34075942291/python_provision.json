@@ -1,0 +1,14 @@
+{
+  "environment_hash": "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba",
+  "environment_id": "r104",
+  "python": {
+    "cache_hit": true,
+    "installer": "uv",
+    "public_direct_fallback_used": false,
+    "public_index_fallback_used": false,
+    "python_version": "3.10.12",
+    "resolved_packages_sha256": "edd56213452ec52f2d0464126be2e84bf5f456f049b167530d20e4e6359256d6",
+    "status": "READY",
+    "venv": "/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
+  }
+}
