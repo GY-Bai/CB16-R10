@@ -1,0 +1,80 @@
+{
+  "correctness_json": {
+    "forbidden_work": {
+      "final_holdout_2025_09_read": false,
+      "fresh_market_data_download": false,
+      "frozen_physics_or_supervisor_modified": false,
+      "frozen_sensory_modified": false,
+      "legacy_python_runtime_made_authority": false,
+      "oci_compute_used": false,
+      "raw_1m_archive_read": false,
+      "raw_market_data_modified": false
+    },
+    "required": {
+      "amp": false,
+      "champion_challenger_lifecycle_correct": true,
+      "drain_or_crash_restart_receipt_valid": true,
+      "final_holdout_untouched": true,
+      "frozen_authority_unchanged": true,
+      "h72_receipt_identity_unchanged": true,
+      "no_forbidden_gradient": true,
+      "replay_zero_new_payload": true,
+      "scientific_semantics_changed": false,
+      "semantic_freeze_pass": true,
+      "teacher_identity_unchanged": true,
+      "training_differential_pass": true,
+      "training_dtype": "FP32"
+    },
+    "schema": "CB16_R11_STAGE2_BURST_CORRECTNESS_V1"
+  },
+  "entrypoint": "scripts/run_r11_stage2_integration_burst.py",
+  "environment": {
+    "CB16_R11_AMP": "must be 0",
+    "CB16_R11_BURST_BUFFER_MIB": "engineering buffer budget",
+    "CB16_R11_BURST_CORRECTNESS_JSON": "final correctness receipt path",
+    "CB16_R11_BURST_HDD_ROOT": "disposable HDD immutable/sequential payload root",
+    "CB16_R11_BURST_LEGACY_R104_ROOT": "read-only R10.4 evidence/cache authority root",
+    "CB16_R11_BURST_MEASURED_SECONDS": "measured 6-10 minute burst duration",
+    "CB16_R11_BURST_PACKAGE_ROOT": "read-only frozen package root",
+    "CB16_R11_BURST_QUEUE_DEPTH": "bounded engineering queue depth",
+    "CB16_R11_BURST_SSD_ROOT": "disposable SSD metadata root",
+    "CB16_R11_BURST_TEACHER_WORKERS": "engineering worker count",
+    "CB16_R11_BURST_TELEMETRY_JSONL": "append-only runtime telemetry path",
+    "CB16_R11_BURST_TRACE_WORKERS": "engineering worker count",
+    "CB16_R11_BURST_WARMUP_SECONDS": "short warmup duration",
+    "CB16_R11_BURST_WORK_ROOT": "disposable control/runtime root",
+    "CB16_R11_CANONICAL_DTYPE": "must be FP32"
+  },
+  "ownership_rule": "Task E observes and validates. Engine tasks own how their counters/receipts are produced. The telemetry contract must not alter evidence meaning, generation ownership, Champion identity, Teacher authority, Physics authority, loss, gradient ownership, or promotion logic.",
+  "purpose": "Integration contract between the Task E qualification supervisor and the final Stage-2 integration burst driver.",
+  "schema": "CB16_R11_STAGE2_BURST_DRIVER_CONTRACT_V1",
+  "scientific_identity": false,
+  "status": "INFRA_ONLY",
+  "telemetry_jsonl": {
+    "counter_rule": "all counters are monotone non-decreasing and include warmup; supervisor differences records inside the measured window",
+    "counters": {
+      "barrier_block_seconds": "cumulative wall-seconds blocked at tournament/commit barriers",
+      "fp32_training_examples": "cumulative examples processed by canonical FP32 training",
+      "fsync_stall_seconds": "cumulative wall-seconds blocked in fsync/fdatasync durability waits",
+      "generations_committed": "cumulative committed generations",
+      "hdd_read_bytes": "cumulative Stage-2 payload bytes read from HDD placement",
+      "hdd_write_bytes": "cumulative Stage-2 payload bytes written to HDD placement",
+      "ssd_metadata_ops": "cumulative Stage-2 metadata operations against SSD placement",
+      "teacher_evidence": "cumulative Teacher evidence items completed",
+      "traces": "cumulative H72/on-policy traces completed",
+      "training_steps": "cumulative optimizer/training steps completed"
+    },
+    "gauges": {
+      "fsync_latency_p95_ms": "rolling/interval p95 durability latency",
+      "pipeline_queue_depth": "current bounded pipeline queue depth",
+      "teacher_worker_utilization_pct": "0-100 percent busy Teacher workers over the reporting interval",
+      "trace_worker_utilization_pct": "0-100 percent busy Trace workers over the reporting interval"
+    },
+    "minimum_frequency": "at least 1 record every 2 seconds during the measured burst",
+    "schema": "CB16_R11_STAGE2_BURST_TELEMETRY_V1",
+    "timestamp": {
+      "field": "monotonic_seconds",
+      "meaning": "time.monotonic() from the same Linux boot; supervisor selects the measured interval"
+    }
+  }
+}
