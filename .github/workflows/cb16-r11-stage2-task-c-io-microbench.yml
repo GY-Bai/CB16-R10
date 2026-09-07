@@ -4,12 +4,18 @@ on:
   push:
     branches:
       - ai/r11-stage2-task-c-io-throughput-r1
+    paths:
+      - .github/workflows/cb16-r11-stage2-task-c-io-microbench.yml
+      - benchmarks/task_c_io_microbench_r11.py
+      - cb16_local_opt/io_runtime_r11.py
+      - tests/test_r11_io_runtime.py
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: cb16-r11-stage2-shanxi-microbench
+  group: cb16-shanxi-wss-qualification-runner-queue
   cancel-in-progress: false
 
 jobs:
@@ -22,27 +28,50 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Reuse verified canonical R10.4 Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 ci/resolve_verified_r104_python.py --out ci_evidence/python_provision.json
+          PYBIN="$(python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/python_provision.json'))
+          assert x['status']=='READY'
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE'
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          )"
+          test -x "$PYBIN"
+          echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
+
       - name: Identity and forbidden-input guard
         shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
         run: |
           set -euo pipefail
           echo "TASK_C_SHA=$(git rev-parse HEAD)"
           echo "TASK_C_BRANCH=$(git rev-parse --abbrev-ref HEAD)"
           test "$(git rev-parse --abbrev-ref HEAD)" = "ai/r11-stage2-task-c-io-throughput-r1"
-          python3 --version
-          python3 - <<'PY'
+          "$PY" --version
+          "$PY" - <<'PY'
           import numpy, torch
           print("numpy", numpy.__version__)
           print("torch", torch.__version__)
+          print("TASK_C_PYTHON_IDENTITY=PASS")
           PY
           echo "RAW_1M_READ=FORBIDDEN_AND_NOT_USED"
           echo "FINAL_HOLDOUT_READ=FORBIDDEN_AND_NOT_USED"
 
       - name: Task C correctness tests
         shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
         run: |
           set -euo pipefail
-          python3 -m pytest -q \
+          "$PY" -m pytest -q \
             tests/test_r11_evidence_store.py \
             tests/test_r11_event_journal.py \
             tests/test_r11_checkpoint_store.py \
@@ -51,6 +80,8 @@ jobs:
 
       - name: Synthetic SSD-HDD micro-benchmark
         shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
         run: |
           set -euo pipefail
           HDD_BASE=/data/cb16_hdd
@@ -74,9 +105,45 @@ jobs:
           findmnt -T "$META_ROOT" || true
           findmnt -T "$PAYLOAD_ROOT" || true
           lsblk -o NAME,ROTA,TYPE,SIZE,MOUNTPOINTS || true
-          timeout 220s python3 benchmarks/task_c_io_microbench_r11.py \
+          timeout 220s "$PY" benchmarks/task_c_io_microbench_r11.py \
             --metadata-root "$META_ROOT" \
             --payload-root "$PAYLOAD_ROOT" \
             --count 2048 \
             --payload-bytes 32768 \
-            --batch-size 128
+            --batch-size 128 \
+            2>&1 | tee ci_evidence/task_c_micro_stdout.log
+
+      - name: Gate correctness identity and benchmark scope
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" - <<'PY'
+          import json
+          from pathlib import Path
+          line = next(
+              x for x in Path('ci_evidence/task_c_micro_stdout.log').read_text().splitlines()
+              if x.startswith('TASK_C_MICROBENCH_JSON=')
+          )
+          r=json.loads(line.split('=',1)[1])
+          assert r['correctness_identity']=='PASS'
+          assert r['replay_new_payloads']==0
+          assert r['replay_new_evidence']==0
+          assert r['baseline_audit_pass'] is True
+          assert r['optimized_audit_pass'] is True
+          assert r['raw_1m_read'] is False
+          assert r['final_holdout_read'] is False
+          assert r['scientific_verdict_produced'] is False
+          assert r['baseline_evidence_set_hash']==r['optimized_evidence_set_hash']
+          print('TASK_C_REAL_MACHINE_MICRO_BENCHMARK=PASS')
+          PY
+
+      - name: Upload Task C microbenchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cb16-r11-stage2-task-c-micro-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          if-no-files-found: warn
+          retention-days: 30
