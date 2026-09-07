@@ -1,9 +1,9 @@
 {
   "schema": "CB16_R11_TASK_F_V2_TRIGGER_V1",
-  "purpose": "Retry Task F after acceptance wrapper PYTHONPATH binding fix",
-  "requested_at": "2026-09-07T21:39:00Z",
-  "previous_run": 34163643439,
-  "previous_failure_class": "ENGINEERING_ACCEPTANCE_WRAPPER_IMPORT_PATH",
+  "purpose": "Retry Task F after immutable market-cache diagnostic serialization fix",
+  "requested_at": "2026-09-07T21:44:00Z",
+  "previous_run": 34164021125,
+  "previous_failure_class": "ENGINEERING_DIAGNOSTIC_MAPPINGPROXY_SERIALIZATION",
   "raw_1m_read": false,
   "final_holdout_read": false,
   "source_authorities_read_only": true
