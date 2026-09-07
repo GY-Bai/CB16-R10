@@ -1,0 +1,7 @@
+{
+  "schema": "CB16_R11_STAGE2_TASK_A_MICRO_TRIGGER_V1",
+  "branch": "ai/r11-stage2-task-a-cpu-throughput-r1",
+  "scope": "CPU_TEACHER_TRACE_MICRO_BENCHMARK_ONLY",
+  "integrated_burst": false,
+  "final_holdout_access": false
+}
