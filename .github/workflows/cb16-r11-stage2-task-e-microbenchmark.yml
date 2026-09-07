@@ -22,6 +22,7 @@ jobs:
       CB16_RUNNER_LABELS: self-hosted,shanxi,cb16-wss-qualification
       PACKAGE_ROOT: /data/cb16_ci/r2-authority/package_r102
       LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      R11_DIAG_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
       OMP_NUM_THREADS: 1
       MKL_NUM_THREADS: 1
       OPENBLAS_NUM_THREADS: 1
@@ -43,6 +44,7 @@ jobs:
           test "$GITHUB_REF_NAME" = 'ai/r11-stage2-task-e-burst-harness-r1'
           test -d "$PACKAGE_ROOT"
           test -d "$LEGACY_R104_ROOT/evidence_cache"
+          test -d "$R11_DIAG_ROOT"
           pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
           r104_opts="$(findmnt -n -o OPTIONS -T "$LEGACY_R104_ROOT")"
           case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_AUTHORITY_NOT_RO=$pkg_opts" >&2; exit 74 ;; esac
@@ -76,15 +78,37 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m pytest -q tests/test_r11_stage2_burst_qualification.py
           PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root . | tee ci_evidence/semantic_freeze.log
 
-      - name: Record storage topology only
+      - name: Verify and record physical SSD/HDD separation
         shell: bash
         run: |
           set -euo pipefail
+          python3 - <<'PY' | tee ci_evidence/storage_guard.txt
+          import json, os
+          from pathlib import Path
+
+          def device(path):
+              st=os.stat(path)
+              major,minor=os.major(st.st_dev),os.minor(st.st_dev)
+              resolved=Path(f'/sys/dev/block/{major}:{minor}').resolve()
+              rotational=None
+              for q in (resolved/'queue/rotational', resolved.parent/'queue/rotational'):
+                  if q.is_file():
+                      rotational=int(q.read_text().strip())
+                      break
+              return {'path':path,'major':major,'minor':minor,'name':resolved.name,'rotational':rotational}
+
+          ssd=device('/var/tmp')
+          hdd=device(os.environ['R11_DIAG_ROOT'])
+          print(json.dumps({'ssd':ssd,'hdd':hdd},sort_keys=True))
+          assert (ssd['major'],ssd['minor']) != (hdd['major'],hdd['minor']), 'SSD_HDD_SAME_BLOCK_DEVICE'
+          assert ssd['rotational'] == 0, f"SSD_PATH_NOT_NONROTATIONAL:{ssd}"
+          assert hdd['rotational'] == 1, f"HDD_PATH_NOT_ROTATIONAL:{hdd}"
+          PY
           {
-            echo '=== findmnt /data/cb16_ci ==='
-            findmnt -T /data/cb16_ci
-            echo '=== findmnt /data/cb16_hdd ==='
-            findmnt -T /data/cb16_hdd
+            echo '=== findmnt /var/tmp ==='
+            findmnt -T /var/tmp
+            echo "=== findmnt $R11_DIAG_ROOT ==="
+            findmnt -T "$R11_DIAG_ROOT"
             echo '=== lsblk ==='
             lsblk -o NAME,KNAME,TYPE,SIZE,ROTA,FSTYPE,MOUNTPOINTS
           } | tee ci_evidence/storage_topology.txt
@@ -99,8 +123,8 @@ jobs:
             env PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_stage2_task_e_microbenchmark.py \
               --package-root "$PACKAGE_ROOT" \
               --legacy-r104-root "$LEGACY_R104_ROOT" \
-              --ssd-path /data/cb16_ci \
-              --hdd-path /data/cb16_hdd \
+              --ssd-path /var/tmp \
+              --hdd-path "$R11_DIAG_ROOT" \
               --baseline-seconds 20 \
               --sampled-seconds 30 \
               --out ci_evidence/CB16_R11_STAGE2_TASK_E_MICROBENCH_V1.json \
@@ -132,6 +156,9 @@ jobs:
           assert c['scientific_semantics_changed'] is False
           assert x['context']['runner_labels']==['cb16-wss-qualification','self-hosted','shanxi']
           assert x['sampler_throughput_retention_ratio'] >= 0.90
+          ssd=x['storage_devices']['ssd_device']
+          hdd=x['storage_devices']['hdd_device']
+          assert ssd[:2] != hdd[:2]
           print('CB16_R11_STAGE2_TASK_E_MICROBENCH=PASS')
           PY
 
