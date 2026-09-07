@@ -1,0 +1,39 @@
+{
+  "copied_compact_receipts": [
+    "TEN_SYMBOL_DATA_PREFLIGHT_R102.json",
+    "F0_F1_F2_F3_CONTROLS_R102.json"
+  ],
+  "final_holdout_2025_09_accessed": false,
+  "mode": "READ_ONLY_LEGACY_CACHE_REFERENCE_VIA_COPIED_MANIFEST",
+  "schema": "CB16_R2_EXTERNAL_EVIDENCE_CACHE_BINDING_V1",
+  "scientific_semantics_changed": false,
+  "source_cache_root": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache",
+  "source_files": [
+    {
+      "manifest_key": "parents_file",
+      "mtime_ns": 1788604839834397015,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/PARENT_CONTEXTS_R102.jsonl.gz",
+      "sha256": "2da52363c313b26fa7cc5286021b59f604dc2ed3fcdd6ea805d400d8b39b805a",
+      "size": 3125557
+    },
+    {
+      "manifest_key": "parent_states_file",
+      "mtime_ns": 1788604840330375852,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/PARENT_PHYSICS_STATES_R102.jsonl.gz",
+      "sha256": "51af58d34319d47730217c652cb9d210987bbeb5f0d976e187fb861b7e38b1c7",
+      "size": 1829334
+    },
+    {
+      "manifest_key": "branches_file",
+      "mtime_ns": 1788604840990347701,
+      "path": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/COUNTERFACTUAL_BRANCHES_H72_R102.jsonl.gz",
+      "sha256": "5b3423ba6829f81cec658c3733e820091948735cf876b36098dff92894a066f0",
+      "size": 2017571
+    }
+  ],
+  "source_manifest": "/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache/REAL_EVIDENCE_CACHE_MANIFEST_R102.json",
+  "source_manifest_sha256": "6619ce5f0b1ac0c588332f9f43343dee5e31bc8b81024993e1b26b6fbf54599e",
+  "source_payload_files_copied": false,
+  "source_payload_files_modified": false,
+  "target_manifest": "/tmp/cb16-r2-native-v2-34138112753-1/run/evidence_cache/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+}
