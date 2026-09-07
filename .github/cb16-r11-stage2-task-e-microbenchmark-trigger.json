@@ -1,7 +1,7 @@
 {
   "schema": "CB16_R11_STAGE2_TASK_E_MICROBENCH_TRIGGER_V1",
   "allowed_branch": "ai/r11-stage2-task-e-burst-harness-r1",
-  "purpose": "Validate only Task E qualification-harness telemetry overhead and Shanxi hardware/storage topology.",
+  "purpose": "Iteration 2: verify Task E telemetry overhead after binding metadata sampling to real SSD /var/tmp and payload sampling to R11 HDD diagnostics root.",
   "baseline_seconds": 20,
   "measured_seconds": 30,
   "hard_timeout_minutes": 5,
