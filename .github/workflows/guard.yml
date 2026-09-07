@@ -15,5 +15,6 @@ jobs:
             cb16_local_opt/r102_evidence_incremental.py \
             cb16_local_opt/r2_campaign.py \
             scripts/run_r104_long_research.py \
+            scripts/run_r2_native_qualification_v2.py \
             tests/test_r102_teacher_incremental.py \
             tests/test_r102_evidence_incremental.py
