@@ -30,103 +30,57 @@ Samples without third-party dependencies:
 
 Default interval is 5 seconds to keep observer overhead small.
 
-The sidecar only writes:
+The sidecar only writes `runtime_samples.jsonl`, `artifact_events.jsonl`, and `RUNTIME_DIAGNOSTIC_SUMMARY.json` under a separate diagnostics root.
 
-- `runtime_samples.jsonl`
-- `artifact_events.jsonl`
-- `RUNTIME_DIAGNOSTIC_SUMMARY.json`
+### Stage attribution
 
-under a separate diagnostics root.
+`cb16_diagnostics/stage_attribution.py`
 
-Stage timings reconstructed from artifact appearance are explicitly approximate and are never scientific authority.
+Aggregates runtime samples by `(generation, stage)`. The parser consumes the actual RuntimeObserver schema (`wall_time_unix`, `generation.active_generation`, `host.cpu_busy_pct`, `process_tree.cpu_pct_one_core_100`, `gpu.gpus[]`) while retaining legacy aliases. It exposes total/valid/discarded sample counts so schema drift cannot silently become a zero-sample PASS.
+
+Bottleneck labels carry LOW/MEDIUM/HIGH confidence and remain diagnostic only.
+
+### Experience Lake timing probe
+
+`cb16_diagnostics/experience_lake_probe.py`
+
+Read-only timing probe over the local Experience Lake SQLite metadata shards plus generation artifact mtimes. It is intended to split the coarse `SNAPSHOT_OR_CHALLENGER_TRAINING` interval without instrumenting the frozen trainer.
+
+Per generation it reports:
+
+- Experience Lake object count and per-shard counts;
+- first/last object `created_at` and observed object insertion span;
+- total raw/stored bytes and observed object/storage rate;
+- immutable training snapshot seal time and object-count match;
+- ON_POLICY receipt -> first Lake object;
+- first Lake object -> snapshot seal;
+- snapshot seal -> challenger training receipt;
+- training receipt -> challenger checkpoint;
+- challenger checkpoint -> generation result.
+
+SQLite connections use `mode=ro` plus `PRAGMA query_only=ON`. Payload files are not opened by this probe.
 
 ### Model probe
 
 `cb16_diagnostics/model_probe.py`
 
-Reads local PyTorch checkpoints and reports:
-
-- serialization-independent semantic SHA256 compatible with R10 tensor identity;
-- global and Brain-group L2 norms;
-- zero/nonfinite counts;
-- parent → challenger / parent → champion relative update norm;
-- cosine similarity;
-- changed-parameter fraction;
-- tensors with largest relative changes;
-- optional 2-D tensor effective-rank/SVD diagnostics.
-
-It never writes model weights.
+Reads local PyTorch checkpoints and reports semantic SHA256, global/Brain-group L2 norms, nonfinite/zero counts, parent -> challenger/champion update scale, cosine similarity, changed-parameter fraction, largest relative tensor changes, and optional effective-rank/SVD diagnostics. It never writes model weights.
 
 ### Post-run aggregator
 
 `cb16_diagnostics/postrun.py`
 
-Produces compact diagnostics:
+Produces compact generation census, runtime/model summaries, post-run diagnostic summary, and SHA256 manifests. It does not replace validation/tournament/adjudication.
 
-- `GENERATION_CENSUS.json`
-- `RUNTIME_PHASE_SUMMARY.json`
-- `MODEL_EVOLUTION.json`
-- `POSTRUN_DIAGNOSTIC_SUMMARY.json`
-- `SHA256SUMS`
+## Current qualification state
 
-It checks generation completeness, trace maturation receipts, training receipts, champion/challenger lineage hashes, model update scale, gradient/update-group summaries, existing Experience Lake audit, controls status, and runtime bottleneck summaries.
+- Shanxi runtime sidecar canary passed with negligible observer overhead and all safety flags false.
+- Stage attribution now consumes 100% of the actual live RuntimeObserver rows in the qualified schema.
+- Current runtime evidence shows long `SNAPSHOT_OR_CHALLENGER_TRAINING` windows with near-zero GPU utilization; this is a candidate engineering bottleneck, not yet an optimization authorization.
+- The next qualification is the Experience Lake timing probe against live G59/G60 metadata to measure the persistence/training split directly.
 
-## CLI
-
-Unified entry point:
-
-```bash
-python scripts/run_r10_diagnostics.py observe-runtime \
-  --run-root /data/cb16_hdd/cb16_runtime/R10_4 \
-  --out /data/cb16_hdd/cb16_diagnostics/R10_4/live \
-  --interval 5 \
-  --stop-when-complete
-```
-
-Read-only snapshot while the campaign is still running:
-
-```bash
-python scripts/run_r10_diagnostics.py snapshot \
-  --run-root /data/cb16_hdd/cb16_runtime/R10_4 \
-  --out /data/cb16_hdd/cb16_diagnostics/R10_4/snapshot \
-  --runtime-diagnostics /data/cb16_hdd/cb16_diagnostics/R10_4/live
-```
-
-Full post-run diagnostics after 100 completed generations and `FINAL_RESULT_R102.json` exist:
-
-```bash
-python scripts/run_r10_diagnostics.py postrun \
-  --run-root /data/cb16_hdd/cb16_runtime/R10_4 \
-  --out /data/cb16_hdd/cb16_diagnostics/R10_4/postrun \
-  --runtime-diagnostics /data/cb16_hdd/cb16_diagnostics/R10_4/live
-```
-
-The default R10.4 start checkpoint for lineage comparison is:
-
-`/home/bgy/cb16_ssd/runtime/R10_3/generations/G19/champion_after.pt`
-
-## Interpretation
-
-The runtime bottleneck classifier is heuristic and diagnostic only:
-
-- `MEMORY_PRESSURE`
-- `IO_WAIT_BOUND`
-- `GPU_BUSY`
-- `CPU_BOUND_OR_CPU_FEED_BOUND`
-- `SERIAL_BARRIER_OR_WAIT_BOUND`
-- `MIXED_OR_NO_CLEAR_BOTTLENECK`
-
-No one of these is a scientific PASS/FAIL.
-
-Likewise model diagnostics describe how weights moved; they do not replace validation/tournament/adjudication.
+No optimization is authorized by diagnostics alone. Any runtime change must be implemented separately and pass scientific identity/equivalence gates before entering a canonical campaign.
 
 ## Durable evidence
 
-After post-run completion, sanitize/retain compact JSON and `SHA256SUMS` in `ci-results`. Do not upload:
-
-- model weights/checkpoints;
-- full trajectories;
-- Experience Lake payloads;
-- datasets;
-- secrets/tokens;
-- FINAL bytes.
+After post-run completion, sanitize/retain compact JSON and `SHA256SUMS` in `ci-results`. Do not upload model weights/checkpoints, full trajectories, Experience Lake payloads, datasets, secrets/tokens, or FINAL bytes.
