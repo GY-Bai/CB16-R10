@@ -1,0 +1,144 @@
+name: CB16 R11 Stage-2 Task E Harness Microbenchmark
+
+on:
+  push:
+    branches:
+      - ai/r11-stage2-task-e-burst-harness-r1
+    paths:
+      - .github/cb16-r11-stage2-task-e-microbenchmark-trigger.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-stage2-task-e-harness-microbenchmark
+  cancel-in-progress: false
+
+jobs:
+  task-e-microbenchmark:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 5
+    env:
+      CB16_RUNNER_LABELS: self-hosted,shanxi,cb16-wss-qualification
+      PACKAGE_ROOT: /data/cb16_ci/r2-authority/package_r102
+      LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      OMP_NUM_THREADS: 1
+      MKL_NUM_THREADS: 1
+      OPENBLAS_NUM_THREADS: 1
+      NUMEXPR_NUM_THREADS: 1
+      BLIS_NUM_THREADS: 1
+      HF_HUB_OFFLINE: 1
+      TRANSFORMERS_OFFLINE: 1
+      WANDB_MODE: offline
+    steps:
+      - name: Checkout exact Task E source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Verify exact Task E ref and read-only authority mounts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'ai/r11-stage2-task-e-burst-harness-r1'
+          test -d "$PACKAGE_ROOT"
+          test -d "$LEGACY_R104_ROOT/evidence_cache"
+          pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
+          r104_opts="$(findmnt -n -o OPTIONS -T "$LEGACY_R104_ROOT")"
+          case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_AUTHORITY_NOT_RO=$pkg_opts" >&2; exit 74 ;; esac
+          case ",$r104_opts," in *,ro,*) ;; *) echo "R104_AUTHORITY_NOT_RO=$r104_opts" >&2; exit 74 ;; esac
+          echo 'CB16_R11_TASK_E_MICROBENCH_AUTHORITY_BOUNDARY=PASS'
+
+      - name: Resolve verified canonical Pascal Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 ci/resolve_verified_r104_python.py --out ci_evidence/python_provision.json
+          PYBIN="$(python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/python_provision.json'))
+          assert x['status']=='READY'
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE'
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          )"
+          echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
+
+      - name: Static Task E harness gate
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" -m py_compile scripts/run_r11_stage2_burst_qualification.py scripts/run_r11_stage2_task_e_microbenchmark.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m pytest -q tests/test_r11_stage2_burst_qualification.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root . | tee ci_evidence/semantic_freeze.log
+
+      - name: Record storage topology only
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '=== findmnt /data/cb16_ci ==='
+            findmnt -T /data/cb16_ci
+            echo '=== findmnt /data/cb16_hdd ==='
+            findmnt -T /data/cb16_hdd
+            echo '=== lsblk ==='
+            lsblk -o NAME,KNAME,TYPE,SIZE,ROTA,FSTYPE,MOUNTPOINTS
+          } | tee ci_evidence/storage_topology.txt
+
+      - name: Run bounded Task E 30-second measured microbenchmark
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v -o ci_evidence/task_e_microbenchmark_time_verbose.txt \
+            env PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_stage2_task_e_microbenchmark.py \
+              --package-root "$PACKAGE_ROOT" \
+              --legacy-r104-root "$LEGACY_R104_ROOT" \
+              --ssd-path /data/cb16_ci \
+              --hdd-path /data/cb16_hdd \
+              --baseline-seconds 20 \
+              --sampled-seconds 30 \
+              --out ci_evidence/CB16_R11_STAGE2_TASK_E_MICROBENCH_V1.json \
+              2>&1 | tee ci_evidence/task_e_microbenchmark.log
+
+      - name: Task E correctness identity gate
+        if: always()
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          test -f ci_evidence/CB16_R11_STAGE2_TASK_E_MICROBENCH_V1.json
+          "$PY" - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/CB16_R11_STAGE2_TASK_E_MICROBENCH_V1.json'))
+          assert x['schema']=='CB16_R11_STAGE2_TASK_E_MICROBENCH_V1'
+          assert x['status']=='PASS', x['acceptance']['failures']
+          c=x['correctness_identity']
+          assert c['semantic_freeze_pass'] is True
+          assert c['semantic_freeze_sha_unchanged'] is True
+          assert c['frozen_authority_unchanged'] is True
+          assert c['final_holdout_untouched'] is True
+          assert c['training_dtype']=='FP32'
+          assert c['amp'] is False
+          assert c['tf32'] is False
+          assert c['fresh_market_data_download'] is False
+          assert c['scientific_verdict_created'] is False
+          assert c['scientific_semantics_changed'] is False
+          assert x['context']['runner_labels']==['cb16-wss-qualification','self-hosted','shanxi']
+          assert x['sampler_throughput_retention_ratio'] >= 0.90
+          print('CB16_R11_STAGE2_TASK_E_MICROBENCH=PASS')
+          PY
+
+      - name: Upload Task E microbenchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cb16-r11-stage2-task-e-microbench-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          retention-days: 30
