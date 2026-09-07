@@ -4,6 +4,6 @@
 - source_authority_sha: f056ae6a0722e3e92d71793024a6e6d3fe9af003
 - phase: r104
 - runtime_overlay: R8_3_8W_RAM_ADAPTIVE
-- exit_code: 1
+- exit_code: 255
 - verdict: FAIL
 - final_holdout_2025_09_accessed: false
