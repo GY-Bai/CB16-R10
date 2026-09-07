@@ -1,0 +1,44 @@
+name: CB16 R2 Live Progress Observer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-live-progress-trigger.json
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 5
+    steps:
+      - name: Read-only process GPU and payload snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== UTC ==='
+          date -u +%Y-%m-%dT%H:%M:%SZ
+          echo '=== R2 processes ==='
+          ps -eo pid=,ppid=,etimes=,pcpu=,pmem=,stat=,comm=,args= --sort=-pcpu \
+            | grep -E 'run_r2_native_qualification|R2_NATIVE|scripts/run_r2|python' \
+            | grep -v grep \
+            | head -40 || true
+          echo '=== GPU ==='
+          nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader || true
+          nvidia-smi --query-gpu=utilization.gpu,utilization.memory,memory.used,memory.total,power.draw,temperature.gpu --format=csv,noheader || true
+          echo '=== R2 payload lane ==='
+          ROOT=/data/cb16_hdd/cb16_diagnostics/r2_native
+          findmnt -T "$ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS || true
+          if [ -d "$ROOT" ]; then
+            find "$ROOT" -maxdepth 4 -type f -printf '%T@ %s %p\n' 2>/dev/null \
+              | sort -nr | head -30 || true
+            echo "R2_FILE_COUNT=$(find "$ROOT" -type f 2>/dev/null | wc -l)"
+            du -sh "$ROOT" 2>/dev/null || true
+          fi
+          echo 'WRITES_PERFORMED=false'
+          echo 'CANONICAL_R104_MODIFIED=false'
+          echo 'FINAL_HOLDOUT_2025_09_ACCESSED=false'
