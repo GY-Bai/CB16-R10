@@ -3,11 +3,12 @@
   "id": "r104",
   "python": {
     "requires": ">=3.10,<3.13",
-    "index_policy": "HOST_MIRROR_REQUIRED",
-    "mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS",
+    "installer_policy": "UV_REQUIRED",
+    "index_policy": "HOST_ENV_REQUIRED",
     "allow_embedded_index_directives": false,
-    "accelerator_wheel_route_required": true,
-    "allow_public_index_fallback": false
+    "allow_embedded_find_links": false,
+    "allow_public_index_fallback": false,
+    "package_identity_policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE"
   },
   "requirements": [
     "requirements-shanxi-pascal.txt",
