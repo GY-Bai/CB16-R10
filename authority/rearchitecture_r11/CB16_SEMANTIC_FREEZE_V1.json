@@ -26,10 +26,14 @@
       "kline_interval": "1m",
       "mutation": "FORBIDDEN",
       "network_repair_or_redownload_during_scientific_runtime": "FORBIDDEN",
+      "unopened_holdout_start": "2025-09-01T00:00:00Z",
       "seal_requirement": {
-        "status": "MUST_BE_MATERIALIZED_FROM_EXISTING_SHANXI_BYTES_BEFORE_R11_SCIENTIFIC_EXECUTION",
-        "algorithm": "SHA256_EACH_MONTHLY_KLINE_AND_FUNDING_ARCHIVE_PLUS_RELATIVE_PATH_AND_SIZE__CANONICAL_MANIFEST_SHA256",
-        "note": "The existing provision record is discovery-level and does not contain a whole-dataset content SHA. R11 therefore seals the already-present bytes read-only; it never repairs, replaces, appends, or downloads data while sealing."
+        "status": "MUST_BE_MATERIALIZED_FROM_EXISTING_SHANXI_DATASET_BEFORE_R11_SCIENTIFIC_EXECUTION",
+        "consumed_history_algorithm": "FOR_ARCHIVES_BEFORE_2025_09: SHA256_ARCHIVE_BYTES_PLUS_RELATIVE_PATH_AND_SIZE",
+        "unopened_holdout_algorithm": "FOR_ARCHIVES_AT_OR_AFTER_2025_09: DO_NOT_OPEN_PAYLOAD; SEAL_RELATIVE_PATH_SIZE_AND_OFFICIAL_CHECKSUM_SIDECAR_EXPECTED_SHA256",
+        "canonical_identity": "SHA256_OF_CANONICAL_SEAL_WITH_PAYLOAD_HASHES_FOR_CONSUMED_HISTORY_AND_SIDECAR_BINDINGS_FOR_UNOPENED_HOLDOUT",
+        "opening_rule": "WHEN_A_PREVIOUSLY_UNOPENED_ARCHIVE_BECOMES_SCIENTIFICALLY_AUTHORIZED, VERIFY_ITS_ARCHIVE_SHA256_AGAINST_THE_PRESEALED_OFFICIAL_CHECKSUM_BEFORE_ANY_PARSE",
+        "note": "The seal is read-only and never repairs, replaces, appends, downloads, parses, or otherwise mutates market data. Hashing is not permitted to become an accidental final-holdout read."
       }
     },
     "frozen_sensory_organs": {
