@@ -2,7 +2,11 @@
   "schema": "CB16_ENVIRONMENT_V1",
   "id": "r104",
   "python": {
-    "requires": ">=3.10,<3.13"
+    "requires": ">=3.10,<3.13",
+    "index_policy": "HOST_MIRROR_REQUIRED",
+    "allow_embedded_index_directives": false,
+    "accelerator_wheel_route_required": true,
+    "allow_public_index_fallback": false
   },
   "requirements": [
     "requirements-shanxi-pascal.txt",
