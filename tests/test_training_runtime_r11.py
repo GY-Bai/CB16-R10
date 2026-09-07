@@ -132,9 +132,7 @@ def test_gradient_owner_set_exact_and_frozen_inputs_forbidden_from_autograd():
     evidence, parents = _fixture()
     prepared = PreparedEvidenceR11.from_evidence(evidence, parents, device="cpu")
     model = build_g0_brain_r10("TIER_1", seed=17, device="cpu")
-    runtime = TrainingRuntimeR11(
-        device="cpu", config=R11TrainingConfig(batch_size=len(evidence))
-    )
+    runtime = TrainingRuntimeR11(device="cpu", config=R11TrainingConfig())
     optimizer = runtime.build_optimizer(model)
     step = runtime.train_one_step(
         model=model,
@@ -165,9 +163,7 @@ def test_fixed_minibatch_one_step_adamw_update_tight_equivalence():
     old_model = build_g0_brain_r10("TIER_1", seed=12345, device="cpu")
     new_model = build_g0_brain_r10("TIER_1", seed=12345, device="cpu")
     old_opt = torch.optim.AdamW(old_model.parameters(), lr=3e-4, weight_decay=1e-4)
-    new_runtime = TrainingRuntimeR11(
-        device="cpu", config=R11TrainingConfig(batch_size=len(evidence))
-    )
+    new_runtime = TrainingRuntimeR11(device="cpu", config=R11TrainingConfig())
     new_opt = new_runtime.build_optimizer(new_model)
 
     ev, op, med, acc, dp, rt, w = legacy_evidence_tensors(evidence, parents, "cpu")
@@ -245,11 +241,15 @@ def test_cuda_graph_unavailable_falls_back_without_semantic_change():
         assert fallback[key] == eager[key]
 
 
-def test_no_amp_no_fp16_and_tier1_count_fail_closed():
+def test_no_amp_no_fp16_and_canonical_training_rule_fail_closed():
     with pytest.raises(RuntimeError, match="AMP_FORBIDDEN"):
         R11TrainingConfig(amp_enabled=True).validate()
     with pytest.raises(RuntimeError, match="NON_FP32_RUNTIME_DTYPE"):
         R11TrainingConfig(dtype=torch.float16).validate()
+    with pytest.raises(RuntimeError, match="GENERATION_SEED_RULE_DRIFT"):
+        R11TrainingConfig(generation_base_seed=1).validate()
+    with pytest.raises(RuntimeError, match="ADAMW_TRAINING_RULE_DRIFT"):
+        R11TrainingConfig(batch_size=256).validate()
 
     model = build_g0_brain_r10("TIER_1", seed=1, device="cpu").half()
     with pytest.raises(RuntimeError, match="NON_FP32_PARAMETER"):
