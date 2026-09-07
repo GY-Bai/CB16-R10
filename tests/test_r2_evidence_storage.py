@@ -1,4 +1,6 @@
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -38,6 +40,16 @@ class R2EvidenceStorageTests(unittest.TestCase):
             recover_on_open=recover,
             segment_target_bytes=1024 * 1024,
         )
+
+    def test_package_root_is_storage_lightweight(self):
+        repo = Path(__file__).resolve().parents[1]
+        code = (
+            "import sys; import cb16_local_opt; "
+            "assert 'torch' not in sys.modules, sorted(k for k in sys.modules if k.startswith('torch'))"
+        )
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(repo)
+        subprocess.run([sys.executable, "-c", code], env=env, check=True)
 
     def test_materialize_once_reuse_across_100_generations(self):
         with tempfile.TemporaryDirectory() as td:
