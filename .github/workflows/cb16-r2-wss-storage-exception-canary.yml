@@ -21,7 +21,8 @@ jobs:
     timeout-minutes: 10
     env:
       UNIT: cb16-github-runner.service
-      R103_ROOT: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+      R103_HOST_SOURCE: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+      R103_ROOT: /data/cb16_ci/r2-authority/r103
       R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
       R2_WRITE_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
       VERIFIED_PY: /data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/bin/python
@@ -47,33 +48,45 @@ jobs:
           echo "DROP_INS=$dropins"
 
           test "$protect_system" = strict
-          test "$protect_home" = tmpfs
+          test "$protect_home" = yes
           grep -Fq '/data/cb16_ci/github-runner-qualification/actions-runner' <<<"$rw"
           grep -Fq "$R2_WRITE_ROOT" <<<"$rw"
-          grep -Fq "$R103_ROOT" <<<"$bro"
+          grep -Fq "$R103_HOST_SOURCE:$R103_ROOT" <<<"$bro"
 
-      - name: Verify authority paths are readable but not writable
+      - name: Verify R10.3 is exposed only through read-only authority alias
         shell: bash
         run: |
           set -euo pipefail
           test -d "$R103_ROOT"
           test -r "$R103_ROOT"
           test -x "$R103_ROOT"
+          test -z "$(find "$R103_ROOT" -maxdepth 2 -type f -readable -print -quit | grep '^$' || true)" || true
+          first_readable="$(find "$R103_ROOT" -maxdepth 2 -type f -readable -print -quit)"
+          test -n "$first_readable"
+
+          # ProtectHome=yes must continue to hide the original /home authority path.
+          if test -r "$R103_HOST_SOURCE" || test -x "$R103_HOST_SOURCE"; then
+            echo 'DIRECT_HOME_AUTHORITY_UNEXPECTEDLY_VISIBLE' >&2
+            exit 1
+          fi
+
+          echo '=== R10.3 authority alias mount ==='
+          findmnt -T "$R103_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          r103_opts="$(findmnt -n -o OPTIONS -T "$R103_ROOT")"
+          case ",$r103_opts," in *,ro,*) ;; *) echo "R103_ALIAS_NOT_READ_ONLY=$r103_opts" >&2; exit 1 ;; esac
+          echo 'R103_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R103_DIRECT_HOME_VIEW=HIDDEN'
+
+      - name: Verify R10.4 remains readable but not writable
+        shell: bash
+        run: |
+          set -euo pipefail
           test -d "$R104_ROOT"
           test -r "$R104_ROOT"
-
-          echo '=== R10.3 authority mount ==='
-          findmnt -T "$R103_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
           echo '=== R10.4 authority mount ==='
           findmnt -T "$R104_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
-
-          r103_opts="$(findmnt -n -o OPTIONS -T "$R103_ROOT")"
           r104_opts="$(findmnt -n -o OPTIONS -T "$R104_ROOT")"
-          case ",$r103_opts," in *,ro,*) ;; *) echo "R103_NOT_READ_ONLY=$r103_opts" >&2; exit 1 ;; esac
           case ",$r104_opts," in *,ro,*) ;; *) echo "R104_NOT_READ_ONLY=$r104_opts" >&2; exit 1 ;; esac
-
-          # Do not attempt a write to either scientific authority root.
-          echo 'R103_AUTHORITY_VIEW=READ_ONLY'
           echo 'R104_AUTHORITY_VIEW=READ_ONLY'
 
       - name: Verify only R2 qualification payload lane is writable
@@ -114,8 +127,9 @@ jobs:
           set -euo pipefail
           echo 'R2_WSS_STORAGE_EXCEPTION_CANARY=PASS'
           echo 'PROTECT_SYSTEM=strict'
-          echo 'PROTECT_HOME=tmpfs'
-          echo 'R103_AUTHORITY_VIEW=READ_ONLY'
+          echo 'PROTECT_HOME=yes'
+          echo 'R103_AUTHORITY_ALIAS=READ_ONLY'
+          echo 'R103_DIRECT_HOME_VIEW=HIDDEN'
           echo 'R104_AUTHORITY_VIEW=READ_ONLY'
           echo 'DIAGNOSTICS_WRITE=PASS'
           echo 'CANONICAL_CAMPAIGN_MODIFIED=false'
