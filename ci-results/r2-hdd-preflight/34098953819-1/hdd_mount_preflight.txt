@@ -1,0 +1,89 @@
+SCHEMA=CB16_R2_HDD_READONLY_PREFLIGHT_V1
+UTC=2026-09-07T08:10:10Z
+RUNNER=bgyubuntusever22041
+UID_GID=997:997
+WRITES_TO_HDD=FALSE
+CANONICAL_R104_MODIFIED=FALSE
+
+=== FINDMNT TARGETS ===
+--- /
+TARGET SOURCE                            FSTYPE OPTIONS
+/      /dev/mapper/ubuntu--vg-ubuntu--lv ext4   ro,nosuid,relatime
+--- /tmp
+TARGET SOURCE                                                                                                                                   FSTYPE OPTIONS
+/tmp   /dev/mapper/ubuntu--vg-ubuntu--lv[/tmp/systemd-private-6aa5908355384a17b187a86874f56bd4-cb16-github-canonical-runner.service-6tQGQ7/tmp] ext4   rw,nosuid,relatime
+--- /data
+TARGET SOURCE    FSTYPE OPTIONS
+/data  /dev/sda1 ext4   ro,nosuid,noatime
+--- /data/cb16_ci
+TARGET        SOURCE              FSTYPE OPTIONS
+/data/cb16_ci /dev/sda1[/cb16_ci] ext4   rw,nosuid,noatime
+--- /data/cb16_hdd
+TARGET SOURCE    FSTYPE OPTIONS
+/data  /dev/sda1 ext4   ro,nosuid,noatime
+--- /data/cb16_hdd/cb16_runtime/R10_4
+TARGET                            SOURCE                                  FSTYPE OPTIONS
+/data/cb16_hdd/cb16_runtime/R10_4 /dev/sda1[/cb16_hdd/cb16_runtime/R10_4] ext4   rw,nosuid,noatime
+
+=== LSBLK ===
+NAME                      KNAME  TYPE RO ROTA   SIZE FSTYPE      FSAVAIL FSUSE% MOUNTPOINTS                                                         MODEL            TRAN
+loop0                     loop0  loop  1    0   1.4M squashfs          0   100% /snap/bandwhich/268                                                                  
+loop1                     loop1  loop  1    0 255.1M squashfs          0   100% /snap/clash/1833                                                                     
+loop2                     loop2  loop  1    0  55.5M squashfs          0   100% /snap/core18/2947                                                                    
+loop3                     loop3  loop  1    0  55.5M squashfs          0   100% /snap/core18/2999                                                                    
+loop4                     loop4  loop  1    0  63.8M squashfs          0   100% /snap/core20/2769                                                                    
+loop5                     loop5  loop  1    0  63.8M squashfs          0   100% /snap/core20/2866                                                                    
+loop7                     loop7  loop  1    0    74M squashfs          0   100% /snap/core22/2411                                                                    
+loop9                     loop9  loop  1    0 115.3M squashfs          0   100% /snap/lxd/40338                                                                      
+loop10                    loop10 loop  1    0 238.4M squashfs          0   100% /snap/nextcloud/32537                                                                
+loop11                    loop11 loop  1    0 238.8M squashfs          0   100% /snap/nextcloud/32871                                                                
+loop12                    loop12 loop  1    0   1.3M squashfs          0   100% /snap/nvtop/309                                                                      
+loop13                    loop13 loop  1    0   1.4M squashfs          0   100% /snap/nvtop/344                                                                      
+loop14                    loop14 loop  1    0  50.1M squashfs          0   100% /snap/snapd/27591                                                                    
+loop15                    loop15 loop  1    0  50.1M squashfs          0   100% /snap/snapd/27710                                                                    
+loop16                    loop16 loop  1    0 115.3M squashfs          0   100% /snap/lxd/40575                                                                      
+loop17                    loop17 loop  1    0    74M squashfs          0   100% /snap/core22/2437                                                                    
+sda                       sda    disk  0    1 931.5G                                                                                                ST1000DM010-2EP1 sata
+└─sda1                    sda1   part  0    1 931.5G ext4         660.7G    23% /data/cb16_hdd/cb16_runtime/R10_4                                                    
+                                                                                /data/cb16_ci                                                                        
+                                                                                /data                                                                                
+sdb                       sdb    disk  0    0 465.8G                                                                                                CT500MX500SSD1   sata
+├─sdb1                    sdb1   part  0    0     1G vfat             1G     1% /boot/efi                                                                            
+├─sdb2                    sdb2   part  0    0     2G ext4           1.3G    25% /boot                                                                                
+└─sdb3                    sdb3   part  0    0 462.7G LVM2_member                                                                                                     
+  └─ubuntu--vg-ubuntu--lv dm-0   lvm   0    0   430G ext4          20.8G    91% /var/tmp                                                                             
+                                                                                /tmp                                                                                 
+                                                                                /home/bgy/m3-infra/CB16_SHANXI_R10_2_REAL_HISTORICAL_G0_LEARNING_V1                  
+                                                                                /home/bgy/m3-infra/CB16_CANONICAL_PACKAGES                                           
+                                                                                /home/bgy/cb16_ssd/runtime/R10_3                                                     
+                                                                                /home/bgy/cb16_ssd/runtime/R10_2                                                     
+                                                                                /                                                                                    
+
+=== BLOCK RO FLAGS ===
+/sys/class/block/sda/ro=0
+/sys/class/block/sda1/ro=0
+/sys/class/block/sdb/ro=0
+/sys/class/block/sdb3/ro=0
+
+=== PATH MODES / OWNERS ===
+/data mode=755 uid=1000 gid=1000 type=directory
+/data/cb16_ci mode=775 uid=997 gid=997 type=directory
+/data/cb16_hdd mode=775 uid=1000 gid=1000 type=directory
+/data/cb16_hdd/cb16_runtime mode=775 uid=1000 gid=1000 type=directory
+/data/cb16_hdd/cb16_runtime/R10_4 mode=775 uid=1000 gid=1000 type=directory
+
+=== ACCESS(2)-STYLE SHELL WRITABILITY FLAGS; NO WRITE ATTEMPT ===
+/data WRITABLE_FLAG=FALSE
+/data/cb16_ci WRITABLE_FLAG=TRUE
+/data/cb16_hdd WRITABLE_FLAG=FALSE
+/data/cb16_hdd/cb16_runtime WRITABLE_FLAG=FALSE
+/data/cb16_hdd/cb16_runtime/R10_4 WRITABLE_FLAG=TRUE
+
+=== /proc/self/mountinfo entries containing /data ===
+1737 1696 8:1 / /data ro,nosuid,noatime shared:715 master:81 - ext4 /dev/sda1 rw
+1741 1737 8:1 /cb16_ci /data/cb16_ci rw,nosuid,noatime shared:716 master:81 - ext4 /dev/sda1 rw
+1742 1737 8:1 /cb16_hdd/cb16_runtime/R10_4 /data/cb16_hdd/cb16_runtime/R10_4 rw,nosuid,noatime shared:717 master:81 - ext4 /dev/sda1 rw
+
+=== MOUNT NAMESPACE ===
+self=mnt:[4026532895]
+pid1=
