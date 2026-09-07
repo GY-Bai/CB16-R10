@@ -1,0 +1,54 @@
+name: CB16 R11 Stage2 Task B GTX1060 Microbench
+
+on:
+  push:
+    branches:
+      - ai/r11-stage2-task-b-gpu-throughput-r1
+    paths:
+      - .github/workflows/cb16-r11-stage2-task-b-gpu-microbench.yml
+      - scripts/run_r11_task_b_gpu_microbench.py
+      - cb16_local_opt/gpu_runtime_r11.py
+      - cb16_local_opt/training_runtime_r11.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-stage2-real-machine-microbench
+  cancel-in-progress: false
+
+jobs:
+  task-b-gtx1060-microbench:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Task B branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Runner and GPU identity
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)"
+          echo "branch=$(git rev-parse --abbrev-ref HEAD)"
+          python3 --version
+          nvidia-smi
+          python3 - <<'PY'
+          import torch
+          print("torch", torch.__version__)
+          print("torch_cuda", torch.version.cuda)
+          assert torch.cuda.is_available(), "CUDA unavailable"
+          print("gpu", torch.cuda.get_device_name(0))
+          print("capability", torch.cuda.get_device_capability(0))
+          assert torch.cuda.get_device_capability(0) == (6, 1), "Task B requires sm_61"
+          assert torch.get_default_dtype() == torch.float32
+          PY
+
+      - name: Task B synthetic FP32 microbenchmark
+        env:
+          CUDA_VISIBLE_DEVICES: "0"
+        run: |
+          set -euo pipefail
+          python3 -u scripts/run_r11_task_b_gpu_microbench.py
