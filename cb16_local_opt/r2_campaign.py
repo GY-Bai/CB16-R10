@@ -39,6 +39,7 @@ from .r102_physics import FrozenPhysicsRuntimeR102
 from .r102_teacher_incremental import compile_teacher_evidence_incremental
 from .r2_event_journal import R2BufferedEventSink, R2EventJournal
 from .r2_evidence_storage import R2EvidenceStore
+from .r2_frozen_guard import FrozenAuthorityGuardR2
 from .r2_learning_bridge import materialize_training_evidence_r2, seal_generation_snapshot_r2
 from .r2_policy_trace_incremental import (
     prepare_on_policy_trace_context_r2,
@@ -66,6 +67,7 @@ FROZEN_RELATIVE_PATHS = (
 
 
 def frozen_authority_hashes(root: Path) -> dict[str, str]:
+    """Legacy-compatible helper retained for diagnostics; R2 campaign uses boundary guard."""
     out = {}
     for rel in FROZEN_RELATIVE_PATHS:
         p = root / rel
@@ -187,7 +189,8 @@ def run_campaign_r2(
     if not adoption_path.exists():
         adopt_parent_r101(package_root=root, parent_r101_root=parent_r101_root,
                           parent_g0=parent_g0, receipt_path=adoption_path)
-    frozen_before = frozen_authority_hashes(root)
+    frozen_guard = FrozenAuthorityGuardR2.capture(root, FROZEN_RELATIVE_PATHS)
+    frozen_before = frozen_guard.start_hashes
 
     preflight_path = rr / "TEN_SYMBOL_DATA_PREFLIGHT_R102.json"
     if preflight_path.exists():
@@ -359,8 +362,8 @@ def run_campaign_r2(
                 model.load_state_dict(challenger.state_dict(),strict=True)
             champion_hash = model_state_semantic_sha256(model)
             champion_info = _save_brain(gd/"champion_after.pt",model,generation=g+1,role="CHAMPION",parent_hash=parent_hash)
-            if frozen_authority_hashes(root) != frozen_before:
-                raise RuntimeError("FROZEN_AUTHORITY_HASH_DRIFT_DURING_R2_LEARNING")
+            if not frozen_guard.metadata_unchanged():
+                raise RuntimeError("FROZEN_AUTHORITY_METADATA_DRIFT_DURING_R2_LEARNING")
 
             gr = {
                 "schema":"CB16_R2_GENERATION_RESULT_V1","generation_attempt":g,
@@ -388,7 +391,8 @@ def run_campaign_r2(
         store_stats["payload_lanes"] = len(payloads)
         store.close(); events.close()
 
-    frozen_pass = frozen_authority_hashes(root) == frozen_before
+    frozen_guard_receipt = frozen_guard.finalize()
+    frozen_pass = bool(frozen_guard_receipt["pass"])
     attempts_completed = len(generation_results)
     behavior_changed = any(x["behavior_before"].get("sha256") != x["behavior_after"].get("sha256") for x in generation_results)
     gradients_connected = all(all(v > 0 for v in x["training"]["gradient_group_norms_last_step"].values()) for x in generation_results)
@@ -420,6 +424,7 @@ def run_campaign_r2(
         "compiled_teacher_authority":teacher_authority,
         "prepared_evidence_runtime":prepared_evidence,
         "prepared_trace_runtime":prepared_trace,
+        "frozen_authority_runtime_guard":frozen_guard_receipt,
         "storage_semantics":"IMMUTABLE_EVIDENCE_ONCE_PLUS_TINY_GENERATION_MANIFESTS",
         "storage_materialization":asdict(materialize_receipt),
         "storage_stats":store_stats,"storage_audit":storage_audit,
@@ -439,6 +444,7 @@ def run_campaign_r2(
             "validation_and_behavior_forward_fused":True,
             "market_trace_context_reused":True,
             "h72_physics_still_executed_per_generation":True,
+            "frozen_authority_full_hash_boundary_only":True,
         },
     }
     atomic_write_json(final_path,result)
