@@ -1,9 +1,10 @@
 {
-  "schema": "CB16_R2_WSS_STORAGE_EXCEPTION_TRIGGER_V1",
-  "purpose": "QUALIFY_WSS_UNIT_PRIVATE_R103_RO_ALIAS_AND_R2_NATIVE_RW_LANE",
+  "schema": "CB16_R2_WSS_STORAGE_EXCEPTION_TRIGGER_V2",
+  "purpose": "QUALIFY_WSS_UNIT_PRIVATE_R103_AND_R102_PACKAGE_RO_ALIASES_PLUS_R2_NATIVE_RW_LANE",
   "protect_system": "strict",
   "protect_home": "yes",
   "r103_authority_alias": "/data/cb16_ci/r2-authority/r103",
+  "r102_package_authority_alias": "/data/cb16_ci/r2-authority/package_r102",
   "r104_authority_access": "READ_ONLY",
   "r2_write_root": "/data/cb16_hdd/cb16_diagnostics/r2_native",
   "canonical_runner_modified": false,
