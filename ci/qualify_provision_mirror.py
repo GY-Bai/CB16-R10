@@ -6,6 +6,7 @@ import json
 import subprocess
 import sys
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,15 +28,15 @@ def _safe_endpoint(url: str) -> dict:
     }
 
 
-def _probe(url: str, *, direct: bool) -> dict:
+def _probe(url: str, *, env: dict[str, str], force_direct: bool) -> dict:
     cmd = ["curl", "-sS", "-o", "/dev/null", "-w", "%{http_code}", "--connect-timeout", "10", "--max-time", "30"]
-    if direct:
+    if force_direct:
         cmd += ["--noproxy", "*"]
     cmd.append(url)
-    p = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    p = subprocess.run(cmd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     code = p.stdout.strip()
     return {
-        "mode": "DIRECT_NO_PROXY" if direct else "INHERITED_RUNNER_PROXY_POLICY",
+        "mode": "FORCED_DIRECT_CONTROL" if force_direct else "EFFECTIVE_PROVISION_ENV",
         "endpoint": _safe_endpoint(url),
         "curl_rc": p.returncode,
         "http_code": code,
@@ -53,6 +54,7 @@ def main() -> int:
     reqs = [ROOT / p for p in manifest["requirements"]]
     prov_env = pp.load_provision_env()
     install_env = pp._install_env(prov_env)
+    install_env = pp._apply_mirror_proxy_policy(install_env, manifest["python"])
     route_summary = pp._validate_index_policy(manifest["python"], reqs, install_env)
 
     route_keys = (
@@ -66,25 +68,26 @@ def main() -> int:
             if raw.startswith(("http://", "https://")) and raw not in urls:
                 urls.append(raw)
 
-    probes=[]
-    for url in urls:
-        inherited=_probe(url,direct=False)
-        direct=_probe(url,direct=True)
-        probes.append({
+    def probe_pair(url: str) -> dict:
+        effective = _probe(url, env=install_env, force_direct=False)
+        direct = _probe(url, env=install_env, force_direct=True)
+        return {
             "endpoint": _safe_endpoint(url),
-            "inherited": inherited,
-            "direct": direct,
-            "direct_recovers_proxy_failure": (not inherited["reachable"]) and direct["reachable"],
-        })
+            "effective": effective,
+            "direct_control": direct,
+            "effective_matches_direct_reachability": effective["reachable"] == direct["reachable"],
+        }
 
-    current_route_pass = bool(probes) and all(x["inherited"]["reachable"] for x in probes)
-    direct_route_pass = bool(probes) and all(x["direct"]["reachable"] for x in probes)
+    with ThreadPoolExecutor(max_workers=max(1, min(8, len(urls)))) as ex:
+        probes = list(ex.map(probe_pair, urls))
+
+    effective_route_pass = bool(probes) and all(x["effective"]["reachable"] for x in probes)
+    direct_route_pass = bool(probes) and all(x["direct_control"]["reachable"] for x in probes)
     result = {
-        "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V2",
-        "status": "PASS" if current_route_pass else "FAIL_CURRENT_ROUTE",
-        "current_route_pass": current_route_pass,
+        "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V3",
+        "status": "PASS" if effective_route_pass else "FAIL_EFFECTIVE_ROUTE",
+        "effective_route_pass": effective_route_pass,
         "direct_route_pass": direct_route_pass,
-        "direct_bypass_candidate": (not current_route_pass) and direct_route_pass,
         "route_summary": route_summary,
         "route_probes": probes,
         "requirements_embedded_indexes": pp._embedded_index_directives(reqs),
@@ -98,7 +101,7 @@ def main() -> int:
     print(json.dumps(result, indent=2, sort_keys=True))
     if result["public_pytorch_index_present"] or result["requirements_embedded_indexes"]:
         return 2
-    return 0 if current_route_pass else 3
+    return 0 if result["status"] == "PASS" else 3
 
 
 if __name__ == "__main__":
