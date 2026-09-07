@@ -81,7 +81,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -d "$PACKAGE_ROOT"
+          test -d "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_MISSING=$PACKAGE_ROOT" >&2; exit 1; }
+          test -r "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_NOT_READABLE=$PACKAGE_ROOT" >&2; exit 1; }
+          test -x "$PACKAGE_ROOT" || { echo "PACKAGE_ALIAS_ROOT_NOT_TRAVERSABLE=$PACKAGE_ROOT" >&2; exit 1; }
+
+          echo '=== package alias mount ==='
+          findmnt -T "$PACKAGE_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
+          pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
+          echo "PACKAGE_ALIAS_OPTIONS=$pkg_opts"
+          case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_ALIAS_NOT_READ_ONLY=$pkg_opts" >&2; exit 1 ;; esac
+
+          failed=0
           for rel in \
             assets/operator/runtime/kronos_model_l5.safetensors \
             assets/operator/runtime/kronos_tokenizer_encode.safetensors \
@@ -89,19 +99,35 @@ jobs:
             assets/medium/runtime/timesfm_layer3.safetensors \
             authority/control_plane_r1/risk_supervisor_r1.py \
             authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json; do
-            test -r "$PACKAGE_ROOT/$rel"
+            p="$PACKAGE_ROOT/$rel"
+            if [ -e "$p" ]; then
+              echo "PACKAGE_FILE_EXISTS=true path=$rel"
+            else
+              echo "PACKAGE_FILE_EXISTS=false path=$rel" >&2
+              failed=1
+              continue
+            fi
+            if [ -r "$p" ]; then
+              echo "PACKAGE_FILE_READABLE=true path=$rel"
+            else
+              echo "PACKAGE_FILE_READABLE=false path=$rel" >&2
+              stat -c 'PACKAGE_FILE_STAT=%A %a %U %G %n' "$p" || true
+              failed=1
+            fi
           done
 
           if test -r "$PACKAGE_HOST_SOURCE" || test -x "$PACKAGE_HOST_SOURCE"; then
             echo 'DIRECT_HOME_PACKAGE_UNEXPECTEDLY_VISIBLE' >&2
-            exit 1
+            failed=1
+          else
+            echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
           fi
 
-          findmnt -T "$PACKAGE_ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS
-          pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
-          case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_ALIAS_NOT_READ_ONLY=$pkg_opts" >&2; exit 1 ;; esac
+          if [ "$failed" -ne 0 ]; then
+            echo 'R102_PACKAGE_AUTHORITY_ALIAS=FAIL_CONTENT_GATE' >&2
+            exit 1
+          fi
           echo 'R102_PACKAGE_AUTHORITY_ALIAS=READ_ONLY'
-          echo 'R102_PACKAGE_DIRECT_HOME_VIEW=HIDDEN'
 
       - name: Verify R10.4 remains readable but not writable
         shell: bash
