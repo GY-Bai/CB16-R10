@@ -23,7 +23,7 @@ semantic freeze and numerical/scientific equivalence gates.
 """
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Mapping, Sequence
 
 import numpy as np
 
@@ -33,7 +33,6 @@ from .probabilistic_teacher_r6 import (
     DependenceAwareTeacherConfigR6,
     DependenceAwareTeacherEvidenceR6,
     EvidenceAdmissionReceiptR6,
-    _softmax,
     canonical_hash,
 )
 from .r102_evidence_cache import ParentContextR102
@@ -46,15 +45,15 @@ R11_TEACHER_ENGINE = "CB16_R11_COLUMNAR_VECTORIZED_TEACHER_V1"
 class ColumnarTeacherIndexR11:
     parent_ids: tuple[str, ...]
     student_context_ids: tuple[str, ...]
-    parent_timestamps: np.ndarray              # [P] int64
-    parent_dep_index: np.ndarray               # [P] int32
-    features: np.ndarray                       # [P,F] float64
-    utilities: np.ndarray                      # [P,A] float64
-    action_directions: np.ndarray              # [A] int8
-    action_risks: np.ndarray                   # [A] float64
+    parent_timestamps: np.ndarray
+    parent_dep_index: np.ndarray
+    features: np.ndarray
+    utilities: np.ndarray
+    action_directions: np.ndarray
+    action_risks: np.ndarray
     dep_ids: tuple[str, ...]
-    dep_timestamps: np.ndarray                 # [D] int64
-    dep_parent_rows: np.ndarray                # [D,Rmax] int32, -1 padding
+    dep_timestamps: np.ndarray
+    dep_parent_rows: np.ndarray
     parent_row_by_id: Mapping[str, int]
     dep_row_by_id: Mapping[str, int]
 
@@ -69,16 +68,16 @@ class ColumnarTeacherIndexR11:
 
 @dataclass(frozen=True)
 class SupportRegimeR11:
-    dep_rows: np.ndarray                       # [G] int32, canonical chronology order
+    dep_rows: np.ndarray
     dep_ids: tuple[str, ...]
     train_dependence_group_hash: str
-    mean: np.ndarray                           # [F] float64
-    std: np.ndarray                            # [F] float64
-    support_parent_rows: np.ndarray            # [G,Rmax] int32, -1 padding
-    normalized_support_flat: np.ndarray        # [G*Rmax,F] float64
-    normalized_support_norm2: np.ndarray       # [G*Rmax] float64
-    valid_support_flat: np.ndarray             # [G*Rmax] bool
-    dep_lex_rank: np.ndarray                   # [G] int32
+    mean: np.ndarray
+    std: np.ndarray
+    support_parent_rows: np.ndarray
+    normalized_support_flat: np.ndarray
+    normalized_support_norm2: np.ndarray
+    valid_support_flat: np.ndarray
+    dep_lex_rank: np.ndarray
 
     @property
     def group_count(self) -> int:
@@ -174,7 +173,6 @@ def build_columnar_teacher_index_r11(
     for dep in dep_ids:
         parents_by_dep[dep].sort()
 
-    # Physical parent order is dependence-group-major + parent-id lexical order.
     parent_ids = tuple(parent for dep in dep_ids for parent in parents_by_dep[dep])
     parent_row_by_id = {parent: i for i, parent in enumerate(parent_ids)}
     feature_dim = len(rows_by_parent[parent_ids[0]][0].context_features)
@@ -336,8 +334,6 @@ def prepare_support_regime_r11(
     z[~valid_flat] = 0.0
     norm2 = np.einsum("ij,ij->i", z, z, optimize=True)
 
-    # Candidate sorting in R6 is (distance, dependence_group_id, parent_id).
-    # There is one selected parent per dependence group, so the secondary key is dep id.
     lexical = sorted(range(len(dep_ids)), key=lambda i: dep_ids[i])
     dep_lex_rank = np.empty(len(dep_ids), dtype=np.int32)
     for rank, local_idx in enumerate(lexical):
@@ -358,13 +354,13 @@ def prepare_support_regime_r11(
 
 
 def _weighted_quantiles_batch_r11(
-    values: np.ndarray,          # [B,K,A]
-    weights: np.ndarray,         # [B,K]
+    values: np.ndarray,
+    weights: np.ndarray,
     quantile_levels: Sequence[float],
-) -> np.ndarray:                 # [B,A,Q]
+) -> np.ndarray:
     """Vectorized equivalent of R5 weighted_quantile for positive weights."""
 
-    v = np.transpose(np.asarray(values, dtype=np.float64), (0, 2, 1))  # [B,A,K]
+    v = np.transpose(np.asarray(values, dtype=np.float64), (0, 2, 1))
     w0 = np.asarray(weights, dtype=np.float64)[:, None, :]
     order = np.argsort(v, axis=-1, kind="stable")
     sv = np.take_along_axis(v, order, axis=-1)
@@ -375,6 +371,9 @@ def _weighted_quantiles_batch_r11(
     qs = np.asarray(tuple(quantile_levels), dtype=np.float64)
     out = np.empty((*sv.shape[:2], len(qs)), dtype=np.float64)
     k = sv.shape[-1]
+    if k == 1:
+        out[...] = sv[..., :1]
+        return out
     for qi, q in enumerate(qs):
         left = q <= c[..., 0]
         right = q >= c[..., -1]
@@ -418,8 +417,6 @@ def _compile_block_r11(
     if g == 0:
         parent_dist = np.empty((b, 0, rmax), dtype=np.float64)
     else:
-        # ||a-b||^2 = ||a||^2 + ||b||^2 - 2a.b.  Float64 keeps ranking error tiny
-        # while BLAS turns the dominant geometry into an AVX2-friendly dense operation.
         target_norm2 = np.einsum("ij,ij->i", target, target, optimize=True)
         dot = target @ regime.normalized_support_flat.T
         sq = (
@@ -433,7 +430,7 @@ def _compile_block_r11(
         parent_dist = flat_dist.reshape(b, g, rmax)
 
     if g:
-        nearest_slot = np.argmin(parent_dist, axis=2)  # first slot = lexical parent tie-break
+        nearest_slot = np.argmin(parent_dist, axis=2)
         nearest_distance = np.take_along_axis(parent_dist, nearest_slot[..., None], axis=2)[..., 0]
         safe_parent_matrix = regime.support_parent_rows.copy()
         first_valid = int(safe_parent_matrix[safe_parent_matrix >= 0][0])
@@ -444,14 +441,13 @@ def _compile_block_r11(
             axis=2,
         )[..., 0]
 
-        # Exact R6 tie rule for dependence groups: distance then dep-id lexical order.
         rank = np.broadcast_to(regime.dep_lex_rank[None, :], nearest_distance.shape)
         order = np.lexsort((rank, nearest_distance), axis=1)
         k = min(int(config.k_dependence_groups), g)
         top_local_dep = order[:, :k]
         top_distance = np.take_along_axis(nearest_distance, top_local_dep, axis=1)
         selected_parent_rows = np.take_along_axis(nearest_parent_row, top_local_dep, axis=1)
-        selected_utility = index.utilities[selected_parent_rows]  # [B,K,A]
+        selected_utility = index.utilities[selected_parent_rows]
         weights = np.exp(-0.5 * (top_distance / float(config.distance_temperature)) ** 2) + 1e-12
         weights /= np.sum(weights, axis=1, keepdims=True)
         means = np.einsum("bk,bka->ba", weights, selected_utility, optimize=True)
@@ -469,8 +465,6 @@ def _compile_block_r11(
         effective_n = np.zeros(b, dtype=np.float64)
         quantiles = np.empty((b, index.action_count, len(config.quantile_levels)), dtype=np.float64)
 
-    # Best action within each direction. Grid is risk-ascending, therefore np.argmax's
-    # first-on-tie behavior exactly implements R6's (mean_utility, -requested_risk).
     action_idx_by_direction = {
         direction: np.flatnonzero(index.action_directions == direction)
         for direction in (-1, 0, 1)
@@ -485,7 +479,7 @@ def _compile_block_r11(
         best_action_cols_arr = np.stack(best_action_cols, axis=1)
         best_means = np.take_along_axis(means, best_action_cols_arr, axis=1)
         probs = _softmax_batch_r11(best_means, config.direction_softmax_temperature)
-        best_risks = index.action_risks[best_action_cols_arr]
+        best_risks = index.action_risks[best_action_cols_arr].copy()
         best_risks[:, 1] = 0.0
         risk_target = np.sum(probs * best_risks, axis=1)
     else:
@@ -573,7 +567,8 @@ def compile_teacher_evidence_vectorized_r11(
 
     if int(block_targets) <= 0:
         raise ValueError("block_targets")
-    train_config.validate(); val_config.validate()
+    train_config.validate()
+    val_config.validate()
     index = build_columnar_teacher_index_r11(samples)
     train_parent_ids = sorted(
         p.parent_id for p in parents.values()
