@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: cb16-shanxi-wss-qualification-runner-queue
-  cancel-in-progress: false
-
 jobs:
   task-b-gtx1060-microbench:
     runs-on: [self-hosted, shanxi, cb16-wss-qualification]
