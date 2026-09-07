@@ -23,6 +23,7 @@ jobs:
             cb16_local_opt/teacher_scheduler_r11.py \
             cb16_local_opt/teacher_runtime_r11.py \
             cb16_local_opt/training_runtime_r11.py \
+            cb16_local_opt/training_integration_r11.py \
             cb16_local_opt/market_runtime_cache_r11.py \
             cb16_local_opt/trace_runtime_r11.py \
             cb16_local_opt/evidence_store_r11.py \
@@ -36,10 +37,13 @@ jobs:
             scripts/run_r2_native_qualification_v2.py \
             scripts/run_r11_teacher_vectorized_qualification.py \
             scripts/run_r11_teacher_topology_benchmark.py \
+            scripts/run_r11_task_f_acceptance.py \
+            scripts/run_r11_task_f_acceptance_v2.py \
             tests/test_rearchitecture_authority_r11.py \
             tests/test_teacher_vectorized_r11.py \
             tests/test_teacher_runtime_r11.py \
             tests/test_training_runtime_r11.py \
+            tests/test_training_integration_r11.py \
             tests/test_r11_trace_runtime.py \
             tests/test_r11_evidence_store.py \
             tests/test_r11_event_journal.py \
