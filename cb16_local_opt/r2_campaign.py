@@ -36,11 +36,14 @@ from .r102_learning import (
 from .r102_market import preflight_all_ten_data
 from .r102_parent_adoption import adopt_parent_r101
 from .r102_physics import FrozenPhysicsRuntimeR102
-from .r102_policy_trace import run_real_on_policy_trace
 from .r102_teacher_incremental import compile_teacher_evidence_incremental
 from .r2_event_journal import R2BufferedEventSink, R2EventJournal
 from .r2_evidence_storage import R2EvidenceStore
 from .r2_learning_bridge import materialize_training_evidence_r2, seal_generation_snapshot_r2
+from .r2_policy_trace_incremental import (
+    prepare_on_policy_trace_context_r2,
+    run_real_on_policy_trace_r2,
+)
 from .r2_sequential_audit import audit_r2_store_sequential
 from .r2_training_incremental import (
     evaluate_policy_r2,
@@ -256,6 +259,27 @@ def run_campaign_r2(
     }
     atomic_write_json(rr / "R2_PREPARED_EVIDENCE_RUNTIME.json", prepared_evidence)
 
+    # Generation-invariant trace contexts and NPZ market arrays are also prepared
+    # once. Champion inference and H72 Physics remain generation-specific.
+    trace_context = prepare_on_policy_trace_context_r2(
+        parents=parents,
+        parent_states=parent_states,
+        cache_dir=cache_dir,
+        device=device,
+        max_groups=24,
+    )
+    prepared_trace = {
+        "schema":"CB16_R2_PREPARED_TRACE_RUNTIME_V1",
+        "trace_parent_count":len(trace_context.parents),
+        "loaded_symbols":list(trace_context.symbols),
+        "device":str(device),
+        "market_npz_loaded_once_per_campaign":True,
+        "champion_inference_still_per_generation":True,
+        "h72_physics_still_per_generation":True,
+        "scientific_semantics_changed":False,
+    }
+    atomic_write_json(rr / "R2_PREPARED_TRACE_RUNTIME.json", prepared_trace)
+
     model = build_g0_brain_r10("TIER_1", seed=24680, device=device)
     checkpoint = root / "authority/g0_parent/central_brain_g0_r10_2_parent.pt" if start_checkpoint is None else Path(start_checkpoint)
     if start_checkpoint is None and sha256_file(checkpoint) != G0_FILE_SHA256:
@@ -296,10 +320,13 @@ def run_campaign_r2(
             before_val, before_behavior = evaluate_policy_r2(model, val_batch)
 
             sink = R2BufferedEventSink(events)
-            on_policy = run_real_on_policy_trace(
-                model=model,policy_hash=parent_hash,generation=g,parents=parents,
-                parent_states=parent_states,cache_dir=cache_dir,physics=physics_runtime,
-                lake=sink,device=device,max_groups=24,
+            on_policy = run_real_on_policy_trace_r2(
+                model=model,
+                policy_hash=parent_hash,
+                generation=g,
+                prepared=trace_context,
+                physics=physics_runtime,
+                lake=sink,
             )
             if on_policy["matured"] != on_policy["trace_count"]:
                 raise RuntimeError(f"R2_ON_POLICY_TRACE_NOT_FULLY_MATURED:{on_policy}")
@@ -392,6 +419,7 @@ def run_campaign_r2(
         "teacher_semantics":"PROBABILISTIC_DISTRIBUTIONAL_NO_BEST_ACTION_LABEL",
         "compiled_teacher_authority":teacher_authority,
         "prepared_evidence_runtime":prepared_evidence,
+        "prepared_trace_runtime":prepared_trace,
         "storage_semantics":"IMMUTABLE_EVIDENCE_ONCE_PLUS_TINY_GENERATION_MANIFESTS",
         "storage_materialization":asdict(materialize_receipt),
         "storage_stats":store_stats,"storage_audit":storage_audit,
@@ -409,6 +437,8 @@ def run_campaign_r2(
             "compiled_teacher_authority_verified":True,
             "prepared_evidence_batches_reused":True,
             "validation_and_behavior_forward_fused":True,
+            "market_trace_context_reused":True,
+            "h72_physics_still_executed_per_generation":True,
         },
     }
     atomic_write_json(final_path,result)
