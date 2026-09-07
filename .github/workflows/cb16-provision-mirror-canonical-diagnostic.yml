@@ -1,0 +1,114 @@
+name: CB16 Provision Mirror Canonical Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-provision-mirror-canonical-trigger.json
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose-canonical-provision-mirror:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Collect sanitized canonical provision state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 - <<'PY'
+          import json, os, pathlib, re, subprocess, urllib.parse
+          out={'schema':'CB16_CANONICAL_PROVISION_MIRROR_DIAGNOSTIC_V1','whoami':None,'env_files':[],'process_env':{},'find_links':[],'requirements_direct_indexes':[]}
+          def run(cmd):
+            p=subprocess.run(cmd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+            return p.returncode,p.stdout.strip()
+          out['whoami']=run(['whoami'])[1]
+          interesting={'PIP_INDEX_URL','PIP_EXTRA_INDEX_URL','PIP_TRUSTED_HOST','PIP_FIND_LINKS','PIP_CONFIG_FILE','UV_INDEX_URL','UV_EXTRA_INDEX_URL','UV_DEFAULT_INDEX','UV_FIND_LINKS','UV_INDEX','UV_NO_INDEX','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy'}
+          secret_markers=('TOKEN','SECRET','PASSWORD','PASSWD','KEY','CREDENTIAL','AUTH')
+          def safe(k,v):
+            if any(x in k.upper() for x in secret_markers): return '<REDACTED_PRESENT>'
+            vals=[]
+            for raw in str(v).split():
+              try:
+                u=urllib.parse.urlsplit(raw)
+                if u.scheme and u.hostname:
+                  vals.append(f'{u.scheme}://{u.hostname}{":"+str(u.port) if u.port else ""}{u.path or ""}')
+                  continue
+              except Exception: pass
+              vals.append(raw if raw.startswith('/') else '<SET>')
+            return ' '.join(vals)
+          for k in sorted(interesting):
+            if k in os.environ: out['process_env'][k]=safe(k,os.environ[k])
+          raw_env_values={}
+          for ep in ('/etc/cb16-ci/provision.env','/data/cb16_ci/provision.env'):
+            p=pathlib.Path(ep); item={'path':ep,'exists':p.exists(),'entries':{}}
+            if p.exists():
+              try:
+                for line in p.read_text(errors='replace').splitlines():
+                  s=line.strip()
+                  if not s or s.startswith('#') or '=' not in s: continue
+                  k,v=s.split('=',1); k=k.strip(); v=v.strip()
+                  raw_env_values[k]=v
+                  item['entries'][k]=safe(k,v)
+              except Exception as e: item['read_error']=type(e).__name__
+            out['env_files'].append(item)
+          for k in ('PIP_FIND_LINKS','UV_FIND_LINKS'):
+            val=raw_env_values.get(k) or os.environ.get(k)
+            if not val: continue
+            for token in val.split():
+              if token.startswith('/'):
+                p=pathlib.Path(token); rec={'key':k,'path':token,'exists':p.exists(),'is_dir':p.is_dir()}
+                if p.is_dir():
+                  wheels=list(p.rglob('*.whl')); rec['wheel_count']=len(wheels); rec['torch_wheel_count']=sum(1 for x in wheels if x.name.startswith('torch-')); rec['sample_torch_wheels']=[x.name for x in wheels if x.name.startswith('torch-')][:10]
+                out['find_links'].append(rec)
+          req=pathlib.Path('requirements-shanxi-pascal.txt')
+          if req.exists():
+            for line in req.read_text().splitlines():
+              s=line.strip()
+              if s.startswith('--extra-index-url') or s.startswith('--index-url'):
+                out['requirements_direct_indexes'].append(safe('INDEX_URL',s.split(None,1)[1]))
+          # Verify current frozen R10.4 venv without touching network.
+          v='/data/cb16_ci/venvs/b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba/bin/python'
+          rc,txt=run([v,'-c','import torch,numpy,pandas,lightgbm,pytest; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO_GPU")']) if pathlib.Path(v).exists() else (127,'MISSING')
+          out['verified_r104_venv']={'python':v,'exists':pathlib.Path(v).exists(),'rc':rc,'stdout':txt}
+          pathlib.Path('ci_evidence/canonical_provision_mirror_diagnostic.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(out,indent=2,sort_keys=True))
+          PY
+
+      - name: Persist canonical diagnostic evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="$RUNNER_TEMP/cb16-provision-canonical-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP" && mkdir -p "$SNAP" && cp -a ci_evidence/. "$SNAP"/
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/provision-mirror-canonical/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$DEST" && cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-provision-canonical-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if ! git diff --cached --quiet; then
+            git commit -m "ci-results: canonical provision mirror diagnostic ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+            git push origin "HEAD:$BRANCH"
+          fi
+
+      - name: Upload canonical diagnostic artifact
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-provision-mirror-canonical-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          retention-days: 14
