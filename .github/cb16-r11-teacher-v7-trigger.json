@@ -1,0 +1,11 @@
+{
+  "schema": "CB16_R11_VECTORIZED_TEACHER_TRIGGER_V1",
+  "qualification": "FULL_FROZEN_R104_COMPILED_AUTHORITY_ORACLE",
+  "engine": "CB16_R11_COLUMNAR_VECTORIZED_TEACHER_V1",
+  "block_targets": 64,
+  "blas_threads": 1,
+  "raw_1m_read": false,
+  "h72": false,
+  "training": false,
+  "requested_at": "2026-09-07"
+}
