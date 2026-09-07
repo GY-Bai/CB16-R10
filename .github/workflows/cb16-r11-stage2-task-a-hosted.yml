@@ -9,9 +9,11 @@ on:
       - cb16_local_opt/teacher_scheduler_r11.py
       - cb16_local_opt/teacher_runtime_r11.py
       - cb16_local_opt/trace_runtime_r11.py
+      - cb16_local_opt/trace_process_runtime_r11.py
       - cb16_local_opt/market_runtime_cache_r11.py
       - tests/test_r11_stage2_task_a_cpu_runtime.py
       - tests/test_r11_stage2_task_a_teacher_pool.py
+      - tests/test_r11_stage2_task_a_trace_process.py
       - tests/test_teacher_runtime_r11.py
       - tests/test_r11_trace_runtime.py
       - .github/workflows/cb16-r11-stage2-task-a-hosted.yml
@@ -45,9 +47,11 @@ jobs:
             cb16_local_opt/teacher_scheduler_r11.py \
             cb16_local_opt/teacher_runtime_r11.py \
             cb16_local_opt/trace_runtime_r11.py \
+            cb16_local_opt/trace_process_runtime_r11.py \
             cb16_local_opt/market_runtime_cache_r11.py \
             tests/test_r11_stage2_task_a_cpu_runtime.py \
             tests/test_r11_stage2_task_a_teacher_pool.py \
+            tests/test_r11_stage2_task_a_trace_process.py \
             tests/test_teacher_runtime_r11.py \
             tests/test_r11_trace_runtime.py
       - name: Verify frozen semantic contracts
@@ -57,5 +61,6 @@ jobs:
           python -m unittest -v \
             tests.test_r11_stage2_task_a_cpu_runtime \
             tests.test_r11_stage2_task_a_teacher_pool \
+            tests.test_r11_stage2_task_a_trace_process \
             tests.test_teacher_runtime_r11 \
             tests.test_r11_trace_runtime
