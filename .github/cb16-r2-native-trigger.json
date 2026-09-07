@@ -1,0 +1,11 @@
+{
+  "schema": "CB16_R2_NATIVE_QUALIFICATION_TRIGGER_V1",
+  "purpose": "RUN_TWO_GENERATION_NATIVE_R2_EQUIVALENCE_WITH_TRUE_SSD_METADATA_HDD_PAYLOAD",
+  "attempts": 2,
+  "metadata_tier": "/tmp on /dev/sdb root SSD",
+  "payload_tier": "/data on /dev/sda HDD",
+  "legacy_r104_access": "READ_ONLY_CACHE_AND_GENERATION_EQUIVALENCE_REFERENCE",
+  "canonical_r104_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}
