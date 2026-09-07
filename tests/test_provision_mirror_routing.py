@@ -14,142 +14,83 @@ if str(SCRIPTS) not in sys.path:
 import provision_python as pp
 
 
-class ProvisionMirrorRoutingTests(unittest.TestCase):
-    def test_pip_routes_bridge_to_uv(self):
-        env = pp._bridge_installer_routes({
-            "PIP_INDEX_URL": "https://mirror.example/simple/",
-            "PIP_EXTRA_INDEX_URL": "https://mirror.example/cu126/",
-            "PIP_FIND_LINKS": "https://mirror.example/wheels/",
-        })
-        self.assertEqual(env["UV_INDEX_URL"], env["PIP_INDEX_URL"])
-        self.assertEqual(env["UV_EXTRA_INDEX_URL"], env["PIP_EXTRA_INDEX_URL"])
-        self.assertEqual(env["UV_FIND_LINKS"], env["PIP_FIND_LINKS"])
-
-    def test_uv_routes_bridge_to_pip(self):
-        env = pp._bridge_installer_routes({
+class ProvisionUVHostEnvRoutingTests(unittest.TestCase):
+    def test_install_env_does_not_invent_or_rewrite_channels(self):
+        src = {
             "UV_INDEX_URL": "https://mirror.example/simple/",
             "UV_EXTRA_INDEX_URL": "https://mirror.example/cu126/",
-            "UV_FIND_LINKS": "https://mirror.example/wheels/",
-        })
-        self.assertEqual(env["PIP_INDEX_URL"], env["UV_INDEX_URL"])
-        self.assertEqual(env["PIP_EXTRA_INDEX_URL"], env["UV_EXTRA_INDEX_URL"])
-        self.assertEqual(env["PIP_FIND_LINKS"], env["UV_FIND_LINKS"])
-
-    def test_direct_host_mirror_proxy_policy_only_adds_configured_mirror_hosts(self):
-        cfg = {"mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS"}
-        env = pp._bridge_installer_routes({
-            "PIP_INDEX_URL": "https://mirrors.volces.com/pypi/simple/",
-            "PIP_EXTRA_INDEX_URL": "https://mirrors.aliyun.com/pytorch-wheels/cu126/",
-            "UV_EXTRA_INDEX_URL": "https://mirrors.cloud.tencent.com/pypi/simple/",
-            "NO_PROXY": "localhost,127.0.0.1",
             "HTTPS_PROXY": "http://127.0.0.1:33128",
-        })
-        out = pp._apply_mirror_proxy_policy(env, cfg)
-        tokens = set(out["NO_PROXY"].split(","))
-        self.assertIn("localhost", tokens)
-        self.assertIn("127.0.0.1", tokens)
-        self.assertIn("mirrors.volces.com", tokens)
-        self.assertIn("mirrors.aliyun.com", tokens)
-        self.assertIn("mirrors.cloud.tencent.com", tokens)
-        self.assertNotIn("github.com", tokens)
-        self.assertEqual(out["NO_PROXY"], out["no_proxy"])
-        self.assertEqual(out["HTTPS_PROXY"], "http://127.0.0.1:33128")
+        }
+        out = pp._install_env(src)
+        for k, v in src.items():
+            self.assertEqual(out[k], v)
+        self.assertNotIn("UV_FIND_LINKS", out)
 
-    def test_inherit_proxy_policy_does_not_change_no_proxy(self):
-        env = {"PIP_INDEX_URL": "https://mirror.example/simple/", "NO_PROXY": "localhost"}
-        out = pp._apply_mirror_proxy_policy(env, {"mirror_proxy_policy": "INHERIT"})
-        self.assertEqual(out["NO_PROXY"], "localhost")
-
-    def test_host_mirror_policy_accepts_shanxi_shape(self):
+    def test_uv_install_command_contains_no_channel_arguments(self):
         with tempfile.TemporaryDirectory() as td:
             req = Path(td) / "requirements.txt"
             req.write_text("torch==2.8.0+cu126\nnumpy>=2.2\n")
-            cfg = {
-                "index_policy": "HOST_MIRROR_REQUIRED",
-                "mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS",
-                "allow_embedded_index_directives": False,
-                "accelerator_wheel_route_required": True,
-            }
-            env = pp._bridge_installer_routes({
-                "PIP_INDEX_URL": "https://mirrors.volces.com/pypi/simple/",
-                "PIP_EXTRA_INDEX_URL": "https://mirrors.aliyun.com/pytorch-wheels/cu126/",
-                "UV_INDEX_URL": "https://mirrors.volces.com/pypi/simple/",
-                "UV_EXTRA_INDEX_URL": "https://mirrors.cloud.tencent.com/pypi/simple/ https://mirrors.aliyun.com/pypi/simple/",
-                "UV_FIND_LINKS": "https://mirrors.aliyun.com/pytorch-wheels/cu126/",
+            cmd = pp._uv_install_command(Path(td) / "venv/bin/python", [req])
+            pp._assert_no_channel_args(cmd)
+            self.assertNotIn("--index-url", cmd)
+            self.assertNotIn("--extra-index-url", cmd)
+            self.assertNotIn("--find-links", cmd)
+            self.assertFalse(any("://" in token for token in cmd))
+
+    def test_host_env_policy_accepts_uv_routes(self):
+        with tempfile.TemporaryDirectory() as td:
+            req = Path(td) / "requirements.txt"
+            req.write_text("torch==2.8.0+cu126\nnumpy>=2.2\n")
+            cfg = {"index_policy": "HOST_ENV_REQUIRED", "installer_policy": "UV_REQUIRED"}
+            env = {
+                "UV_INDEX_URL": "https://mirror.example/simple/",
+                "UV_EXTRA_INDEX_URL": "https://mirror.example/cu126/",
                 "HTTPS_PROXY": "http://127.0.0.1:33128",
-            })
-            env = pp._apply_mirror_proxy_policy(env, cfg)
-            summary = pp._validate_index_policy(cfg, [req], env)
-            self.assertEqual(summary["index_policy"], "HOST_MIRROR_REQUIRED")
-            self.assertEqual(summary["mirror_proxy_policy"], "DIRECT_FOR_HOST_MIRRORS")
-            self.assertTrue(summary["pip_primary_index_present"])
-            self.assertTrue(summary["uv_primary_index_present"])
-            self.assertTrue(summary["uv_find_links_present"])
-            self.assertTrue(summary["all_package_mirror_hosts_bypass_proxy"])
-            self.assertEqual(summary["configured_package_mirror_host_count"], 3)
-            self.assertEqual(summary["package_mirror_hosts_in_no_proxy_count"], 3)
-            self.assertEqual(summary["embedded_index_directive_count"], 0)
+            }
+            summary = pp._validate_host_env_policy(cfg, [req], env)
+            self.assertEqual(summary["routing_owner"], "HOST_ENVIRONMENT_AND_LOCAL_PROXY")
+            self.assertTrue(summary["uv_primary_route_present"])
+            self.assertTrue(summary["uv_extra_route_present"])
+            self.assertEqual(summary["repository_channel_directive_count"], 0)
 
-    def test_host_mirror_policy_rejects_missing_accelerator_route(self):
+    def test_host_env_policy_rejects_embedded_index_or_find_links(self):
+        cfg = {"index_policy": "HOST_ENV_REQUIRED", "installer_policy": "UV_REQUIRED"}
+        env = {"UV_INDEX_URL": "https://mirror.example/simple/", "UV_EXTRA_INDEX_URL": "https://mirror.example/cu126/"}
+        cases = [
+            "--extra-index-url https://download.example/cu126\ntorch==2.8.0+cu126\n",
+            "--find-links https://download.example/wheels\ntorch==2.8.0+cu126\n",
+            "pkg @ https://download.example/pkg.whl\n",
+        ]
+        for text in cases:
+            with self.subTest(text=text), tempfile.TemporaryDirectory() as td:
+                req = Path(td) / "requirements.txt"
+                req.write_text(text)
+                with self.assertRaisesRegex(RuntimeError, "CHANNEL_FORBIDDEN"):
+                    pp._validate_host_env_policy(cfg, [req], env)
+
+    def test_host_env_policy_requires_uv_accelerator_route_for_cuda_build(self):
         with tempfile.TemporaryDirectory() as td:
             req = Path(td) / "requirements.txt"
             req.write_text("torch==2.8.0+cu126\n")
-            cfg = {
-                "index_policy": "HOST_MIRROR_REQUIRED",
-                "mirror_proxy_policy": "INHERIT",
-                "allow_embedded_index_directives": False,
-                "accelerator_wheel_route_required": True,
-            }
-            with self.assertRaisesRegex(RuntimeError, "ACCELERATOR_ROUTE_MISSING"):
-                pp._validate_index_policy(cfg, [req], {"PIP_INDEX_URL": "https://mirror.example/simple/"})
+            cfg = {"index_policy": "HOST_ENV_REQUIRED", "installer_policy": "UV_REQUIRED"}
+            with self.assertRaisesRegex(RuntimeError, "UV_ACCELERATOR_ROUTE_MISSING"):
+                pp._validate_host_env_policy(cfg, [req], {"UV_INDEX_URL": "https://mirror.example/simple/"})
 
-    def test_host_mirror_policy_rejects_incomplete_direct_bypass(self):
-        with tempfile.TemporaryDirectory() as td:
-            req = Path(td) / "requirements.txt"
-            req.write_text("torch==2.8.0+cu126\n")
-            cfg = {
-                "index_policy": "HOST_MIRROR_REQUIRED",
-                "mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS",
-                "allow_embedded_index_directives": False,
-                "accelerator_wheel_route_required": True,
-            }
-            env = {
-                "PIP_INDEX_URL": "https://mirror.example/simple/",
-                "PIP_EXTRA_INDEX_URL": "https://wheels.example/cu126/",
-                "NO_PROXY": "mirror.example",
-            }
-            with self.assertRaisesRegex(RuntimeError, "NO_PROXY_BINDING_INCOMPLETE"):
-                pp._validate_index_policy(cfg, [req], env)
-
-    def test_host_mirror_policy_rejects_embedded_public_index(self):
-        with tempfile.TemporaryDirectory() as td:
-            req = Path(td) / "requirements.txt"
-            req.write_text("--extra-index-url https://download.pytorch.org/whl/cu126\ntorch==2.8.0+cu126\n")
-            cfg = {
-                "index_policy": "HOST_MIRROR_REQUIRED",
-                "mirror_proxy_policy": "INHERIT",
-                "allow_embedded_index_directives": False,
-                "accelerator_wheel_route_required": True,
-            }
-            env = {
-                "PIP_INDEX_URL": "https://mirror.example/simple/",
-                "PIP_EXTRA_INDEX_URL": "https://mirror.example/cu126/",
-            }
-            with self.assertRaisesRegex(RuntimeError, "EMBEDDED_INDEX_FORBIDDEN"):
-                pp._validate_index_policy(cfg, [req], env)
-
-    def test_r104_manifest_requires_host_mirror_and_repo_requirement_has_no_index_directive(self):
+    def test_r104_policy_and_requirements_have_no_repository_download_channel(self):
         manifest = json.loads((ROOT / "provision" / "environments" / "r104.json").read_text())
         py = manifest["python"]
-        self.assertEqual(py["index_policy"], "HOST_MIRROR_REQUIRED")
-        self.assertEqual(py["mirror_proxy_policy"], "DIRECT_FOR_HOST_MIRRORS")
+        self.assertEqual(py["installer_policy"], "UV_REQUIRED")
+        self.assertEqual(py["index_policy"], "HOST_ENV_REQUIRED")
+        self.assertEqual(py["package_identity_policy"], "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE")
         self.assertFalse(py["allow_embedded_index_directives"])
-        self.assertTrue(py["accelerator_wheel_route_required"])
+        self.assertFalse(py["allow_embedded_find_links"])
         self.assertFalse(py["allow_public_index_fallback"])
-        req = (ROOT / "requirements-shanxi-pascal.txt").read_text()
-        self.assertNotIn("download.pytorch.org", req)
-        self.assertNotIn("--extra-index-url", req)
-        self.assertIn("torch==2.8.0+cu126", req)
+        for name in ("requirements-shanxi-pascal.txt", "requirements-ci-runtime.txt"):
+            text = (ROOT / name).read_text()
+            self.assertNotIn("--index-url", text)
+            self.assertNotIn("--extra-index-url", text)
+            self.assertNotIn("--find-links", text)
+            self.assertNotIn("://", text)
 
 
 if __name__ == "__main__":
