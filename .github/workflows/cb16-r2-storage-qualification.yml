@@ -9,7 +9,7 @@ on:
       - .github/cb16-r2-storage-trigger.json
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: cb16-r2-storage-qualification
@@ -247,8 +247,56 @@ jobs:
           PY
           (cd ci_evidence && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
 
+      - name: Probe GitHub artifact backend connectivity
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '=== DNS ==='
+            getent ahosts results-receiver.actions.githubusercontent.com
+            echo '=== results receiver health ==='
+            curl -fsS --connect-timeout 10 --max-time 20 \
+              https://results-receiver.actions.githubusercontent.com/health
+            echo
+            echo 'curl_exit='$?
+          } 2>&1 | tee ci_evidence/artifact_connectivity.txt
+          exit 0
+
+      - name: Persist sanitized qualification evidence to R2 branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="$RUNNER_TEMP/cb16-r2-ci-result-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP"
+          mkdir -p "$SNAP"
+          for f in \
+            result.json REPORT.md benchmark.json full_migration.json \
+            sequential_audit.json sample_canary.json SHA256SUMS \
+            storage_topology.txt unittest.log artifact_connectivity.txt; do
+            if [ -f "ci_evidence/$f" ]; then cp "ci_evidence/$f" "$SNAP/$f"; fi
+          done
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/r2-storage/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-r2-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if git diff --cached --quiet; then
+            echo 'No sanitized CI evidence changes to persist.'
+          else
+            git commit -m "ci-results: R2 storage qualification ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+            git push origin "HEAD:$BRANCH"
+          fi
+
       - name: Upload sanitized qualification evidence
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: cb16-r2-storage-qualification-${{ github.run_id }}-${{ github.run_attempt }}
