@@ -1,0 +1,203 @@
+{
+  "cuda_import_canary_rc": 0,
+  "cuda_import_seconds": 5.083,
+  "dependency_check_rc": 0,
+  "dependency_check_seconds": 0.045,
+  "direct_package_versions_canonical": {
+    "all_requirements_satisfied": true,
+    "mismatched_packages": [],
+    "packages": [
+      {
+        "name": "torch",
+        "requirement": "torch==2.8.0+cu126",
+        "satisfied": true,
+        "version": "2.8.0+cu126"
+      },
+      {
+        "name": "numpy",
+        "requirement": "numpy>=2.2,<2.5",
+        "satisfied": true,
+        "version": "2.2.6"
+      },
+      {
+        "name": "pandas",
+        "requirement": "pandas>=2.2,<2.4",
+        "satisfied": true,
+        "version": "2.3.3"
+      },
+      {
+        "name": "pyarrow",
+        "requirement": "pyarrow>=15",
+        "satisfied": true,
+        "version": "25.0.1"
+      },
+      {
+        "name": "safetensors",
+        "requirement": "safetensors>=0.5.3",
+        "satisfied": true,
+        "version": "0.8.0"
+      },
+      {
+        "name": "huggingface-hub",
+        "requirement": "huggingface-hub>=0.28",
+        "satisfied": true,
+        "version": "1.30.0"
+      },
+      {
+        "name": "einops",
+        "requirement": "einops>=0.8",
+        "satisfied": true,
+        "version": "0.8.2"
+      },
+      {
+        "name": "joblib",
+        "requirement": "joblib>=1.4",
+        "satisfied": true,
+        "version": "1.6.0"
+      },
+      {
+        "name": "scikit-learn",
+        "requirement": "scikit-learn>=1.5",
+        "satisfied": true,
+        "version": "1.7.2"
+      },
+      {
+        "name": "lightgbm",
+        "requirement": "lightgbm>=4.5",
+        "satisfied": true,
+        "version": "4.7.0"
+      },
+      {
+        "name": "tqdm",
+        "requirement": "tqdm>=4.66",
+        "satisfied": true,
+        "version": "4.70.0"
+      },
+      {
+        "name": "requests",
+        "requirement": "requests>=2.31",
+        "satisfied": true,
+        "version": "2.34.2"
+      },
+      {
+        "name": "pytest",
+        "requirement": "pytest>=8,<9",
+        "satisfied": true,
+        "version": "8.4.2"
+      }
+    ],
+    "policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE"
+  },
+  "direct_package_versions_exact_match": true,
+  "direct_package_versions_new": {
+    "all_requirements_satisfied": true,
+    "packages": [
+      {
+        "name": "torch",
+        "requirement": "torch==2.8.0+cu126",
+        "satisfied": true,
+        "version": "2.8.0+cu126"
+      },
+      {
+        "name": "numpy",
+        "requirement": "numpy>=2.2,<2.5",
+        "satisfied": true,
+        "version": "2.2.6"
+      },
+      {
+        "name": "pandas",
+        "requirement": "pandas>=2.2,<2.4",
+        "satisfied": true,
+        "version": "2.3.3"
+      },
+      {
+        "name": "pyarrow",
+        "requirement": "pyarrow>=15",
+        "satisfied": true,
+        "version": "25.0.1"
+      },
+      {
+        "name": "safetensors",
+        "requirement": "safetensors>=0.5.3",
+        "satisfied": true,
+        "version": "0.8.0"
+      },
+      {
+        "name": "huggingface-hub",
+        "requirement": "huggingface-hub>=0.28",
+        "satisfied": true,
+        "version": "1.30.0"
+      },
+      {
+        "name": "einops",
+        "requirement": "einops>=0.8",
+        "satisfied": true,
+        "version": "0.8.2"
+      },
+      {
+        "name": "joblib",
+        "requirement": "joblib>=1.4",
+        "satisfied": true,
+        "version": "1.6.0"
+      },
+      {
+        "name": "scikit-learn",
+        "requirement": "scikit-learn>=1.5",
+        "satisfied": true,
+        "version": "1.7.2"
+      },
+      {
+        "name": "lightgbm",
+        "requirement": "lightgbm>=4.5",
+        "satisfied": true,
+        "version": "4.7.0"
+      },
+      {
+        "name": "tqdm",
+        "requirement": "tqdm>=4.66",
+        "satisfied": true,
+        "version": "4.70.0"
+      },
+      {
+        "name": "requests",
+        "requirement": "requests>=2.31",
+        "satisfied": true,
+        "version": "2.34.2"
+      },
+      {
+        "name": "pytest",
+        "requirement": "pytest>=8,<9",
+        "satisfied": true,
+        "version": "8.4.2"
+      }
+    ],
+    "policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE"
+  },
+  "final_holdout_2025_09_accessed": false,
+  "host_route_summary": {
+    "index_policy": "HOST_ENV_REQUIRED",
+    "installer_policy": "UV_REQUIRED",
+    "no_proxy_present": true,
+    "proxy_present": true,
+    "repository_channel_directive_count": 0,
+    "routing_owner": "HOST_ENVIRONMENT_AND_LOCAL_PROXY",
+    "uv_extra_route_present": true,
+    "uv_find_links_present": true,
+    "uv_primary_route_present": true,
+    "values_redacted": true
+  },
+  "install_command_has_url_or_channel_flag": false,
+  "install_failure_tail_redacted_to_non_url_lines": [],
+  "install_rc": 0,
+  "install_seconds": 267.321,
+  "network_download_exercised": true,
+  "package_hash_validation_used": false,
+  "repository_selected_channel_arguments": false,
+  "schema": "CB16_UV_HOST_ENV_DOWNLOAD_QUALIFICATION_V1",
+  "scientific_semantics_changed": false,
+  "status": "PASS",
+  "uv_no_cache": true,
+  "uv_version": "uv 0.12.6 (x86_64-unknown-linux-gnu)",
+  "venv_rc": 0,
+  "venv_seconds": 0.042
+}
