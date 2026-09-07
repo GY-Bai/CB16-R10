@@ -38,7 +38,7 @@ from .r102_parent_adoption import adopt_parent_r101
 from .r102_physics import FrozenPhysicsRuntimeR102
 from .r102_teacher_incremental import compile_teacher_evidence_incremental
 from .r2_event_journal import R2BufferedEventSink, R2EventJournal
-from .r2_evidence_storage import R2EvidenceStore
+from .r2_evidence_storage_incremental import R2IncrementalEvidenceStore
 from .r2_frozen_guard import FrozenAuthorityGuardR2
 from .r2_learning_bridge import materialize_training_evidence_r2, seal_generation_snapshot_r2
 from .r2_policy_trace_incremental import (
@@ -247,8 +247,6 @@ def run_campaign_r2(
     if not controls_path.exists():
         atomic_write_json(controls_path, controls)
 
-    # P1 runtime-only preparation: immutable evidence tensors are created once and
-    # reused for all generations.  This does not enter scientific identity.
     train_batch = prepare_evidence_batch_r2(train_evidence, parents, device=device)
     val_batch = prepare_evidence_batch_r2(val_evidence, parents, device=device)
     prepared_evidence = {
@@ -262,8 +260,6 @@ def run_campaign_r2(
     }
     atomic_write_json(rr / "R2_PREPARED_EVIDENCE_RUNTIME.json", prepared_evidence)
 
-    # Generation-invariant trace contexts and NPZ market arrays are also prepared
-    # once. Champion inference and H72 Physics remain generation-specific.
     trace_context = prepare_on_policy_trace_context_r2(
         parents=parents,
         parent_states=parent_states,
@@ -292,12 +288,22 @@ def run_campaign_r2(
         raise RuntimeError("G0_SEMANTIC_DRIFT_BEFORE_R2_CAMPAIGN")
     champion_hash = model_state_semantic_sha256(model)
 
-    store = R2EvidenceStore(
+    store = R2IncrementalEvidenceStore(
         metadata_root=meta / "evidence",
         payload_roots=payloads,
         codec=codec, segment_target_bytes=segment_target_bytes,
         sqlite_synchronous="FULL", recover_on_open=True,
     )
+    payload_recovery = store.last_recovery_receipt or {
+        "schema":"CB16_R2_INCREMENTAL_PAYLOAD_RECOVERY_V1",
+        "mode":"NO_RECOVERY_RECEIPT",
+        "discovered_payloads":0,
+        "truncated_tails":[],
+        "total_pack_bytes":0,
+        "indexed_prefix_bytes_skipped":0,
+        "tail_bytes_scanned":0,
+    }
+    atomic_write_json(rr / "R2_INCREMENTAL_PAYLOAD_RECOVERY.json", payload_recovery)
     events = R2EventJournal(meta / "events", synchronous="FULL")
     evidence_set, materialize_receipt = materialize_training_evidence_r2(
         store=store, train_evidence=train_evidence, parents=parents,
@@ -351,8 +357,6 @@ def run_campaign_r2(
                 receipt_dir=gd,epochs=epochs,batch_size=batch_size,lr=lr,
             )
             if after_behavior is None:
-                # Crash-recovery path only: training was already durable but the
-                # generation result had not yet been committed.
                 recovered_val, after_behavior = evaluate_policy_r2(challenger, val_batch)
                 if recovered_val != train_receipt["validation_after"]:
                     raise RuntimeError("R2_RECOVERED_VALIDATION_RECEIPT_MISMATCH")
@@ -386,8 +390,6 @@ def run_campaign_r2(
         event_audit = events.audit()
         store.checkpoint("TRUNCATE"); events.checkpoint("TRUNCATE")
         store_stats = store.stats()
-        # Qualification and downstream gates need the physical lane count.  This
-        # is runtime/storage metadata only and does not enter scientific identity.
         store_stats["payload_lanes"] = len(payloads)
         store.close(); events.close()
 
@@ -425,6 +427,7 @@ def run_campaign_r2(
         "prepared_evidence_runtime":prepared_evidence,
         "prepared_trace_runtime":prepared_trace,
         "frozen_authority_runtime_guard":frozen_guard_receipt,
+        "incremental_payload_recovery":payload_recovery,
         "storage_semantics":"IMMUTABLE_EVIDENCE_ONCE_PLUS_TINY_GENERATION_MANIFESTS",
         "storage_materialization":asdict(materialize_receipt),
         "storage_stats":store_stats,"storage_audit":storage_audit,
@@ -445,6 +448,8 @@ def run_campaign_r2(
             "market_trace_context_reused":True,
             "h72_physics_still_executed_per_generation":True,
             "frozen_authority_full_hash_boundary_only":True,
+            "payload_recovery_scans_only_unindexed_tail":True,
+            "full_payload_hash_audit_retained":True,
         },
     }
     atomic_write_json(final_path,result)
