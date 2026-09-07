@@ -32,8 +32,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if pgrep -af 'run_r104_long_research.py' | tee /tmp/cb16-r2-native-r104-process.txt | grep -q .; then
+          active="$(ps -eo pid=,comm=,args= | awk '$2 ~ /^python/ && $0 ~ /scripts\/run_r104_long_research\.py/ {print}' || true)"
+          printf '%s\n' "$active" > /tmp/cb16-r2-native-r104-process.txt
+          if [ -n "$active" ]; then
             echo 'ACTIVE_LEGACY_R104_PROCESS_REFUSED' >&2
+            echo "$active" >&2
             exit 75
           fi
           echo 'LEGACY_R104_PROCESS=NOT_RUNNING'
@@ -44,6 +47,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ci_evidence
+          python3 -m py_compile provision/scripts/provision_python.py
           python3 provision/scripts/provision_python.py \
             --profile r104 \
             --out ci_evidence/python_provision.json
@@ -182,7 +186,8 @@ jobs:
           RUN: ${{ steps.roots.outputs.run }}
         run: |
           set -euo pipefail
-          if [ -d "$RUN" ]; then
+          mkdir -p ci_evidence
+          if [ -n "${RUN:-}" ] && [ -d "$RUN" ]; then
             for f in \
               PRESTART_ENVIRONMENT_R2.json \
               R2_EXTERNAL_EVIDENCE_CACHE_BINDING.json \
@@ -198,7 +203,7 @@ jobs:
               if [ -f "$gd/ON_POLICY_REAL_TRACE_RECEIPT.json" ]; then cp "$gd/ON_POLICY_REAL_TRACE_RECEIPT.json" "ci_evidence/G${g}_ON_POLICY_REAL_TRACE_RECEIPT.json"; fi
             done
           fi
-          (cd ci_evidence && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          (cd ci_evidence && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS)
 
       - name: Validate native R2 gates
         if: always()
@@ -207,6 +212,10 @@ jobs:
           RC: ${{ steps.native.outputs.exit_code }}
         run: |
           set -euo pipefail
+          if [ ! -f ci_evidence/native_result.json ]; then
+            echo 'NATIVE_RESULT_MISSING; primary failure occurred before or during native execution.' >&2
+            exit 1
+          fi
           python3 - <<'PY'
           import json, os
           rc=int(os.environ.get('RC') or 255)
@@ -238,6 +247,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p ci_evidence
           SNAP="/tmp/cb16-r2-native-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf "$SNAP"
           mkdir -p "$SNAP"
@@ -272,10 +282,17 @@ jobs:
         shell: bash
         env:
           RUN: ${{ steps.roots.outputs.run }}
-          META: ${{ steps.roots.outputs.meta }}
           PAYLOAD: ${{ steps.roots.outputs.payload }}
         run: |
-          rm -rf "$(dirname "$RUN")" "$(dirname "$PAYLOAD")"
+          set -euo pipefail
+          if [ -n "${RUN:-}" ]; then
+            base="$(dirname "$RUN")"
+            case "$base" in /tmp/cb16-r2-native-*) rm -rf "$base" ;; *) echo "REFUSE_UNEXPECTED_RUN_CLEANUP=$base" >&2; exit 77 ;; esac
+          fi
+          if [ -n "${PAYLOAD:-}" ]; then
+            pbase="$(dirname "$PAYLOAD")"
+            case "$pbase" in /data/cb16_r2_qual/native-*) rm -rf "$pbase" ;; *) echo "REFUSE_UNEXPECTED_PAYLOAD_CLEANUP=$pbase" >&2; exit 77 ;; esac
+          fi
 
       - name: Final native R2 gate
         if: always()
@@ -285,6 +302,7 @@ jobs:
         run: |
           set -euo pipefail
           test "${RC:-255}" = "0"
+          test -f ci_evidence/native_result.json
           python3 - <<'PY'
           import json
           x=json.load(open('ci_evidence/native_result.json'))
