@@ -1,0 +1,24 @@
+WHOAMI= cb16-ci
+PROVISION_PROFILE= r103
+PROVISION_CACHE_HIT= True
+PROVISION_INSTALLER= uv
+CUDA_PYTHON_ENV=PASS 2.8.0+cu126 12.6 NVIDIA GeForce GTX 1060 6GB
+R8_3_LIVE_RUNTIME_AUTHORITY=PASS
+{"cache_hit_first": true, "h72_workers": 8, "max_in_flight": 8, "overlay": "R8_3_8W_RAM_ADAPTIVE", "teacher_workers": 8, "threads": 1}
+SCIENTIFIC_RESULT_IDENTITY_EQUIVALENCE=PASS
+final_champion_semantic_sha256= 754b80861aa11a6e14e801d4bad80865420142d05ef34a85f65ca4f16ae6c528
+QUALIFICATION_AUTHORITY_CREATED=PASS
+CACHE_POLICY=EXPLICIT_CONTROLLED_8W_QUALIFICATION_REBUILD
+EXEC /data/cb16_ci/venvs/e7d6cb5cb8c4b846c6ccbcedb5da0061c9b966d6b21971f580e3d73430eb3977/bin/python scripts/run_r103_expansion.py --r102-root /home/bgy/cb16_ssd/runtime/R10_2/qualification_r8_3_8w --run-root /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+{
+  "final_status": "R10_3_10ASSET_20GEN_EXPANSION_PASS",
+  "return_bundle": {
+    "path": "/home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w/CB16_R10_3_RETURN_RECEIPTS_R0.tar.gz",
+    "sha256": "da7121cb7eae20490dd6ca6652dff2f5cf098e064ccd7a36eae2e4b31781b90f",
+    "size": 14197991
+  }
+}
+SCIENTIFIC_RESULT_IDENTITY_EQUIVALENCE=PASS
+final_champion_semantic_sha256= dc588f527ba8bab2cc1ce411a2808890bc08c2b92cfe9e35eb7b0b1f2d998c2a
+PHASE_CONTROL=PASS
+FINAL_HOLDOUT_2025_09_ACCESSED=NO
