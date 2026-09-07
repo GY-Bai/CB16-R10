@@ -84,7 +84,8 @@ jobs:
             cb16_local_opt/teacher_scheduler_r11.py \
             cb16_local_opt/teacher_runtime_r11.py \
             cb16_local_opt/trace_runtime_r11.py \
-            scripts/run_r11_stage2_task_a_micro_benchmark.py
+            scripts/run_r11_stage2_task_a_micro_benchmark.py \
+            scripts/run_r11_stage2_task_a_micro_benchmark_v2.py
 
       - name: Run real-machine Task A micro-benchmark
         shell: bash
@@ -93,7 +94,7 @@ jobs:
         run: |
           set -euo pipefail
           /usr/bin/time -v -o ci_evidence/time_verbose.txt \
-            "$PY" scripts/run_r11_stage2_task_a_micro_benchmark.py \
+            "$PY" scripts/run_r11_stage2_task_a_micro_benchmark_v2.py \
               --legacy-r104-root "$LEGACY_R104_ROOT" \
               --block-targets 64 \
               --trace-groups 24 \
