@@ -20,6 +20,8 @@ from .r2_evidence_storage import R2EvidenceStore
 
 
 class R2IncrementalEvidenceStore(R2EvidenceStore):
+    last_recovery_receipt: dict[str, Any] | None = None
+
     def _verified_indexed_end(self, path: Path, lane: int) -> int:
         row = self.conn.execute(
             "SELECT content_hash,offset FROM payloads "
@@ -122,7 +124,7 @@ class R2IncrementalEvidenceStore(R2EvidenceStore):
             self.conn.execute("ROLLBACK")
             raise
 
-        return {
+        receipt = {
             "schema": "CB16_R2_INCREMENTAL_PAYLOAD_RECOVERY_V1",
             "mode": "VERIFY_LAST_INDEXED_RECORD_THEN_SCAN_APPEND_TAIL",
             "discovered_payloads": int(discovered),
@@ -133,3 +135,5 @@ class R2IncrementalEvidenceStore(R2EvidenceStore):
             "tail_bytes_scanned": int(tail_bytes_scanned),
             "full_payload_hash_audit_still_required_at_qualification_boundary": True,
         }
+        self.last_recovery_receipt = receipt
+        return receipt
