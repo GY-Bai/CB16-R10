@@ -1,0 +1,12 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "f18bd3addc2035944d8332e955bba7a525cbfa9c",
+  "ci_profile": "smoke",
+  "environment_id": "smoke",
+  "environment_sha256": "d317361dd1f34f1f2a293896cd88be95976fdf2d02bee32baa9bc7861e66322b",
+  "python": {
+    "status": "READY",
+    "cache_hit": true
+  },
+  "assets": []
+}
