@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.parse
 from pathlib import Path
 
 from provision_common import VENV_ROOT, atomic_write_json, ensure_dirs, repo_root
@@ -26,12 +27,17 @@ _ROUTE_KEYS = (
     "http_proxy", "https_proxy", "all_proxy", "no_proxy",
 )
 
+_PACKAGE_ROUTE_KEYS = (
+    "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_FIND_LINKS",
+    "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
+)
+
 
 def load_provision_env() -> dict[str, str]:
     """Load host-local provision routing without making it a repository secret.
 
-    `/etc/cb16-ci/provision.env` is the canonical Shanxi binding.  A worker-root
-    override remains supported.  Unreadable optional files are skipped here;
+    `/etc/cb16-ci/provision.env` is the canonical Shanxi binding. A worker-root
+    override remains supported. Unreadable optional files are skipped here;
     profiles that require a host mirror fail closed later with an explicit route
     policy error instead of a raw PermissionError.
     """
@@ -55,11 +61,7 @@ def load_provision_env() -> dict[str, str]:
 
 
 def _bridge_installer_routes(env: dict[str, str]) -> dict[str, str]:
-    """Make host mirror bindings usable by both uv and pip.
-
-    A host may define only the pip or only the uv spelling.  The scientific
-    environment should not depend on which installer happens to be available.
-    """
+    """Make host mirror bindings usable by both uv and pip."""
     env = env.copy()
     uv_primary = env.get("UV_INDEX_URL") or env.get("UV_DEFAULT_INDEX")
     pip_primary = env.get("PIP_INDEX_URL")
@@ -79,6 +81,58 @@ def _bridge_installer_routes(env: dict[str, str]) -> dict[str, str]:
     return env
 
 
+def _configured_package_mirror_hosts(env: dict[str, str]) -> list[str]:
+    hosts: set[str] = set()
+    for key in _PACKAGE_ROUTE_KEYS:
+        for raw in (env.get(key) or "").split():
+            try:
+                u = urllib.parse.urlsplit(raw)
+            except ValueError:
+                continue
+            if u.scheme in {"http", "https"} and u.hostname:
+                hosts.add(u.hostname.lower())
+    return sorted(hosts)
+
+
+def _merge_no_proxy(existing: str, hosts: list[str]) -> str:
+    current: list[str] = []
+    seen: set[str] = set()
+    for raw in existing.replace(" ", ",").split(","):
+        token = raw.strip()
+        if token and token not in seen:
+            current.append(token)
+            seen.add(token)
+    for host in hosts:
+        if host not in seen:
+            current.append(host)
+            seen.add(host)
+    return ",".join(current)
+
+
+def _apply_mirror_proxy_policy(env: dict[str, str], python_cfg: dict) -> dict[str, str]:
+    """Route only host-declared package mirrors directly when requested.
+
+    The runner-wide proxy remains active for GitHub/Azure/other external traffic.
+    Only hostnames already present in the host-local package mirror bindings are
+    added to NO_PROXY. Repository requirement files cannot add hosts because R10.4
+    forbids embedded index directives.
+    """
+    env = env.copy()
+    policy = str(python_cfg.get("mirror_proxy_policy", "INHERIT")).upper()
+    if policy == "INHERIT":
+        return env
+    if policy != "DIRECT_FOR_HOST_MIRRORS":
+        raise RuntimeError(f"PYTHON_MIRROR_PROXY_POLICY_UNSUPPORTED:{policy}")
+    hosts = _configured_package_mirror_hosts(env)
+    if not hosts:
+        raise RuntimeError("PYTHON_DIRECT_HOST_MIRROR_POLICY_HAS_NO_CONFIGURED_HOSTS")
+    existing = env.get("NO_PROXY") or env.get("no_proxy") or ""
+    merged = _merge_no_proxy(existing, hosts)
+    env["NO_PROXY"] = merged
+    env["no_proxy"] = merged
+    return env
+
+
 def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     env = os.environ.copy()
     for key in _ROUTE_KEYS:
@@ -87,9 +141,15 @@ def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
     return _bridge_installer_routes(env)
 
 
-def _route_summary(env: dict[str, str], *, index_policy: str, embedded_indexes: list[str]) -> dict:
+def _route_summary(env: dict[str, str], *, python_cfg: dict, embedded_indexes: list[str]) -> dict:
+    index_policy = str(python_cfg.get("index_policy", "INHERIT")).upper()
+    mirror_proxy_policy = str(python_cfg.get("mirror_proxy_policy", "INHERIT")).upper()
+    hosts = _configured_package_mirror_hosts(env)
+    no_proxy_tokens = {x.strip().lower() for x in (env.get("NO_PROXY") or env.get("no_proxy") or "").replace(" ", ",").split(",") if x.strip()}
+    bypassed = sum(1 for h in hosts if h in no_proxy_tokens)
     return {
         "index_policy": index_policy,
+        "mirror_proxy_policy": mirror_proxy_policy,
         "pip_primary_index_present": bool(env.get("PIP_INDEX_URL")),
         "uv_primary_index_present": bool(env.get("UV_INDEX_URL") or env.get("UV_DEFAULT_INDEX")),
         "pip_extra_index_present": bool(env.get("PIP_EXTRA_INDEX_URL")),
@@ -97,6 +157,9 @@ def _route_summary(env: dict[str, str], *, index_policy: str, embedded_indexes: 
         "pip_find_links_present": bool(env.get("PIP_FIND_LINKS")),
         "uv_find_links_present": bool(env.get("UV_FIND_LINKS")),
         "proxy_present": bool(env.get("HTTPS_PROXY") or env.get("https_proxy")),
+        "configured_package_mirror_host_count": len(hosts),
+        "package_mirror_hosts_in_no_proxy_count": bypassed,
+        "all_package_mirror_hosts_bypass_proxy": bool(hosts) and bypassed == len(hosts),
         "embedded_index_directive_count": len(embedded_indexes),
         "values_redacted": True,
     }
@@ -116,6 +179,7 @@ def _embedded_index_directives(reqs: list[Path]) -> list[str]:
 
 def _validate_index_policy(python_cfg: dict, reqs: list[Path], install_env: dict[str, str]) -> dict:
     policy = str(python_cfg.get("index_policy", "INHERIT")).upper()
+    proxy_policy = str(python_cfg.get("mirror_proxy_policy", "INHERIT")).upper()
     allow_embedded = bool(python_cfg.get("allow_embedded_index_directives", True))
     accelerator_route_required = bool(python_cfg.get("accelerator_wheel_route_required", False))
     embedded = _embedded_index_directives(reqs)
@@ -137,7 +201,15 @@ def _validate_index_policy(python_cfg: dict, reqs: list[Path], install_env: dict
     elif policy not in {"INHERIT", "PUBLIC_ALLOWED"}:
         raise RuntimeError(f"PYTHON_INDEX_POLICY_UNSUPPORTED:{policy}")
 
-    return _route_summary(install_env, index_policy=policy, embedded_indexes=embedded)
+    if proxy_policy not in {"INHERIT", "DIRECT_FOR_HOST_MIRRORS"}:
+        raise RuntimeError(f"PYTHON_MIRROR_PROXY_POLICY_UNSUPPORTED:{proxy_policy}")
+    if proxy_policy == "DIRECT_FOR_HOST_MIRRORS":
+        hosts = _configured_package_mirror_hosts(install_env)
+        no_proxy_tokens = {x.strip().lower() for x in (install_env.get("NO_PROXY") or install_env.get("no_proxy") or "").replace(" ", ",").split(",") if x.strip()}
+        if not hosts or any(h not in no_proxy_tokens for h in hosts):
+            raise RuntimeError("PYTHON_DIRECT_HOST_MIRROR_NO_PROXY_BINDING_INCOMPLETE")
+
+    return _route_summary(install_env, python_cfg=python_cfg, embedded_indexes=embedded)
 
 
 def _classify_failure(text: str) -> str:
@@ -293,6 +365,7 @@ def provision(profile: str) -> dict:
 
     prov_env = load_provision_env()
     install_env = _install_env(prov_env)
+    install_env = _apply_mirror_proxy_policy(install_env, python_cfg)
     route_summary = _validate_index_policy(python_cfg, reqs, install_env)
 
     ensure_dirs()
