@@ -177,14 +177,9 @@ def _prepare_persistent_teacher_authority_binding(
     *, metadata_root: Path, payload_root: Path, legacy_r104_root: Path,
     explicit_root: Path | None = None,
 ) -> dict[str, Any]:
-    """Bind transient metadata to a persistent R2-only compiled Teacher authority.
-
-    The default target lives beside native-v2-* run directories on the R2 HDD lane,
-    so workflow cleanup of one run cannot delete it.  Canonical R10.4 remains read-only.
-    """
+    """Bind transient metadata to a persistent R2-only compiled Teacher authority."""
     metadata_root.mkdir(parents=True, exist_ok=True)
     if explicit_root is None:
-        # .../r2_native/native-v2-<run>/payload -> .../r2_native/compiled_teacher_authority
         if len(payload_root.parents) < 2:
             raise RuntimeError("R2_TEACHER_CACHE_PAYLOAD_ROOT_TOO_SHALLOW")
         persistent_root = payload_root.parent.parent / "compiled_teacher_authority"
@@ -209,7 +204,7 @@ def _prepare_persistent_teacher_authority_binding(
     if not target.is_symlink() or target.resolve(strict=True) != persistent_root.resolve(strict=True):
         raise RuntimeError("R2_TEACHER_CACHE_SYMLINK_BINDING_FAIL")
 
-    receipt = {
+    return {
         "schema": "CB16_R2_COMPILED_TEACHER_PERSISTENT_BINDING_V1",
         "mode": "TRANSIENT_METADATA_SYMLINK_TO_PERSISTENT_R2_HDD_AUTHORITY",
         "persistent_root": str(persistent_root),
@@ -218,7 +213,10 @@ def _prepare_persistent_teacher_authority_binding(
         "scientific_semantics_changed": False,
         "final_holdout_2025_09_accessed": False,
     }
-    return receipt
+
+
+def _manifest_names(root: Path) -> list[str]:
+    return sorted(p.name for p in root.glob("*.manifest.json") if p.is_file())
 
 
 def main() -> int:
@@ -276,6 +274,8 @@ def main() -> int:
         explicit_root=Path(args.teacher_cache_root).resolve() if args.teacher_cache_root else None,
     )
     _atomic_json(run_root / "R2_COMPILED_TEACHER_PERSISTENT_BINDING.json", teacher_binding)
+    persistent_teacher_root = Path(teacher_binding["persistent_root"])
+    teacher_manifests_before = _manifest_names(persistent_teacher_root)
 
     cmd = [
         sys.executable,
@@ -289,14 +289,14 @@ def main() -> int:
         "--attempts", str(args.attempts),
         "--out", str(out_path),
     ]
-    p = subprocess.run(cmd, check=False)
+    process = subprocess.run(cmd, check=False)
 
     market_cache_unchanged = _market_cache_authority_unchanged(market_binding)
     _finalize_market_cache_receipts(
         run_root=run_root,
         market_binding=market_binding,
         unchanged=market_cache_unchanged,
-        require_external=p.returncode == 0,
+        require_external=process.returncode == 0,
     )
     if not market_cache_unchanged:
         if out_path.is_file():
@@ -307,8 +307,19 @@ def main() -> int:
             _atomic_json(out_path, failed)
         raise RuntimeError("R2_MARKET_CACHE_AUTHORITY_CHANGED_OR_REBOUND")
 
-    if p.returncode != 0:
-        return p.returncode
+    if process.returncode != 0:
+        return process.returncode
+
+    teacher_receipt_path = run_root / "COMPILED_TEACHER_AUTHORITY_RECEIPT_R102.json"
+    if not teacher_receipt_path.is_file():
+        raise FileNotFoundError(f"R2_COMPILED_TEACHER_RECEIPT_MISSING:{teacher_receipt_path}")
+    teacher_receipt = json.loads(teacher_receipt_path.read_text())
+    authority_hash = str(teacher_receipt.get("authority_hash", ""))
+    expected_manifest_name = f"{authority_hash}.manifest.json"
+    teacher_manifests_after = _manifest_names(persistent_teacher_root)
+    existed_before = expected_manifest_name in set(teacher_manifests_before)
+    replay_mode = teacher_receipt.get("mode")
+    replay_teacher_reused = replay_mode == "REUSED_VERIFIED_AUTHORITY"
 
     result = json.loads(out_path.read_text())
     result["frozen_adoption_reuse"] = reuse
@@ -322,6 +333,23 @@ def main() -> int:
     result["market_cache_payload_files_copied"] = False
     result["market_cache_source_files_unchanged"] = True
     result["compiled_teacher_persistent_binding"] = teacher_binding
+    result["compiled_teacher_authority_hash"] = authority_hash
+    result["compiled_teacher_manifest_existed_before_native_run"] = existed_before
+    result["compiled_teacher_first_invocation_mode_inferred"] = (
+        "REUSED_EXISTING_PERSISTENT_AUTHORITY"
+        if existed_before
+        else "COLD_COMPILED_AND_PUBLISHED"
+    )
+    result["compiled_teacher_replay_mode"] = replay_mode
+    result["compiled_teacher_replay_reused_verified_authority"] = replay_teacher_reused
+    result["compiled_teacher_manifests_before"] = teacher_manifests_before
+    result["compiled_teacher_manifests_after"] = teacher_manifests_after
+    if not replay_teacher_reused:
+        result["status"] = "FAIL"
+        result["compiled_teacher_authority_failure"] = "R2_REPLAY_DID_NOT_REUSE_VERIFIED_TEACHER_AUTHORITY"
+        _atomic_json(out_path, result)
+        return 2
+
     _atomic_json(out_path, result)
     print("R2_NATIVE_V2_WRAPPER=PASS")
     return 0
