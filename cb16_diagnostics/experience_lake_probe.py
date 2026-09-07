@@ -2,8 +2,10 @@ from __future__ import annotations
 
 """Read-only Experience Lake timing probe for CB16 R10 diagnostics.
 
-Consumes only local Experience Lake SQLite metadata and generation artifact mtimes.
-Never mutates the canonical campaign root or opens FINAL holdout data.
+R0.1 distinguishes training EVIDENCE_PACKAGE objects from on-policy trace objects.
+This matters under recovery because trace objects may predate the current attempt, while
+generation training evidence and snapshot sealing can occur later. The probe never
+mutates the Lake or canonical campaign root.
 """
 
 import argparse
@@ -14,14 +16,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "CB16_R10_EXPERIENCE_LAKE_TIMING_PROBE_R0"
+SCHEMA = "CB16_R10_EXPERIENCE_LAKE_TIMING_PROBE_R0_1"
 SAFETY = {
     "writes_to_canonical_run_root": False,
     "scientific_semantics_changed": False,
     "final_holdout_2025_09_accessed": False,
     "status_driving": False,
 }
-
 _SNAPSHOT_RE = re.compile(r"R102_G(\d+)_TRAINING_SNAPSHOT$")
 
 
@@ -39,6 +40,12 @@ def _ro_conn(path: Path) -> sqlite3.Connection:
     return conn
 
 
+def _delta(a: float | None, b: float | None) -> float | None:
+    if a is None or b is None:
+        return None
+    return max(0.0, float(b) - float(a))
+
+
 def _generation_artifacts(run_root: Path, generation: int) -> dict[str, float | None]:
     gd = run_root / "generations" / f"G{generation:02d}"
     return {
@@ -52,35 +59,50 @@ def _generation_artifacts(run_root: Path, generation: int) -> dict[str, float | 
     }
 
 
-def _delta(a: float | None, b: float | None) -> float | None:
-    if a is None or b is None:
-        return None
-    return max(0.0, float(b) - float(a))
-
-
-def probe_experience_lake(*, run_root: str | Path) -> dict[str, Any]:
-    rr = Path(run_root).resolve()
-    lake_root = rr / "experience_lake"
-    metadata = lake_root / "metadata"
-    dbs = sorted(metadata.glob("experience_*.sqlite"))
-    if not dbs:
-        return {
-            "schema": SCHEMA,
-            "status": "NO_EXPERIENCE_LAKE_METADATA",
-            "run_root": str(rr),
-            "safety": dict(SAFETY),
-            "shards_found": 0,
-            "generations": [],
-        }
-
-    per_gen: dict[int, dict[str, Any]] = defaultdict(lambda: {
-        "generation": None,
+def _blank_type() -> dict[str, Any]:
+    return {
         "object_count": 0,
         "bytes_raw": 0,
         "bytes_stored": 0,
         "first_object_created_at_unix": None,
         "last_object_created_at_unix": None,
         "shards": {},
+    }
+
+
+def _merge_stat(dst: dict[str, Any], *, shard: str, count: int, first: float | None,
+                last: float | None, raw_b: int, stored_b: int) -> None:
+    dst["object_count"] += int(count)
+    dst["bytes_raw"] += int(raw_b)
+    dst["bytes_stored"] += int(stored_b)
+    if first is not None and (dst["first_object_created_at_unix"] is None or first < dst["first_object_created_at_unix"]):
+        dst["first_object_created_at_unix"] = first
+    if last is not None and (dst["last_object_created_at_unix"] is None or last > dst["last_object_created_at_unix"]):
+        dst["last_object_created_at_unix"] = last
+    dst["shards"][shard] = {
+        "object_count": int(count),
+        "first_object_created_at_unix": first,
+        "last_object_created_at_unix": last,
+        "bytes_raw": int(raw_b),
+        "bytes_stored": int(stored_b),
+    }
+
+
+def probe_experience_lake(*, run_root: str | Path) -> dict[str, Any]:
+    rr = Path(run_root).resolve()
+    metadata = rr / "experience_lake" / "metadata"
+    dbs = sorted(metadata.glob("experience_*.sqlite"))
+    if not dbs:
+        return {
+            "schema": SCHEMA, "status": "NO_EXPERIENCE_LAKE_METADATA",
+            "run_root": str(rr), "safety": dict(SAFETY), "shards_found": 0,
+            "generations": [],
+        }
+
+    per_gen: dict[int, dict[str, Any]] = defaultdict(lambda: {
+        "generation": None,
+        "all_objects": _blank_type(),
+        "object_types": {},
     })
     snapshots: dict[int, dict[str, Any]] = {}
     shard_errors: list[dict[str, Any]] = []
@@ -91,18 +113,17 @@ def probe_experience_lake(*, run_root: str | Path) -> dict[str, Any]:
             conn = _ro_conn(db)
             rows = conn.execute(
                 """
-                SELECT generation,COUNT(*),MIN(created_at),MAX(created_at),
+                SELECT generation,object_type,COUNT(*),MIN(created_at),MAX(created_at),
                        COALESCE(SUM(bytes_raw),0),COALESCE(SUM(bytes_stored),0)
                 FROM objects
-                GROUP BY generation
-                ORDER BY generation
+                GROUP BY generation,object_type
+                ORDER BY generation,object_type
                 """
             ).fetchall()
             snap_rows = conn.execute(
                 """
                 SELECT snapshot_id,parent_generation,object_count,created_at,content_hash
-                FROM snapshots
-                ORDER BY created_at
+                FROM snapshots ORDER BY created_at
                 """
             ).fetchall()
             conn.close()
@@ -110,25 +131,18 @@ def probe_experience_lake(*, run_root: str | Path) -> dict[str, Any]:
             shard_errors.append({"db": str(db), "error": f"{type(exc).__name__}:{exc}"})
             continue
 
-        for gen, count, first_ts, last_ts, raw_b, stored_b in rows:
-            g = per_gen[int(gen)]
-            g["generation"] = int(gen)
-            g["object_count"] += int(count)
-            g["bytes_raw"] += int(raw_b)
-            g["bytes_stored"] += int(stored_b)
+        for gen, typ, count, first_ts, last_ts, raw_b, stored_b in rows:
+            gen = int(gen)
+            typ = str(typ)
             first = float(first_ts) if first_ts is not None else None
             last = float(last_ts) if last_ts is not None else None
-            if first is not None and (g["first_object_created_at_unix"] is None or first < g["first_object_created_at_unix"]):
-                g["first_object_created_at_unix"] = first
-            if last is not None and (g["last_object_created_at_unix"] is None or last > g["last_object_created_at_unix"]):
-                g["last_object_created_at_unix"] = last
-            g["shards"][shard] = {
-                "object_count": int(count),
-                "first_object_created_at_unix": first,
-                "last_object_created_at_unix": last,
-                "bytes_raw": int(raw_b),
-                "bytes_stored": int(stored_b),
-            }
+            g = per_gen[gen]
+            g["generation"] = gen
+            t = g["object_types"].setdefault(typ, _blank_type())
+            _merge_stat(t, shard=shard, count=count, first=first, last=last,
+                        raw_b=raw_b, stored_b=stored_b)
+            _merge_stat(g["all_objects"], shard=f"{shard}:{typ}", count=count, first=first,
+                        last=last, raw_b=raw_b, stored_b=stored_b)
 
         for snapshot_id, parent_generation, object_count, created_at, content_hash in snap_rows:
             m = _SNAPSHOT_RE.search(str(snapshot_id))
@@ -146,73 +160,96 @@ def probe_experience_lake(*, run_root: str | Path) -> dict[str, Any]:
                 shard_errors.append({
                     "generation": gen,
                     "error": "SNAPSHOT_METADATA_CONFLICT_ACROSS_SHARDS",
-                    "first": old,
-                    "second": row,
+                    "first": old, "second": row,
                 })
             snapshots[gen] = row
 
     generations: list[dict[str, Any]] = []
     for gen in sorted(set(per_gen) | set(snapshots)):
-        g = dict(per_gen.get(gen, {
-            "generation": gen,
-            "object_count": 0,
-            "bytes_raw": 0,
-            "bytes_stored": 0,
-            "first_object_created_at_unix": None,
-            "last_object_created_at_unix": None,
-            "shards": {},
-        }))
-        g["generation"] = gen
+        base = per_gen.get(gen, {"generation": gen, "all_objects": _blank_type(), "object_types": {}})
+        all_obj = base["all_objects"]
+        types = base["object_types"]
+        evidence = types.get("EVIDENCE_PACKAGE", _blank_type())
+        decisions = types.get("DECISION_EVENT", _blank_type())
+        outcomes = types.get("OUTCOME_SAMPLE", _blank_type())
         snap = snapshots.get(gen)
         art = _generation_artifacts(rr, gen)
-        first_ts = g.get("first_object_created_at_unix")
-        last_ts = g.get("last_object_created_at_unix")
         sealed_ts = snap.get("created_at_unix") if snap else None
 
-        object_span = _delta(first_ts, last_ts)
-        first_to_seal = _delta(first_ts, sealed_ts)
-        on_policy_to_first = _delta(art["on_policy_receipt_mtime_unix"], first_ts)
+        all_span = _delta(all_obj["first_object_created_at_unix"], all_obj["last_object_created_at_unix"])
+        ev_span = _delta(evidence["first_object_created_at_unix"], evidence["last_object_created_at_unix"])
+        first_ev_to_seal = _delta(evidence["first_object_created_at_unix"], sealed_ts)
+        on_policy_to_ev = _delta(art["on_policy_receipt_mtime_unix"], evidence["first_object_created_at_unix"])
         seal_to_training = _delta(sealed_ts, art["training_receipt_mtime_unix"])
-        training_to_challenger = _delta(art["training_receipt_mtime_unix"], art["challenger_mtime_unix"])
-        challenger_to_result = _delta(art["challenger_mtime_unix"], art["generation_result_mtime_unix"])
 
-        g.update({
+        earliest_trace = min(
+            [x for x in (
+                decisions["first_object_created_at_unix"],
+                outcomes["first_object_created_at_unix"],
+            ) if x is not None],
+            default=None,
+        )
+        cross_attempt_trace = bool(
+            earliest_trace is not None
+            and art["on_policy_receipt_mtime_unix"] is not None
+            and earliest_trace < art["on_policy_receipt_mtime_unix"] - 60.0
+        )
+        cross_attempt_evidence = bool(
+            evidence["first_object_created_at_unix"] is not None
+            and art["on_policy_receipt_mtime_unix"] is not None
+            and evidence["first_object_created_at_unix"] < art["on_policy_receipt_mtime_unix"] - 60.0
+        )
+
+        generations.append({
+            "generation": gen,
             "snapshot": snap,
-            "artifacts": art,
             "snapshot_sealed": snap is not None,
-            "snapshot_object_count_matches_metadata": (
-                bool(snap) and int(snap["object_count"]) == int(g["object_count"])
+            "artifacts": art,
+            "object_types": types,
+            "all_object_count": all_obj["object_count"],
+            "training_evidence_object_count": evidence["object_count"],
+            "decision_event_object_count": decisions["object_count"],
+            "outcome_sample_object_count": outcomes["object_count"],
+            "snapshot_object_count_matches_training_evidence": (
+                bool(snap) and int(snap["object_count"]) == int(evidence["object_count"])
             ),
-            "object_insert_span_seconds": object_span,
-            "first_object_to_snapshot_seal_seconds": first_to_seal,
-            "on_policy_receipt_to_first_object_seconds": on_policy_to_first,
+            "historical_all_object_creation_span_seconds": all_span,
+            "historical_span_crosses_prior_attempt_trace": cross_attempt_trace,
+            "training_evidence_span_crosses_prior_attempt": cross_attempt_evidence,
+            "training_evidence_insert_span_seconds": ev_span,
+            "training_evidence_object_rate_per_second": (
+                float(evidence["object_count"]) / ev_span
+                if ev_span is not None and ev_span > 0 and evidence["object_count"] > 1 else None
+            ),
+            "training_evidence_stored_bytes_per_second": (
+                float(evidence["bytes_stored"]) / ev_span
+                if ev_span is not None and ev_span > 0 else None
+            ),
+            "on_policy_receipt_to_first_training_evidence_seconds": on_policy_to_ev,
+            "first_training_evidence_to_snapshot_seal_seconds": first_ev_to_seal,
             "snapshot_seal_to_training_receipt_seconds": seal_to_training,
-            "training_receipt_to_challenger_seconds": training_to_challenger,
-            "challenger_to_generation_result_seconds": challenger_to_result,
-            "observed_object_rate_per_second": (
-                float(g["object_count"]) / object_span
-                if object_span is not None and object_span > 0 and g["object_count"] > 1
-                else None
+            "training_receipt_to_challenger_seconds": _delta(
+                art["training_receipt_mtime_unix"], art["challenger_mtime_unix"]
             ),
-            "bytes_stored_per_second_during_object_span": (
-                float(g["bytes_stored"]) / object_span
-                if object_span is not None and object_span > 0
-                else None
+            "challenger_to_generation_result_seconds": _delta(
+                art["challenger_mtime_unix"], art["generation_result_mtime_unix"]
             ),
         })
-        generations.append(g)
 
     return {
         "schema": SCHEMA,
         "status": "PASS" if not shard_errors else "PASS_WITH_READ_WARNINGS",
         "run_root": str(rr),
-        "experience_lake_root": str(lake_root),
+        "experience_lake_root": str(rr / "experience_lake"),
         "shards_found": len(dbs),
         "shard_errors": shard_errors,
         "generation_count_observed": len(generations),
         "generations": generations,
         "safety": dict(SAFETY),
-        "interpretation": "READ_ONLY_DURABILITY_TIMING_PROBE__NOT_SCIENTIFIC_VERDICT",
+        "interpretation": (
+            "READ_ONLY_DURABILITY_TIMING_PROBE__TYPE_AWARE__RECOVERY_AWARE__"
+            "NOT_SCIENTIFIC_VERDICT"
+        ),
     }
 
 
@@ -235,9 +272,7 @@ def main() -> int:
         "status": result["status"],
         "shards_found": result["shards_found"],
         "generation_count_observed": result["generation_count_observed"],
-        "writes_to_canonical_run_root": result["safety"]["writes_to_canonical_run_root"],
-        "scientific_semantics_changed": result["safety"]["scientific_semantics_changed"],
-        "final_holdout_2025_09_accessed": result["safety"]["final_holdout_2025_09_accessed"],
+        **result["safety"],
     }, indent=2, sort_keys=True))
     return 0
 
