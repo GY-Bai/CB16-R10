@@ -1,7 +1,6 @@
 name: CB16 R11 Stage-2 Burst Qualification
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - ai/r11-stage2-integration-r1
