@@ -1,0 +1,19 @@
+{
+  "schema": "CB16_R2_NATIVE_V2_TRIGGER_V1",
+  "purpose": "RUN_TWO_GENERATION_NATIVE_R2_V2_EQUIVALENCE_AFTER_FULL_WSS_AUTHORITY_CANARY_PASS",
+  "wss_authority_canary_run_id": 34137486369,
+  "wss_authority_canary": "PASS",
+  "runner": "shanxi-cb16-wss-qualification",
+  "r103_authority": "/data/cb16_ci/r2-authority/r103 READ_ONLY",
+  "r102_package_authority": "/data/cb16_ci/r2-authority/package_r102 READ_ONLY",
+  "legacy_r104": "/data/cb16_hdd/cb16_runtime/R10_4 READ_ONLY",
+  "r2_payload_lane": "/data/cb16_hdd/cb16_diagnostics/r2_native READ_WRITE",
+  "metadata_tier": "/tmp on SSD",
+  "payload_tier": "/data on HDD",
+  "python_policy": "REUSE_VERIFIED_R104_VENV; NO_NETWORK_INSTALL; PACKAGE_HASH_GATE_DISABLED",
+  "package_transport_policy": "HOST_ENV_OWNS_TRANSPORT; REPO_HAS_NO_DOWNLOAD_CHANNEL",
+  "attempts": 2,
+  "canonical_campaign_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}
