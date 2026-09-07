@@ -41,11 +41,11 @@ from .r102_common import canonical_json_bytes, sha256_file, sha256_obj
 from .r102_evidence_cache import ParentContextR102
 
 
-COMPILED_TEACHER_CACHE_SCHEMA = "CB16_R102_COMPILED_TEACHER_AUTHORITY_V2"
-COMPILED_TEACHER_IDENTITY_SCHEMA = "CB16_R102_COMPILED_TEACHER_IDENTITY_V2"
-COMPILED_TEACHER_PAYLOAD_SCHEMA = "CB16_R102_COMPILED_TEACHER_PAYLOAD_V2"
-COMPILED_TEACHER_RECEIPT_SCHEMA = "CB16_R102_COMPILED_TEACHER_RECEIPT_V2"
-COMPILER_SEMANTICS = "R6_EXACT_DISTRIBUTIONAL_TEACHER__P0_GEOMETRY_REUSE_V2"
+COMPILED_TEACHER_CACHE_SCHEMA = "CB16_R102_COMPILED_TEACHER_AUTHORITY_V3"
+COMPILED_TEACHER_IDENTITY_SCHEMA = "CB16_R102_COMPILED_TEACHER_IDENTITY_V3"
+COMPILED_TEACHER_PAYLOAD_SCHEMA = "CB16_R102_COMPILED_TEACHER_PAYLOAD_V3"
+COMPILED_TEACHER_RECEIPT_SCHEMA = "CB16_R102_COMPILED_TEACHER_RECEIPT_V3"
+COMPILER_SEMANTICS = "R6_EXACT_DISTRIBUTIONAL_TEACHER__P0_GEOMETRY_REUSE_V3"
 NONFINITE_TAG = "__cb16_nonfinite_float_v1__"
 
 
@@ -259,11 +259,6 @@ class ExactIncrementalTeacherR6(DependenceAwareProbabilisticTeacherR6):
 
 
 def _encode_cache_json(obj: Any) -> Any:
-    """Encode legal Teacher infinities while keeping JSON strict and deterministic.
-
-    Rejected early-support evidence can legitimately contain +inf nearest-distance.
-    NaN is never legitimate and remains a hard failure.
-    """
     if isinstance(obj, float):
         if math.isnan(obj):
             raise RuntimeError("R102_COMPILED_TEACHER_NAN_REFUSED")
@@ -383,6 +378,9 @@ def teacher_authority_identity(
     r5_path = Path(
         __import__("cb16_local_opt.probabilistic_teacher_r5", fromlist=["x"]).__file__
     ).resolve()
+    parallel_path = Path(
+        __import__("cb16_local_opt.r102_teacher_parallel", fromlist=["x"]).__file__
+    ).resolve()
     return {
         "schema": COMPILED_TEACHER_IDENTITY_SCHEMA,
         "source_parents_sha256": parents_sha,
@@ -391,6 +389,7 @@ def teacher_authority_identity(
         "validation_teacher_protocol_hash": val_config.content_hash,
         "teacher_r6_file_sha256": sha256_file(r6_path),
         "weighted_quantile_r5_file_sha256": sha256_file(r5_path),
+        "teacher_process_farm_file_sha256": sha256_file(parallel_path),
         "incremental_compiler_file_sha256": sha256_file(Path(__file__).resolve()),
         "numpy_version": np.__version__,
         "compiler_semantics": COMPILER_SEMANTICS,
@@ -421,7 +420,6 @@ def _compile_exact(
     if int(workers) <= 1:
         train_teacher = ExactIncrementalTeacherR6(train_config)
         val_teacher = ExactIncrementalTeacherR6(val_config)
-        # TeacherIndexR6 is a pure function of samples and independent of config.
         index = train_teacher.index(samples)
         train_evidence = [
             train_teacher.compile_one(
@@ -569,7 +567,6 @@ def compile_teacher_evidence_incremental(
         "scientific_semantics_changed": False,
         "scheduler_parameters_in_scientific_identity": False,
     }
-    # Manifest is the publication seal.  Orphan payloads are never authority.
     tmp = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
     tmp.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     os.replace(tmp, manifest_path)
