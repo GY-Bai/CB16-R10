@@ -19,13 +19,15 @@ jobs:
             cb16_local_opt/r2_evidence_storage_incremental.py \
             cb16_local_opt/r2_campaign.py \
             cb16_local_opt/rearchitecture_authority_r11.py \
+            cb16_local_opt/teacher_vectorized_r11.py \
             scripts/run_r104_long_research.py \
             scripts/run_r2_native_qualification_v2.py \
             tests/test_r102_teacher_incremental.py \
             tests/test_r102_evidence_incremental.py \
             tests/test_r2_frozen_guard.py \
             tests/test_r2_evidence_storage_incremental.py \
-            tests/test_rearchitecture_authority_r11.py
+            tests/test_rearchitecture_authority_r11.py \
+            tests/test_teacher_vectorized_r11.py
       - name: Verify R11 semantic freeze
         run: python3 -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
       - name: Run dependency-free P0 and R11 unit tests
