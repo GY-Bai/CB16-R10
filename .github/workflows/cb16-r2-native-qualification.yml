@@ -1,0 +1,293 @@
+name: CB16 R2 Native Campaign Qualification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r2-evidence-storage-r0
+    paths:
+      - .github/cb16-r2-native-trigger.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cb16-r2-native-campaign-qualification
+  cancel-in-progress: false
+
+jobs:
+  native-r2-qualification:
+    runs-on: [self-hosted, shanxi, cb16-r10-canonical]
+    timeout-minutes: 120
+    env:
+      LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      R103_ROOT: /home/bgy/cb16_ssd/runtime/R10_3/qualification_r8_3_8w
+    steps:
+      - name: Checkout R2 source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Refuse overlap with legacy R10.4 writer
+        shell: bash
+        run: |
+          set -euo pipefail
+          if pgrep -af 'run_r104_long_research.py' | tee /tmp/cb16-r2-native-r104-process.txt | grep -q .; then
+            echo 'ACTIVE_LEGACY_R104_PROCESS_REFUSED' >&2
+            exit 75
+          fi
+          echo 'LEGACY_R104_PROCESS=NOT_RUNNING'
+
+      - name: Provision exact R10.4 ML Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 provision/scripts/provision_python.py \
+            --profile r104 \
+            --out ci_evidence/python_provision.json
+          PYBIN="$(python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/python_provision.json'))
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          )"
+          test -x "$PYBIN"
+          "$PYBIN" - <<'PY'
+          import torch
+          assert torch.cuda.is_available()
+          print('TORCH=',torch.__version__)
+          print('CUDA=',torch.version.cuda)
+          print('GPU=',torch.cuda.get_device_name(0))
+          PY
+          echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare true SSD metadata plus HDD payload topology
+        id: roots
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="/tmp/cb16-r2-native-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          RUN="$BASE/run"
+          META="$BASE/meta"
+          PAYLOAD="/data/cb16_r2_qual/native-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/payload"
+          rm -rf "$BASE" "/data/cb16_r2_qual/native-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$RUN" "$META" "$PAYLOAD" ci_evidence
+          META_SRC="$(findmnt -n -o SOURCE -T "$META")"
+          PAYLOAD_SRC="$(findmnt -n -o SOURCE -T "$PAYLOAD")"
+          {
+            echo "RUN_ROOT=$RUN"
+            echo "METADATA_ROOT=$META"
+            echo "PAYLOAD_ROOT=$PAYLOAD"
+            echo "METADATA_SOURCE=$META_SRC"
+            echo "PAYLOAD_SOURCE=$PAYLOAD_SRC"
+            echo '=== findmnt metadata ==='
+            findmnt -T "$META" -o TARGET,SOURCE,FSTYPE,OPTIONS
+            echo '=== findmnt payload ==='
+            findmnt -T "$PAYLOAD" -o TARGET,SOURCE,FSTYPE,OPTIONS
+            echo '=== lsblk ==='
+            lsblk -o NAME,KNAME,TYPE,ROTA,SIZE,FSTYPE,MOUNTPOINTS,MODEL,TRAN
+          } | tee ci_evidence/storage_topology.txt
+          test "$META_SRC" != "$PAYLOAD_SRC"
+          test "$PAYLOAD_SRC" = "/dev/sda1"
+          case "$META_SRC" in
+            /dev/mapper/ubuntu--vg-ubuntu--lv|/dev/sdb3|/dev/sdb) ;;
+            *) echo "UNEXPECTED_METADATA_DEVICE=$META_SRC" >&2; exit 76 ;;
+          esac
+          echo "run=$RUN" >> "$GITHUB_OUTPUT"
+          echo "meta=$META" >> "$GITHUB_OUTPUT"
+          echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
+
+      - name: Syntax gate for native R2 entrypoint
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" -m py_compile \
+            cb16_local_opt/r2_campaign.py \
+            cb16_local_opt/r2_evidence_storage.py \
+            cb16_local_opt/r2_event_journal.py \
+            scripts/run_r2_native_qualification.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" - <<'PY'
+          from cb16_local_opt.r2_campaign import run_campaign_r2
+          print('R2_NATIVE_IMPORT=PASS')
+          PY
+
+      - name: Start lightweight host utilization observers
+        id: observers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          if command -v iostat >/dev/null 2>&1; then
+            iostat -xz 1 > ci_evidence/iostat.log 2>&1 &
+            echo "iostat_pid=$!" >> "$GITHUB_OUTPUT"
+          else
+            echo "iostat_pid=" >> "$GITHUB_OUTPUT"
+            echo 'IOSTAT_NOT_INSTALLED' > ci_evidence/iostat.log
+          fi
+          if command -v nvidia-smi >/dev/null 2>&1; then
+            nvidia-smi dmon -s pucm -d 1 > ci_evidence/gpu_dmon.log 2>&1 &
+            echo "gpu_pid=$!" >> "$GITHUB_OUTPUT"
+          else
+            echo "gpu_pid=" >> "$GITHUB_OUTPUT"
+            echo 'NVIDIA_SMI_NOT_AVAILABLE' > ci_evidence/gpu_dmon.log
+          fi
+
+      - name: Run two-generation native R2 equivalence qualification
+        id: native
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+          RUN: ${{ steps.roots.outputs.run }}
+          META: ${{ steps.roots.outputs.meta }}
+          PAYLOAD: ${{ steps.roots.outputs.payload }}
+        run: |
+          set -uo pipefail
+          set +e
+          /usr/bin/time -v -o ci_evidence/time_verbose.txt \
+            "$PY" scripts/run_r2_native_qualification.py \
+              --r103-root "$R103_ROOT" \
+              --legacy-r104-root "$LEGACY_R104_ROOT" \
+              --run-root "$RUN" \
+              --metadata-root "$META" \
+              --payload-root "$PAYLOAD" \
+              --attempts 2 \
+              --out ci_evidence/native_result.json \
+              2>&1 | tee ci_evidence/native_stdout.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          echo "$rc" > ci_evidence/native_exit_code.txt
+          exit 0
+
+      - name: Stop utilization observers
+        if: always()
+        shell: bash
+        env:
+          IOPID: ${{ steps.observers.outputs.iostat_pid }}
+          GPUPID: ${{ steps.observers.outputs.gpu_pid }}
+        run: |
+          set +e
+          if [ -n "$IOPID" ]; then kill "$IOPID" 2>/dev/null; wait "$IOPID" 2>/dev/null; fi
+          if [ -n "$GPUPID" ]; then kill "$GPUPID" 2>/dev/null; wait "$GPUPID" 2>/dev/null; fi
+          exit 0
+
+      - name: Materialize compact qualification evidence
+        if: always()
+        shell: bash
+        env:
+          RUN: ${{ steps.roots.outputs.run }}
+        run: |
+          set -euo pipefail
+          if [ -d "$RUN" ]; then
+            for f in \
+              PRESTART_ENVIRONMENT_R2.json \
+              R2_EXTERNAL_EVIDENCE_CACHE_BINDING.json \
+              R2_TRAINING_EVIDENCE_MATERIALIZATION_FIRST.json \
+              R2_TRAINING_EVIDENCE_MATERIALIZATION_REPLAY.json \
+              FINAL_RESULT_R2_FIRST.json \
+              FINAL_RESULT_R2.json; do
+              if [ -f "$RUN/$f" ]; then cp "$RUN/$f" "ci_evidence/$f"; fi
+            done
+            for g in 00 01; do
+              gd="$RUN/generations/G$g"
+              if [ -f "$gd/GENERATION_RESULT.json" ]; then cp "$gd/GENERATION_RESULT.json" "ci_evidence/G${g}_GENERATION_RESULT.json"; fi
+              if [ -f "$gd/ON_POLICY_REAL_TRACE_RECEIPT.json" ]; then cp "$gd/ON_POLICY_REAL_TRACE_RECEIPT.json" "ci_evidence/G${g}_ON_POLICY_REAL_TRACE_RECEIPT.json"; fi
+            done
+          fi
+          (cd ci_evidence && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Validate native R2 gates
+        if: always()
+        shell: bash
+        env:
+          RC: ${{ steps.native.outputs.exit_code }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          rc=int(os.environ.get('RC') or 255)
+          x=json.load(open('ci_evidence/native_result.json'))
+          print(json.dumps({
+            'exit_code':rc,
+            'status':x['status'],
+            'first_run_seconds':x['first_run_seconds'],
+            'replay_seconds':x['replay_seconds'],
+            'first_created_payload_count':x['first_materialization']['created_payload_count'],
+            'replay_created_payload_count':x['replay_materialization']['created_payload_count'],
+            'generation_equivalence':[g['pass'] for g in x['generation_equivalence']],
+            'gate':x['gate'],
+          },indent=2,sort_keys=True))
+          assert rc == 0
+          assert x['status'] == 'PASS'
+          assert x['gate']['legacy_scientific_equivalence_pass'] is True
+          assert x['gate']['replay_created_zero_new_payloads'] is True
+          assert x['gate']['replay_generation_files_byte_identical'] is True
+          assert x['gate']['source_legacy_cache_unchanged'] is True
+          assert x['gate']['single_hdd_payload_lane'] is True
+          assert x['canonical_r104_modified'] is False
+          assert x['scientific_semantics_changed'] is False
+          assert x['final_holdout_2025_09_accessed'] is False
+          PY
+
+      - name: Persist sanitized native qualification evidence to branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SNAP="/tmp/cb16-r2-native-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SNAP"
+          mkdir -p "$SNAP"
+          cp -a ci_evidence/. "$SNAP"/
+          BRANCH="$GITHUB_REF_NAME"
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          DEST="ci-results/r2-native/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cp -a "$SNAP"/. "$DEST"/
+          git config user.name 'cb16-r2-native-ci'
+          git config user.email '37661207+GY-Bai@users.noreply.github.com'
+          git add "$DEST"
+          if ! git diff --cached --quiet; then
+            git commit -m "ci-results: R2 native qualification ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+            git push origin "HEAD:$BRANCH"
+          fi
+
+      - name: Upload native qualification artifact
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r2-native-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Cleanup disposable R2 roots
+        if: always()
+        shell: bash
+        env:
+          RUN: ${{ steps.roots.outputs.run }}
+          META: ${{ steps.roots.outputs.meta }}
+          PAYLOAD: ${{ steps.roots.outputs.payload }}
+        run: |
+          rm -rf "$(dirname "$RUN")" "$(dirname "$PAYLOAD")"
+
+      - name: Final native R2 gate
+        if: always()
+        shell: bash
+        env:
+          RC: ${{ steps.native.outputs.exit_code }}
+        run: |
+          set -euo pipefail
+          test "${RC:-255}" = "0"
+          python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/native_result.json'))
+          assert x['status']=='PASS'
+          print('R2_NATIVE_QUALIFICATION=PASS')
+          PY
