@@ -1,8 +1,9 @@
 {
-  "schema": "CB16_R2_NATIVE_V2_TRIGGER_V2",
-  "purpose": "RERUN_TWO_GENERATION_NATIVE_R2_V2_AFTER_BIND_MOUNT_SOURCE_NORMALIZATION",
-  "previous_run_id": 34137630400,
-  "previous_failure_class": "CI_TOPOLOGY_SOURCE_STRING_NORMALIZATION_ONLY",
+  "schema": "CB16_R2_NATIVE_V2_TRIGGER_V3",
+  "purpose": "RERUN_TWO_GENERATION_NATIVE_R2_V2_AFTER_P0_MARKET_CACHE_AUTHORITY_BINDING_FIX",
+  "repair_commit": "12254d045dca1bfb310494cca415c61a5eee3521",
+  "previous_failure_class": "P0_MARKET_CACHE_AUTHORITY_PATH_NOT_MATERIALIZED",
+  "expected_fix": "run/evidence_cache/market_cache is a fail-closed symlink to frozen R10.4 evidence_cache/market_cache; no market cache payload copy",
   "wss_authority_canary_run_id": 34137486369,
   "wss_authority_canary": "PASS",
   "runner": "shanxi-cb16-wss-qualification",
@@ -15,6 +16,7 @@
   "python_policy": "REUSE_VERIFIED_R104_VENV; NO_NETWORK_INSTALL; PACKAGE_HASH_GATE_DISABLED",
   "package_transport_policy": "HOST_ENV_OWNS_TRANSPORT; REPO_HAS_NO_DOWNLOAD_CHANNEL",
   "attempts": 2,
+  "market_cache_payload_files_copied": false,
   "canonical_campaign_modified": false,
   "scientific_semantics_changed": false,
   "final_holdout_2025_09_accessed": false
