@@ -2,217 +2,123 @@
 
 ## Status
 
-Infra architecture / qualification branch only.
+Qualification-only structural Infra successor to the legacy generation-specific Experience Lake path.
 
-This architecture is intentionally isolated from the currently running canonical R10.4 source. It must not mutate `/data/cb16_hdd/cb16_runtime/R10_4`.
+Current branch: `ai/r2-evidence-storage-r0`.
 
-## Why R2 exists
+The running canonical R10.4 campaign remains untouched.
 
-The legacy R10.2/R10.4 Experience Lake couples three distinct facts into every `EVIDENCE_PACKAGE` object identity:
+## Core semantic split
 
-1. immutable probabilistic teacher evidence content;
-2. generation membership;
-3. current Champion / policy authority.
+R2 separates three authorities that were previously coupled:
 
-As a result, the same teacher evidence is materialized again for every generation. For about 9,714 admitted training evidence objects and 100 generations, the storage layer behaves approximately like O(N * G), even though the teacher evidence itself is compiled once and is unchanged between generations.
+1. **Immutable evidence content** — generation-independent teacher evidence, content-addressed by SHA-256.
+2. **Evidence-set authority** — immutable manifest naming the exact ordered evidence membership once.
+3. **Generation authority** — tiny immutable snapshot binding generation + Champion policy hash to an evidence-set hash.
 
-R2 separates these authorities.
+Dynamic on-policy decision/outcome events are a fourth workload and use a separate SSD hot event journal.
 
-## R2 authority graph
+The storage complexity target changes from approximately `O(N * G)` generation-specific evidence materialization to `O(unique evidence content + G tiny snapshots)`.
 
-```text
-Probabilistic teacher evidence
-        |
-        v
-Generation-independent canonical payload
-        |
-        | SHA-256(raw canonical JSON)
-        v
-Immutable payload pack record
-(HDD sequential append)
-        |
-        v
-Immutable Evidence Set Manifest  <---- written once for the stable evidence set
-        |
-        | evidence_set_hash
-        +---------------------------+
-                                    |
-                          +---------+---------+
-                          |                   |
-                          v                   v
-                    G00 snapshot        G01 snapshot ... G99
-                    generation=0        generation=1
-                    Champion hash       Champion hash
-                    evidence_set_hash   same evidence_set_hash
-```
+## Shanxi physical topology binding
 
-Storage complexity becomes:
+Verified host topology:
 
-```text
-O(unique evidence content + evidence-set manifests + generations)
-```
+- SSD: `/dev/sdb` — Crucial CT500MX500SSD1, root filesystem through `/dev/sdb3` + LVM.
+- HDD: `/dev/sda` — Seagate ST1000DM010-2EP1, `/data` via `/dev/sda1`.
 
-instead of:
+Qualification/production placement contract:
 
-```text
-O(generations * evidence objects)
-```
+- SSD (`/var/lib/cb16-r2/...`): SQLite WAL/index, evidence-set manifests, generation snapshots, hot event journal, recovery metadata.
+- HDD (`/data/cb16_r2_store`): immutable evidence pack segments.
+- Physical payload lanes: **1**, because the host has one mechanical HDD. Logical sharding must not turn one spindle into competing seek streams.
+- `/tmp` is scratch only; it must not become persistent metadata authority.
 
-## Scientific / authority boundary
+See `configs/R2_STORAGE_SHANXI_R0.json`.
 
-R2 does not claim that evidence has no historical context. The immutable evidence payload still includes the parent context, dependence group, student context object, Operator/Medium/Account inputs, probabilistic direction target, requested-risk target, action laws, admission record, and teacher protocol hash.
+## Payload pack
 
-R2 deliberately removes only the following from immutable evidence content:
+Teacher payloads are framed into append-only pack segments:
 
-- generation number;
-- current Champion / policy hash;
-- generation snapshot id.
+- content SHA-256;
+- raw/stored length;
+- codec tag;
+- CRC32 over stored bytes;
+- compressed payload bytes.
 
-Those are membership/authority facts. They are represented by the generation snapshot layer.
+Writes are coalesced into a large sequential append and fsync. The SSD locator records segment path + byte offset.
 
-A stable `evidence_id` may not silently map to new content. Same evidence ID with a different identity raises `R2_EVIDENCE_ID_CONTENT_CONFLICT`.
+Crash model:
 
-## Physical SSD / HDD topology
+- fully fsync'd payload record but missing locator: recovered by sequential pack scan;
+- incomplete trailing record: truncate to the last complete record boundary;
+- complete record with CRC/SHA mismatch: hard corruption failure;
+- same evidence ID with different identity/content: hard conflict.
 
-### SSD / NVMe: small random metadata
+## HDD read discipline
 
-Prefer SSD for:
+Production audit does **not** verify payloads in content-hash order. `r2_sequential_audit.py` scans by physical lane/segment/offset using one open file handle and a sequential readahead hint where supported. This preserves HDD sequentiality for verification as well as writes.
 
-- SQLite WAL and locator/catalog index;
-- immutable evidence-set manifests;
-- tiny generation snapshots;
-- future hot event/trace metadata;
-- model/checkpoint metadata where appropriate.
+## Hot event journal
 
-These workloads benefit from low random-access and fsync latency.
+`r2_event_journal.py` stores generation-specific `DECISION_EVENT` and `OUTCOME_SAMPLE` records on SSD in SQLite WAL mode.
 
-### HDD: large sequential immutable payload streams
+The compatibility sink buffers one generation and commits the complete event set in one transaction. A crash before flush does not publish the generation receipt; recovery deterministically regenerates the trace. Replaying an already committed generation converges by exactly-once identity.
 
-Prefer HDD for:
+## R2 campaign orchestration
 
-- immutable evidence payload packs;
-- old/cold evidence archive;
-- large append-only records.
+`r2_campaign.py` is the R2-first orchestrator. It intentionally does not call legacy `persist_generation_snapshot()`.
 
-R2 does not create one physical file per evidence object. Many logical objects are concatenated into framed `segment_XXXXXXXX.pack` files.
+Flow:
 
-Each record contains:
+1. build/load historical evidence cache;
+2. compile teacher evidence once;
+3. materialize immutable training evidence once;
+4. enter generation loop;
+5. produce on-policy trace and batch-commit hot events to SSD;
+6. seal tiny generation snapshot referencing the immutable evidence-set hash;
+7. train challenger;
+8. adjudicate/persist Champion lineage;
+9. repeat without re-materializing teacher payloads.
 
-```text
-codec-tag
-magic = CB16R2P1
-raw SHA-256
-raw byte length
-stored byte length
-CRC32(stored bytes)
-compressed payload
-```
+## Lightweight package initialization
 
-The SHA-256 defines content identity. CRC32 detects physical record corruption cheaply during sequential recovery scans.
+`cb16_local_opt/__init__.py` now lazily resolves ML runtime exports. Storage, diagnostics, recovery and topology tooling can therefore run on a host without importing PyTorch/CUDA.
 
-## Physical lanes are devices, not arbitrary shards
+This is intentional Infra decoupling, not a workaround for a test runner.
 
-This is an important R2 rule.
+## Open-source comparison
 
-If the host has one mechanical HDD, configure exactly one HDD payload root. R2 then performs one sequential append stream.
+RocksDB/RocksDict remains an explicit comparison backend, not a foregone production choice. Host capability confirms support for WriteBatch, DBPath, separate WAL placement and pipelined writes.
 
-Do not create four concurrent write lanes merely because the legacy Lake used four logical SQLite shards. Four streams on one spindle can convert sequential writes into seek competition.
+RocksDB advantages:
 
-If the host has multiple independent physical HDDs/NVMes, one payload root per physical device may be used. Content hashes are deterministically mapped across those physical lanes.
+- mature WAL/recovery;
+- group/batch commit;
+- memtable/SST/compaction;
+- hot/cold `db_paths` support;
+- separate `wal_dir` suitable for SSD.
 
-## Crash model
+Custom pack/manifest advantages for CB16 teacher evidence:
 
-### Pack fsync before metadata index commit
-
-A process can fail after pack bytes are durable but before SQLite knows their locations.
-
-On open, R2 sequentially scans pack files. Any fully valid framed record missing from SQLite is registered again. Replaying the same evidence therefore converges without creating a new logical evidence object.
-
-### Incomplete trailing record
-
-If a crash leaves a partial final record, recovery truncates only the incomplete trailing bytes back to the last valid record boundary.
-
-A CRC/SHA corruption in a fully framed record is not silently repaired or skipped; it is a hard integrity failure.
-
-## SQLite role
-
-SQLite remains useful but its role changes.
-
-Legacy R10 effectively makes every logical evidence insertion a SQLite transaction plus a small-file CAS operation.
-
-R2 uses SQLite as a compact SSD-resident locator/catalog accelerator. Payload bytes exist independently in immutable packs and evidence-set/snapshot authority exists independently in immutable manifest JSON.
-
-This allows transaction batching and index rebuilding without redefining evidence content.
-
-## Compression
-
-The core implementation supports:
-
-- `zstd` when the optional `zstandard` package is installed;
-- automatic fallback to stdlib `zlib`;
-- `none` for raw-I/O qualification.
-
-Compression does not participate in scientific identity. Identity is SHA-256 of canonical uncompressed payload bytes.
-
-## Open-source comparison path
-
-R2 also qualifies RocksDB through the maintained Python `rocksdict` binding.
-
-Relevant RocksDB primitives:
-
-- `WriteBatch` / group commit;
-- WAL on a dedicated fast path;
-- `db_paths` / `DBPath` for newer-data-on-flash and older-data-on-HDD placement;
-- background compaction and recovery;
-- checksummed SST/WAL storage.
-
-The branch includes a capability probe and optional dependencies. RocksDB is not automatically preferred over the pack/manifest path because CB16 teacher evidence is predominantly write-once immutable content, where append-only packs avoid LSM compaction write amplification. Host qualification will compare the two approaches before any backend is selected as production authority.
-
-## Qualification gates
-
-R2 must prove at least:
-
-1. generation-independent content identity;
-2. same evidence set reused across 100 generation snapshots;
-3. physical payload count remains O(N), not O(N*G);
-4. same-ID/different-content conflict detection;
-5. crash after pack fsync / before index commit converges;
-6. partial-tail recovery converges;
-7. deterministic evidence-set and generation snapshot hashes;
-8. full payload audit PASS;
-9. no canonical R10.4 writes;
-10. FINAL 2025-09 remains untouched;
-11. SSD/HDD host topology is measured rather than guessed;
-12. same-device and split-device benchmark results are retained.
-
-## Current branch
-
-`ai/r2-evidence-storage-r0`
-
-Core modules:
-
-- `cb16_local_opt/r2_evidence_storage.py`
-- `cb16_local_opt/r2_learning_bridge.py`
-- `tests/test_r2_evidence_storage.py`
-- `scripts/benchmark_r2_evidence_storage.py`
-- `scripts/probe_r2_storage_topology.py`
-- `scripts/probe_r2_rocksdb_backend.py`
-- `requirements-r2-storage.txt`
-
-## Integration sequence
-
-R2 integration should proceed in this order:
-
-```text
-R2 storage semantics
-  -> disposable synthetic qualification
-  -> actual Shanxi SSD/HDD topology discovery
-  -> real 9,714-evidence materialization benchmark
-  -> 100-generation manifest-only benchmark
-  -> RocksDB tiered comparison
-  -> campaign storage adapter
-  -> replay/recovery equivalence
-  -> new versioned campaign authority
-```
-
-The running R10.4 campaign remains frozen while these gates execute.
+- evidence is predominantly write-once immutable content;
+- one HDD sequential append stream has minimal seek and compaction amplification;
+- no LSM background compaction is required for payload authority;
+- generation reuse is explicit in the authority model.
+
+The host benchmark will decide whether RocksDB is useful as metadata/event backend or whether the custom pack/manifest path should remain the evidence payload authority.
+
+## Qualification gates before canonical adoption
+
+- storage-only import with no torch;
+- R2 unittest suite;
+- 100-generation physical payload reuse;
+- same-ID/different-content conflict;
+- pack fsync-before-index recovery;
+- incomplete-tail recovery;
+- generation snapshot conflict;
+- event journal exactly-once batch replay;
+- sequential physical audit;
+- host same-disk benchmark only after canonical R10.4 I/O contention ends;
+- end-to-end R2 campaign replay/equivalence using the real ML runtime;
+- FINAL 2025-09 remains locked.
