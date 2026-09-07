@@ -2,6 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict as _dataclass_asdict
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from cb16_local_opt.market_runtime_cache_r11 import MarketRuntimeCacheStatsR11
 from scripts import run_r11_stage2_task_a_micro_benchmark as benchmark
