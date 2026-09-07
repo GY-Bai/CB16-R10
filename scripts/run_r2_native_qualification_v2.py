@@ -173,6 +173,54 @@ def _finalize_market_cache_receipts(
     return external
 
 
+def _prepare_persistent_teacher_authority_binding(
+    *, metadata_root: Path, payload_root: Path, legacy_r104_root: Path,
+    explicit_root: Path | None = None,
+) -> dict[str, Any]:
+    """Bind transient metadata to a persistent R2-only compiled Teacher authority.
+
+    The default target lives beside native-v2-* run directories on the R2 HDD lane,
+    so workflow cleanup of one run cannot delete it.  Canonical R10.4 remains read-only.
+    """
+    metadata_root.mkdir(parents=True, exist_ok=True)
+    if explicit_root is None:
+        # .../r2_native/native-v2-<run>/payload -> .../r2_native/compiled_teacher_authority
+        if len(payload_root.parents) < 2:
+            raise RuntimeError("R2_TEACHER_CACHE_PAYLOAD_ROOT_TOO_SHALLOW")
+        persistent_root = payload_root.parent.parent / "compiled_teacher_authority"
+    else:
+        persistent_root = explicit_root
+    persistent_root = persistent_root.resolve()
+    legacy_resolved = legacy_r104_root.resolve()
+    if persistent_root == legacy_resolved or legacy_resolved in persistent_root.parents:
+        raise RuntimeError("R2_TEACHER_CACHE_REFUSES_CANONICAL_R104_PATH")
+    if "2025_09" in str(persistent_root):
+        raise RuntimeError("R2_TEACHER_CACHE_FINAL_HOLDOUT_PATH_REFUSED")
+    persistent_root.mkdir(parents=True, exist_ok=True)
+
+    target = metadata_root / "compiled_teacher_authority"
+    if target.is_symlink():
+        if target.resolve(strict=True) != persistent_root.resolve(strict=True):
+            raise RuntimeError("R2_TEACHER_CACHE_BINDING_CONFLICT")
+    elif target.exists():
+        raise RuntimeError("R2_TEACHER_CACHE_TARGET_MUST_BE_SYMLINK")
+    else:
+        target.symlink_to(persistent_root, target_is_directory=True)
+    if not target.is_symlink() or target.resolve(strict=True) != persistent_root.resolve(strict=True):
+        raise RuntimeError("R2_TEACHER_CACHE_SYMLINK_BINDING_FAIL")
+
+    receipt = {
+        "schema": "CB16_R2_COMPILED_TEACHER_PERSISTENT_BINDING_V1",
+        "mode": "TRANSIENT_METADATA_SYMLINK_TO_PERSISTENT_R2_HDD_AUTHORITY",
+        "persistent_root": str(persistent_root),
+        "metadata_binding": str(target),
+        "canonical_r104_modified": False,
+        "scientific_semantics_changed": False,
+        "final_holdout_2025_09_accessed": False,
+    }
+    return receipt
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="R2 native qualification with read-only frozen package authority")
     ap.add_argument("--package-root", required=True)
@@ -181,6 +229,7 @@ def main() -> int:
     ap.add_argument("--run-root", required=True)
     ap.add_argument("--metadata-root", required=True)
     ap.add_argument("--payload-root", required=True)
+    ap.add_argument("--teacher-cache-root")
     ap.add_argument("--attempts", type=int, default=2)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
@@ -189,6 +238,8 @@ def main() -> int:
     r103_root = Path(args.r103_root).resolve()
     legacy_root = Path(args.legacy_r104_root).resolve()
     run_root = Path(args.run_root).resolve()
+    metadata_root = Path(args.metadata_root).resolve()
+    payload_root = Path(args.payload_root).resolve()
     out_path = Path(args.out).resolve()
 
     if not package_root.is_dir():
@@ -218,6 +269,13 @@ def main() -> int:
         legacy_r104_root=legacy_root,
         run_root=run_root,
     )
+    teacher_binding = _prepare_persistent_teacher_authority_binding(
+        metadata_root=metadata_root,
+        payload_root=payload_root,
+        legacy_r104_root=legacy_root,
+        explicit_root=Path(args.teacher_cache_root).resolve() if args.teacher_cache_root else None,
+    )
+    _atomic_json(run_root / "R2_COMPILED_TEACHER_PERSISTENT_BINDING.json", teacher_binding)
 
     cmd = [
         sys.executable,
@@ -226,8 +284,8 @@ def main() -> int:
         "--r103-root", str(r103_root),
         "--legacy-r104-root", str(legacy_root),
         "--run-root", str(run_root),
-        "--metadata-root", str(Path(args.metadata_root).resolve()),
-        "--payload-root", str(Path(args.payload_root).resolve()),
+        "--metadata-root", str(metadata_root),
+        "--payload-root", str(payload_root),
         "--attempts", str(args.attempts),
         "--out", str(out_path),
     ]
@@ -263,6 +321,7 @@ def main() -> int:
     result["market_cache_symbol_count"] = len(market_binding["market_cache_symbols"])
     result["market_cache_payload_files_copied"] = False
     result["market_cache_source_files_unchanged"] = True
+    result["compiled_teacher_persistent_binding"] = teacher_binding
     _atomic_json(out_path, result)
     print("R2_NATIVE_V2_WRAPPER=PASS")
     return 0
