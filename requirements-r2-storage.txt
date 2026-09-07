@@ -7,5 +7,5 @@ zstandard>=0.23,<1
 # Maintained RocksDB Python binding used for the open-source tiered-backend comparison.
 rocksdict>=0.3.29,<0.4
 
-# Optional developer convenience. R2 correctness tests themselves use unittest and do not require pytest.
+# Optional developer convenience only. Core R2 correctness tests use unittest.
 pytest>=8,<9
