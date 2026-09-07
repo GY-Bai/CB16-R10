@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "a96056ff-a1db-44a1-9066-27b23d092898",
+  "commit_sha": "41167b8ff3562283782978a43d6aa0ea0a4beaee",
+  "ci_profile": "smoke",
+  "verdict": "ERROR",
+  "started_at": "2026-09-07T05:40:14Z",
+  "finished_at": "2026-09-07T05:40:14Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
+  "model_artifacts": []
+}
