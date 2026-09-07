@@ -3,12 +3,33 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from cb16_local_opt.r102_common import ALL_SUPPORTED_SYMBOLS_R102
+
+
+def _atomic_json(path: Path, obj: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n")
+    os.replace(tmp, path)
+
+
+def _file_state(path: Path) -> dict[str, Any]:
+    st = path.stat()
+    return {
+        "path": str(path),
+        "size": st.st_size,
+        "mtime_ns": st.st_mtime_ns,
+    }
 
 
 def _copy_frozen_adoption_receipt(*, legacy_r104_root: Path, run_root: Path) -> dict:
@@ -42,6 +63,116 @@ def _copy_frozen_adoption_receipt(*, legacy_r104_root: Path, run_root: Path) -> 
     }
 
 
+def _prepare_market_cache_authority_binding(*, legacy_r104_root: Path, run_root: Path) -> dict[str, Any]:
+    source_root = legacy_r104_root / "evidence_cache" / "market_cache"
+    if not source_root.is_dir():
+        raise FileNotFoundError(f"R2_MARKET_CACHE_AUTHORITY_MISSING:{source_root}")
+
+    source_files = []
+    for symbol in ALL_SUPPORTED_SYMBOLS_R102:
+        src = source_root / f"{symbol}.hourly_r102.npz"
+        if not src.is_file():
+            raise FileNotFoundError(f"R2_MARKET_CACHE_SYMBOL_MISSING:{symbol}:{src}")
+        source_files.append({**_file_state(src), "symbol": str(symbol)})
+
+    target_root = run_root / "evidence_cache" / "market_cache"
+    target_root.parent.mkdir(parents=True, exist_ok=True)
+    source_resolved = source_root.resolve(strict=True)
+
+    if target_root.is_symlink():
+        if target_root.resolve(strict=True) != source_resolved:
+            raise RuntimeError(
+                f"R2_MARKET_CACHE_BINDING_CONFLICT:{target_root}:{target_root.resolve(strict=True)}:{source_resolved}"
+            )
+    elif target_root.exists():
+        raise RuntimeError(f"R2_MARKET_CACHE_TARGET_MUST_BE_SYMLINK:{target_root}")
+    else:
+        target_root.symlink_to(source_root, target_is_directory=True)
+
+    if not target_root.is_symlink() or target_root.resolve(strict=True) != source_resolved:
+        raise RuntimeError("R2_MARKET_CACHE_SYMLINK_BINDING_FAIL")
+
+    for item in source_files:
+        target_file = target_root / f"{item['symbol']}.hourly_r102.npz"
+        if not target_file.is_file():
+            raise FileNotFoundError(f"R2_MARKET_CACHE_BOUND_SYMBOL_UNREADABLE:{target_file}")
+        if target_file.resolve(strict=True) != Path(item["path"]).resolve(strict=True):
+            raise RuntimeError(f"R2_MARKET_CACHE_BOUND_SYMBOL_IDENTITY_FAIL:{item['symbol']}")
+
+    receipt = {
+        "schema": "CB16_R2_MARKET_CACHE_AUTHORITY_BINDING_V1",
+        "mode": "SYMLINK_TO_FROZEN_R104_READ_ONLY_AUTHORITY",
+        "source_market_cache_root": str(source_root),
+        "target_market_cache_root": str(target_root),
+        "market_cache_symbols": [str(x) for x in ALL_SUPPORTED_SYMBOLS_R102],
+        "source_files": source_files,
+        "market_cache_payload_files_copied": False,
+        "source_payload_files_modified": False,
+        "post_run_verified": False,
+        "scientific_semantics_changed": False,
+        "final_holdout_2025_09_accessed": False,
+    }
+    _atomic_json(run_root / "R2_MARKET_CACHE_AUTHORITY_BINDING.json", receipt)
+    return receipt
+
+
+def _market_cache_authority_unchanged(binding: dict[str, Any]) -> bool:
+    source_root = Path(binding["source_market_cache_root"])
+    target_root = Path(binding["target_market_cache_root"])
+    try:
+        if not target_root.is_symlink():
+            return False
+        if target_root.resolve(strict=True) != source_root.resolve(strict=True):
+            return False
+        for item in binding["source_files"]:
+            src = Path(item["path"])
+            now = _file_state(src)
+            if now["size"] != item["size"] or now["mtime_ns"] != item["mtime_ns"]:
+                return False
+            target_file = target_root / f"{item['symbol']}.hourly_r102.npz"
+            if not target_file.is_file():
+                return False
+            if target_file.resolve(strict=True) != src.resolve(strict=True):
+                return False
+    except (FileNotFoundError, OSError):
+        return False
+    return True
+
+
+def _finalize_market_cache_receipts(
+    *, run_root: Path, market_binding: dict[str, Any], unchanged: bool, require_external: bool
+) -> dict[str, Any] | None:
+    market_binding = dict(market_binding)
+    market_binding["post_run_verified"] = True
+    market_binding["source_files_unchanged"] = bool(unchanged)
+    market_binding["source_payload_files_modified"] = not bool(unchanged)
+    _atomic_json(run_root / "R2_MARKET_CACHE_AUTHORITY_BINDING.json", market_binding)
+
+    external_path = run_root / "R2_EXTERNAL_EVIDENCE_CACHE_BINDING.json"
+    if not external_path.is_file():
+        if require_external:
+            raise FileNotFoundError(f"R2_EXTERNAL_CACHE_BINDING_RECEIPT_MISSING:{external_path}")
+        return None
+
+    external = json.loads(external_path.read_text())
+    external["schema"] = "CB16_R2_EXTERNAL_EVIDENCE_CACHE_BINDING_V2"
+    external["mode"] = "READ_ONLY_LEGACY_CACHE_REFERENCE_VIA_COPIED_MANIFEST_AND_MARKET_CACHE_SYMLINK"
+    external["source_market_cache_root"] = market_binding["source_market_cache_root"]
+    external["target_market_cache_root"] = market_binding["target_market_cache_root"]
+    external["market_cache_binding"] = market_binding["mode"]
+    external["market_cache_symbols"] = market_binding["market_cache_symbols"]
+    external["market_cache_files"] = market_binding["source_files"]
+    external["market_cache_payload_files_copied"] = False
+    external["market_cache_source_files_unchanged"] = bool(unchanged)
+    external["source_payload_files_modified"] = (
+        bool(external.get("source_payload_files_modified", False)) or not bool(unchanged)
+    )
+    external["scientific_semantics_changed"] = False
+    external["final_holdout_2025_09_accessed"] = False
+    _atomic_json(external_path, external)
+    return external
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="R2 native qualification with read-only frozen package authority")
     ap.add_argument("--package-root", required=True)
@@ -58,6 +189,7 @@ def main() -> int:
     r103_root = Path(args.r103_root).resolve()
     legacy_root = Path(args.legacy_r104_root).resolve()
     run_root = Path(args.run_root).resolve()
+    out_path = Path(args.out).resolve()
 
     if not package_root.is_dir():
         raise FileNotFoundError(f"R2_PACKAGE_AUTHORITY_ALIAS_MISSING:{package_root}")
@@ -80,7 +212,12 @@ def main() -> int:
             raise FileNotFoundError(f"R2_PACKAGE_AUTHORITY_FILE_MISSING:{rel}")
 
     reuse = _copy_frozen_adoption_receipt(legacy_r104_root=legacy_root, run_root=run_root)
-    (run_root / "R2_FROZEN_ADOPTION_REUSE.json").write_text(json.dumps(reuse, indent=2, sort_keys=True) + "\n")
+    _atomic_json(run_root / "R2_FROZEN_ADOPTION_REUSE.json", reuse)
+
+    market_binding = _prepare_market_cache_authority_binding(
+        legacy_r104_root=legacy_root,
+        run_root=run_root,
+    )
 
     cmd = [
         sys.executable,
@@ -92,18 +229,41 @@ def main() -> int:
         "--metadata-root", str(Path(args.metadata_root).resolve()),
         "--payload-root", str(Path(args.payload_root).resolve()),
         "--attempts", str(args.attempts),
-        "--out", str(Path(args.out).resolve()),
+        "--out", str(out_path),
     ]
     p = subprocess.run(cmd, check=False)
+
+    market_cache_unchanged = _market_cache_authority_unchanged(market_binding)
+    _finalize_market_cache_receipts(
+        run_root=run_root,
+        market_binding=market_binding,
+        unchanged=market_cache_unchanged,
+        require_external=p.returncode == 0,
+    )
+    if not market_cache_unchanged:
+        if out_path.is_file():
+            failed = json.loads(out_path.read_text())
+            failed["status"] = "FAIL"
+            failed["market_cache_source_files_unchanged"] = False
+            failed["market_cache_authority_failure"] = "R2_MARKET_CACHE_AUTHORITY_CHANGED_OR_REBOUND"
+            _atomic_json(out_path, failed)
+        raise RuntimeError("R2_MARKET_CACHE_AUTHORITY_CHANGED_OR_REBOUND")
+
     if p.returncode != 0:
         return p.returncode
 
-    result = json.loads(Path(args.out).read_text())
+    result = json.loads(out_path.read_text())
     result["frozen_adoption_reuse"] = reuse
     result["package_authority_mode"] = "READ_ONLY_SYSTEMD_ALIAS"
     result["parent_adoption_reexecuted"] = False
     result["package_root_modified"] = False
-    Path(args.out).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    result["market_cache_authority_mode"] = market_binding["mode"]
+    result["market_cache_source_root"] = market_binding["source_market_cache_root"]
+    result["market_cache_target_root"] = market_binding["target_market_cache_root"]
+    result["market_cache_symbol_count"] = len(market_binding["market_cache_symbols"])
+    result["market_cache_payload_files_copied"] = False
+    result["market_cache_source_files_unchanged"] = True
+    _atomic_json(out_path, result)
     print("R2_NATIVE_V2_WRAPPER=PASS")
     return 0
 
