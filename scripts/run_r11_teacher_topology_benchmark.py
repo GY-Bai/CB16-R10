@@ -11,13 +11,25 @@ import time
 from dataclasses import asdict
 from pathlib import Path
 
+# Pre-import protection for BLAS runtimes not loaded yet.  The production scheduler also
+# enforces one BLAS thread dynamically with threadpoolctl during multi-worker compilation.
+for _name in (
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+    "BLIS_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+):
+    os.environ.setdefault(_name, "1")
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from cb16_local_opt.r102_common import sha256_obj
 from cb16_local_opt.r102_evidence_cache import load_teacher_samples
 from cb16_local_opt.r102_learning import TRAIN_TEACHER_CONFIG_R102, VAL_TEACHER_CONFIG_R102
-from cb16_local_opt.teacher_scheduler_r11 import compile_teacher_evidence_threaded_r11
+from cb16_local_opt.teacher_runtime_r11 import R11_TEACHER_RUNTIME, compile_teacher_evidence_r11
 
 
 def _atomic_json(path: Path, obj) -> None:
@@ -51,12 +63,14 @@ def main() -> int:
     parents, samples = load_teacher_samples(manifest["parents_file"], manifest["branches_file"])
 
     # Symmetric order reduces first/last cache-temperature bias while keeping runtime small.
+    # This script intentionally benchmarks runtime topology only; the evidence hash must be
+    # identical across every run and worker count.
     schedule = (1, 4, 8, 12, 12, 8, 4, 1)
     rows = []
     reference_hash = None
     for workers in schedule:
         started = time.perf_counter()
-        train, val, stats = compile_teacher_evidence_threaded_r11(
+        train, val, stats = compile_teacher_evidence_r11(
             samples=samples,
             parents=parents,
             train_config=TRAIN_TEACHER_CONFIG_R102,
@@ -81,6 +95,10 @@ def main() -> int:
             "support_regimes": stats.core.support_regimes,
             "geometry_blocks": stats.core.geometry_blocks,
             "scheduler": stats.scheduler,
+            "memory_model": stats.memory_model,
+            "nested_blas_threads": stats.nested_blas_threads_required,
+            "nested_blas_limit_enforced": stats.nested_blas_limit_enforced,
+            "topology_in_scientific_identity": stats.topology_in_scientific_identity,
         }
         rows.append(row)
         print(json.dumps(row, sort_keys=True), flush=True)
@@ -97,13 +115,15 @@ def main() -> int:
     best = min(by_workers, key=lambda w: by_workers[w]["median_seconds"])
     cpu_affinity = sorted(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else []
     result = {
-        "schema": "CB16_R11_TEACHER_TOPOLOGY_BENCHMARK_V1",
+        "schema": "CB16_R11_TEACHER_TOPOLOGY_BENCHMARK_V2",
         "status": "PASS",
+        "runtime": R11_TEACHER_RUNTIME,
         "scientific_semantics_changed": False,
         "evidence_hash_identical_across_all_runs": True,
         "evidence_hash": reference_hash,
         "block_targets": int(args.block_targets),
         "nested_blas_threads": 1,
+        "nested_blas_limit_enforced": True,
         "logical_cpus_available": len(cpu_affinity),
         "cpu_affinity": cpu_affinity,
         "schedule": list(schedule),
