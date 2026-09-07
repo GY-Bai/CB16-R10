@@ -68,6 +68,10 @@ jobs:
           import re
           from pathlib import Path
 
+          # Split the forbidden opt-out token so this lint rule does not flag
+          # its own source text as a policy violation.
+          forbidden_opt_out = 'ACTIONS_ALLOW_USE_' + 'UNSECURE_NODE_VERSION'
+
           errors=[]
           for p in sorted(Path('.github/workflows').glob('*.y*ml')):
               text=p.read_text()
@@ -75,7 +79,7 @@ jobs:
                   (r'actions/checkout@v(?:1|2|3|4)(?:\b|\.)', 'checkout pre-Node24 major'),
                   (r'actions/upload-artifact@v(?:1|2|3|4)(?:\b|\.)', 'upload-artifact legacy major'),
                   (r'actions/download-artifact@v(?:1|2|3|4)(?:\b|\.)', 'download-artifact legacy major'),
-                  (r'ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION', 'forbidden Node20 opt-out'),
+                  (re.escape(forbidden_opt_out), 'forbidden Node20 opt-out'),
               ]
               for pat, desc in checks:
                   if re.search(pat,text):
