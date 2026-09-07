@@ -1,0 +1,66 @@
+name: CB16 R11 Stage2 Task A Hosted CPU Runtime
+
+on:
+  push:
+    branches:
+      - ai/r11-stage2-task-a-cpu-throughput-r1
+    paths:
+      - cb16_local_opt/cpu_runtime_r11.py
+      - cb16_local_opt/teacher_scheduler_r11.py
+      - cb16_local_opt/teacher_runtime_r11.py
+      - cb16_local_opt/trace_runtime_r11.py
+      - cb16_local_opt/trace_process_runtime_r11.py
+      - cb16_local_opt/market_runtime_cache_r11.py
+      - tests/test_r11_stage2_task_a_cpu_runtime.py
+      - tests/test_r11_stage2_task_a_teacher_pool.py
+      - tests/test_r11_stage2_task_a_trace_process.py
+      - tests/test_teacher_runtime_r11.py
+      - tests/test_r11_trace_runtime.py
+      - .github/workflows/cb16-r11-stage2-task-a-hosted.yml
+
+permissions:
+  contents: read
+
+jobs:
+  hosted-synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      BLIS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install synthetic-test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            numpy threadpoolctl safetensors psutil torch
+      - name: Compile Task A runtime and tests
+        run: |
+          python -m py_compile \
+            cb16_local_opt/cpu_runtime_r11.py \
+            cb16_local_opt/teacher_scheduler_r11.py \
+            cb16_local_opt/teacher_runtime_r11.py \
+            cb16_local_opt/trace_runtime_r11.py \
+            cb16_local_opt/trace_process_runtime_r11.py \
+            cb16_local_opt/market_runtime_cache_r11.py \
+            tests/test_r11_stage2_task_a_cpu_runtime.py \
+            tests/test_r11_stage2_task_a_teacher_pool.py \
+            tests/test_r11_stage2_task_a_trace_process.py \
+            tests/test_teacher_runtime_r11.py \
+            tests/test_r11_trace_runtime.py
+      - name: Verify frozen semantic contracts
+        run: python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
+      - name: Run Stage2 Task A synthetic regression suite
+        run: |
+          python -m unittest -v \
+            tests.test_r11_stage2_task_a_cpu_runtime \
+            tests.test_r11_stage2_task_a_teacher_pool \
+            tests.test_r11_stage2_task_a_trace_process \
+            tests.test_teacher_runtime_r11 \
+            tests.test_r11_trace_runtime

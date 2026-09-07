@@ -1,0 +1,123 @@
+name: CB16 R11 Stage2 Task A Shanxi Trace Process Micro Benchmark
+
+on:
+  push:
+    branches:
+      - ai/r11-stage2-task-a-cpu-throughput-r1
+    paths:
+      - .github/cb16-r11-stage2-task-a-trace-process-trigger.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-shanxi-wss-qualification-runner-queue
+  cancel-in-progress: false
+
+jobs:
+  trace-process-micro:
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 5
+    env:
+      LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      BLIS_NUM_THREADS: '1'
+      VECLIB_MAXIMUM_THREADS: '1'
+    steps:
+      - name: Checkout Task A branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Verify frozen and unopened authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/data/cb16_hdd/cb16_runtime/R10_4/evidence_cache')
+          m=json.loads((root/'REAL_EVIDENCE_CACHE_MANIFEST_R102.json').read_text())
+          assert int(m.get('stride_hours', -1)) == 256
+          assert m.get('final_holdout_2025_09_accessed') is False
+          print('TASK_A_TRACE_PROCESS_AUTHORITY_BOUNDARY=PASS')
+          PY
+
+      - name: Reuse verified canonical R10.4 Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out ci_evidence/python_provision.json
+          PYBIN="$(python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/python_provision.json'))
+          assert x['status']=='READY'
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE'
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          )"
+          test -x "$PYBIN"
+          echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
+
+      - name: Compile fork-process runtime and benchmark
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" -m py_compile \
+            cb16_local_opt/trace_process_runtime_r11.py \
+            cb16_local_opt/trace_runtime_r11.py \
+            cb16_local_opt/market_runtime_cache_r11.py \
+            scripts/run_r11_stage2_task_a_trace_process_benchmark.py
+
+      - name: Run real H72 thread-vs-process micro-benchmark
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v -o ci_evidence/time_verbose.txt \
+            "$PY" scripts/run_r11_stage2_task_a_trace_process_benchmark.py \
+              --legacy-r104-root "$LEGACY_R104_ROOT" \
+              --groups 96 \
+              --out ci_evidence/task_a_trace_process_benchmark.json \
+              2>&1 | tee ci_evidence/task_a_trace_process_stdout.log
+
+      - name: Gate exact identity and scope
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          "$PY" - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/task_a_trace_process_benchmark.json'))
+          assert x['status']=='PASS'
+          assert x['scientific_semantics_changed'] is False
+          assert x['new_scientific_verdict'] is False
+          assert x['final_holdout_payload_read'] is False
+          assert x['raw_1m_archive_read'] is False
+          assert x['identity_exact_across_thread_and_process'] is True
+          assert x['groups'] == 96
+          for row in x['fork_process']:
+              assert row['pool_reused'] is True
+              assert row['runtime_stats']['topology_in_scientific_identity'] is False
+          print('TASK_A_TRACE_PROCESS_MICRO_BENCHMARK=PASS')
+          PY
+
+      - name: Upload Task A Trace process evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cb16-r11-stage2-task-a-trace-process-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          if-no-files-found: warn
+          retention-days: 30
