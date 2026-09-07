@@ -3,8 +3,8 @@ from __future__ import annotations
 """Read-only legacy Experience Lake -> R2 semantic migration qualification.
 
 The legacy R10 Experience Lake makes generation and current Champion authority part of
-EVIDENCE_PACKAGE identity.  R2 deliberately removes those facts from immutable evidence
-content.  This module therefore compares a semantic projection rather than legacy object
+EVIDENCE_PACKAGE identity. R2 deliberately removes those facts from immutable evidence
+content. This module therefore compares a semantic projection rather than legacy object
 identity.
 
 This module is stdlib-only and does not import torch or the legacy runtime package.
@@ -12,17 +12,17 @@ This module is stdlib-only and does not import torch or the legacy runtime packa
 
 import json
 import sqlite3
+import time
 import zlib
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Mapping, Sequence
+from typing import Any, Iterator, Mapping, Sequence
 
 from .r2_evidence_storage import (
     R2EvidenceItem,
     R2EvidenceSetRef,
     R2EvidenceStore,
     R2MaterializeReceipt,
-    canonical_json_bytes,
     sha256_bytes,
     sha256_obj,
 )
@@ -53,12 +53,20 @@ class LegacyGenerationQualification:
     generation: int
     legacy_object_count: int
     unique_legacy_payload_count: int
+    legacy_raw_bytes: int
+    legacy_stored_bytes: int
+    source_read_and_projection_seconds: float
     projection_mismatch_count: int
     metadata_mismatch_count: int
     duplicate_evidence_id_count: int
     evidence_set_hash: str | None
     created_payload_count: int | None
     reused_payload_count: int | None
+    r2_raw_bytes: int | None
+    r2_stored_bytes: int | None
+    r2_pack_write_seconds: float | None
+    r2_index_commit_seconds: float | None
+    r2_materialize_total_seconds: float | None
     semantic_projection_aggregate_hash: str
 
 
@@ -85,8 +93,9 @@ def _evidence_id_from_legacy_object_id(object_id: str, generation: int) -> str:
 
 
 def _open_legacy_ro(db_path: Path) -> sqlite3.Connection:
-    # mode=ro prevents accidental mutation of canonical metadata.  Do not use immutable=1:
-    # active WAL content must remain visible when the source campaign is still open.
+    # mode=ro prevents accidental DB mutation. Do not use immutable=1 because it can
+    # ignore active WAL content. Full canonical migration is intentionally deferred
+    # until the source campaign has completed.
     uri = f"file:{db_path.resolve()}?mode=ro"
     conn = sqlite3.connect(uri, uri=True, timeout=30.0, isolation_level=None)
     conn.execute("PRAGMA query_only=ON")
@@ -184,6 +193,7 @@ def qualify_legacy_generation(
     if not rows:
         raise RuntimeError(f"R2_LEGACY_NO_EVIDENCE_ROWS:G{generation}")
 
+    source_started = time.perf_counter()
     items: list[R2EvidenceItem] = []
     projection_rows: list[tuple[str, str]] = []
     projection_mismatches = 0
@@ -199,13 +209,13 @@ def qualify_legacy_generation(
                 projection_mismatches += 1
                 continue
             raise
-        # These are legacy metadata fields that remain immutable evidence authority in R2.
         if item.parent_snapshot_hash != row.parent_snapshot_hash or item.lineage_hash != row.lineage_hash:
             metadata_mismatches += 1
         evidence_ids.append(item.evidence_id)
         projection_rows.append((item.evidence_id, semantic_projection_hash(item.payload)))
         items.append(item)
 
+    source_seconds = time.perf_counter() - source_started
     duplicate_ids = len(evidence_ids) - len(set(evidence_ids))
     aggregate_hash = sha256_obj({
         "schema":"CB16_R2_LEGACY_PROJECTION_AGGREGATE_V1",
@@ -224,12 +234,20 @@ def qualify_legacy_generation(
         generation=int(generation),
         legacy_object_count=len(rows),
         unique_legacy_payload_count=len({r.payload_hash for r in rows}),
+        legacy_raw_bytes=sum(r.bytes_raw for r in rows),
+        legacy_stored_bytes=sum(r.bytes_stored for r in rows),
+        source_read_and_projection_seconds=source_seconds,
         projection_mismatch_count=projection_mismatches,
         metadata_mismatch_count=metadata_mismatches,
         duplicate_evidence_id_count=duplicate_ids,
         evidence_set_hash=(evidence_set.content_hash if evidence_set else None),
         created_payload_count=(receipt.created_payload_count if receipt else None),
         reused_payload_count=(receipt.reused_payload_count if receipt else None),
+        r2_raw_bytes=(receipt.raw_bytes if receipt else None),
+        r2_stored_bytes=(receipt.stored_bytes if receipt else None),
+        r2_pack_write_seconds=(receipt.pack_write_seconds if receipt else None),
+        r2_index_commit_seconds=(receipt.index_commit_seconds if receipt else None),
+        r2_materialize_total_seconds=(receipt.total_seconds if receipt else None),
         semantic_projection_aggregate_hash=aggregate_hash,
     )
     return q, evidence_set, receipt
