@@ -559,7 +559,7 @@ def evaluate_thresholds(
         "barrier_block_ratio": (runtime["barrier_block_ratio"], "<=", thresholds["max_barrier_block_ratio"]),
         "available_ram_gib": (host["memory"]["available_ram_min_bytes"] / (1024**3), ">=", thresholds["min_available_ram_gib"]),
         "swap_out_mib": (host["memory"]["swap_out_pages"] * os.sysconf("SC_PAGE_SIZE") / (1024**2), "<=", thresholds["max_swap_out_mib"]),
-        "major_faults": (host["memory"]["major_faults_process_tree"], "<=", thresholds["max_major_faults"]),
+        "major_faults": (max(host["memory"]["major_faults_process_tree"], host["memory"]["major_faults_system"]), "<=", thresholds["max_major_faults"]),
         "fsync_stall_ratio": (runtime["fsync_stall_ratio"], "<=", thresholds["max_fsync_stall_ratio"]),
     }
     hdd = host["io"].get("hdd")
@@ -863,6 +863,9 @@ def main() -> int:
             "vram_peak_mib": host["gpu"]["vram_peak_mib"],
             "load_average_peak_1m": host["cpu"]["load_average_peak_1m"],
             "major_faults_process_tree": host["memory"]["major_faults_process_tree"],
+            "major_faults_system": host["memory"]["major_faults_system"],
+            "swap_in_pages": host["memory"]["swap_in_pages"],
+            "swap_out_pages": host["memory"]["swap_out_pages"],
         }
         report["io"] = {
             **host["io"],
