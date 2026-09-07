@@ -27,20 +27,20 @@ def _safe_endpoint(url: str) -> dict:
     }
 
 
-def _probe(url: str) -> dict:
-    p = subprocess.run(
-        ["curl", "-sS", "-o", "/dev/null", "-w", "%{http_code}", "--connect-timeout", "10", "--max-time", "30", url],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+def _probe(url: str, *, direct: bool) -> dict:
+    cmd = ["curl", "-sS", "-o", "/dev/null", "-w", "%{http_code}", "--connect-timeout", "10", "--max-time", "30"]
+    if direct:
+        cmd += ["--noproxy", "*"]
+    cmd.append(url)
+    p = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     code = p.stdout.strip()
     return {
+        "mode": "DIRECT_NO_PROXY" if direct else "INHERITED_RUNNER_PROXY_POLICY",
         "endpoint": _safe_endpoint(url),
         "curl_rc": p.returncode,
         "http_code": code,
         "reachable": p.returncode == 0 and code.isdigit() and 200 <= int(code) < 500,
+        "stderr_class": "NONE" if not p.stderr.strip() else "PRESENT_REDACTED",
     }
 
 
@@ -65,11 +65,26 @@ def main() -> int:
         for raw in (install_env.get(k) or "").split():
             if raw.startswith(("http://", "https://")) and raw not in urls:
                 urls.append(raw)
-    probes = [_probe(u) for u in urls]
 
+    probes=[]
+    for url in urls:
+        inherited=_probe(url,direct=False)
+        direct=_probe(url,direct=True)
+        probes.append({
+            "endpoint": _safe_endpoint(url),
+            "inherited": inherited,
+            "direct": direct,
+            "direct_recovers_proxy_failure": (not inherited["reachable"]) and direct["reachable"],
+        })
+
+    current_route_pass = bool(probes) and all(x["inherited"]["reachable"] for x in probes)
+    direct_route_pass = bool(probes) and all(x["direct"]["reachable"] for x in probes)
     result = {
-        "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V1",
-        "status": "PASS" if probes and all(x["reachable"] for x in probes) else "FAIL",
+        "schema": "CB16_PROVISION_HOST_MIRROR_QUALIFICATION_V2",
+        "status": "PASS" if current_route_pass else "FAIL_CURRENT_ROUTE",
+        "current_route_pass": current_route_pass,
+        "direct_route_pass": direct_route_pass,
+        "direct_bypass_candidate": (not current_route_pass) and direct_route_pass,
         "route_summary": route_summary,
         "route_probes": probes,
         "requirements_embedded_indexes": pp._embedded_index_directives(reqs),
@@ -83,7 +98,7 @@ def main() -> int:
     print(json.dumps(result, indent=2, sort_keys=True))
     if result["public_pytorch_index_present"] or result["requirements_embedded_indexes"]:
         return 2
-    return 0 if result["status"] == "PASS" else 3
+    return 0 if current_route_pass else 3
 
 
 if __name__ == "__main__":
