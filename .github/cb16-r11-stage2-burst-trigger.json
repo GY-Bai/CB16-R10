@@ -1,0 +1,48 @@
+{
+  "armed": false,
+  "baseline_throughput": null,
+  "buffer_mib": 64,
+  "forbidden": {
+    "daemon_mode": true,
+    "final_holdout_open": true,
+    "fresh_market_data_download": true,
+    "long_endurance": true,
+    "oci_compute": true
+  },
+  "hard_timeout_minutes": 15,
+  "measured_seconds": 420,
+  "notes": [
+    "Task E branch may run only bounded Task-E microbenchmarks through [self-hosted, shanxi, cb16-wss-qualification]; the final integrated burst remains forbidden on Task branches.",
+    "Only change armed=false to armed=true on the exact integration branch when Stage-2 integration is ready.",
+    "Throughput baseline is engineering-only. After the first accepted burst, pin baseline_throughput if regression gating is desired.",
+    "No threshold or recommended runtime default is part of scientific identity."
+  ],
+  "purpose": "INERT Task E template. Arm only on ai/r11-stage2-integration-r1 after Tasks A-D and Task F integration are merged and the Stage-2 burst driver exists.",
+  "qualification_branch": "ai/r11-stage2-integration-r1",
+  "queue_depth": 8,
+  "schema": "CB16_R11_STAGE2_BURST_TRIGGER_V1",
+  "teacher_workers": 8,
+  "thresholds": {
+    "max_barrier_block_ratio": 0.15,
+    "max_fsync_stall_ratio": 0.05,
+    "max_gpu_idle_ratio": 0.4,
+    "max_hdd_avg_queue_depth": 3.0,
+    "max_major_faults": 500.0,
+    "max_swap_out_mib": 64.0,
+    "min_available_ram_gib": 1.5,
+    "min_cpu_avg_pct": 55.0,
+    "min_cpu_gpu_overlap_pct": 35.0,
+    "min_fp32_training_examples_per_sec": 1.0,
+    "min_generations_per_min": 0.1,
+    "min_gpu_avg_pct": 45.0,
+    "min_teacher_evidence_per_sec": 1.0,
+    "min_traces_per_sec": 0.1,
+    "min_training_steps_per_sec": 0.1
+  },
+  "trace_workers": 8,
+  "warmup_seconds": 30,
+  "workload_argv": [
+    "{python}",
+    "scripts/run_r11_stage2_integration_burst.py"
+  ]
+}
