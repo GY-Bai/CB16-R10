@@ -1,0 +1,13 @@
+{
+  "schema": "CB16_R2_WSS_STORAGE_EXCEPTION_TRIGGER_V1",
+  "purpose": "QUALIFY_WSS_UNIT_PRIVATE_R103_RO_ALIAS_AND_R2_NATIVE_RW_LANE",
+  "protect_system": "strict",
+  "protect_home": "yes",
+  "r103_authority_alias": "/data/cb16_ci/r2-authority/r103",
+  "r104_authority_access": "READ_ONLY",
+  "r2_write_root": "/data/cb16_hdd/cb16_diagnostics/r2_native",
+  "canonical_runner_modified": false,
+  "canonical_campaign_modified": false,
+  "scientific_semantics_changed": false,
+  "final_holdout_2025_09_accessed": false
+}
