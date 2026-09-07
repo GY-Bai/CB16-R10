@@ -132,6 +132,7 @@ def test_acceptance_thresholds_and_90pct_baseline() -> None:
             "available_ram_min_bytes": 4 * 1024**3,
             "swap_out_pages": 0,
             "major_faults_process_tree": 0,
+            "major_faults_system": 0,
         },
         "io": {"hdd": {"avg_queue_depth": 0.5}},
     }
