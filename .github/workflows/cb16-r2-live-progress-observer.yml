@@ -16,7 +16,7 @@ jobs:
     runs-on: [self-hosted, shanxi, cb16-r10-canonical]
     timeout-minutes: 5
     steps:
-      - name: Read-only process GPU and payload snapshot
+      - name: Read-only process GPU payload and private-run receipt snapshot
         shell: bash
         run: |
           set -euo pipefail
@@ -30,7 +30,41 @@ jobs:
           echo '=== GPU ==='
           nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader || true
           nvidia-smi --query-gpu=utilization.gpu,utilization.memory,memory.used,memory.total,power.draw,temperature.gpu --format=csv,noheader || true
-          echo '=== R2 payload lane ==='
+
+          echo '=== R2 private run receipts via process root namespace ==='
+          R2PID="$(ps -eo pid=,args= | awk '$0 ~ /scripts\/run_r2_native_qualification\.py/ && $0 ~ /native-v2-34138112753-1/ {print $1; exit}')"
+          echo "R2_MAIN_PID=${R2PID:-NONE}"
+          if [ -n "${R2PID:-}" ] && [ -d "/proc/$R2PID/root" ]; then
+            RUN="/proc/$R2PID/root/tmp/cb16-r2-native-v2-34138112753-1/run"
+            echo "PROC_ROOT_RUN=$RUN"
+            if [ -d "$RUN" ]; then
+              for f in \
+                R2_TRAINING_EVIDENCE_MATERIALIZATION.json \
+                R2_TRAINING_EVIDENCE_MATERIALIZATION_FIRST.json \
+                FINAL_RESULT_R2_FIRST.json \
+                FINAL_RESULT_R2.json; do
+                if [ -f "$RUN/$f" ]; then
+                  echo "RECEIPT_PRESENT=$f"
+                  stat -c 'RECEIPT_STAT=%n size=%s mtime=%y' "$RUN/$f" || true
+                else
+                  echo "RECEIPT_ABSENT=$f"
+                fi
+              done
+              for g in 00 01; do
+                GD="$RUN/generations/G$g"
+                if [ -d "$GD" ]; then
+                  echo "GEN_DIR_PRESENT=G$g"
+                  find "$GD" -maxdepth 1 -type f -printf 'GEN_FILE=G'$g'/%f size=%s mtime=%TY-%Tm-%TdT%TH:%TM:%TS\n' 2>/dev/null | sort || true
+                else
+                  echo "GEN_DIR_ABSENT=G$g"
+                fi
+              done
+            else
+              echo 'PROC_ROOT_RUN_NOT_ACCESSIBLE_OR_NOT_CREATED'
+            fi
+          fi
+
+          echo '=== R2 payload lane from canonical namespace (non-authoritative for WSS private bind view) ==='
           ROOT=/data/cb16_hdd/cb16_diagnostics/r2_native
           findmnt -T "$ROOT" -o TARGET,SOURCE,FSTYPE,OPTIONS || true
           if [ -d "$ROOT" ]; then
