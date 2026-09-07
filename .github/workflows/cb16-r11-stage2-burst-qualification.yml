@@ -1,0 +1,229 @@
+name: CB16 R11 Stage-2 Burst Qualification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ai/r11-stage2-integration-r1
+    paths:
+      - .github/cb16-r11-stage2-burst-trigger.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-stage2-burst-qualification
+  cancel-in-progress: false
+
+jobs:
+  authorize:
+    runs-on: ubuntu-24.04
+    outputs:
+      armed: ${{ steps.guard.outputs.armed }}
+    steps:
+      - name: Checkout trigger source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Enforce exact branch and inert trigger policy
+        id: guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          exact = "ai/r11-stage2-integration-r1"
+          branch = os.environ["GITHUB_REF_NAME"]
+          if branch != exact:
+              raise SystemExit(f"FAIL_CLOSED_BRANCH_NOT_ALLOWLISTED:{branch}")
+          p = Path(".github/cb16-r11-stage2-burst-trigger.json")
+          x = json.loads(p.read_text())
+          assert x["schema"] == "CB16_R11_STAGE2_BURST_TRIGGER_V1"
+          assert x["qualification_branch"] == exact
+          assert x["workload_argv"][:2] == ["{python}", "scripts/run_r11_stage2_integration_burst.py"]
+          armed = bool(x.get("armed", False))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"armed={'true' if armed else 'false'}\n")
+          print("CB16_R11_STAGE2_TRIGGER_ARMED=" + str(armed))
+          PY
+
+  burst:
+    needs: authorize
+    if: needs.authorize.outputs.armed == 'true' && github.ref_name == 'ai/r11-stage2-integration-r1'
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 15
+    env:
+      PACKAGE_ROOT: /data/cb16_ci/r2-authority/package_r102
+      LEGACY_R104_ROOT: /data/cb16_hdd/cb16_runtime/R10_4
+      R11_DIAG_ROOT: /data/cb16_hdd/cb16_diagnostics/r2_native
+      OMP_NUM_THREADS: 1
+      MKL_NUM_THREADS: 1
+      OPENBLAS_NUM_THREADS: 1
+      NUMEXPR_NUM_THREADS: 1
+      BLIS_NUM_THREADS: 1
+      HF_HUB_OFFLINE: 1
+      TRANSFORMERS_OFFLINE: 1
+      WANDB_MODE: offline
+
+    steps:
+      - name: Checkout exact integration source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Re-verify exact integration branch and trigger
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-stage2-integration-r1"
+          python3 - <<'PY'
+          import json
+          x=json.load(open(".github/cb16-r11-stage2-burst-trigger.json"))
+          assert x["schema"] == "CB16_R11_STAGE2_BURST_TRIGGER_V1"
+          assert x["armed"] is True
+          assert x["qualification_branch"] == "ai/r11-stage2-integration-r1"
+          assert 360 <= int(x["measured_seconds"]) <= 600
+          assert 10 <= int(x["hard_timeout_minutes"]) <= 15
+          assert x["workload_argv"][:2] == ["{python}", "scripts/run_r11_stage2_integration_burst.py"]
+          print("CB16_R11_STAGE2_EXACT_BRANCH_ALLOWLIST=PASS")
+          PY
+
+      - name: Verify read-only scientific authority mounts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$PACKAGE_ROOT"
+          test -d "$LEGACY_R104_ROOT/evidence_cache"
+          pkg_opts="$(findmnt -n -o OPTIONS -T "$PACKAGE_ROOT")"
+          r104_opts="$(findmnt -n -o OPTIONS -T "$LEGACY_R104_ROOT")"
+          case ",$pkg_opts," in *,ro,*) ;; *) echo "PACKAGE_AUTHORITY_NOT_RO=$pkg_opts" >&2; exit 74 ;; esac
+          case ",$r104_opts," in *,ro,*) ;; *) echo "R104_AUTHORITY_NOT_RO=$r104_opts" >&2; exit 74 ;; esac
+          active="$(ps -eo pid=,comm=,args= | awk '$2 ~ /^python/ && $0 ~ /run_r104_long_research\.py/ {print}' || true)"
+          test -z "$active" || { echo 'ACTIVE_LEGACY_R104_PROCESS_REFUSED' >&2; echo "$active" >&2; exit 75; }
+          echo 'CB16_R11_STAGE2_READ_ONLY_AUTHORITY_BOUNDARY=PASS'
+
+      - name: Resolve verified canonical Pascal Python
+        id: py
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          python3 ci/resolve_verified_r104_python.py --out ci_evidence/python_provision.json
+          PYBIN="$(python3 - <<'PY'
+          import json
+          x=json.load(open('ci_evidence/python_provision.json'))
+          assert x['status']=='READY'
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE'
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          )"
+          "$PYBIN" - <<'PY'
+          import os, torch
+          assert os.cpu_count() == 16
+          assert torch.__version__ == '2.8.0+cu126'
+          assert torch.version.cuda == '12.6'
+          assert torch.cuda.is_available()
+          assert tuple(torch.cuda.get_device_capability(0)) == (6, 1)
+          assert 'GTX 1060' in torch.cuda.get_device_name(0)
+          assert torch.get_default_dtype() == torch.float32
+          print('GPU=' + torch.cuda.get_device_name(0))
+          print('CAPABILITY=' + str(torch.cuda.get_device_capability(0)))
+          print('CB16_R11_STAGE2_FP32_AMP_FALSE_ENV=PASS')
+          PY
+          echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
+
+      - name: Static harness and integration contract gate
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          test -f scripts/run_r11_stage2_integration_burst.py || {
+            echo 'STAGE2_INTEGRATION_BURST_DRIVER_MISSING' >&2
+            exit 76
+          }
+          "$PY" -m py_compile \
+            scripts/run_r11_stage2_burst_qualification.py \
+            scripts/run_r11_stage2_integration_burst.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m pytest -q tests/test_r11_stage2_burst_qualification.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root . \
+            | tee ci_evidence/semantic_freeze.log
+
+      - name: Prepare disposable SSD and HDD burst roots
+        id: roots
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSD_ROOT="/data/cb16_ci/r11-stage2-burst-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          HDD_ROOT="$R11_DIAG_ROOT/r11-stage2-burst-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$SSD_ROOT" "$HDD_ROOT"
+          mkdir -p "$SSD_ROOT" "$HDD_ROOT" ci_evidence/burst-control
+          echo "ssd=$SSD_ROOT" >> "$GITHUB_OUTPUT"
+          echo "hdd=$HDD_ROOT" >> "$GITHUB_OUTPUT"
+
+      - name: Run 10-minute-class Stage-2 burst qualification
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+          SSD_ROOT: ${{ steps.roots.outputs.ssd }}
+          HDD_ROOT: ${{ steps.roots.outputs.hdd }}
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v -o ci_evidence/stage2_burst_time_verbose.txt \
+            env PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_stage2_burst_qualification.py \
+              --trigger .github/cb16-r11-stage2-burst-trigger.json \
+              --package-root "$PACKAGE_ROOT" \
+              --legacy-r104-root "$LEGACY_R104_ROOT" \
+              --work-root "$GITHUB_WORKSPACE/ci_evidence/burst-control" \
+              --ssd-work-root "$SSD_ROOT" \
+              --hdd-work-root "$HDD_ROOT" \
+              --ssd-path /data/cb16_ci \
+              --hdd-path /data/cb16_hdd \
+              --out "$GITHUB_WORKSPACE/ci_evidence/CB16_R11_STAGE2_BURST_QUALIFICATION_V1.json" \
+              2>&1 | tee ci_evidence/stage2_burst.log
+
+      - name: Final machine-readable acceptance gate
+        if: always()
+        shell: bash
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          set -euo pipefail
+          test -f ci_evidence/CB16_R11_STAGE2_BURST_QUALIFICATION_V1.json
+          "$PY" - <<'PY'
+          import json
+          p='ci_evidence/CB16_R11_STAGE2_BURST_QUALIFICATION_V1.json'
+          x=json.load(open(p))
+          assert x['schema']=='CB16_R11_STAGE2_BURST_QUALIFICATION_V1'
+          assert x['branch_allowlist']==['ai/r11-stage2-integration-r1']
+          assert x['duration_policy']['endurance_test'] is False
+          assert x['hardware']['canonical_arithmetic']=='FP32'
+          assert x['hardware']['amp'] is False
+          assert x['scientific_semantics_changed'] is False
+          assert x['acceptance']['pass'] is True, x['acceptance']['failures']
+          assert x['status']=='PASS'
+          print('CB16_R11_STAGE2_BURST_QUALIFICATION=PASS')
+          PY
+
+      - name: Upload Stage-2 burst evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cb16-r11-stage2-burst-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci_evidence
+          retention-days: 30
+
+      - name: Cleanup disposable burst roots
+        if: always()
+        shell: bash
+        env:
+          SSD_ROOT: ${{ steps.roots.outputs.ssd }}
+          HDD_ROOT: ${{ steps.roots.outputs.hdd }}
+        run: |
+          set +e
+          if [ -n "${SSD_ROOT:-}" ]; then rm -rf "$SSD_ROOT"; fi
+          if [ -n "${HDD_ROOT:-}" ]; then rm -rf "$HDD_ROOT"; fi
+          exit 0
