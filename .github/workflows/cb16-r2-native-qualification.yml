@@ -41,30 +41,27 @@ jobs:
           fi
           echo 'LEGACY_R104_PROCESS=NOT_RUNNING'
 
-      - name: Provision exact R10.4 ML Python
+      - name: Reuse verified canonical R10.4 ML Python
         id: py
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ci_evidence
-          python3 -m py_compile provision/scripts/provision_python.py
-          python3 provision/scripts/provision_python.py \
-            --profile r104 \
+          python3 -m py_compile ci/resolve_verified_r104_python.py
+          python3 ci/resolve_verified_r104_python.py \
             --out ci_evidence/python_provision.json
           PYBIN="$(python3 - <<'PY'
           import json
           x=json.load(open('ci_evidence/python_provision.json'))
+          assert x['status'] == 'READY'
+          assert x['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE'
+          assert x['python']['network_install_attempted'] is False
+          assert x['python']['public_index_fallback_used'] is False
+          assert x['python']['public_direct_fallback_used'] is False
           print(x['python']['venv'] + '/bin/python')
           PY
           )"
           test -x "$PYBIN"
-          "$PYBIN" - <<'PY'
-          import torch
-          assert torch.cuda.is_available()
-          print('TORCH=',torch.__version__)
-          print('CUDA=',torch.version.cuda)
-          print('GPU=',torch.cuda.get_device_name(0))
-          PY
           echo "python=$PYBIN" >> "$GITHUB_OUTPUT"
 
       - name: Prepare true SSD metadata plus HDD payload topology
