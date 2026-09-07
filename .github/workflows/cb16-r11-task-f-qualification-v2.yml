@@ -133,7 +133,7 @@ jobs:
         run: |
           set -euo pipefail
           /usr/bin/time -v -o ci_evidence/task_f_time_verbose.txt \
-            "$PY" scripts/run_r11_task_f_acceptance_v2.py \
+            env PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_task_f_acceptance_v2.py \
               --package-root "$PACKAGE_ROOT" \
               --legacy-r104-root "$LEGACY_R104_ROOT" \
               --teacher-cache-root "$TEACHER_CACHE_ROOT" \
