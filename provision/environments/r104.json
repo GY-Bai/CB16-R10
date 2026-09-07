@@ -4,6 +4,7 @@
   "python": {
     "requires": ">=3.10,<3.13",
     "index_policy": "HOST_MIRROR_REQUIRED",
+    "mirror_proxy_policy": "DIRECT_FOR_HOST_MIRRORS",
     "allow_embedded_index_directives": false,
     "accelerator_wheel_route_required": true,
     "allow_public_index_fallback": false
