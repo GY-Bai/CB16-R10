@@ -16,19 +16,128 @@ from provision_common import VENV_ROOT, atomic_write_json, ensure_dirs, repo_roo
 from resolve_environment import resolve
 
 
+_ROUTE_KEYS = (
+    "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_FIND_LINKS",
+    "PIP_NO_INDEX", "PIP_NO_CACHE_DIR", "PIP_CONFIG_FILE",
+    "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
+    "UV_NO_INDEX", "UV_NO_CACHE",
+    "HF_ENDPOINT", "HF_TOKEN",
+    "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+    "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+)
+
+
 def load_provision_env() -> dict[str, str]:
+    """Load host-local provision routing without making it a repository secret.
+
+    `/etc/cb16-ci/provision.env` is the canonical Shanxi binding.  A worker-root
+    override remains supported.  Unreadable optional files are skipped here;
+    profiles that require a host mirror fail closed later with an explicit route
+    policy error instead of a raw PermissionError.
+    """
     out: dict[str, str] = {}
     for path in (
         Path("/etc/cb16-ci/provision.env"),
         Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci")) / "provision.env",
     ):
-        if path.exists():
-            for line in path.read_text().splitlines():
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    out[k] = v
+        if not path.exists():
+            continue
+        try:
+            lines = path.read_text().splitlines()
+        except (OSError, UnicodeError):
+            continue
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                out[k.strip()] = v.strip()
     return out
+
+
+def _bridge_installer_routes(env: dict[str, str]) -> dict[str, str]:
+    """Make host mirror bindings usable by both uv and pip.
+
+    A host may define only the pip or only the uv spelling.  The scientific
+    environment should not depend on which installer happens to be available.
+    """
+    env = env.copy()
+    uv_primary = env.get("UV_INDEX_URL") or env.get("UV_DEFAULT_INDEX")
+    pip_primary = env.get("PIP_INDEX_URL")
+    if pip_primary and not uv_primary:
+        env["UV_INDEX_URL"] = pip_primary
+    elif uv_primary and not pip_primary:
+        env["PIP_INDEX_URL"] = uv_primary
+
+    for pip_key, uv_key in (
+        ("PIP_EXTRA_INDEX_URL", "UV_EXTRA_INDEX_URL"),
+        ("PIP_FIND_LINKS", "UV_FIND_LINKS"),
+    ):
+        if env.get(pip_key) and not env.get(uv_key):
+            env[uv_key] = env[pip_key]
+        elif env.get(uv_key) and not env.get(pip_key):
+            env[pip_key] = env[uv_key]
+    return env
+
+
+def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
+    env = os.environ.copy()
+    for key in _ROUTE_KEYS:
+        if prov_env.get(key):
+            env[key] = prov_env[key]
+    return _bridge_installer_routes(env)
+
+
+def _route_summary(env: dict[str, str], *, index_policy: str, embedded_indexes: list[str]) -> dict:
+    return {
+        "index_policy": index_policy,
+        "pip_primary_index_present": bool(env.get("PIP_INDEX_URL")),
+        "uv_primary_index_present": bool(env.get("UV_INDEX_URL") or env.get("UV_DEFAULT_INDEX")),
+        "pip_extra_index_present": bool(env.get("PIP_EXTRA_INDEX_URL")),
+        "uv_extra_index_present": bool(env.get("UV_EXTRA_INDEX_URL")),
+        "pip_find_links_present": bool(env.get("PIP_FIND_LINKS")),
+        "uv_find_links_present": bool(env.get("UV_FIND_LINKS")),
+        "proxy_present": bool(env.get("HTTPS_PROXY") or env.get("https_proxy")),
+        "embedded_index_directive_count": len(embedded_indexes),
+        "values_redacted": True,
+    }
+
+
+def _embedded_index_directives(reqs: list[Path]) -> list[str]:
+    hits: list[str] = []
+    for req in reqs:
+        for lineno, raw in enumerate(req.read_text().splitlines(), 1):
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            if re.match(r"^(?:--index-url|--extra-index-url|-i)(?:\s|=)", line):
+                hits.append(f"{req.name}:{lineno}")
+    return hits
+
+
+def _validate_index_policy(python_cfg: dict, reqs: list[Path], install_env: dict[str, str]) -> dict:
+    policy = str(python_cfg.get("index_policy", "INHERIT")).upper()
+    allow_embedded = bool(python_cfg.get("allow_embedded_index_directives", True))
+    accelerator_route_required = bool(python_cfg.get("accelerator_wheel_route_required", False))
+    embedded = _embedded_index_directives(reqs)
+
+    if not allow_embedded and embedded:
+        raise RuntimeError("PYTHON_REQUIREMENTS_EMBEDDED_INDEX_FORBIDDEN:" + ",".join(embedded))
+
+    if policy == "HOST_MIRROR_REQUIRED":
+        primary = bool(install_env.get("PIP_INDEX_URL") or install_env.get("UV_INDEX_URL") or install_env.get("UV_DEFAULT_INDEX"))
+        if not primary:
+            raise RuntimeError("PYTHON_HOST_MIRROR_REQUIRED_PRIMARY_INDEX_MISSING")
+        if accelerator_route_required:
+            accelerator = bool(
+                install_env.get("PIP_EXTRA_INDEX_URL") or install_env.get("UV_EXTRA_INDEX_URL")
+                or install_env.get("PIP_FIND_LINKS") or install_env.get("UV_FIND_LINKS")
+            )
+            if not accelerator:
+                raise RuntimeError("PYTHON_HOST_MIRROR_REQUIRED_ACCELERATOR_ROUTE_MISSING")
+    elif policy not in {"INHERIT", "PUBLIC_ALLOWED"}:
+        raise RuntimeError(f"PYTHON_INDEX_POLICY_UNSUPPORTED:{policy}")
+
+    return _route_summary(install_env, index_policy=policy, embedded_indexes=embedded)
 
 
 def _classify_failure(text: str) -> str:
@@ -84,46 +193,21 @@ def _python_satisfies(spec: str) -> bool:
         op, version = m.groups()
         wanted = _version_tuple(version)
         lhs = current[: len(wanted)]
-        ok = {
-            ">=": lhs >= wanted,
-            "<=": lhs <= wanted,
-            ">": lhs > wanted,
-            "<": lhs < wanted,
-            "==": lhs == wanted,
-        }[op]
+        ok = {">=": lhs >= wanted, "<=": lhs <= wanted, ">": lhs > wanted, "<": lhs < wanted, "==": lhs == wanted}[op]
         if not ok:
             return False
     return True
 
 
-def _install_env(prov_env: dict[str, str]) -> dict[str, str]:
-    env = os.environ.copy()
-    for key in (
-        "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_FIND_LINKS",
-        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
-        "HF_ENDPOINT", "HF_TOKEN",
-        "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
-        "http_proxy", "https_proxy", "all_proxy", "no_proxy",
-    ):
-        if prov_env.get(key):
-            env[key] = prov_env[key]
-    return env
-
-
 def _public_pypi_env(base_env: dict[str, str], *, direct: bool = False) -> dict[str, str]:
-    """Return an opt-in public PyPI environment.
-
-    Private pip/uv index configuration is always removed. When ``direct`` is true,
-    inherited proxy variables are removed as a final public-only recovery path.
-    Requirements may still declare their own public --extra-index-url.
-    """
     env = base_env.copy()
     for key in (
         "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_NO_INDEX", "PIP_FIND_LINKS",
-        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
+        "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS", "UV_NO_INDEX",
     ):
         env.pop(key, None)
     env["PIP_INDEX_URL"] = "https://pypi.org/simple"
+    env["UV_INDEX_URL"] = "https://pypi.org/simple"
     env["PIP_CONFIG_FILE"] = os.devnull
     if direct:
         for key in (
@@ -182,7 +266,7 @@ def provision(profile: str) -> dict:
     env_hash = resolved["environment_sha256"]
     venv_dir = VENV_ROOT / env_hash
     ready_path = venv_dir / "READY.json"
-    venv_python = venv_dir / "bin" / "python"
+    venv_python = venv_dir / "bin/python"
     if ready_path.exists() and venv_python.is_file():
         ready = json.loads(ready_path.read_text())
         if ready.get("environment_sha256") == env_hash or ready.get("environment_hash") == env_hash:
@@ -197,20 +281,23 @@ def provision(profile: str) -> dict:
                     "resolved_packages_sha256": package_hash,
                     "public_index_fallback_used": bool(ready.get("public_index_fallback_used", False)),
                     "public_direct_fallback_used": bool(ready.get("public_direct_fallback_used", False)),
+                    "install_route_summary": ready.get("install_route_summary"),
                 },
             }
         shutil.rmtree(venv_dir, ignore_errors=True)
 
-    ensure_dirs()
-    shutil.rmtree(venv_dir, ignore_errors=True)
-    venv_dir.parent.mkdir(parents=True, exist_ok=True)
-
-    prov_env = load_provision_env()
-    install_env = _install_env(prov_env)
     reqs = [repo_root() / r for r in manifest.get("requirements", [])]
     for r in reqs:
         if not r.is_file():
             raise RuntimeError(f"PYTHON_REQUIREMENTS_FILE_MISSING_{r.name.replace('.', '_').upper()}")
+
+    prov_env = load_provision_env()
+    install_env = _install_env(prov_env)
+    route_summary = _validate_index_policy(python_cfg, reqs, install_env)
+
+    ensure_dirs()
+    shutil.rmtree(venv_dir, ignore_errors=True)
+    venv_dir.parent.mkdir(parents=True, exist_ok=True)
 
     installer = "stdlib-venv"
     uv_failure: str | None = None
@@ -219,17 +306,17 @@ def provision(profile: str) -> dict:
     if shutil.which("uv"):
         ok, cls = _run_capture(["uv", "venv", str(venv_dir)], env=install_env)
         if ok:
-            venv_python = venv_dir / "bin" / "python"
+            venv_python = venv_dir / "bin/python"
             installer = "uv"
             if reqs:
-                cmd = ["uv", "pip", "install", "--python", str(venv_python)]
-                cmd += ["--index-strategy", "unsafe-best-match"]
+                cmd = ["uv", "pip", "install", "--python", str(venv_python), "--index-strategy", "unsafe-best-match"]
+                primary = install_env.get("UV_INDEX_URL") or install_env.get("UV_DEFAULT_INDEX")
+                if primary:
+                    cmd += ["--index-url", primary]
                 for extra in (install_env.get("UV_EXTRA_INDEX_URL") or "").split():
                     cmd += ["--extra-index-url", extra]
-                find_links = install_env.get("UV_FIND_LINKS") or install_env.get("PIP_FIND_LINKS")
-                if find_links:
-                    for fl in find_links.split():
-                        cmd += ["--find-links", fl]
+                for fl in (install_env.get("UV_FIND_LINKS") or "").split():
+                    cmd += ["--find-links", fl]
                 for r in reqs:
                     cmd += ["-r", str(r)]
                 ok, cls = _run_capture(cmd, env=install_env)
@@ -287,6 +374,7 @@ def provision(profile: str) -> dict:
         "resolved_packages_sha256": package_hash,
         "public_index_fallback_used": public_fallback_used,
         "public_direct_fallback_used": public_direct_fallback_used,
+        "install_route_summary": route_summary,
         "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
     atomic_write_json(ready_path, ready)
@@ -299,6 +387,7 @@ def provision(profile: str) -> dict:
             "resolved_packages_sha256": package_hash,
             "public_index_fallback_used": public_fallback_used,
             "public_direct_fallback_used": public_direct_fallback_used,
+            "install_route_summary": route_summary,
         },
     }
 
