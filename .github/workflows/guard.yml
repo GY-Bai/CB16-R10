@@ -7,3 +7,13 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run repository policy
         run: python3 ci/check_repository_policy.py --root .
+      - name: Compile P0 incremental Python sources
+        run: |
+          python3 -m py_compile \
+            cb16_local_opt/r102_teacher_incremental.py \
+            cb16_local_opt/r102_teacher_parallel.py \
+            cb16_local_opt/r102_evidence_incremental.py \
+            cb16_local_opt/r2_campaign.py \
+            scripts/run_r104_long_research.py \
+            tests/test_r102_teacher_incremental.py \
+            tests/test_r102_evidence_incremental.py
