@@ -4,7 +4,7 @@
   "final_holdout_2025_09": "FORBIDDEN",
   "fresh_market_data": false,
   "nested_threads": 1,
-  "notes": "Frozen replay engineering load only. No tournament/lineage/fault injection. Stage-2 harness unchanged.",
+  "notes": "Frozen replay engineering load only. No tournament/lineage/fault injection. Stage-2 harness unchanged. E1 namespace wiring corrected; semantics unchanged.",
   "qualification_branch": "ai/r11-stage3-e1-data-plane-soak-r0",
   "queue_depth": 8,
   "rung": "smoke_3m",
