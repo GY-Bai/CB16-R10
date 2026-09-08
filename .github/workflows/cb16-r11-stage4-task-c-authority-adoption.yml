@@ -1,0 +1,35 @@
+name: CB16 R11 Stage4 S4C Authority Adoption
+
+on:
+  push:
+    branches:
+      - ai/r11-stage4-task-c-authority-adoption-r0
+
+permissions:
+  contents: read
+
+jobs:
+  s4c:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Gatework and S4C tests
+        run: python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_authority_adoption_r11.py
+      - name: Validate S4C task receipt when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt=authority/rearchitecture_r11/stage4_receipts/S4C_RECEIPT_V1.json
+          if [[ -f "$receipt" ]]; then
+            python scripts/check_r11_stage4_task_receipt.py --receipt "$receipt" --repo-root .
+          else
+            echo "Implementation commit: receipt intentionally not present yet."
+          fi
