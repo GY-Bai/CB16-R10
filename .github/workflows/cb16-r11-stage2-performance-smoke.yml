@@ -6,6 +6,7 @@ on:
       - ai/r11-stage2-integration-r1
     paths:
       - scripts/run_r11_stage2_integration_burst.py
+      - .github/cb16-r11-stage2-performance-smoke-trigger.json
 
 permissions:
   contents: read
