@@ -7,6 +7,7 @@ on:
     paths:
       - cb16_local_opt/stage3_e2_lineage_soak_r11.py
       - tests/test_stage3_e2_lineage_soak_r11.py
+      - tests/test_stage3_e2_release_boundary_r11.py
       - .github/workflows/stage3-e2-lineage-soak.yml
   workflow_dispatch:
 
@@ -71,12 +72,17 @@ jobs:
         run: |
           PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m py_compile \
             cb16_local_opt/stage3_e2_lineage_soak_r11.py \
-            tests/test_stage3_e2_lineage_soak_r11.py
+            tests/test_stage3_e2_lineage_soak_r11.py \
+            tests/test_stage3_e2_release_boundary_r11.py
 
       - name: Run E2 invariant tests
         env:
           PY: ${{ steps.py.outputs.python }}
-        run: PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m pytest -q tests/test_stage3_e2_lineage_soak_r11.py -k 'not 1000_generation_extension'
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m pytest -q \
+            tests/test_stage3_e2_lineage_soak_r11.py \
+            tests/test_stage3_e2_release_boundary_r11.py \
+            -k 'not 1000_generation_extension'
 
       - name: Run 100-generation E2 qualification
         env:
@@ -90,7 +96,7 @@ jobs:
             --synchronous FULL \
             --report stage3_e2_report.json
 
-      - name: Verify machine-readable PASS contract
+      - name: Verify 100-generation machine-readable PASS contract
         env:
           PY: ${{ steps.py.outputs.python }}
         run: |
@@ -113,11 +119,47 @@ jobs:
           assert r['repeated_frozen_replay_counts_as_new_scientific_evidence'] is False
           PY
 
-      - name: Upload E2 machine-readable ledger
+      - name: Run 1000-generation logical control-plane extension
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          rm -rf stage3_e2_work_1000 stage3_e2_report_1000.json
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m cb16_local_opt.stage3_e2_lineage_soak_r11 \
+            --root stage3_e2_work_1000 \
+            --repo-root . \
+            --generations 1000 \
+            --synchronous OFF \
+            --report stage3_e2_report_1000.json
+
+      - name: Verify 1000-generation logical PASS contract
+        env:
+          PY: ${{ steps.py.outputs.python }}
+        run: |
+          "$PY" - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('stage3_e2_report_1000.json').read_text())
+          assert r['verdict'] == 'PASS', r.get('first_failure')
+          assert r['correctness_identity']['status'] == 'CORRECTNESS_PASS'
+          assert r['runtime_endurance']['status'] == 'CONTROL_PLANE_RUNTIME_PASS'
+          assert r['completed_generations'] == 1000
+          assert r['final_authority_identity']['generation'] == 1000
+          assert r['journal_audit']['pass'] is True
+          assert r['runtime_endurance']['restart_reconstruction_checks'] == 1000
+          assert r['runtime_endurance']['attack_rejections'] == 5000
+          assert r['runtime_endurance']['idempotent_duplicate_checks'] == 4000
+          assert r['final_holdout_opened'] is False
+          assert r['fresh_market_data_downloaded'] is False
+          assert r['repeated_frozen_replay_counts_as_new_scientific_evidence'] is False
+          PY
+
+      - name: Upload E2 machine-readable ledgers
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: stage3-e2-lineage-soak-report
-          path: stage3_e2_report.json
+          name: stage3-e2-lineage-soak-reports
+          path: |
+            stage3_e2_report.json
+            stage3_e2_report_1000.json
           if-no-files-found: warn
           retention-days: 30
