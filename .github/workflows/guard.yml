@@ -11,7 +11,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Run repository policy
+      - name: Run repository sensitive-content policy
         run: python3 ci/check_repository_policy.py --root .
       - name: Enforce Shanxi gate topology
         run: python3 ci/check_shanxi_workflow_policy.py --root .
+      - name: Enforce action runtime compatibility
+        run: python3 ci/check_node24_actions_policy.py --root .
