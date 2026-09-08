@@ -1,0 +1,18 @@
+{
+  "schema": "CB16_R11_STAGE2_OVERLAP_CALIBRATION_TRIGGER_V1",
+  "armed": true,
+  "qualification_branch": "ai/r11-stage2-integration-r1",
+  "workers": [4, 6, 8],
+  "performance_only": true,
+  "pipeline_qualification_required": true,
+  "hard_timeout_minutes_per_worker": 5,
+  "runner": ["self-hosted", "shanxi", "cb16-wss-qualification"],
+  "purpose": "Measure real H72/FP32 lane balance after pipeline correctness has independently passed; no long burst and no scientific verdict.",
+  "forbidden": {
+    "fresh_market_data_download": true,
+    "final_holdout_open": true,
+    "oci_compute": true,
+    "scientific_verdict": true,
+    "endurance_test": true
+  }
+}
