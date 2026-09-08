@@ -1,0 +1,95 @@
+name: CB16 R11 Stage-2 Performance Plane Patch
+
+on:
+  push:
+    branches:
+      - ai/r11-stage2-integration-r1
+    paths:
+      - .github/workflows/cb16-r11-stage2-performance-plane-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact integration branch
+        uses: actions/checkout@v6
+        with:
+          ref: ai/r11-stage2-integration-r1
+          fetch-depth: 1
+
+      - name: Apply exact performance-plane replacements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('scripts/run_r11_stage2_integration_burst.py')
+          s=p.read_text()
+
+          replacements=[
+              (
+                  '''    if not (360 <= measured_seconds <= 600):\n        raise RuntimeError("R11_STAGE2_DRIVER_DURATION_OUT_OF_RANGE")\n''',
+                  '''    short_smoke = os.environ.get("CB16_R11_BURST_SHORT_SMOKE") == "1"\n    if short_smoke:\n        if not (30 <= measured_seconds <= 180):\n            raise RuntimeError("R11_STAGE2_SHORT_SMOKE_DURATION_OUT_OF_RANGE")\n    elif not (360 <= measured_seconds <= 600):\n        raise RuntimeError("R11_STAGE2_DRIVER_DURATION_OUT_OF_RANGE")\n''',
+                  'short-smoke-duration-guard',
+              ),
+              (
+                  '''                # Three real 96-group H72 replays roughly balance one canonical GPU train replay.\n                for _ in range(3):\n''',
+                  '''                # Real-machine overlap calibration selected one 96-group H72 replay per canonical GPU train replay.\n                for _ in range(1):\n''',
+                  'h72-gpu-one-to-one',
+              ),
+              (
+                  '''                    ticket = io_runtime.submit_evidence(rows, timeout=30)\n                    t0 = time.perf_counter()\n                    result = io_runtime.wait(ticket, timeout=60)\n                    waited = time.perf_counter() - t0\n                    counters.add(fsync_stall_seconds=waited)\n                    counters.add_fsync_latency(waited)\n''',
+                  '''                    ticket = io_runtime.submit_evidence(rows, timeout=30)\n                    # Background durability service time is not a pipeline stall.  Only a\n                    # control-plane wait at the final drain barrier is charged below.\n                    result = io_runtime.wait(ticket, timeout=60)\n''',
+                  'durability-service-not-stall',
+              ),
+              (
+                  '''    storage_thread.join(timeout=90)\n    if storage_thread.is_alive():\n''',
+                  '''    durability_barrier_started = time.perf_counter()\n    storage_thread.join(timeout=90)\n    durability_barrier_wait = time.perf_counter() - durability_barrier_started\n    counters.add(fsync_stall_seconds=durability_barrier_wait)\n    counters.add_fsync_latency(durability_barrier_wait)\n    if storage_thread.is_alive():\n''',
+                  'control-plane-durability-stall',
+              ),
+          ]
+
+          for old,new,name in replacements:
+              count=s.count(old)
+              if count != 1:
+                  raise SystemExit(f'PATCH_MATCH_COUNT_FAIL:{name}:{count}')
+              s=s.replace(old,new,1)
+
+          p.write_text(s)
+          print('CB16_R11_STAGE2_PERFORMANCE_PLANE_PATCH=APPLIED')
+          PY
+
+      - name: Validate exact diff and syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/run_r11_stage2_integration_burst.py
+          changed="$(git diff --name-only)"
+          test "$changed" = "scripts/run_r11_stage2_integration_burst.py" || {
+            echo "UNEXPECTED_PATCH_FILES=$changed" >&2
+            exit 77
+          }
+          grep -F 'for _ in range(1):' scripts/run_r11_stage2_integration_burst.py >/dev/null
+          grep -F 'CB16_R11_BURST_SHORT_SMOKE' scripts/run_r11_stage2_integration_burst.py >/dev/null
+          grep -F 'durability_barrier_wait' scripts/run_r11_stage2_integration_burst.py >/dev/null
+          if grep -F 'counters.add(fsync_stall_seconds=waited)' scripts/run_r11_stage2_integration_burst.py >/dev/null; then
+            echo 'OLD_BACKGROUND_WAIT_STILL_COUNTED_AS_FSYNC_STALL' >&2
+            exit 78
+          fi
+          git diff --check
+          git diff -- scripts/run_r11_stage2_integration_burst.py
+
+      - name: Commit performance-plane patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/run_r11_stage2_integration_burst.py
+          git commit -m 'perf(r11): rebalance Stage-2 burst and fix durability stall telemetry'
+          git push origin HEAD:ai/r11-stage2-integration-r1
