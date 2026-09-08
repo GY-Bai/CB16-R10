@@ -1,0 +1,17 @@
+{
+  "schema": "CB16_R11_STAGE4_AUTHORITY_WRITER_REGISTRY_V1",
+  "task_id": "S4A",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "semantic_freeze_blob_sha": "3c401a0a350984381912f7860181e3e96eb8d7cf",
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "authority_rule": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "classification_semantics": {
+    "R11_CANONICAL_CANDIDATE": "Current R11 writer surface eligible for later integrated cutover review; this registry does not grant canonical authority.",
+    "LEGACY_REFERENCE_ONLY": "Legacy/oracle/reference surface; call/import reachability cannot upgrade it to authority.",
+    "QUALIFICATION_ONLY": "Stage qualification harness or workflow; may exercise writers but cannot own production authority.",
+    "TEST_ONLY": "Test fixture/harness writer; cannot own production authority.",
+    "NON_AUTHORITATIVE_READ_ONLY": "Identity/protocol/read-only surface; no authoritative mutation role.",
+    "UNKNOWN_AUTHORITY": "Fail-closed unresolved mutation surface; any occurrence makes the audit fail."
+  },
+  "entries": []
+}
