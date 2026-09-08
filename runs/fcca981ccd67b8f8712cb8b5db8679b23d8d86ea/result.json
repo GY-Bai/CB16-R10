@@ -4,11 +4,11 @@
   "commit_sha": "fcca981ccd67b8f8712cb8b5db8679b23d8d86ea",
   "ci_profile": "smoke",
   "verdict": "ERROR",
-  "started_at": "2026-09-08T14:48:05Z",
-  "finished_at": "2026-09-08T14:48:05Z",
+  "started_at": "2026-09-08T14:48:08Z",
+  "finished_at": "2026-09-08T14:48:08Z",
   "tests_total": 1,
   "tests_pass": 0,
   "tests_fail": 1,
-  "error": "PROVISION_FAILED: PROVISION_FAILED:profile=smoke:exit=1",
+  "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
   "model_artifacts": []
 }
