@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "1b673d55-3b36-4190-8cdc-cae8a633780d",
+  "commit_sha": "17d1eb18ded5bd1820c6378f166542adc1fcf712",
+  "ci_profile": "smoke",
+  "verdict": "ERROR",
+  "started_at": "2026-09-08T02:46:35Z",
+  "finished_at": "2026-09-08T02:46:35Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "PROVISION_FAILED: PROVISION_FAILED:profile=smoke:exit=1",
+  "model_artifacts": []
+}
