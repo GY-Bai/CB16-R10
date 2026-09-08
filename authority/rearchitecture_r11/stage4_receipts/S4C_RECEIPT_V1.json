@@ -1,0 +1,79 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4C",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "35d9f9d5bdb15e3dec9fdff46e53aeecc45bc38e",
+  "branch": "ai/r11-stage4-task-c-authority-adoption-r0",
+  "owned_paths": [
+    ".github/workflows/cb16-r11-stage4-task-c-authority-adoption.yml",
+    "authority/rearchitecture_r11/stage4_receipts/S4C_RECEIPT_V1.json",
+    "cb16_local_opt/stage4_authority_adoption_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4C_AUTHORITY_ADOPTION_R0.md",
+    "scripts/verify_r11_stage4_authority_adoption.py",
+    "tests/test_stage4_authority_adoption_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/cb16-r11-stage4-task-c-authority-adoption.yml",
+    "cb16_local_opt/stage4_authority_adoption_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4C_AUTHORITY_ADOPTION_R0.md",
+    "scripts/verify_r11_stage4_authority_adoption.py",
+    "tests/test_stage4_authority_adoption_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_authority_adoption_r11.py",
+      "python scripts/check_r11_stage4_task_receipt.py --receipt authority/rearchitecture_r11/stage4_receipts/S4C_RECEIPT_V1.json --repo-root ."
+    ],
+    "passed": true,
+    "evidence": [
+      "GitHub Actions run 34186980186 on implementation head: Gatework and S4C tests completed successfully",
+      "Isolated S4C unit run: 22 passed"
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "first_valid_adoption_succeeds": true,
+    "identical_repeat_is_idempotent": true,
+    "conflicting_second_adoption_fails_closed": true,
+    "source_authority_mismatch_fails_closed": true,
+    "partial_or_corrupt_receipt_fails_closed": true,
+    "adoption_generation_equals_source_generation": true,
+    "adoption_creates_no_evidence": true,
+    "adoption_rewrites_no_scientific_history": true,
+    "source_roots_are_identity_only_not_writable_capabilities": true,
+    "timestamp_is_metadata_not_identity_authority": true,
+    "atomic_publish_never_replaces_existing_history": true
+  },
+  "hostile_cases": [
+    {"case": "wrong champion/checkpoint/journal/freeze/root identity", "status": "PASS_FAIL_CLOSED"},
+    {"case": "partial/corrupt/noncanonical receipt", "status": "PASS_FAIL_CLOSED"},
+    {"case": "crash before receipt publish", "status": "PASS_NO_AUTHORITATIVE_RECEIPT"},
+    {"case": "crash after atomic publish", "status": "PASS_ONE_VALID_HISTORY"},
+    {"case": "concurrent conflicting adoption", "status": "PASS_EXACTLY_ONE_PUBLISHED_HISTORY"}
+  ],
+  "known_limitations": [
+    "S4C does not discover or invent accepted source identities; final integration must provide the independently trusted accepted-source contract.",
+    "The local atomic store requires same-directory hard-link create-if-absent semantics; filesystems without that primitive fail closed rather than using overwrite fallback.",
+    "S4C does not implement singleton fencing, canonical state-root ownership, legacy retirement, or runtime lifecycle; those remain final-integration boundaries.",
+    "The verification CLI without --contract is diagnostic self-consistency checking only; production adoption must be contract-bound."
+  ],
+  "integration_notes": [
+    "Authority adoption is metadata binding of an already accepted state; it is explicitly not scientific generation advancement.",
+    "Final integration must bind observed source identities against AuthorityAdoptionContract before publishing or accepting the adoption receipt.",
+    "adoption_generation must remain equal to source_generation and must never trigger NEXT_GENERATION_RELEASED.",
+    "Evidence, Journal, and checkpoint roots are passed to S4C only as opaque identities, so S4C has no source-store mutation capability.",
+    "The canonical lifecycle may consume the verified canonical_content_hash as adoption identity only after independently establishing runtime ownership and storage-root authority.",
+    "No S4B-S4I implementation, branch, module, or receipt was read or consumed."
+  ]
+}
