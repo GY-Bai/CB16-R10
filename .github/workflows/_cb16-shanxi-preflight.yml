@@ -1,0 +1,78 @@
+name: CB16 Shanxi Preflight
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-guard:
+    name: A Repo Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Pin guard authority sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:ci/check_repository_policy.py)" = "c5c021ab9348387a0f43b766b66ab74977e45a5c"
+          test "$(git rev-parse HEAD:ci/check_shanxi_workflow_policy.py)" = "2cea170fc74afa4828dedaae94b13e9e7f3fddac"
+
+      - name: Repository policy
+        run: python3 ci/check_repository_policy.py --root .
+
+      - name: Shanxi workflow topology policy
+        run: python3 ci/check_shanxi_workflow_policy.py --root .
+
+  node24-guard:
+    name: B Node24 Guard
+    needs: repo-guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Enforce Node24 action policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          forbidden_opt_out = 'ACTIONS_ALLOW_USE_' + 'UNSECURE_NODE_VERSION'
+          checks = [
+              (r'actions/checkout@v(?:1|2|3|4)(?:\b|\.)', 'checkout pre-Node24 major'),
+              (r'actions/upload-artifact@v(?:1|2|3|4)(?:\b|\.)', 'upload-artifact legacy major'),
+              (r'actions/download-artifact@v(?:1|2|3|4)(?:\b|\.)', 'download-artifact legacy major'),
+              (re.escape(forbidden_opt_out), 'forbidden Node20 opt-out'),
+          ]
+          errors = []
+          inventory = []
+          for p in sorted(Path('.github/workflows').glob('*.y*ml')):
+              text = p.read_text(encoding='utf-8')
+              for pat, desc in checks:
+                  if re.search(pat, text):
+                      errors.append(f'{p}: {desc}')
+              for i, line in enumerate(text.splitlines(), 1):
+                  if 'uses:' in line:
+                      inventory.append(f'{p}:{i}:{line.strip()}')
+          print('--- action inventory ---')
+          print('\n'.join(inventory))
+          if errors:
+              print('NODE24_ACTION_POLICY=FAIL')
+              print('\n'.join(errors))
+              raise SystemExit(1)
+          print('NODE24_ACTION_POLICY=PASS')
+          PY
