@@ -181,15 +181,28 @@ jobs:
           marker=json.load(open('ci_evidence/measurement_ready.json'))
           assert marker['schema']=='CB16_R11_STAGE2_BURST_MEASUREMENT_READY_V1'
           measured_start=float(marker['monotonic_seconds'])
-          measured_end=measured_start+float(marker['measured_seconds'])
-          assert float(marker['measured_seconds']) == 90.0
+          measured_seconds=float(marker['measured_seconds'])
+          measured_end=measured_start+measured_seconds
+          assert measured_seconds == 90.0
 
           all_rows=[json.loads(x) for x in Path('ci_evidence/smoke_telemetry.jsonl').read_text().splitlines() if x.strip()]
           rows=[r for r in all_rows if measured_start <= float(r['monotonic_seconds']) <= measured_end]
           assert len(rows) >= 70, len(rows)
           first,last=rows[0]['counters'],rows[-1]['counters']
-          fsync_stall=float(last['fsync_stall_seconds'])-float(first['fsync_stall_seconds'])
+          delta=lambda k: float(last[k])-float(first[k])
+          fsync_stall=delta('fsync_stall_seconds')
+          generations_per_min=60.0*delta('generations_committed')/measured_seconds
+          traces_per_sec=delta('traces')/measured_seconds
+          training_steps_per_sec=delta('training_steps')/measured_seconds
+          fp32_examples_per_sec=delta('fp32_training_examples')/measured_seconds
           assert fsync_stall <= 4.5, fsync_stall
+          # Throughput-first smoke floors. They are deliberately below the robust 90s
+          # marker-based baseline from run 34177534226 (37.3 gen/min, 59.7 traces/s,
+          # 144.4 steps/s, 73.8k examples/s), but high enough to reject regression.
+          assert generations_per_min >= 30.0, generations_per_min
+          assert traces_per_sec >= 50.0, traces_per_sec
+          assert training_steps_per_sec >= 120.0, training_steps_per_sec
+          assert fp32_examples_per_sec >= 60000.0, fp32_examples_per_sec
 
           gpu=[]
           for raw in Path('ci_evidence/gpu_samples.txt').read_text().splitlines():
@@ -203,20 +216,27 @@ jobs:
           assert len(gpu) >= 200, len(gpu)
           avg=statistics.fmean(gpu)
           idle=sum(v <= 5.0 for v in gpu)/len(gpu)
-          assert avg >= 20.0, avg
-          assert idle <= 0.75, idle
+          # GTX1060 + 189k FP32 Brain is launch-bound. Utilization is a starvation
+          # canary, not the optimization objective. These floors distinguish the
+          # accepted 1:1 execution from the old 3:1 GPU-starved topology.
+          assert avg >= 14.0, avg
+          assert idle <= 0.55, idle
 
           summary={
               'status':'PASS',
               'cycles_committed':int(c['cycles_committed']),
-              'measured_seconds':90.0,
+              'measured_seconds':measured_seconds,
+              'generations_per_min':generations_per_min,
+              'traces_per_sec':traces_per_sec,
+              'training_steps_per_sec':training_steps_per_sec,
+              'fp32_training_examples_per_sec':fp32_examples_per_sec,
               'gpu_sample_count':len(gpu),
               'gpu_avg_pct':avg,
               'gpu_idle_ratio':idle,
               'durability_barrier_stall_seconds':fsync_stall,
               'scientific_semantics_changed':False,
           }
-          Path('ci_evidence/CB16_R11_STAGE2_PERFORMANCE_SMOKE_V2.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
+          Path('ci_evidence/CB16_R11_STAGE2_PERFORMANCE_SMOKE_V3.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
           print('CB16_R11_STAGE2_PERFORMANCE_SMOKE=' + json.dumps(summary,sort_keys=True))
           PY
 
