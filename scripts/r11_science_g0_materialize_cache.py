@@ -21,7 +21,7 @@ EXPECTED_BLOBS = {
     "cb16_local_opt/r102_common.py": "87a28afe7a42aa3fadd999d1dc0acecd35c03a39",
 }
 RAW_ROOT = Path("/data/cb16_hdd/binance_usdm_1m_funding_2020_2026")
-R11_ROOT = Path(os.environ.get("CB16_R11_G0_ROOT", "/data/cb16_hdd/cb16_runtime/R11/G0"))
+R11_ROOT = Path(os.environ.get("CB16_R11_G0_ROOT", "/home/bgy/cb16_ssd/runtime/R11/G0"))
 SEAL_IN = Path(os.environ.get("CB16_G0_SEAL_IN", "/tmp/cb16_r11_science_g0_dataset_seal.json"))
 STRIDE_HOURS = 256
 PREHISTORY_HOURS = 96
@@ -77,7 +77,7 @@ def validate_seal() -> tuple[dict[str, Any], bytes]:
 
 
 def main() -> int:
-    seal, seal_raw = validate_seal()
+    _seal, seal_raw = validate_seal()
     for path, expected in EXPECTED_BLOBS.items():
         actual = git_blob(path)
         if actual != expected:
@@ -116,10 +116,10 @@ def main() -> int:
                 prehistory_hours=PREHISTORY_HOURS,
                 verify_checksums=False,
             )
-            manifest = json.loads(paths.manifest_json.read_text(encoding="utf-8")) if hasattr(paths, "manifest_json") else json.loads(paths.manifest_path.read_text(encoding="utf-8"))
-            hourly = Path(paths.hourly_npz if hasattr(paths, "hourly_npz") else paths.hourly_path)
-            anchors = Path(paths.frames_npz if hasattr(paths, "frames_npz") else paths.frames_path)
-            manifest_path = Path(paths.manifest_json if hasattr(paths, "manifest_json") else paths.manifest_path)
+            manifest_path = Path(paths.manifest_json)
+            hourly = Path(paths.hourly_npz)
+            anchors = Path(paths.frames_npz)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             if manifest.get("forbidden_month_opened") is not False:
                 raise RuntimeError(f"R11_G0_HOLDOUT_GUARD_FAILED:{symbol}")
             per_asset.append({
@@ -158,8 +158,7 @@ def main() -> int:
         }
         lineage_id = sha256_bytes(canonical_bytes(core))
         receipt = {**core, "lineage_identity_sha256": lineage_id}
-        stage_receipt = stage / "CB16_R11_G0_DERIVED_CACHE_LINEAGE.json"
-        stage_receipt.write_bytes(canonical_bytes(receipt))
+        (stage / "CB16_R11_G0_DERIVED_CACHE_LINEAGE.json").write_bytes(canonical_bytes(receipt))
 
         os.rename(stage, cache_target)
         publish_exact_no_replace(lineage_receipt, canonical_bytes(receipt))
