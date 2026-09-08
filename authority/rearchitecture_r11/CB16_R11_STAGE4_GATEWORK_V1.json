@@ -1,0 +1,156 @@
+{
+  "schema": "CB16_R11_STAGE4_GATEWORK_V1",
+  "status": "FROZEN_FOR_PARALLEL_TASKS",
+  "stage": 4,
+  "name": "CANONICAL_AUTHORITY_CUTOVER_AND_LEGACY_RETIREMENT_R0",
+  "highest_principle": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "upstream": {
+    "repository": "GY-Bai/CB16-R10",
+    "branch": "ai/r11-stage3-integration-r0",
+    "head_sha": "35d6dccd85fe053f4d14d1d43b3110496947cdc1",
+    "stage3_integrated_smoke_run": 34184028833,
+    "stage2_qualified_base": "92f1ca011aec27bbe9e89ac5ba9afe74817ee2de",
+    "semantic_freeze_path": "authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json",
+    "semantic_freeze_blob_sha": "3c401a0a350984381912f7860181e3e96eb8d7cf"
+  },
+  "stage3_accepted_inputs": {
+    "e1_head": "623cf76630bca4d0177d5e3e28908d535fdc9baa",
+    "e1_run": 34183247453,
+    "e2_head": "4d9db584ae0322ec9f041bb639b201f390de48aa",
+    "e2_run": 34181561564,
+    "e3_head": "3eca71fc81167d1ee5ac90a77d6a85cca562f8b7",
+    "e3_run": 34181161853
+  },
+  "scientific_authority": {
+    "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "scientific_semantics_changed": false,
+    "new_scientific_verdict_allowed": false,
+    "final_holdout_start": "2025-09-01T00:00:00Z",
+    "final_holdout_opening_allowed": false,
+    "fresh_market_data_allowed": false,
+    "historical_market_data_mutation_allowed": false,
+    "frozen_physics_change_allowed": false,
+    "teacher_meaning_change_allowed": false,
+    "evidence_meaning_change_allowed": false,
+    "gradient_authority_change_allowed": false,
+    "champion_challenger_semantic_change_allowed": false,
+    "requested_risk_semantic_change_allowed": false,
+    "replay_as_new_evidence_allowed": false
+  },
+  "scope": {
+    "primary_goal": "MAKE_R11_THE_ONLY_LEGITIMATE_OPERATIONAL_AUTHORITY_AND_RETIRE_LEGACY_AUTHORITATIVE_WRITE_PATHS",
+    "in_scope": [
+      "authoritative writer inventory and classification",
+      "canonical R11 runtime entrypoint and lifecycle contract",
+      "one-time authority adoption with lineage preservation and idempotence",
+      "single-owner runtime lease and fencing",
+      "permission and physics bypass closure",
+      "canonical persistent state roots and ownership",
+      "legacy authoritative writer retirement and rejection",
+      "hostile cutover/restart/duplicate-owner qualification",
+      "machine-readable Stage-4 gate and receipt aggregation"
+    ],
+    "out_of_scope": [
+      "2h or 6h endurance qualification",
+      "30m endurance escalation unless separately authorized",
+      "distributed or cross-machine authority",
+      "new market data download",
+      "final holdout opening",
+      "scientific architecture changes",
+      "queue-depth or throughput tuning",
+      "new scientific verdict",
+      "main branch merge"
+    ]
+  },
+  "canonical_machine": {
+    "qualification_runner": ["self-hosted", "shanxi", "cb16-wss-qualification"],
+    "cpu": "AMD Ryzen 7 3700X / 16 logical CPUs",
+    "gpu": "NVIDIA GTX 1060 6GB / Pascal sm_61",
+    "pytorch": "2.8.0+cu126",
+    "cuda": "12.6",
+    "dtype": "FP32",
+    "amp": false,
+    "oci_qualification_allowed": false,
+    "teacher_workers_baseline": 8,
+    "trace_workers_baseline": 8,
+    "queue_depth_baseline": 8,
+    "buffer_mib_baseline": 64
+  },
+  "parallelism_contract": {
+    "wave1_tasks_share_only_this_gatework_base": true,
+    "wave1_sibling_branch_reads_for_implementation": false,
+    "wave1_sibling_cherry_pick_allowed": false,
+    "wave1_sibling_new_module_import_allowed": false,
+    "each_task_must_be_independently_testable": true,
+    "dependencies_inside_one_task_must_be_completed_in_task_order": true,
+    "cross_task_wiring_owned_by_final_integration_wave": true
+  },
+  "receipt": {
+    "schema_path": "authority/rearchitecture_r11/CB16_R11_STAGE4_TASK_RECEIPT_SCHEMA_V1.json",
+    "directory": "authority/rearchitecture_r11/stage4_receipts",
+    "required_status_for_integration": "PASS"
+  },
+  "wave1_tasks": [
+    {
+      "id": "S4A",
+      "branch": "ai/r11-stage4-task-a-authority-inventory-r0",
+      "title": "Authority Surface Inventory and Writer Registry",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4B",
+      "branch": "ai/r11-stage4-task-b-canonical-entrypoint-r0",
+      "title": "Canonical Runtime Entrypoint and Lifecycle",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4C",
+      "branch": "ai/r11-stage4-task-c-authority-adoption-r0",
+      "title": "One-Time Authority Adoption and Lineage Preservation",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4D",
+      "branch": "ai/r11-stage4-task-d-singleton-fencing-r0",
+      "title": "Runtime Singleton Lease and Fencing",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4E",
+      "branch": "ai/r11-stage4-task-e-permission-closure-r0",
+      "title": "Permission Boundary and Legacy Bypass Closure",
+      "exclusive_existing_file_ownership": ["cb16_local_opt/integration_adapters_r11.py"]
+    },
+    {
+      "id": "S4F",
+      "branch": "ai/r11-stage4-task-f-state-roots-r0",
+      "title": "Canonical Persistent State Roots and Storage Ownership",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4G",
+      "branch": "ai/r11-stage4-task-g-legacy-retirement-r0",
+      "title": "Legacy Runtime Retirement and Authoritative-Write Rejection",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4H",
+      "branch": "ai/r11-stage4-task-h-hostile-cutover-r0",
+      "title": "Hostile Cutover and Split-Brain Test Matrix",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "S4I",
+      "branch": "ai/r11-stage4-task-i-qualification-gates-r0",
+      "title": "Stage-4 Receipt Validator and Qualification Gate Compiler",
+      "exclusive_existing_file_ownership": []
+    }
+  ],
+  "final_integration": {
+    "branch": "ai/r11-stage4-integration-r0",
+    "creation_rule": "CREATE_ONLY_AFTER_WAVE1_RECEIPTS_ARE_ADJUDICATED",
+    "must_not_reinterpret_task_results": true,
+    "required_verdict": "R11_CANONICAL_AUTHORITY_CUTOVER_QUALIFIED",
+    "scientific_status_must_remain_unchanged": true
+  }
+}
