@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD:ci/check_repository_policy.py)" = "c5c021ab9348387a0f43b766b66ab74977e45a5c"
-          test "$(git rev-parse HEAD:ci/check_shanxi_workflow_policy.py)" = "2cea170fc74afa4828dedaae94b13e9e7f3fddac"
+          test "$(git rev-parse HEAD:ci/check_shanxi_workflow_policy.py)" = "7999d47fd2117317adbfa39bd79bb462aa17874b"
 
       - name: Repository policy
         run: python3 ci/check_repository_policy.py --root .
