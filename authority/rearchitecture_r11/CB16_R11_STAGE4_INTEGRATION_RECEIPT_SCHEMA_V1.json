@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CB16_R11_STAGE4_INTEGRATION_RECEIPT_SCHEMA_V1",
+  "title": "CB16 R11 Stage4 Integration Fork Receipt V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "task_id", "status", "integration_seed_sha", "task_head_sha", "branch",
+    "owned_paths", "touched_paths", "tests", "semantic_guards", "scientific_status",
+    "correctness_invariants", "known_limitations", "final_consolidation_notes"
+  ],
+  "properties": {
+    "schema": {"const": "CB16_R11_STAGE4_INTEGRATION_RECEIPT_V1"},
+    "task_id": {"enum": ["INTA", "INTB", "INTC", "INTD", "INTE", "INTF", "INTG", "INTH"]},
+    "status": {"enum": ["PASS", "FAIL"]},
+    "integration_seed_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "task_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "branch": {"type": "string", "minLength": 1},
+    "owned_paths": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "touched_paths": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commands", "passed", "evidence"],
+      "properties": {
+        "commands": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "passed": {"type": "boolean"},
+        "evidence": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "semantic_guards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_freeze_unchanged", "final_holdout_untouched", "fresh_market_data_downloaded",
+        "historical_market_data_mutated", "new_scientific_verdict", "scientific_semantics_changed",
+        "replay_reinterpreted_as_new_evidence", "sibling_integration_dependency_used",
+        "pushed_to_seed_or_final_branch", "long_endurance_run"
+      ],
+      "properties": {
+        "semantic_freeze_unchanged": {"const": true},
+        "final_holdout_untouched": {"const": true},
+        "fresh_market_data_downloaded": {"const": false},
+        "historical_market_data_mutated": {"const": false},
+        "new_scientific_verdict": {"const": false},
+        "scientific_semantics_changed": {"const": false},
+        "replay_reinterpreted_as_new_evidence": {"const": false},
+        "sibling_integration_dependency_used": {"const": false},
+        "pushed_to_seed_or_final_branch": {"const": false},
+        "long_endurance_run": {"const": false}
+      }
+    },
+    "scientific_status": {"const": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"},
+    "correctness_invariants": {"type": "object"},
+    "hostile_cases": {"type": "array"},
+    "known_limitations": {"type": "array", "items": {"type": "string"}},
+    "final_consolidation_notes": {"type": "array", "items": {"type": "string"}}
+  }
+}
