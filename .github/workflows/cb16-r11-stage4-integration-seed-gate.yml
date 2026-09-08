@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: cb16-r11-stage4-integration-seed-gate
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   integration-seed-gate:
