@@ -15,6 +15,7 @@
     "Stage-2 Task F accepted A-E only after each child branch completed its own short real-machine microbenchmark on the single cb16-wss-qualification runner.",
     "Utilization thresholds are engineering saturation floors calibrated from those real microbenchmarks, not scientific identity: Task A process8 consumes approximately eight physical cores and Task B showed the 189k FP32 Brain is launch/synchronization-bound with a representative GPU sample near 34% while retaining exact model identity.",
     "Scientific correctness gates are not relaxed: Teacher/H72/training identity, forbidden-gradient, replay, durable recovery, frozen authority and unopened holdout all remain hard PASS requirements.",
+    "Run 34171916851 exposed an integration-only process-lifecycle defect: the persistent fork H72 pool was first created after telemetry threads and CUDA initialization, then lost a child at cycle 33. The rerun keeps the same H72 algorithm and 8-worker topology but preforks and validates the pool before threads/CUDA via the narrowly gated sitecustomize startup hook.",
     "Throughput baseline is engineering-only. After the first accepted integrated burst, its measured values may be pinned as the Stage-2 regression baseline.",
     "No threshold or recommended runtime default is part of scientific identity."
   ],
