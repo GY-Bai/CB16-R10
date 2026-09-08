@@ -332,6 +332,12 @@ def main() -> int:
 
     telemetry_path = Path(os.environ["CB16_R11_BURST_TELEMETRY_JSONL"]).resolve()
     correctness_path = Path(os.environ["CB16_R11_BURST_CORRECTNESS_JSON"]).resolve()
+    ready_marker_path = Path(
+        os.environ.get(
+            "CB16_R11_BURST_READY_MARKER",
+            str(Path(os.environ["CB16_R11_BURST_WORK_ROOT"]) / "measurement_ready.json"),
+        )
+    ).resolve()
     work_root = Path(os.environ["CB16_R11_BURST_WORK_ROOT"]).resolve()
     ssd_root = Path(os.environ["CB16_R11_BURST_SSD_ROOT"]).resolve()
     hdd_root = Path(os.environ["CB16_R11_BURST_HDD_ROOT"]).resolve()
@@ -340,6 +346,8 @@ def main() -> int:
     teacher_cache_root = Path("/data/cb16_hdd/cb16_diagnostics/r2_native/compiled_teacher_authority").resolve()
     for path in (work_root, ssd_root, hdd_root):
         path.mkdir(parents=True, exist_ok=True)
+    ready_marker_path.parent.mkdir(parents=True, exist_ok=True)
+    ready_marker_path.unlink(missing_ok=True)
 
     counters = Counters()
     telemetry_stop = threading.Event()
@@ -565,12 +573,28 @@ def main() -> int:
 
     storage_thread = threading.Thread(target=storage_lane, name="r11-stage2-storage-lane")
 
-    # Wait until the supervisor's warmup interval has elapsed.  The warmup itself performed
-    # real correctness work and cache construction, so the measured interval starts hot.
+    # The correctness/identity prelude is intentionally outside the performance window.
+    # The explicit monotonic marker is the only authority for measured CPU/GPU/IO sampling.
     warmup_deadline = started + warmup_seconds
     if time.monotonic() < warmup_deadline:
         time.sleep(warmup_deadline - time.monotonic())
-    measured_deadline = started + warmup_seconds + measured_seconds
+    measurement_started = time.monotonic()
+    atomic_json(
+        ready_marker_path,
+        {
+            "schema": "CB16_R11_STAGE2_BURST_MEASUREMENT_READY_V1",
+            "monotonic_seconds": measurement_started,
+            "measured_seconds": measured_seconds,
+            "teacher_workers": teacher_workers,
+            "trace_workers": trace_workers,
+            "scientific_identity": False,
+        },
+    )
+    print(
+        f"CB16_R11_STAGE2_MEASUREMENT_READY=PASS start={measurement_started:.9f} measured_seconds={measured_seconds}",
+        flush=True,
+    )
+    measured_deadline = measurement_started + measured_seconds
     storage_thread.start()
 
     measured_runtime = TrainingRuntimeR11(
@@ -582,7 +606,7 @@ def main() -> int:
     cycle = 0
     measured_teacher_hash = sha256_obj([e.content_hash for e in warm_train] + [e.content_hash for e in warm_val])
 
-    while time.monotonic() < measured_deadline - 5.0:
+    while time.monotonic() < measured_deadline:
         cycle += 1
         shared: dict[str, Any] = {}
         core = new_burst_core()

@@ -693,6 +693,8 @@ def main() -> int:
     hdd_work.mkdir(parents=True, exist_ok=True)
     telemetry_path = work / "runtime_telemetry.jsonl"
     correctness_path = work / "runtime_correctness.json"
+    measurement_ready_path = work / "measurement_ready.json"
+    measurement_ready_path.unlink(missing_ok=True)
     stdout_path = work / "workload.stdout.log"
     stderr_path = work / "workload.stderr.log"
 
@@ -725,6 +727,7 @@ def main() -> int:
             "PYTHONPATH": str(ROOT),
             "CB16_R11_BURST_TELEMETRY_JSONL": str(telemetry_path),
             "CB16_R11_BURST_CORRECTNESS_JSON": str(correctness_path),
+            "CB16_R11_BURST_READY_MARKER": str(measurement_ready_path),
             "CB16_R11_BURST_WORK_ROOT": str(work / "runtime"),
             "CB16_R11_BURST_SSD_ROOT": str(ssd_work),
             "CB16_R11_BURST_HDD_ROOT": str(hdd_work),
@@ -764,20 +767,30 @@ def main() -> int:
     samples: list[HostSample] = []
     workload_rc: int | None = None
     start = time.monotonic()
-    measured_start = start + warmup
-    measured_end = measured_start + measured_target
-    drain_deadline = measured_end + 30.0
+    measured_start: float | None = None
+    measured_end: float | None = None
+    drain_deadline: float | None = None
     with stdout_path.open("w") as stdout, stderr_path.open("w") as stderr:
         proc = subprocess.Popen(argv, cwd=ROOT, env=env, stdout=stdout, stderr=stderr, start_new_session=True)
         try:
             while True:
                 now = time.monotonic()
+                if measured_start is None and measurement_ready_path.is_file():
+                    marker = _read_json(measurement_ready_path)
+                    if marker.get("schema") != "CB16_R11_STAGE2_BURST_MEASUREMENT_READY_V1":
+                        raise RuntimeError("R11_STAGE2_MEASUREMENT_READY_SCHEMA_MISMATCH")
+                    marker_start = float(marker["monotonic_seconds"])
+                    if marker_start < start - 1.0 or marker_start > now + 5.0:
+                        raise RuntimeError("R11_STAGE2_MEASUREMENT_READY_CLOCK_INVALID")
+                    measured_start = marker_start
+                    measured_end = measured_start + measured_target
+                    drain_deadline = measured_end + 30.0
                 if proc.poll() is not None:
                     workload_rc = int(proc.returncode)
                     break
-                if measured_start <= now <= measured_end:
+                if measured_start is not None and measured_end is not None and measured_start <= now <= measured_end:
                     samples.append(sample_host(proc.pid, ssd_dev, hdd_dev))
-                if now >= drain_deadline:
+                if drain_deadline is not None and now >= drain_deadline:
                     os.killpg(proc.pid, signal.SIGTERM)
                     workload_rc = proc.wait(timeout=10)
                     break
@@ -797,10 +810,17 @@ def main() -> int:
             elif workload_rc is None:
                 workload_rc = int(proc.returncode)
 
-    actual_end = min(time.monotonic(), measured_end)
-    measured_seconds = max(0.0, actual_end - measured_start)
-    if samples and samples[-1].t < measured_end - 1.5 and workload_rc == 0:
-        measured_seconds = max(0.0, samples[-1].t - samples[0].t)
+    measurement_ready = measured_start is not None and measured_end is not None
+    if measurement_ready:
+        assert measured_start is not None and measured_end is not None
+        actual_end = min(time.monotonic(), measured_end)
+        measured_seconds = max(0.0, actual_end - measured_start)
+        if samples and samples[-1].t < measured_end - 1.5 and workload_rc == 0:
+            measured_seconds = max(0.0, samples[-1].t - samples[0].t)
+    else:
+        measured_start = start
+        measured_end = start
+        measured_seconds = 0.0
 
     report: dict[str, Any] = {
         "schema": REPORT_SCHEMA,
@@ -821,6 +841,8 @@ def main() -> int:
     }
     failures: list[str] = []
     try:
+        if not measurement_ready:
+            failures.append("measurement_ready_marker_missing")
         if workload_rc != 0:
             failures.append(f"workload_returncode:{workload_rc}")
         if measured_seconds < measured_target * 0.95:
