@@ -35,7 +35,10 @@ def test_stage3_e2_100_generations_real_authority_progression(tmp_path):
     }
     assert report["journal_audit"]["pass"] is True
     assert report["runtime_endurance"]["restart_reconstruction_checks"] == 100
-    assert report["runtime_endurance"]["attack_rejections"] == 400
+    # Five fail-closed rejection gates are exercised per generation:
+    # future evidence, stale generation, stale Champion, reordered validation,
+    # and duplicate next-generation release.
+    assert report["runtime_endurance"]["attack_rejections"] == 500
     assert report["runtime_endurance"]["idempotent_duplicate_checks"] == 400
 
 
