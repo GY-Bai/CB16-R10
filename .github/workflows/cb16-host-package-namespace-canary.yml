@@ -6,7 +6,13 @@ permissions:
   contents: read
 
 jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
   host-capability:
+    needs: shanxi-preflight
+    permissions:
+      contents: read
     runs-on: [self-hosted, shanxi, cb16-r10-canonical]
     timeout-minutes: 15
     steps:

@@ -15,7 +15,13 @@ permissions:
   contents: read
 
 jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
   wss-qualification:
+    needs: shanxi-preflight
+    permissions:
+      contents: read
     runs-on: [self-hosted, shanxi, cb16-wss-qualification]
     timeout-minutes: 75
     steps:
@@ -26,9 +32,10 @@ jobs:
           uname -a
           python3 --version
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          persist-credentials: false
       - name: Git identity
         run: |
           echo "sha=$(git rev-parse HEAD)"

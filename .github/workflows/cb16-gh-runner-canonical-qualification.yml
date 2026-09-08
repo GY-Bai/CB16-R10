@@ -12,10 +12,16 @@ on:
           - failure
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
   canonical-qualification:
+    needs: shanxi-preflight
+    permissions:
+      contents: read
     runs-on: [self-hosted, shanxi, cb16-r10-canonical]
     timeout-minutes: 30
     steps:
@@ -28,9 +34,10 @@ jobs:
           python3 --version
           nvidia-smi || true
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          persist-credentials: false
       - name: Git identity
         run: |
           echo "sha=$(git rev-parse HEAD)"
@@ -96,31 +103,14 @@ jobs:
       - name: Repo guard on evidence
         run: |
           python3 ci/check_repository_policy.py --root .
-      - name: Push durable evidence to ci-results
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -e
-          run_id="${{ github.run_id }}"
-          sha="$(git rev-parse HEAD)"
-          wt="$RUNNER_TEMP/ci-results-wt"
-          rm -rf "$wt"
-          git config user.name "CB16 GitHub Canonical Runner"
-          git config user.email "canonical-runner@users.noreply.github.com"
-          git fetch origin ci-results
-          git worktree add -f "$wt" origin/ci-results
-          mkdir -p "$wt/runs/$sha/github-actions-canary/$run_id"
-          cp ci_evidence/result.json "$wt/runs/$sha/github-actions-canary/$run_id/result.json"
-          cp ci_evidence/REPORT.md "$wt/runs/$sha/github-actions-canary/$run_id/REPORT.md"
-          cp ci_evidence/runtime_metrics.json "$wt/runs/$sha/github-actions-canary/$run_id/runtime_metrics.json"
-          cp ci_evidence/sanitized_execution.log "$wt/runs/$sha/github-actions-canary/$run_id/sanitized_execution.log"
-          cp ci_evidence/SHA256SUMS "$wt/runs/$sha/github-actions-canary/$run_id/SHA256SUMS"
-          cd "$wt"
-          git add .
-          git commit -m "canonical-runner-evidence: $sha $verdict" || echo "nothing to commit"
-          git push origin ci-results
-          cd "$GITHUB_WORKSPACE"
-          git worktree remove --force "$wt"
+      - name: Upload durable evidence artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: canonical-runner-evidence-${{ github.run_id }}
+          path: ci_evidence/
+          if-no-files-found: error
+          retention-days: 30
       - name: Failure canary marker
         if: ${{ github.event.inputs.mode == 'failure' }}
         run: |
