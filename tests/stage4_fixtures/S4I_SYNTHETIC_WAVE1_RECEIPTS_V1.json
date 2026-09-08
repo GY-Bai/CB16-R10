@@ -1,0 +1,15 @@
+{
+  "schema": "CB16_R11_STAGE4_SYNTHETIC_RECEIPT_FIXTURES_V1",
+  "note": "Synthetic only. These are not task results and do not qualify Stage-4.",
+  "receipts": [
+    {"task_id":"S4A","branch":"ai/r11-stage4-task-a-authority-inventory-r0"},
+    {"task_id":"S4B","branch":"ai/r11-stage4-task-b-canonical-entrypoint-r0"},
+    {"task_id":"S4C","branch":"ai/r11-stage4-task-c-authority-adoption-r0"},
+    {"task_id":"S4D","branch":"ai/r11-stage4-task-d-singleton-fencing-r0"},
+    {"task_id":"S4E","branch":"ai/r11-stage4-task-e-permission-closure-r0"},
+    {"task_id":"S4F","branch":"ai/r11-stage4-task-f-state-roots-r0"},
+    {"task_id":"S4G","branch":"ai/r11-stage4-task-g-legacy-retirement-r0"},
+    {"task_id":"S4H","branch":"ai/r11-stage4-task-h-hostile-cutover-r0"},
+    {"task_id":"S4I","branch":"ai/r11-stage4-task-i-qualification-gates-r0"}
+  ]
+}
