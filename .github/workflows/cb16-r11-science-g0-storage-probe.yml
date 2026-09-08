@@ -1,0 +1,78 @@
+name: CB16 R11 Science G0 Storage Probe
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-historical-r0
+    paths:
+      - .github/workflows/cb16-r11-science-g0-storage-probe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  probe:
+    name: Probe persistent R11 storage permissions
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify R11 science ancestry and freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+
+      - name: Read-only permission and mount probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== identity ==='
+          id
+          umask
+          echo '=== candidates ==='
+          for p in \
+            /data/cb16_ci \
+            /data/cb16_ci/workspaces \
+            /data/cb16_ci/github-runner-canonical \
+            /data/cb16_ci/github-runner-canonical/_work \
+            /home/bgy \
+            /home/bgy/cb16_ssd \
+            /home/bgy/cb16_ssd/runtime \
+            /home/bgy/cb16_ssd/runtime/R10_2 \
+            /home/bgy/cb16_ssd/runtime/R10_3 \
+            /data/cb16_hdd \
+            /data/cb16_hdd/cb16_runtime \
+            /data/cb16_hdd/cb16_runtime/R10_4
+          do
+            echo "--- $p"
+            if [ -e "$p" ]; then
+              stat -c 'mode=%A octal=%a uid=%u gid=%g owner=%U group=%G type=%F' "$p" || true
+              python3 - "$p" <<'PY'
+          import os, sys
+          p=sys.argv[1]
+          print(f"os_access_read={os.access(p, os.R_OK)} os_access_write={os.access(p, os.W_OK)} os_access_exec={os.access(p, os.X_OK)}")
+          PY
+              findmnt -T "$p" -o TARGET,SOURCE,FSTYPE,OPTIONS -n || true
+              namei -l "$p" || true
+            else
+              echo 'MISSING'
+            fi
+          done
+          echo '=== safety ==='
+          echo 'probe_created_files=0'
+          echo 'market_payload_opened=0'
+          echo 'training_started=0'
