@@ -1,0 +1,74 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4B",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "6007a4b8857ab712673c49f1cd2069bf382d8fd1",
+  "branch": "ai/r11-stage4-task-b-canonical-entrypoint-r0",
+  "owned_paths": [
+    "cb16_local_opt/stage4_canonical_runtime_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4B_CANONICAL_RUNTIME_R0.md",
+    "scripts/run_cb16_r11_stage4_runtime.py",
+    "tests/test_stage4_canonical_runtime_r11.py"
+  ],
+  "touched_paths": [
+    "cb16_local_opt/stage4_canonical_runtime_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4B_CANONICAL_RUNTIME_R0.md",
+    "scripts/run_cb16_r11_stage4_runtime.py",
+    "tests/test_stage4_canonical_runtime_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_canonical_runtime_r11.py",
+      "python scripts/run_cb16_r11_stage4_runtime.py --describe-lifecycle",
+      "python scripts/run_cb16_r11_stage4_runtime.py"
+    ],
+    "passed": true,
+    "evidence": [
+      "Required Gatework plus S4B pytest command: 16 passed (3 Gatework + 13 S4B) in a local equivalent checkout reconstructed from the Gatework contract/test and GitHub-verified Semantic Freeze blob identity.",
+      "Lifecycle description command emitted BOOT -> VERIFY_AUTHORITY -> RECOVER_STATE -> ACQUIRE_AUTHORITY -> START_WORKERS -> RUNNING -> DRAIN -> SEAL -> STOPPED.",
+      "Unintegrated canonical entrypoint exited 2 with R11_STAGE4_RUNTIME_FAIL_CLOSED at authority_adoption; no legacy fallback.",
+      "GitHub compare gatework_base...task_head reports exactly four added Stage-4 paths and zero existing-file modifications.",
+      "Semantic Freeze blob at task_head remains 3c401a0a350984381912f7860181e3e96eb8d7cf."
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "no_automatic_legacy_fallback": true,
+    "running_requires_all_startup_authority_gates": true,
+    "worker_start_after_authority_acquisition_only": true,
+    "partial_startup_unwinds_workers_and_lease": true,
+    "lease_assertion_failure_after_acquire_releases_authority": true,
+    "drain_precedes_successful_seal_and_stop": true,
+    "double_start_rejected": true,
+    "illegal_lifecycle_transitions_rejected": true,
+    "recovery_cannot_manufacture_generation": true,
+    "shutdown_cannot_rewrite_authority_generation_or_scientific_history_identity": true,
+    "entrypoint_does_not_adjudicate_scientific_truth": true,
+    "sibling_stage4_implementation_imports": false
+  },
+  "known_limitations": [
+    "S4B intentionally supplies no authority-bearing concrete provider; the default entrypoint is fail-closed until final Stage-4 integration.",
+    "Authority adoption, fencing-token mechanics, persistent-root ownership, legacy-retirement policy, and orchestration semantics are outside S4B and must be wired from independently qualified providers during final integration.",
+    "The repository connector exposes no remote shell or workflow-dispatch action, so pytest was executed in a local equivalent checkout rather than on the private GitHub working tree. GitHub API comparisons independently verified ancestry, touched paths, and Semantic Freeze blob identity.",
+    "The optional full-repository static authority command was not feasible without an executable full private-repository checkout."
+  ],
+  "integration_notes": [
+    "Final integration must instantiate CanonicalRuntimeControllerR11 with concrete AuthorityAdoptionProvider, PersistentStateRootProvider, LegacyRetirementGuard, RecoveryProvider, AuthorityLeaseProvider, and OrchestrationProvider implementations.",
+    "Do not replace build_fail_closed_runtime with a legacy fallback. Production wiring must be explicit and must preserve provider failures as fail-closed startup failures.",
+    "AuthorityLeaseProvider fencing tokens remain opaque to S4B; final writer integration must enforce the separately qualified fencing contract at authoritative mutation sites.",
+    "RecoveryProvider must return exactly the adopted authority_id and generation; S4B rejects any recovery-created generation.",
+    "OrchestrationProvider.seal_runtime_state is treated only as a shutdown identity observation; it may not be used by S4B to decide scientific truth, create evidence, advance generation, or rewrite history.",
+    "Stage-2/Stage-3 qualification harnesses remain qualification/engineering surfaces and must not be adopted as production authority merely through Python call reachability."
+  ]
+}
