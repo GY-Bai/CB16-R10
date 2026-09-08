@@ -1,0 +1,85 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4F",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "e47fed91173d99f02cdf8608ed633d1578a5fa83",
+  "branch": "ai/r11-stage4-task-f-state-roots-r0",
+  "owned_paths": [
+    ".github/workflows/cb16-r11-stage4-s4f-state-roots.yml",
+    "authority/rearchitecture_r11/CB16_R11_STAGE4_STATE_ROOT_CONTRACT_V1.json",
+    "cb16_local_opt/stage4_state_roots_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4F_STATE_ROOTS_R0.md",
+    "tests/test_stage4_state_roots_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/cb16-r11-stage4-s4f-state-roots.yml",
+    "authority/rearchitecture_r11/CB16_R11_STAGE4_STATE_ROOT_CONTRACT_V1.json",
+    "cb16_local_opt/stage4_state_roots_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4F_STATE_ROOTS_R0.md",
+    "tests/test_stage4_state_roots_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_state_roots_r11.py",
+      "python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root ."
+    ],
+    "passed": true,
+    "evidence": [
+      "GitHub Actions run 34187109759: Stage4 Gatework and S4F tests PASS; 15 passed in 0.24s.",
+      "GitHub Actions run 34187109759: static semantic authority guard PASS with scientific_semantics_changed=false.",
+      "GitHub Actions run 34187109854: repository guard PASS.",
+      "GitHub Actions run 34187109691: Node24 Actions Policy PASS."
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "control_data_and_frozen_roots_pairwise_disjoint": true,
+    "nonempty_unmarked_legacy_root_auto_adopted": false,
+    "incomplete_object_can_become_authoritative": false,
+    "storage_identity_seal_mints_scientific_evidence": false,
+    "replay_payload_can_become_new_evidence": false,
+    "symlink_or_path_escape_allowed": false,
+    "frozen_raw_stage4_mutation_allowed": false,
+    "legacy_python_call_reachability_grants_canonical_authority": false
+  },
+  "hostile_cases": [
+    {"case": "wrong_or_swapped_root_role", "result": "PASS_FAIL_CLOSED"},
+    {"case": "nonempty_unmarked_legacy_root", "result": "PASS_FAIL_CLOSED"},
+    {"case": "frozen_raw_root_becomes_writable", "result": "PASS_FAIL_CLOSED"},
+    {"case": "orphan_payload_without_storage_seal", "result": "PASS_FAIL_CLOSED"},
+    {"case": "storage_seal_without_payload", "result": "PASS_FAIL_CLOSED"},
+    {"case": "conflicting_content_identity", "result": "PASS_FAIL_CLOSED"},
+    {"case": "path_escape", "result": "PASS_FAIL_CLOSED"},
+    {"case": "symlink_traversal", "result": "PASS_FAIL_CLOSED"},
+    {"case": "control_state_inside_frozen_raw_root", "result": "PASS_FAIL_CLOSED"},
+    {"case": "torn_partial_object", "result": "PASS_FAIL_CLOSED"},
+    {"case": "corrupt_root_marker", "result": "PASS_FAIL_CLOSED"},
+    {"case": "restart_reconstruction_from_fully_sealed_payloads", "result": "PASS"}
+  ],
+  "known_limitations": [
+    "S4F does not wire existing journal, checkpoint, evidence, recovery, lease, adoption, permission, Physics, Champion or generation writers; final Stage-4 integration owns cutover.",
+    "S4F does not implement runtime fencing/lease authority or one-time authority adoption; it only assigns their persistent control-plane homes.",
+    "Frozen raw startup validation checks the configured root is preexisting, disjoint, non-symlink and has no root write mode bits without performing a write probe; final deployment should prefer an OS read-only mount for stronger whole-tree enforcement.",
+    "Qualification used disposable GitHub-hosted/Linux filesystems; no Shanxi filesystem smoke or endurance test was required or run.",
+    "Storage identity seals are integrity metadata only and deliberately do not constitute scientific Evidence admission or generation advancement."
+  ],
+  "integration_notes": [
+    "Consume the verified S4F root receipt as an early startup gate before any production authoritative writer is opened.",
+    "Route authoritative journal, checkpoint, recovery, lease/fencing and adoption metadata into S4F control-plane namespaces only during final Stage-4 integration; retain each domain's upstream semantic contract.",
+    "Route immutable Evidence payload bytes, trace/replay payload bytes and cold content-addressed artifacts into S4F data-plane namespaces while keeping Evidence admission semantics outside S4F.",
+    "S4F storage identity seals grant no runtime ownership, Permission, scientific Evidence, Champion transition, checkpoint semantic seal or generation advancement authority.",
+    "Do not auto-adopt an existing legacy writable root as canonical merely because current Python can import or call its store implementation.",
+    "The frozen market/raw authority root remains external read-only authority and must never be created, repaired, downloaded into or mutated by Stage-4."
+  ]
+}
