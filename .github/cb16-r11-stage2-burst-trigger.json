@@ -1,6 +1,11 @@
 {
   "armed": true,
-  "baseline_throughput": null,
+  "baseline_throughput": {
+    "generations_per_min": 37.333333333333336,
+    "traces_per_sec": 59.733333333333334,
+    "training_steps_per_sec": 141.86666666666667,
+    "fp32_training_examples_per_sec": 72531.2
+  },
   "buffer_mib": 64,
   "forbidden": {
     "daemon_mode": true,
@@ -13,14 +18,14 @@
   "measured_seconds": 420,
   "notes": [
     "Stage-2 Task F accepted A-E only after each child branch completed its own short real-machine microbenchmark on the single cb16-wss-qualification runner.",
-    "Utilization thresholds are engineering saturation floors calibrated from those real microbenchmarks, not scientific identity: Task A process8 consumes approximately eight physical cores and Task B showed the 189k FP32 Brain is launch/synchronization-bound with a representative GPU sample near 34% while retaining exact model identity.",
-    "Scientific correctness gates are not relaxed: Teacher/H72/training identity, forbidden-gradient, replay, durable recovery, frozen authority and unopened holdout all remain hard PASS requirements.",
-    "Run 34171916851 exposed an integration-only process-lifecycle defect: the persistent fork H72 pool was first created after telemetry threads and CUDA initialization, then lost a child at cycle 33. The current topology preforks and validates the same 8-worker H72 pool before threads/CUDA via the narrowly gated sitecustomize startup hook.",
-    "Run 34172769468 then completed 108 engineering generations with workload returncode 0 and all correctness receipts PASS, exposing only a Task-E/F telemetry envelope mismatch: the driver emitted the required values as flat keys while the supervisor consumes counters/gauges subobjects. The current rerun preserves every observed value and only normalizes that JSON representation to the frozen Task-E contract.",
-    "Throughput baseline is engineering-only. After the first accepted integrated burst, its measured values may be pinned as the Stage-2 regression baseline.",
-    "No threshold or recommended runtime default is part of scientific identity."
+    "Pipeline correctness is independently qualified by the one-cycle Shanxi Stage-2 Pipeline Qualification; performance failures do not redefine scientific or handoff semantics.",
+    "Run 34175037241 calibrated the real CPU/GPU balance and selected 8 H72 workers with one H72 replay per canonical FP32 train replay; the previous hard-coded 3:1 ratio starved the GPU and reduced generation throughput.",
+    "Run 34178429055 is the accepted 90-second marker-based engineering baseline: 37.3333 generations/min, 59.7333 traces/s, 141.8667 FP32 optimizer steps/s, 72531.2 FP32 examples/s, GPU 250ms average 15.9969%, GPU <=5% idle ratio 0.4317, and zero measured durability-barrier stall.",
+    "The supervisor requires >=90% of the pinned throughput baseline. GPU utilization is only a starvation canary because the 189052-parameter FP32 Brain is launch/synchronization-bound on GTX1060; increasing meaningless GPU work solely to raise utilization is forbidden.",
+    "Scientific correctness gates are unchanged: Teacher/H72/training identity, gradient authority, replay, durable recovery, Champion/Challenger lifecycle, frozen authority, and unopened final holdout remain hard PASS requirements.",
+    "No threshold, worker topology, queue depth, utilization figure, or throughput baseline is part of scientific identity."
   ],
-  "purpose": "Armed Task F Stage-2 integration burst on the exact allowed integration branch only.",
+  "purpose": "Final Stage-2 420-second marker-based integration burst after independent pipeline qualification and accepted short performance smoke.",
   "qualification_branch": "ai/r11-stage2-integration-r1",
   "queue_depth": 8,
   "schema": "CB16_R11_STAGE2_BURST_TRIGGER_V1",
@@ -28,19 +33,19 @@
   "thresholds": {
     "max_barrier_block_ratio": 0.15,
     "max_fsync_stall_ratio": 0.05,
-    "max_gpu_idle_ratio": 0.75,
+    "max_gpu_idle_ratio": 0.65,
     "max_hdd_avg_queue_depth": 3.0,
     "max_major_faults": 500.0,
     "max_swap_out_mib": 64.0,
     "min_available_ram_gib": 1.5,
     "min_cpu_avg_pct": 35.0,
-    "min_cpu_gpu_overlap_pct": 20.0,
-    "min_fp32_training_examples_per_sec": 1.0,
-    "min_generations_per_min": 0.1,
-    "min_gpu_avg_pct": 20.0,
+    "min_cpu_gpu_overlap_pct": 10.0,
+    "min_fp32_training_examples_per_sec": 60000.0,
+    "min_generations_per_min": 30.0,
+    "min_gpu_avg_pct": 12.0,
     "min_teacher_evidence_per_sec": 1.0,
-    "min_traces_per_sec": 0.1,
-    "min_training_steps_per_sec": 0.1
+    "min_traces_per_sec": 50.0,
+    "min_training_steps_per_sec": 120.0
   },
   "trace_workers": 8,
   "warmup_seconds": 30,
