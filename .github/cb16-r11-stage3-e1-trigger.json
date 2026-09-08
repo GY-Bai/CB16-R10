@@ -1,0 +1,15 @@
+{
+  "armed": true,
+  "buffer_mib": 64,
+  "final_holdout_2025_09": "FORBIDDEN",
+  "fresh_market_data": false,
+  "nested_threads": 1,
+  "notes": "Frozen replay engineering load only. No tournament/lineage/fault injection. Stage-2 harness unchanged.",
+  "qualification_branch": "ai/r11-stage3-e1-data-plane-soak-r0",
+  "queue_depth": 8,
+  "rung": "smoke_3m",
+  "schema": "CB16_R11_STAGE3_E1_TRIGGER_V1",
+  "scientific_verdict": false,
+  "teacher_workers": 8,
+  "trace_workers": 8
+}
