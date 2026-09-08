@@ -99,6 +99,7 @@ _TEST_ONLY_PATHS = frozenset(
         "tests/test_r2_frozen_guard.py",
         "tests/test_r2_legacy_migration.py",
         "tests/test_stage3_e2_release_boundary_r11.py",
+        "tests/test_stage4_authority_inventory_r11.py",
         "tests/test_training_runtime_r11.py",
     }
 )
