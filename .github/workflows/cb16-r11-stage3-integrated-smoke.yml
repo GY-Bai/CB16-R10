@@ -69,6 +69,7 @@ jobs:
             '.github/workflows/cb16-r11-stage3-e3-crash-recovery.yml',
             'cb16_local_opt/stage3_e3_crash_recovery_r11.py',
             'tests/test_stage3_e3_crash_recovery_r11.py',
+            'scripts/run_r11_stage3_integrated_e3_matrix.py',
             '.github/workflows/cb16-r11-stage3-integrated-smoke.yml',
           }
           changed={x for x in subprocess.check_output(['git','diff','--name-only',f'{base}...HEAD'], text=True).splitlines() if x}
@@ -131,7 +132,8 @@ jobs:
             cb16_local_opt/stage3_e1_endurance_r11.py \
             scripts/run_r11_stage3_e1_data_plane_soak.py \
             cb16_local_opt/stage3_e2_lineage_soak_r11.py \
-            cb16_local_opt/stage3_e3_crash_recovery_r11.py
+            cb16_local_opt/stage3_e3_crash_recovery_r11.py \
+            scripts/run_r11_stage3_integrated_e3_matrix.py
           PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m pytest -q \
             tests/test_stage3_e1_endurance_r11.py \
             tests/test_stage3_e2_lineage_soak_r11.py \
@@ -159,26 +161,11 @@ jobs:
         env:
           PY: ${{ steps.py.outputs.python }}
           E3_ROOT: /var/tmp/cb16-r11-stage3-integration-e3-${{ github.run_id }}-${{ github.run_attempt }}
+          E3_REPORT: ${{ github.workspace }}/ci_evidence/stage3_integration_e3_20.json
         run: |
           set -euo pipefail
           rm -rf "$E3_ROOT"
-          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" - <<'PY'
-          import json, os
-          from pathlib import Path
-          from cb16_local_opt.runtime_events_r11 import TournamentDecision
-          from cb16_local_opt.stage3_e3_crash_recovery_r11 import CrashBoundary, run_case
-          root=Path(os.environ['E3_ROOT']); root.mkdir(parents=True, exist_ok=True)
-          rows=[]
-          for boundary in CrashBoundary:
-              for decision in (TournamentDecision.PROMOTE, TournamentDecision.REJECT):
-                  r=run_case(root / f'{boundary.value}-{decision.value}', boundary, decision)
-                  rows.append({'boundary':boundary.value,'decision':decision.value,'pass':bool(r['pass']),'failures':r['failures'],'child_exit_code':r['child_exit_code']})
-          out={'schema':'CB16_R11_STAGE3_INTEGRATION_E3_MATRIX_V1','cases_total':len(rows),'cases_passed':sum(int(x['pass']) for x in rows),'cases':rows}
-          assert out['cases_total']==20, out
-          assert out['cases_passed']==20, out
-          Path('ci_evidence/stage3_integration_e3_20.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
-          print('CB16_R11_STAGE3_INTEGRATED_E3_20_CASES=PASS')
-          PY
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_stage3_integrated_e3_matrix.py
 
       - name: Prepare integrated E1 disposable SSD HDD roots
         id: roots
