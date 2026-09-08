@@ -1,0 +1,7 @@
+{
+  "schema": "CB16_R11_STAGE2_PERFORMANCE_SMOKE_TRIGGER_V1",
+  "armed": true,
+  "qualification_branch": "ai/r11-stage2-integration-r1",
+  "source_commit": "e3195470cb7675426e066615ae783d2bb5b4bbf3",
+  "purpose": "Run the short real-machine integrated performance smoke after the Stage-2 performance-plane patch and before any 420-second burst rerun."
+}
