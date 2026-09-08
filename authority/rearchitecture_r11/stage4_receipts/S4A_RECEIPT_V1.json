@@ -1,0 +1,81 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4A",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "8e097e227df7fb42b1249036e03599b04c3119cd",
+  "branch": "ai/r11-stage4-task-a-authority-inventory-r0",
+  "owned_paths": [
+    ".github/workflows/cb16-r11-stage4-s4a-qualification.yml",
+    "authority/rearchitecture_r11/CB16_R11_STAGE4_AUTHORITY_WRITER_REGISTRY_V1.json",
+    "cb16_local_opt/stage4_authority_inventory_r11.py",
+    "cb16_local_opt/stage4_authority_registry_builder_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4A_AUTHORITY_INVENTORY_R0.md",
+    "scripts/audit_r11_stage4_authority_surface.py",
+    "scripts/build_r11_stage4_authority_registry.py",
+    "tests/test_stage4_authority_inventory_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/cb16-r11-stage4-s4a-qualification.yml",
+    "authority/rearchitecture_r11/CB16_R11_STAGE4_AUTHORITY_WRITER_REGISTRY_V1.json",
+    "cb16_local_opt/stage4_authority_inventory_r11.py",
+    "cb16_local_opt/stage4_authority_registry_builder_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4A_AUTHORITY_INVENTORY_R0.md",
+    "scripts/audit_r11_stage4_authority_surface.py",
+    "scripts/build_r11_stage4_authority_registry.py",
+    "tests/test_stage4_authority_inventory_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python scripts/build_r11_stage4_authority_registry.py --repo-root .",
+      "python scripts/audit_r11_stage4_authority_surface.py --repo-root . --print-discovered",
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_authority_inventory_r11.py",
+      "python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root ."
+    ],
+    "passed": true,
+    "evidence": [
+      "GitHub Actions workflow CB16 R11 Stage4 S4A Authority Inventory run 34187533397 completed success.",
+      "Authority discovery/registry audit completed success with 349 registered surfaces and UNKNOWN_AUTHORITY=0.",
+      "Required Gatework + S4A pytest step completed success.",
+      "Frozen semantic static guard completed success."
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "discovered_writer_count": 349,
+    "classification_counts": {
+      "R11_CANONICAL_CANDIDATE": 90,
+      "LEGACY_REFERENCE_ONLY": 110,
+      "QUALIFICATION_ONLY": 61,
+      "TEST_ONLY": 80,
+      "NON_AUTHORITATIVE_READ_ONLY": 8,
+      "UNKNOWN_AUTHORITY": 0
+    },
+    "every_discovered_surface_exactly_one_classification": true,
+    "unknown_authority_fail_closed": true,
+    "qualification_test_writers_cannot_escalate": true,
+    "legacy_call_reachability_is_not_authority": true,
+    "candidate_classification_is_not_authority_grant": true
+  },
+  "known_limitations": [
+    "The inventory is intentionally conservative and static; wrappers/recovery/qualification callsites may be over-inventoried rather than silently omitted.",
+    "R11_CANONICAL_CANDIDATE is an inventory classification only and does not establish production runtime ownership, fencing, adoption, storage ownership, or final cutover qualification.",
+    "S4A does not retire, rewire, or modify any existing writer behavior; final integration must bind authoritative mutations to the later canonical ownership primitives."
+  ],
+  "integration_notes": [
+    "Treat CB16_R11_STAGE4_AUTHORITY_WRITER_REGISTRY_V1.json as audit evidence, never as a capability token or proof of canonical authority.",
+    "Re-run the S4A discovery/audit at the final integration head; any newly introduced mutation path not explicitly reviewed becomes UNKNOWN_AUTHORITY and must fail closed.",
+    "Stage-2/Stage-3 workflows, burst harnesses, tests, and legacy R2/R9/R10/R10.2 paths remain non-production classifications even when they can reach current R11 writers.",
+    "No S4B-S4I branch or implementation was read, imported, merged, or cherry-picked."
+  ]
+}
