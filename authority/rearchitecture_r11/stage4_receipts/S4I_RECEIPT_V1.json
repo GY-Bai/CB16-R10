@@ -1,0 +1,65 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4I",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "6d359fb2bb7decaa5b1c69ec07a8ed5e8e06ba42",
+  "branch": "ai/r11-stage4-task-i-qualification-gates-r0",
+  "owned_paths": [
+    ".github/workflows/stage4_s4i_qualification.yml",
+    "cb16_local_opt/stage4_gate_compiler_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4I_QUALIFICATION_GATES_R0.md",
+    "scripts/adjudicate_r11_stage4_wave1_receipts.py",
+    "tests/stage4_fixtures/S4I_SYNTHETIC_WAVE1_RECEIPTS_V1.json",
+    "tests/test_stage4_gate_compiler_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/stage4_s4i_qualification.yml",
+    "cb16_local_opt/stage4_gate_compiler_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4I_QUALIFICATION_GATES_R0.md",
+    "scripts/adjudicate_r11_stage4_wave1_receipts.py",
+    "tests/stage4_fixtures/S4I_SYNTHETIC_WAVE1_RECEIPTS_V1.json",
+    "tests/test_stage4_gate_compiler_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_gate_compiler_r11.py"
+    ],
+    "passed": true,
+    "evidence": [
+      "github_actions_run=34186844199",
+      "github_actions_job=101936796262",
+      "31 passed in 0.15s"
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "exactly_one_receipt_per_S4A_through_S4I": true,
+    "all_receipts_must_pass_schema_and_semantic_guards": true,
+    "missing_or_ambiguous_evidence_fails_closed": true,
+    "task_head_must_precede_separate_receipt_commit": true,
+    "duplicate_or_overlapping_task_path_ownership_rejected": true,
+    "S4E_only_existing_file_exception_enforced": true,
+    "wave1_compiler_never_emits_final_cutover_verdict": true
+  },
+  "known_limitations": [
+    "S4I was qualified only against synthetic S4A-S4I receipt fixtures because sibling Wave-1 receipts are intentionally unavailable to this task.",
+    "A PASS here qualifies only the receipt compiler and evidence-adjudication machinery; it does not qualify the integrated runtime or canonical authority cutover.",
+    "Final integration must preserve each implementation-head to receipt-commit ancestry when assembling accepted Wave-1 evidence."
+  ],
+  "integration_notes": [
+    "Bring the S4I implementation commit and this receipt commit into final integration without rewriting task semantics.",
+    "After all nine canonical Wave-1 receipts are present in one evidence history, run scripts/adjudicate_r11_stage4_wave1_receipts.py from repository root.",
+    "STAGE4_WAVE1_RECEIPTS_READY_FOR_INTEGRATION is only a Wave-1 evidence readiness verdict; R11_CANONICAL_AUTHORITY_CUTOVER_QUALIFIED remains reserved for final integrated qualification."
+  ]
+}
