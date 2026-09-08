@@ -8,8 +8,16 @@ the long-lived worker pool must exist before the integration process starts thre
 initializes CUDA.  The failed 34171916851 burst forked only after both had happened and
 later lost a child with ``BrokenProcessPool``.
 
-This hook is inert for every other Python entrypoint.  It changes process lifecycle only;
-all scientific identity and correctness checks remain in the normal Stage-2 driver.
+The Stage-2 driver also predates the final Task-E telemetry envelope and emits the same
+counter/gauge values as flat JSON keys.  The Task-E supervisor intentionally consumes
+``row['counters']`` and ``row['gauges']`` according to
+``CB16_R11_STAGE2_BURST_DRIVER_CONTRACT_V1``.  For this one integration entrypoint we
+therefore normalize only telemetry-schema JSON records into that final envelope before
+serialization.  No counter value is changed.
+
+This hook is inert for every other Python entrypoint.  It changes process lifecycle and
+telemetry representation only; all scientific identity and correctness checks remain in
+the normal Stage-2 driver.
 """
 
 import json
@@ -18,9 +26,29 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 
 _ENTRYPOINT = "run_r11_stage2_integration_burst.py"
+_TELEMETRY_SCHEMA = "CB16_R11_STAGE2_BURST_TELEMETRY_V1"
+_TELEMETRY_COUNTERS = (
+    "generations_committed",
+    "teacher_evidence",
+    "traces",
+    "training_steps",
+    "fp32_training_examples",
+    "barrier_block_seconds",
+    "fsync_stall_seconds",
+    "ssd_metadata_ops",
+    "hdd_read_bytes",
+    "hdd_write_bytes",
+)
+_TELEMETRY_GAUGES = (
+    "fsync_latency_p95_ms",
+    "pipeline_queue_depth",
+    "teacher_worker_utilization_pct",
+    "trace_worker_utilization_pct",
+)
 
 
 def _is_stage2_burst_entrypoint() -> bool:
@@ -30,6 +58,45 @@ def _is_stage2_burst_entrypoint() -> bool:
         return Path(sys.argv[0]).name == _ENTRYPOINT
     except (TypeError, ValueError):
         return False
+
+
+def _normalize_stage2_telemetry_record(obj: Any) -> Any:
+    """Return the Task-E counters/gauges envelope without changing any values."""
+
+    if not isinstance(obj, dict) or obj.get("schema") != _TELEMETRY_SCHEMA:
+        return obj
+    if "counters" in obj or "gauges" in obj:
+        return obj
+    missing = [
+        key
+        for key in ("monotonic_seconds", *_TELEMETRY_COUNTERS, *_TELEMETRY_GAUGES)
+        if key not in obj
+    ]
+    if missing:
+        raise RuntimeError(
+            "R11_STAGE2_TELEMETRY_EMISSION_MISSING:" + ",".join(sorted(missing))
+        )
+    consumed = {"schema", "monotonic_seconds", *_TELEMETRY_COUNTERS, *_TELEMETRY_GAUGES}
+    out = {
+        "schema": obj["schema"],
+        "monotonic_seconds": obj["monotonic_seconds"],
+        "counters": {key: obj[key] for key in _TELEMETRY_COUNTERS},
+        "gauges": {key: obj[key] for key in _TELEMETRY_GAUGES},
+    }
+    # Preserve any future engineering-only extension keys rather than dropping them.
+    for key, value in obj.items():
+        if key not in consumed:
+            out[key] = value
+    return out
+
+
+def _install_telemetry_contract_adapter() -> None:
+    real_dumps = json.dumps
+
+    def dumps(obj: Any, *args: Any, **kwargs: Any) -> str:
+        return real_dumps(_normalize_stage2_telemetry_record(obj), *args, **kwargs)
+
+    json.dumps = dumps
 
 
 def _install_stage2_prefork() -> None:
@@ -129,6 +196,11 @@ def _install_stage2_prefork() -> None:
     market_mod.MarketRuntimeCacheR11 = cache_factory
     process_mod.ForkProcessTraceRuntimeR11 = trace_factory
 
+    # Normalize only Stage-2 telemetry JSON into the Task-E contract.  The failed
+    # 34172769468 run proved all values existed in each flat record; the supervisor simply
+    # expected the final counters/gauges envelope.  This adapter preserves those values.
+    _install_telemetry_contract_adapter()
+
     # The qualification supervisor measures from subprocess launch.  Charge prefork work
     # to the existing warmup budget so the driver's measured interval remains aligned with
     # the supervisor rather than silently sliding several seconds later.
@@ -136,11 +208,17 @@ def _install_stage2_prefork() -> None:
     remaining_warmup = max(0, int(math.ceil(configured_warmup - prefork_elapsed)))
     os.environ["CB16_R11_BURST_WARMUP_SECONDS"] = str(remaining_warmup)
     os.environ["CB16_R11_TRACE_POOL_LIFECYCLE"] = "PREFORKED_BEFORE_THREADS_AND_CUDA"
+    os.environ["CB16_R11_TELEMETRY_LAYOUT"] = "COUNTERS_GAUGES_V1"
     print(
         "CB16_R11_STAGE2_TRACE_POOL_PREFORK=PASS "
         f"workers={trace_workers} symbols={len(symbols)} "
         f"executor={executor_after_second} prefork_seconds={prefork_elapsed:.6f} "
         f"remaining_warmup_seconds={remaining_warmup}",
+        file=sys.stderr,
+        flush=True,
+    )
+    print(
+        "CB16_R11_STAGE2_TELEMETRY_LAYOUT=COUNTERS_GAUGES_V1",
         file=sys.stderr,
         flush=True,
     )
