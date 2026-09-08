@@ -6,6 +6,7 @@ on:
       - ai/r11-stage4-final-cutover-r0
     paths:
       - 'scripts/adjudicate_r11_stage4_final_cutover.py'
+      - 'scripts/adjudicate_r11_stage4_final_cutover_v2.py'
       - '.github/workflows/cb16-r11-stage4-final-cutover.yml'
   workflow_dispatch:
 
@@ -32,7 +33,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify exact final ancestry and fetch accepted integration refs
+      - name: Verify exact final ancestry and accepted integration refs
         shell: bash
         run: |
           set -euo pipefail
@@ -44,6 +45,7 @@ jobs:
           git merge-base --is-ancestor "$UNION" HEAD
           test -z "$(git rev-list --merges "$SEED..HEAD")"
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "$FREEZE"
+          # checkout@v6 with fetch-depth:0 has already fetched all remote branches.
           for b in \
             ai/r11-stage4-int-a-runtime-spine-r0 \
             ai/r11-stage4-int-b-persistence-fencing-r0 \
@@ -53,7 +55,7 @@ jobs:
             ai/r11-stage4-int-f-worker-lifecycle-r0 \
             ai/r11-stage4-int-g-hostile-harness-r0 \
             ai/r11-stage4-int-h-final-gates-r0; do
-            git fetch --no-tags --force origin "refs/heads/$b:refs/remotes/origin/$b"
+            git rev-parse --verify "refs/remotes/origin/$b" >/dev/null
           done
 
       - name: Resolve verified canonical R10.4 Python
@@ -117,7 +119,7 @@ jobs:
           PY: ${{ steps.py.outputs.python }}
         run: |
           set -euo pipefail
-          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/adjudicate_r11_stage4_final_cutover.py
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/adjudicate_r11_stage4_final_cutover_v2.py
           "$PY" - <<'PY'
           import json
           p=json.load(open('ci_evidence/stage4_final_cutover/final_cutover_report.json'))
