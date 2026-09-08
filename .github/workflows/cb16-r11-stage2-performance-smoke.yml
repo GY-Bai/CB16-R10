@@ -88,7 +88,7 @@ jobs:
           PY: ${{ steps.py.outputs.python }}
         run: |
           set -euo pipefail
-          "$PY" -m py_compile scripts/run_r11_stage2_integration_burst.py
+          "$PY" -m py_compile scripts/run_r11_stage2_integration_burst.py scripts/run_r11_stage2_burst_qualification.py
           PYTHONPATH="$GITHUB_WORKSPACE" "$PY" -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root . \
             | tee ci_evidence/semantic_freeze.log
 
@@ -113,13 +113,20 @@ jobs:
         run: |
           set -euo pipefail
           GPU_LOG="$GITHUB_WORKSPACE/ci_evidence/gpu_samples.txt"
-          : > "$GPU_LOG"
-          (
-            while true; do
-              nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -1 >> "$GPU_LOG" || true
-              sleep 1
-            done
-          ) &
+          cat > ci_evidence/gpu_sampler.py <<'PY'
+          import subprocess, time
+          while True:
+              try:
+                  out=subprocess.check_output(
+                      ['nvidia-smi','--query-gpu=utilization.gpu','--format=csv,noheader,nounits'],
+                      text=True, stderr=subprocess.DEVNULL, timeout=1.0,
+                  ).strip().splitlines()[0]
+                  print(f"{time.monotonic():.9f} {float(out):.6f}", flush=True)
+              except Exception:
+                  pass
+              time.sleep(0.25)
+          PY
+          "$PY" -u ci_evidence/gpu_sampler.py > "$GPU_LOG" &
           GPUPID=$!
           cleanup_sampler() { kill "$GPUPID" 2>/dev/null || true; wait "$GPUPID" 2>/dev/null || true; }
           trap cleanup_sampler EXIT
@@ -135,13 +142,14 @@ jobs:
           export CB16_R11_AMP=0
           export CB16_R11_BURST_TELEMETRY_JSONL="$GITHUB_WORKSPACE/ci_evidence/smoke_telemetry.jsonl"
           export CB16_R11_BURST_CORRECTNESS_JSON="$GITHUB_WORKSPACE/ci_evidence/smoke_correctness.json"
+          export CB16_R11_BURST_READY_MARKER="$GITHUB_WORKSPACE/ci_evidence/measurement_ready.json"
           export CB16_R11_BURST_WORK_ROOT="$GITHUB_WORKSPACE/ci_evidence/smoke-control"
           export CB16_R11_BURST_SSD_ROOT="$SSD_ROOT"
           export CB16_R11_BURST_HDD_ROOT="$HDD_ROOT"
           export CB16_R11_BURST_PACKAGE_ROOT="$PACKAGE_ROOT"
           export CB16_R11_BURST_LEGACY_R104_ROOT="$LEGACY_R104_ROOT"
 
-          timeout 240s env PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_stage2_integration_burst.py \
+          timeout 270s env PYTHONPATH="$GITHUB_WORKSPACE" "$PY" scripts/run_r11_stage2_integration_burst.py \
             2>&1 | tee ci_evidence/performance_smoke.log
           cleanup_sampler
           trap - EXIT
@@ -170,32 +178,45 @@ jobs:
           assert int(c['teacher_workers'])==8 and int(c['trace_workers'])==8
           assert int(c['cycles_committed']) >= 2, c['cycles_committed']
 
-          rows=[json.loads(x) for x in Path('ci_evidence/smoke_telemetry.jsonl').read_text().splitlines() if x.strip()]
-          assert len(rows) >= 20, len(rows)
-          first,last=rows[0],rows[-1]
+          marker=json.load(open('ci_evidence/measurement_ready.json'))
+          assert marker['schema']=='CB16_R11_STAGE2_BURST_MEASUREMENT_READY_V1'
+          measured_start=float(marker['monotonic_seconds'])
+          measured_end=measured_start+float(marker['measured_seconds'])
+          assert float(marker['measured_seconds']) == 90.0
+
+          all_rows=[json.loads(x) for x in Path('ci_evidence/smoke_telemetry.jsonl').read_text().splitlines() if x.strip()]
+          rows=[r for r in all_rows if measured_start <= float(r['monotonic_seconds']) <= measured_end]
+          assert len(rows) >= 70, len(rows)
+          first,last=rows[0]['counters'],rows[-1]['counters']
           fsync_stall=float(last['fsync_stall_seconds'])-float(first['fsync_stall_seconds'])
           assert fsync_stall <= 4.5, fsync_stall
 
           gpu=[]
           for raw in Path('ci_evidence/gpu_samples.txt').read_text().splitlines():
-              try: gpu.append(float(raw.strip()))
-              except ValueError: pass
-          assert len(gpu) >= 20, len(gpu)
+              try:
+                  t,value=raw.split()
+                  t=float(t); value=float(value)
+              except ValueError:
+                  continue
+              if measured_start <= t <= measured_end:
+                  gpu.append(value)
+          assert len(gpu) >= 200, len(gpu)
           avg=statistics.fmean(gpu)
-          idle=sum(v <= 1.0 for v in gpu)/len(gpu)
-          # Smoke floors are deliberately lower than qualification floors; this gate only
-          # rejects obvious starvation/regression before spending 420 measured seconds.
-          assert avg >= 15.0, avg
-          assert idle <= 0.70, idle
+          idle=sum(v <= 5.0 for v in gpu)/len(gpu)
+          assert avg >= 20.0, avg
+          assert idle <= 0.75, idle
+
           summary={
               'status':'PASS',
               'cycles_committed':int(c['cycles_committed']),
+              'measured_seconds':90.0,
+              'gpu_sample_count':len(gpu),
               'gpu_avg_pct':avg,
               'gpu_idle_ratio':idle,
               'durability_barrier_stall_seconds':fsync_stall,
               'scientific_semantics_changed':False,
           }
-          Path('ci_evidence/CB16_R11_STAGE2_PERFORMANCE_SMOKE_V1.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
+          Path('ci_evidence/CB16_R11_STAGE2_PERFORMANCE_SMOKE_V2.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
           print('CB16_R11_STAGE2_PERFORMANCE_SMOKE=' + json.dumps(summary,sort_keys=True))
           PY
 
