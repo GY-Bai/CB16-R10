@@ -1,0 +1,91 @@
+name: CB16 R11 Generational Storage Qualification
+
+on:
+  push:
+    branches:
+      - ai/r11-generational-storage-qualification-r0
+    paths:
+      - scripts/infra/verify_generational_storage_host.sh
+      - .github/workflows/cb16-r11-generational-storage-qualification.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-generational-storage-qualification
+  cancel-in-progress: false
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  qualify-storage:
+    name: Qualify immutable generational storage host contract
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout qualification source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen R11 ancestry and semantic authority
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git merge-base --is-ancestor cff10413f147f755624b0a724c23f235016666ae HEAD
+          test "$(git rev-parse cff10413f147f755624b0a724c23f235016666ae:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = \
+               "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = \
+               "3c401a0a350984381912f7860181e3e96eb8d7cf"
+
+      - name: Run host storage qualification
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/cb16-storage-qualification"
+          bash scripts/infra/verify_generational_storage_host.sh \
+            2>&1 | tee "$RUNNER_TEMP/cb16-storage-qualification/receipt.txt"
+
+      - name: Emit machine-readable safety receipt
+        if: always()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          out="$RUNNER_TEMP/cb16-storage-qualification/safety.json"
+          mkdir -p "$(dirname "$out")"
+          python3 - "$out" <<'PY'
+          import json, os, sys
+          out=sys.argv[1]
+          payload={
+              "schema":"CB16_GENERATIONAL_STORAGE_GITHUB_QUALIFICATION_V1",
+              "repository":os.environ.get("GITHUB_REPOSITORY"),
+              "ref":os.environ.get("GITHUB_REF"),
+              "sha":os.environ.get("GITHUB_SHA"),
+              "run_id":os.environ.get("GITHUB_RUN_ID"),
+              "fresh_market_data_accessed":False,
+              "final_holdout_payload_opened":False,
+              "scientific_training_started":False,
+              "scientific_verdict_changed":False,
+              "production_ingest_invoked":False,
+              "legacy_objects_modified":False,
+          }
+          with open(out,"w",encoding="utf-8") as f:
+              json.dump(payload,f,indent=2,sort_keys=True)
+              f.write("\n")
+          print(json.dumps(payload,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload qualification receipts
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cb16-r11-generational-storage-qualification-${{ github.run_id }}
+          path: ${{ runner.temp }}/cb16-storage-qualification/
+          if-no-files-found: error
+          retention-days: 30
