@@ -1,0 +1,127 @@
+{
+  "schema": "CB16_R11_STAGE4_INTEGRATION_GATEWORK_V1",
+  "stage": "R11_STAGE4_CANONICAL_AUTHORITY_CUTOVER_INTEGRATION_R0",
+  "repository": "GY-Bai/CB16-R10",
+  "seed_branch": "ai/r11-stage4-integration-seed-r0",
+  "mechanical_wave1_union_sha": "bfb42b5a7e057c1ada791ea2e85cb2d02b4cffbf",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "upstream_stage3_head_sha": "35d6dccd85fe053f4d14d1d43b3110496947cdc1",
+  "semantic_freeze_blob_sha": "3c401a0a350984381912f7860181e3e96eb8d7cf",
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY_LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "wave1_sources": {
+    "S4A": {"branch_head": "7c073365d09c70dd2a9d66a6283822a149d43fce", "implementation_head": "8e097e227df7fb42b1249036e03599b04c3119cd"},
+    "S4B": {"branch_head": "30a85a17fc76b16c17edd5401d949a192acdf85e", "implementation_head": "6007a4b8857ab712673c49f1cd2069bf382d8fd1"},
+    "S4C": {"branch_head": "8c65c6270ad59ddc9796e45d5a6c23a6e4f4f362", "implementation_head": "35d9f9d5bdb15e3dec9fdff46e53aeecc45bc38e"},
+    "S4D": {"branch_head": "82feac950bc3199616715e060efb3503ad55f9b3", "implementation_head": "8977b88c4a1d3bdac0a46703f963c74c0da76fec"},
+    "S4E": {"branch_head": "edd80e6f33e8f5b69ce0776d255e24f4762ac757", "implementation_head": "2f9e107e8821075865a223477472006f217482f5"},
+    "S4F": {"branch_head": "5aacf4ae30bc869ade4b69b60cdde4ad65a25377", "implementation_head": "e47fed91173d99f02cdf8608ed633d1578a5fa83"},
+    "S4G": {"branch_head": "b090bb5e17c4d9c838b2b8dc7044d97ec14efce8", "implementation_head": "fb9f93419aa7107befc3ca095a1f3400073b5c56"},
+    "S4H": {"branch_head": "e1bbf052bdbe408dceaf8893a78a0b3e67936473", "implementation_head": "a790bc9a84a9d277c8f730ea66b9f77f9c47b1c2"},
+    "S4I": {"branch_head": "317ed2acf5fe333215209e325ac071c7c52877de", "implementation_head": "6d359fb2bb7decaa5b1c69ec07a8ed5e8e06ba42"}
+  },
+  "integration_parallelism_contract": {
+    "all_agents_start_from_exact_final_seed_sha": true,
+    "seed_is_immutable_after_initialization": true,
+    "each_agent_uses_independent_branch": true,
+    "agents_must_not_push_to_seed": true,
+    "agents_must_not_push_to_final_integration_branch": true,
+    "agents_must_not_read_merge_cherry_pick_or_import_sibling_integration_branches": true,
+    "agents_may_import_qualified_wave1_modules_present_in_seed": true,
+    "cross_agent_reconciliation_is_reserved_to_final_adjudicator": true,
+    "subagents_may_not_emit_final_cutover_verdict": true,
+    "receipt_must_be_separate_final_commit": true
+  },
+  "qualification_machine": {
+    "runner": ["self-hosted", "shanxi", "cb16-wss-qualification"],
+    "cpu": "AMD Ryzen 7 3700X",
+    "logical_cpus": 16,
+    "gpu": "NVIDIA GTX 1060 6GB",
+    "compute_capability": "sm_61",
+    "pytorch": "2.8.0+cu126",
+    "cuda": "12.6",
+    "numeric_mode": "FP32",
+    "amp": false
+  },
+  "forbidden": [
+    "MODIFY_SEMANTIC_FREEZE",
+    "OPEN_FINAL_HOLDOUT_2025_09",
+    "DOWNLOAD_FRESH_MARKET_DATA",
+    "MUTATE_FROZEN_HISTORICAL_MARKET_DATA",
+    "CHANGE_FROZEN_PHYSICS",
+    "CHANGE_SUPERVISOR_OR_PERMISSION_MEANING",
+    "CHANGE_TEACHER_MEANING",
+    "CHANGE_EVIDENCE_MEANING",
+    "CHANGE_GRADIENT_OWNERSHIP",
+    "CHANGE_CHAMPION_CHALLENGER_SEMANTICS",
+    "CHANGE_REQUESTED_RISK_SEMANTICS",
+    "REINTERPRET_REPLAY_AS_NEW_EVIDENCE",
+    "CREATE_NEW_SCIENTIFIC_VERDICT",
+    "RUN_30M_2H_6H_ENDURANCE_WITHOUT_SEPARATE_USER_AUTHORIZATION",
+    "DISTRIBUTED_AUTHORITY_OR_CONSENSUS",
+    "THROUGHPUT_TUNING",
+    "MERGE_TO_MAIN"
+  ],
+  "integration_tasks": [
+    {
+      "id": "INTA",
+      "branch": "ai/r11-stage4-int-a-runtime-spine-r0",
+      "scope": "Concrete canonical runtime authority spine binding S4B+C+D+F+G through fail-closed providers; no domain-writer rewiring.",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "INTB",
+      "branch": "ai/r11-stage4-int-b-persistence-fencing-r0",
+      "scope": "Canonical persistence closure for Evidence/EventJournal/Checkpoint protocol adapters using S4D fencing, S4F roots and S4G retirement guard.",
+      "exclusive_existing_file_ownership": ["cb16_local_opt/integration_adapters_r11.py"]
+    },
+    {
+      "id": "INTC",
+      "branch": "ai/r11-stage4-int-c-engine-authority-r0",
+      "scope": "Authority-aware wrappers around Teacher/Trace/Inference/Training/Validation/Tournament engines; protect Challenger and control-plane computation without changing engine meaning.",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "INTD",
+      "branch": "ai/r11-stage4-int-d-permission-execution-r0",
+      "scope": "Production ActionIntent ingress and Frozen Supervisor to executable to Physics closure using S4E plus live authority/retirement guards.",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "INTE",
+      "branch": "ai/r11-stage4-int-e-adoption-recovery-r0",
+      "scope": "One-time adoption plus exact restart/recovery identity binding across adoption, roots, journal/checkpoint state and dead-owner recovery.",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "INTF",
+      "branch": "ai/r11-stage4-int-f-worker-lifecycle-r0",
+      "scope": "S4B OrchestrationProvider implementation for qualified R11 worker startup, drain, seal and stop under acquired authority; no inner-loop semantic changes.",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "INTG",
+      "branch": "ai/r11-stage4-int-g-hostile-harness-r0",
+      "scope": "Production-facing S4H hostile-cutover adapter contract and fault-injection harness capable of being bound after consolidation; no synthetic PASS may claim integrated runtime qualification.",
+      "exclusive_existing_file_ownership": []
+    },
+    {
+      "id": "INTH",
+      "branch": "ai/r11-stage4-int-h-final-gates-r0",
+      "scope": "Final integration evidence compiler/schema/workflow gates; validate integration receipts and reserve final cutover verdict for consolidated qualification only.",
+      "exclusive_existing_file_ownership": []
+    }
+  ],
+  "final_consolidation": {
+    "branch": "ai/r11-stage4-integration-r0",
+    "created_only_by_final_adjudicator_after_all_accepted_integration_receipts": true,
+    "base_is_exact_final_seed_sha": true,
+    "subagent_direct_merge_forbidden": true,
+    "rerun_wave1_authority_inventory_at_final_head": true,
+    "require_unknown_authority_zero": true,
+    "rerun_real_H01_H20_against_consolidated_runtime": true,
+    "short_canonical_machine_qualification_required": true,
+    "long_endurance_required_now": false,
+    "reserved_final_verdict": "R11_CANONICAL_AUTHORITY_CUTOVER_QUALIFIED"
+  }
+}
