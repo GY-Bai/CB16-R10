@@ -1,0 +1,96 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4H",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "a790bc9a84a9d277c8f730ea66b9f77f9c47b1c2",
+  "branch": "ai/r11-stage4-task-h-hostile-cutover-r0",
+  "owned_paths": [
+    ".github/workflows/cb16-r11-stage4-s4h-hostile-cutover.yml",
+    "authority/rearchitecture_r11/CB16_R11_STAGE4_HOSTILE_CUTOVER_REPORT_SCHEMA_V1.json",
+    "cb16_local_opt/stage4_hostile_cutover_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4H_HOSTILE_CUTOVER_R0.md",
+    "scripts/run_r11_stage4_hostile_cutover_matrix.py",
+    "tests/test_stage4_hostile_cutover_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/cb16-r11-stage4-s4h-hostile-cutover.yml",
+    "authority/rearchitecture_r11/CB16_R11_STAGE4_HOSTILE_CUTOVER_REPORT_SCHEMA_V1.json",
+    "cb16_local_opt/stage4_hostile_cutover_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4H_HOSTILE_CUTOVER_R0.md",
+    "scripts/run_r11_stage4_hostile_cutover_matrix.py",
+    "tests/test_stage4_hostile_cutover_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_hostile_cutover_r11.py",
+      "python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .",
+      "python scripts/run_r11_stage4_hostile_cutover_matrix.py --output stage4_s4h_hostile_cutover_report.json"
+    ],
+    "passed": true,
+    "evidence": [
+      "GitHub Actions run 34187002813 at task_head_sha: S4H workflow conclusion success",
+      "Required pytest command: 11 passed",
+      "Static semantic authority guard: PASS; scientific_semantics_changed=false; legacy_python_is_runtime_authority=false",
+      "Hostile matrix reference-adapter command completed successfully",
+      "Repository repo-guard run 34187002822: success",
+      "Repository Node24 Actions Policy run 34187002838: success"
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "exactly_one_authoritative_generation": true,
+    "exactly_one_authoritative_champion": true,
+    "no_dual_writer": true,
+    "no_stale_writer_mutation": true,
+    "no_new_scientific_evidence_from_replay": true,
+    "no_permission_bypass": true,
+    "final_holdout_untouched": true,
+    "semantic_freeze_unchanged": true,
+    "ambiguous_authority_fails_closed": true,
+    "integrated_runtime_qualification_claimed": false
+  },
+  "hostile_cases": [
+    {"id": "H01", "name": "duplicate canonical runtime startup", "reference_adapter": "PASS"},
+    {"id": "H02", "name": "simultaneous ownership attempt", "reference_adapter": "PASS"},
+    {"id": "H03", "name": "stale fencing token", "reference_adapter": "PASS"},
+    {"id": "H04", "name": "conflicting authority adoption", "reference_adapter": "PASS"},
+    {"id": "H05", "name": "duplicate identical adoption", "reference_adapter": "PASS"},
+    {"id": "H06", "name": "legacy authoritative writer attempt", "reference_adapter": "PASS"},
+    {"id": "H07", "name": "crash immediately before authority acquisition", "reference_adapter": "PASS"},
+    {"id": "H08", "name": "crash immediately after authority acquisition", "reference_adapter": "PASS"},
+    {"id": "H09", "name": "crash around adoption seal", "reference_adapter": "PASS"},
+    {"id": "H10", "name": "crash around authoritative journal transition", "reference_adapter": "PASS"},
+    {"id": "H11", "name": "duplicate commit", "reference_adapter": "PASS"},
+    {"id": "H12", "name": "duplicate generation release", "reference_adapter": "PASS"},
+    {"id": "H13", "name": "stale Champion writer", "reference_adapter": "PASS"},
+    {"id": "H14", "name": "forged Permission", "reference_adapter": "PASS"},
+    {"id": "H15", "name": "direct Physics bypass attempt", "reference_adapter": "PASS"},
+    {"id": "H16", "name": "replay presented as new Evidence", "reference_adapter": "PASS"},
+    {"id": "H17", "name": "orphan/incomplete state object", "reference_adapter": "PASS"},
+    {"id": "H18", "name": "restart after successful cutover", "reference_adapter": "PASS"},
+    {"id": "H19", "name": "second restart with stale owner", "reference_adapter": "PASS"},
+    {"id": "H20", "name": "malformed/corrupt authority metadata", "reference_adapter": "PASS"}
+  ],
+  "known_limitations": [
+    "S4H qualifies the hostile harness and deterministic reference adapter only; no S4B-S4G production implementation is imported or qualified here.",
+    "Crash, lease, adoption, journal and storage boundaries are modeled through the adapter contract; real process/filesystem fault injection belongs to final integrated qualification.",
+    "No final holdout, fresh market data, endurance run, distributed authority, or performance tuning was exercised."
+  ],
+  "integration_notes": [
+    "Final integration must implement HostileCutoverAdapter over the actual canonical runtime, adoption, local lease/fencing, storage, permission and legacy-retirement components without changing S4H case meanings.",
+    "The production adapter must expose authoritative generation/Champion cardinality, current live writer ownership and fencing state so every common invariant can be adjudicated after each attack.",
+    "Final integration must inject real crash/restart boundaries around authority acquisition, adoption seal and authoritative journal transition, then rerun all H01-H20 cases.",
+    "A PASS from S4H must remain distinct from R11_CANONICAL_AUTHORITY_CUTOVER_QUALIFIED; only final integrated Stage-4 qualification may emit the latter verdict."
+  ]
+}
