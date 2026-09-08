@@ -16,6 +16,14 @@ concurrency:
   group: cb16-r11-generational-storage-qualification
   cancel-in-progress: false
 
+env:
+  CB16_STORE: /data/cb16_hdd/cb16_store/annex-repo
+  CB16_STAGING: /data/cb16_hdd/cb16_store/staging
+  CB16_LEGACY_INDEX: /data/cb16_hdd/cb16_store/legacy-index
+  CB16_RUNTIME: /var/tmp/cb16_runtime/R11
+  CB16_RAW_TARGET: /data/cb16_hdd/cb16_raw_view
+  CB16_INVENTORY_SHA: 4eae7ee407ab05dc8fce809f8bee6bcc3660e23e6c8f9c2167ebbb777a67f07a
+
 jobs:
   shanxi-preflight:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
@@ -44,13 +52,128 @@ jobs:
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = \
                "3c401a0a350984381912f7860181e3e96eb8d7cf"
 
-      - name: Run host storage qualification
+      - name: Verify runner-visible toolchain and namespaces
         shell: bash
         run: |
           set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/cb16-storage-qualification"
-          bash scripts/infra/verify_generational_storage_host.sh \
-            2>&1 | tee "$RUNNER_TEMP/cb16-storage-qualification/receipt.txt"
+          for c in git git-annex sha256sum findmnt lsblk readlink mktemp; do
+            command -v "$c" >/dev/null
+          done
+          for d in "$CB16_STORE" "$CB16_STAGING" "$CB16_LEGACY_INDEX" "$CB16_RUNTIME"; do
+            test -d "$d"
+          done
+
+      - name: Verify SSD and HDD storage tiers
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          root_src="$(findmnt -no SOURCE -T /var/tmp)"
+          data_src="$(findmnt -no SOURCE -T /data)"
+          test -n "$root_src"
+          test -n "$data_src"
+          test "$root_src" != "$data_src"
+          root_real="$(readlink -f "$root_src" 2>/dev/null || printf '%s' "$root_src")"
+          data_real="$(readlink -f "$data_src" 2>/dev/null || printf '%s' "$data_src")"
+          lsblk -s -n -o ROTA "$root_real" 2>/dev/null | awk '$1==1{bad=1} END{exit bad?1:0}'
+          lsblk -s -n -o ROTA "$data_real" 2>/dev/null | awk '$1==1{ok=1} END{exit ok?0:1}'
+
+      - name: Verify raw namespace is read-only
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -L /cb16/raw
+          test "$(readlink -f /cb16/raw)" = "$CB16_RAW_TARGET"
+          test ! -w /cb16/raw
+
+      - name: Verify current writable and legacy read-only permissions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -w "$CB16_RUNTIME"
+          test -w "$CB16_STAGING"
+          test -w "$CB16_STORE"
+          seen=0
+          for p in \
+            /data/cb16_ci/r2-authority/r103 \
+            /data/cb16_ci/r2-authority/package_r102 \
+            /data/cb16_hdd/cb16_diagnostics/r2_native
+          do
+            if [ -e "$p" ]; then
+              seen=$((seen + 1))
+              test ! -w "$p"
+            fi
+          done
+          test "$seen" -ge 1
+
+      - name: Verify production artifact entry points
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for t in cb16_artifact_put cb16_artifact_link cb16_artifact_verify cb16_legacy_register cb16_runtime_lock_verify; do
+            command -v "$t" >/dev/null
+          done
+
+      - name: Verify production SHA256 annex policy and fsck
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(git -C "$CB16_STORE" config --get annex.backend)" = SHA256
+          secure="$(git -C "$CB16_STORE" config --get annex.securehashesonly)"
+          case "$secure" in true|1|yes|on) ;; *) exit 1 ;; esac
+          grep -Eq 'annex\.backend=SHA256' "$CB16_STORE/.gitattributes"
+          git -C "$CB16_STORE" annex version
+          git -C "$CB16_STORE" annex fsck
+
+      - name: Verify sealed legacy inventory
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          match=""
+          while IFS= read -r -d '' f; do
+            got="$(sha256sum "$f" | awk '{print $1}')"
+            if [ "$got" = "$CB16_INVENTORY_SHA" ]; then
+              match="$f"
+              break
+            fi
+          done < <(find "$CB16_LEGACY_INDEX" -maxdepth 2 -type f -print0)
+          test -n "$match"
+          echo "SEALED_INVENTORY=$match"
+
+      - name: Verify isolated SHA256 dedupe inheritance and partial-file canary
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          canary="$(mktemp -d "$CB16_STAGING/.gha-storage-qual.XXXXXX")"
+          cleanup() {
+            chmod -R u+w "$canary" 2>/dev/null || true
+            rm -rf "$canary"
+          }
+          trap cleanup EXIT
+          cd "$canary"
+          git init -q
+          git config user.name "CB16 Storage Qualification"
+          git config user.email "cb16-storage-qualification@localhost"
+          git config annex.backend SHA256
+          git config annex.securehashesonly true
+          git config annex.addunlocked false
+          printf '* annex.backend=SHA256\n' > .gitattributes
+          git add .gitattributes
+          git commit -qm init
+          git annex init -q "cb16-storage-qualification-${GITHUB_RUN_ID:-manual}"
+          printf 'cb16-generational-storage-canary-v1\n' > object-a.bin
+          cp object-a.bin object-b.bin
+          git annex add --force-large --backend=SHA256 object-a.bin object-b.bin >/dev/null
+          key_a="$(git annex lookupkey object-a.bin)"
+          key_b="$(git annex lookupkey object-b.bin)"
+          test -n "$key_a"
+          test "$key_a" = "$key_b"
+          case "$key_a" in SHA256-*) ;; *) exit 1 ;; esac
+          git annex fromkey "$key_a" generation-b.bin >/dev/null
+          test "$(git annex lookupkey generation-b.bin)" = "$key_a"
+          if [ ! -L object-a.bin ] && [ -w object-a.bin ]; then exit 1; fi
+          git annex fsck >/dev/null
+          printf 'incomplete\n' > partial.part
+          if git annex lookupkey partial.part >/dev/null 2>&1; then exit 1; fi
 
       - name: Emit machine-readable safety receipt
         if: always()
