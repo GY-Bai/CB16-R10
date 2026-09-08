@@ -78,7 +78,7 @@ jobs:
       - name: Materialize R11 G0 strong-lineage 10-asset cache
         env:
           CB16_G0_SEAL_IN: /tmp/cb16_r11_science_g0_dataset_seal.json
-          CB16_R11_G0_ROOT: /home/bgy/cb16_ssd/runtime/R11/G0
+          CB16_R11_G0_ROOT: /cb16_r11_runtime/G0
         shell: bash
         run: |
           set -euo pipefail
@@ -96,7 +96,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json
-          p='/home/bgy/cb16_ssd/runtime/R11/G0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json'
+          p='/cb16_r11_runtime/G0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json'
           x=json.load(open(p))
           print(json.dumps({
             'status':x['status'],
