@@ -3042,7 +3042,7 @@
         "cb16_local_opt/stage4_authority_inventory_r11.py:L513:registry_without_entry",
         "cb16_local_opt/stage4_authority_inventory_r11.py:L518:require_pass",
         "cb16_local_opt/stage4_authority_inventory_r11.py:L519:require_pass",
-        "cb16_local_opt/stage4_authority_registry_builder_r11.py:L179:_validate_policy_disjoint",
+        "cb16_local_opt/stage4_authority_registry_builder_r11.py:L180:_validate_policy_disjoint",
         "cb16_local_opt/storage_policy.py:L120:ArtifactManifest.__init__",
         "cb16_local_opt/storage_policy.py:L125:ArtifactManifest.register",
         "cb16_local_opt/student_training_dataset.py:L116:build_training_link",
@@ -4688,7 +4688,7 @@
         "cb16_local_opt/stage4_authority_inventory_r11.py:L513:registry_without_entry",
         "cb16_local_opt/stage4_authority_inventory_r11.py:L518:require_pass",
         "cb16_local_opt/stage4_authority_inventory_r11.py:L519:require_pass",
-        "cb16_local_opt/stage4_authority_registry_builder_r11.py:L179:_validate_policy_disjoint",
+        "cb16_local_opt/stage4_authority_registry_builder_r11.py:L180:_validate_policy_disjoint",
         "cb16_local_opt/storage_policy.py:L120:ArtifactManifest.__init__",
         "cb16_local_opt/storage_policy.py:L125:ArtifactManifest.register",
         "cb16_local_opt/student_training_dataset.py:L116:build_training_link",
@@ -12109,8 +12109,8 @@
       "discovery_evidence": [
         "MUTATION_VERB_WITH_AUTHORITY_CONTEXT"
       ],
-      "current_role": "UNRESOLVED_AUTHORITY_ROLE",
-      "classification": "UNKNOWN_AUTHORITY",
+      "current_role": "TEST_FIXTURE_OR_HOSTILE_TEST_WRITER",
+      "classification": "TEST_ONLY",
       "eligible_for_canonical_authority": false,
       "classification_basis": "Explicit S4A path review against Gatework and Semantic Freeze; import/call reachability is not authority."
     },
