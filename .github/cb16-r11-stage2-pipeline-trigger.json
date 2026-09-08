@@ -1,0 +1,18 @@
+{
+  "schema": "CB16_R11_STAGE2_PIPELINE_TRIGGER_V1",
+  "armed": true,
+  "qualification_branch": "ai/r11-stage2-integration-r1",
+  "pipeline_cycles": 1,
+  "performance_thresholds": false,
+  "hard_timeout_minutes": 5,
+  "runner": ["self-hosted", "shanxi", "cb16-wss-qualification"],
+  "purpose": "Verify real function/module handoffs before any long burst or performance qualification.",
+  "forbidden": {
+    "fresh_market_data_download": true,
+    "final_holdout_open": true,
+    "oci_compute": true,
+    "new_scientific_verdict": true,
+    "performance_acceptance": true,
+    "endurance_test": true
+  }
+}
