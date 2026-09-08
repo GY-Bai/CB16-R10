@@ -28,3 +28,6 @@ jobs:
         run: python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
       - name: S4G policy matrix audit
         run: python scripts/audit_r11_stage4_legacy_authority.py --self-check
+      - name: Validate S4G receipt when present
+        if: ${{ hashFiles('authority/rearchitecture_r11/stage4_receipts/S4G_RECEIPT_V1.json') != '' }}
+        run: python scripts/check_r11_stage4_task_receipt.py --receipt authority/rearchitecture_r11/stage4_receipts/S4G_RECEIPT_V1.json --repo-root .
