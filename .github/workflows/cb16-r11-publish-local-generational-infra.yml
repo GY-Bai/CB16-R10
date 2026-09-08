@@ -21,6 +21,7 @@ env:
   CB16_EXPECTED_PARENT: cff10413f147f755624b0a724c23f235016666ae
   CB16_EXPECTED_LOCK_SHA256: aad768c72484fc36e27e77efa9d049e6b02cdbadc89b0f63cb5c9aecd42fc386
   CB16_EXPECTED_SEMANTIC_SHA256: cc4e6e28b1c454778d9290eb7e8597cc3cd434381f3dc0886c166e2fb30134a6
+  CB16_LOCAL_BUNDLE_BRIDGE: /data/cb16_hdd/cb16_store/quarantine/r11-generational-infra/acd6e211d5bb9767988f924eeaf2a7c022b3f12d.bundle
 
 jobs:
   shanxi-preflight:
@@ -48,25 +49,47 @@ jobs:
           out="$RUNNER_TEMP/cb16-local-infra-export"
           mkdir -p "$out"
           found=""
-          while IFS= read -r dotgit; do
-            repo="$(dirname "$dotgit")"
-            if git -C "$repo" cat-file -e "$CB16_LOCAL_INFRA_COMMIT^{commit}" 2>/dev/null; then
-              ref="$(git -C "$repo" rev-parse --verify "refs/heads/$CB16_LOCAL_INFRA_BRANCH" 2>/dev/null || true)"
-              if [ "$ref" = "$CB16_LOCAL_INFRA_COMMIT" ]; then
-                found="$repo"
-                break
+          mode=""
+
+          if [ -r "$CB16_LOCAL_BUNDLE_BRIDGE" ]; then
+            source="$RUNNER_TEMP/cb16-local-infra-source"
+            rm -rf "$source"
+            git init -q "$source"
+            git -C "$source" fetch -q "$CB16_LOCAL_BUNDLE_BRIDGE" \
+              "refs/heads/$CB16_LOCAL_INFRA_BRANCH:refs/heads/$CB16_LOCAL_INFRA_BRANCH"
+            ref="$(git -C "$source" rev-parse --verify "refs/heads/$CB16_LOCAL_INFRA_BRANCH" 2>/dev/null || true)"
+            [ "$ref" = "$CB16_LOCAL_INFRA_COMMIT" ] || {
+              echo "FAIL_CLOSED_BUNDLE_BRIDGE_COMMIT_MISMATCH=${ref:-missing}"
+              exit 1
+            }
+            found="$source"
+            mode="READ_ONLY_BUNDLE_BRIDGE"
+          else
+            while IFS= read -r dotgit; do
+              repo="$(dirname "$dotgit")"
+              if git -C "$repo" cat-file -e "$CB16_LOCAL_INFRA_COMMIT^{commit}" 2>/dev/null; then
+                ref="$(git -C "$repo" rev-parse --verify "refs/heads/$CB16_LOCAL_INFRA_BRANCH" 2>/dev/null || true)"
+                if [ "$ref" = "$CB16_LOCAL_INFRA_COMMIT" ]; then
+                  found="$repo"
+                  mode="DIRECT_READ_ONLY_REPO_VISIBILITY"
+                  break
+                fi
               fi
-            fi
-          done < <(
-            find /data/cb16_ci /data/cb16_hdd/cb16_runtime \
-              -maxdepth 7 -name .git -print 2>/dev/null | sort -u
-          )
+            done < <(
+              find /data/cb16_ci /data/cb16_hdd/cb16_runtime \
+                -maxdepth 7 -name .git -print 2>/dev/null | sort -u
+            )
+          fi
+
           [ -n "$found" ] || {
-            echo "FAIL_CLOSED_LOCAL_INFRA_COMMIT_NOT_FOUND"
+            echo "FAIL_CLOSED_LOCAL_INFRA_COMMIT_NOT_VISIBLE"
+            echo "Expected bridge: $CB16_LOCAL_BUNDLE_BRIDGE"
             exit 1
           }
           printf '%s\n' "$found" > "$out/source_repo.txt"
+          printf '%s\n' "$mode" > "$out/source_mode.txt"
           echo "source_repo=$found" >> "$GITHUB_OUTPUT"
+          echo "source_mode=$mode" >> "$GITHUB_OUTPUT"
 
       - name: Verify local commit identity and allowed scope
         shell: bash
@@ -123,6 +146,7 @@ jobs:
             echo "branch=$CB16_LOCAL_INFRA_BRANCH"
             echo "parent=$CB16_EXPECTED_PARENT"
             echo "tree=$(git -C "$repo" show -s --format='%T' "$CB16_LOCAL_INFRA_COMMIT")"
+            echo "source_mode=${{ steps.locate.outputs.source_mode }}"
             echo "changed_payload_bytes=$total"
             echo "lock_sha256=$CB16_EXPECTED_LOCK_SHA256"
             echo "semantic_sha256=$CB16_EXPECTED_SEMANTIC_SHA256"
