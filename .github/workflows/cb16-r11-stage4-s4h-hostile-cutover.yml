@@ -14,8 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Install test dependency
@@ -26,3 +28,11 @@ jobs:
         run: python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
       - name: Run hostile matrix reference adapter
         run: python scripts/run_r11_stage4_hostile_cutover_matrix.py --output stage4_s4h_hostile_cutover_report.json
+      - name: Validate S4H receipt when present
+        run: |
+          receipt=authority/rearchitecture_r11/stage4_receipts/S4H_RECEIPT_V1.json
+          if test -f "$receipt"; then
+            python scripts/check_r11_stage4_task_receipt.py --receipt "$receipt" --repo-root .
+          else
+            echo "S4H_RECEIPT_NOT_YET_PRESENT=SKIP"
+          fi
