@@ -1,0 +1,216 @@
+name: CB16 R11 Publish Local Generational Infra
+
+on:
+  push:
+    branches:
+      - ai/r11-generational-storage-qualification-r0
+    paths:
+      - .github/workflows/cb16-r11-publish-local-generational-infra.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-publish-local-generational-infra
+  cancel-in-progress: false
+
+env:
+  CB16_LOCAL_INFRA_COMMIT: acd6e211d5bb9767988f924eeaf2a7c022b3f12d
+  CB16_LOCAL_INFRA_BRANCH: ai/r11-generational-storage-r1-20260908T193313Z
+  CB16_EXPECTED_PARENT: cff10413f147f755624b0a724c23f235016666ae
+  CB16_EXPECTED_LOCK_SHA256: aad768c72484fc36e27e77efa9d049e6b02cdbadc89b0f63cb5c9aecd42fc386
+  CB16_EXPECTED_SEMANTIC_SHA256: cc4e6e28b1c454778d9290eb7e8597cc3cd434381f3dc0886c166e2fb30134a6
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  export-local-infra:
+    name: Audit and export exact local infra commit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout guard authority only
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Locate exact local infra commit without mutation
+        id: locate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          out="$RUNNER_TEMP/cb16-local-infra-export"
+          mkdir -p "$out"
+          found=""
+          while IFS= read -r dotgit; do
+            repo="$(dirname "$dotgit")"
+            if git -C "$repo" cat-file -e "$CB16_LOCAL_INFRA_COMMIT^{commit}" 2>/dev/null; then
+              ref="$(git -C "$repo" rev-parse --verify "refs/heads/$CB16_LOCAL_INFRA_BRANCH" 2>/dev/null || true)"
+              if [ "$ref" = "$CB16_LOCAL_INFRA_COMMIT" ]; then
+                found="$repo"
+                break
+              fi
+            fi
+          done < <(
+            find /data/cb16_ci /data/cb16_hdd/cb16_runtime \
+              -maxdepth 7 -name .git -print 2>/dev/null | sort -u
+          )
+          [ -n "$found" ] || {
+            echo "FAIL_CLOSED_LOCAL_INFRA_COMMIT_NOT_FOUND"
+            exit 1
+          }
+          printf '%s\n' "$found" > "$out/source_repo.txt"
+          echo "source_repo=$found" >> "$GITHUB_OUTPUT"
+
+      - name: Verify local commit identity and allowed scope
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          repo="${{ steps.locate.outputs.source_repo }}"
+          out="$RUNNER_TEMP/cb16-local-infra-export"
+
+          actual="$(git -C "$repo" rev-parse "$CB16_LOCAL_INFRA_BRANCH")"
+          [ "$actual" = "$CB16_LOCAL_INFRA_COMMIT" ] || exit 1
+
+          mapfile -t parents < <(git -C "$repo" show -s --format='%P' "$CB16_LOCAL_INFRA_COMMIT" | tr ' ' '\n')
+          [ "${#parents[@]}" -eq 1 ] || {
+            echo "FAIL_CLOSED_INFRA_COMMIT_NOT_SINGLE_PARENT"
+            exit 1
+          }
+          [ "${parents[0]}" = "$CB16_EXPECTED_PARENT" ] || {
+            echo "FAIL_CLOSED_INFRA_PARENT_MISMATCH ${parents[0]}"
+            exit 1
+          }
+
+          git -C "$repo" diff --check "$CB16_EXPECTED_PARENT" "$CB16_LOCAL_INFRA_COMMIT"
+          git -C "$repo" diff-tree --no-commit-id --name-status -r "$CB16_LOCAL_INFRA_COMMIT" \
+            | tee "$out/changed-files.txt"
+
+          total=0
+          while IFS= read -r path; do
+            case "$path" in
+              authority/runtime/*|docs/infra/*|scripts/infra/*|ci/infra/*) ;;
+              *)
+                echo "FAIL_CLOSED_UNEXPECTED_CHANGED_PATH=$path"
+                exit 1
+                ;;
+            esac
+            size="$(git -C "$repo" cat-file -s "$CB16_LOCAL_INFRA_COMMIT:$path")"
+            [ "$size" -le 2097152 ] || {
+              echo "FAIL_CLOSED_CHANGED_FILE_TOO_LARGE=$path:$size"
+              exit 1
+            }
+            total=$((total + size))
+          done < <(git -C "$repo" diff-tree --no-commit-id --name-only -r "$CB16_LOCAL_INFRA_COMMIT")
+          [ "$total" -le 10485760 ] || {
+            echo "FAIL_CLOSED_CHANGED_PAYLOAD_TOO_LARGE=$total"
+            exit 1
+          }
+
+          test "$(git -C "$repo" show "$CB16_LOCAL_INFRA_COMMIT:authority/runtime/CB16_RUNTIME_LOCK.json" | sha256sum | awk '{print $1}')" = \
+               "$CB16_EXPECTED_LOCK_SHA256"
+          test "$(git -C "$repo" show "$CB16_LOCAL_INFRA_COMMIT:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json" | sha256sum | awk '{print $1}')" = \
+               "$CB16_EXPECTED_SEMANTIC_SHA256"
+
+          {
+            echo "commit=$CB16_LOCAL_INFRA_COMMIT"
+            echo "branch=$CB16_LOCAL_INFRA_BRANCH"
+            echo "parent=$CB16_EXPECTED_PARENT"
+            echo "tree=$(git -C "$repo" show -s --format='%T' "$CB16_LOCAL_INFRA_COMMIT")"
+            echo "changed_payload_bytes=$total"
+            echo "lock_sha256=$CB16_EXPECTED_LOCK_SHA256"
+            echo "semantic_sha256=$CB16_EXPECTED_SEMANTIC_SHA256"
+          } | tee "$out/audit.txt"
+
+      - name: Run repository sensitive-content policy against local commit
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          repo="${{ steps.locate.outputs.source_repo }}"
+          tree="$RUNNER_TEMP/cb16-local-infra-tree"
+          rm -rf "$tree"
+          mkdir -p "$tree"
+          git -C "$repo" archive "$CB16_LOCAL_INFRA_COMMIT" | tar -x -C "$tree"
+          python3 ci/check_repository_policy.py --root "$tree"
+          rm -rf "$tree"
+
+      - name: Export exact Git object bundle
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          repo="${{ steps.locate.outputs.source_repo }}"
+          out="$RUNNER_TEMP/cb16-local-infra-export"
+          git -C "$repo" bundle create "$out/infra.bundle" "refs/heads/$CB16_LOCAL_INFRA_BRANCH"
+          git -C "$repo" bundle verify "$out/infra.bundle"
+          sha256sum "$out/infra.bundle" | tee "$out/infra.bundle.sha256"
+          echo 'self_hosted_repository_mutation=false' >> "$out/audit.txt"
+          echo 'self_hosted_github_write_token_received=false' >> "$out/audit.txt"
+          echo 'third_party_proxy_used=false' >> "$out/audit.txt"
+
+      - name: Upload audited local commit bundle
+        uses: actions/upload-artifact@v5
+        with:
+          name: cb16-r11-local-generational-infra-${{ github.run_id }}
+          path: ${{ runner.temp }}/cb16-local-infra-export/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-on-github-hosted:
+    name: Publish exact audited commit from GitHub-hosted runner
+    needs: export-local-infra
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout exact parent with GitHub-hosted credentials
+        uses: actions/checkout@v6
+        with:
+          ref: cff10413f147f755624b0a724c23f235016666ae
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Download audited local commit bundle
+        uses: actions/download-artifact@v5
+        with:
+          name: cb16-r11-local-generational-infra-${{ github.run_id }}
+          path: ${{ runner.temp }}/cb16-local-infra-import
+
+      - name: Verify and import exact commit object
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          in="$RUNNER_TEMP/cb16-local-infra-import"
+          sha256sum -c "$in/infra.bundle.sha256"
+          git bundle verify "$in/infra.bundle"
+          git fetch "$in/infra.bundle" "refs/heads/$CB16_LOCAL_INFRA_BRANCH"
+          test "$(git rev-parse FETCH_HEAD)" = "$CB16_LOCAL_INFRA_COMMIT"
+          test "$(git show -s --format='%P' FETCH_HEAD)" = "$CB16_EXPECTED_PARENT"
+          test "$(git show FETCH_HEAD:authority/runtime/CB16_RUNTIME_LOCK.json | sha256sum | awk '{print $1}')" = \
+               "$CB16_EXPECTED_LOCK_SHA256"
+          test "$(git show FETCH_HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json | sha256sum | awk '{print $1}')" = \
+               "$CB16_EXPECTED_SEMANTIC_SHA256"
+
+      - name: Publish exact local infra branch
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if git ls-remote --exit-code --heads origin "refs/heads/$CB16_LOCAL_INFRA_BRANCH" >/dev/null 2>&1; then
+            remote_sha="$(git ls-remote --heads origin "refs/heads/$CB16_LOCAL_INFRA_BRANCH" | awk '{print $1}')"
+            test "$remote_sha" = "$CB16_LOCAL_INFRA_COMMIT" || {
+              echo "FAIL_CLOSED_REMOTE_BRANCH_CONFLICT=$remote_sha"
+              exit 1
+            }
+            echo "REMOTE_BRANCH_ALREADY_EXACT"
+          else
+            git push origin "$CB16_LOCAL_INFRA_COMMIT:refs/heads/$CB16_LOCAL_INFRA_BRANCH"
+          fi
+          test "$(git ls-remote --heads origin "refs/heads/$CB16_LOCAL_INFRA_BRANCH" | awk '{print $1}')" = \
+               "$CB16_LOCAL_INFRA_COMMIT"
+          echo "CB16_LOCAL_GENERATIONAL_INFRA_PUBLISHED=PASS"
