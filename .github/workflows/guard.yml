@@ -22,16 +22,21 @@ jobs:
             cb16_local_opt/teacher_vectorized_r11.py \
             cb16_local_opt/teacher_scheduler_r11.py \
             cb16_local_opt/teacher_runtime_r11.py \
+            cb16_local_opt/cpu_runtime_r11.py \
             cb16_local_opt/training_runtime_r11.py \
             cb16_local_opt/training_integration_r11.py \
+            cb16_local_opt/gpu_runtime_r11.py \
             cb16_local_opt/market_runtime_cache_r11.py \
             cb16_local_opt/trace_runtime_r11.py \
+            cb16_local_opt/trace_process_runtime_r11.py \
             cb16_local_opt/evidence_store_r11.py \
             cb16_local_opt/event_journal_r11.py \
             cb16_local_opt/checkpoint_store_r11.py \
+            cb16_local_opt/io_runtime_r11.py \
             cb16_local_opt/runtime_events_r11.py \
             cb16_local_opt/runtime_protocols_r11.py \
             cb16_local_opt/orchestrator_r11.py \
+            cb16_local_opt/burst_orchestrator_r11.py \
             cb16_local_opt/integration_adapters_r11.py \
             scripts/run_r104_long_research.py \
             scripts/run_r2_native_qualification_v2.py \
@@ -39,6 +44,12 @@ jobs:
             scripts/run_r11_teacher_topology_benchmark.py \
             scripts/run_r11_task_f_acceptance.py \
             scripts/run_r11_task_f_acceptance_v2.py \
+            scripts/run_r11_stage2_task_a_trace_process_benchmark.py \
+            scripts/run_r11_task_b_gpu_microbench.py \
+            scripts/benchmark_burst_orchestrator_r11.py \
+            scripts/run_r11_stage2_burst_qualification.py \
+            scripts/run_r11_stage2_integration_burst.py \
+            benchmarks/task_c_io_microbench_r11.py \
             tests/test_rearchitecture_authority_r11.py \
             tests/test_teacher_vectorized_r11.py \
             tests/test_teacher_runtime_r11.py \
@@ -50,7 +61,10 @@ jobs:
             tests/test_r11_checkpoint_store.py \
             tests/test_r11_storage_lifecycle.py \
             tests/test_r11_async_orchestrator.py \
-            tests/test_r11_task_f_integration.py
+            tests/test_r11_task_f_integration.py \
+            tests/test_r11_io_runtime.py \
+            tests/test_burst_orchestrator_r11.py \
+            tests/test_r11_stage2_burst_qualification.py
       - name: Verify R11 semantic freeze
         run: python3 -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
       - name: Run dependency-free storage/control tests
