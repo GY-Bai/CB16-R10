@@ -1,0 +1,111 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4G",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "fb9f93419aa7107befc3ca095a1f3400073b5c56",
+  "branch": "ai/r11-stage4-task-g-legacy-retirement-r0",
+  "owned_paths": [
+    ".github/workflows/cb16-r11-stage4-s4g-legacy-retirement.yml",
+    "cb16_local_opt/stage4_legacy_retirement_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4G_LEGACY_RETIREMENT_R0.md",
+    "scripts/audit_r11_stage4_legacy_authority.py",
+    "tests/test_stage4_legacy_retirement_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/cb16-r11-stage4-s4g-legacy-retirement.yml",
+    "cb16_local_opt/stage4_legacy_retirement_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4G_LEGACY_RETIREMENT_R0.md",
+    "scripts/audit_r11_stage4_legacy_authority.py",
+    "tests/test_stage4_legacy_retirement_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_legacy_retirement_r11.py",
+      "python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .",
+      "python scripts/audit_r11_stage4_legacy_authority.py --self-check"
+    ],
+    "passed": true,
+    "evidence": [
+      "GitHub Actions S4G workflow run 34186990861: Gatework and S4G tests PASS; static semantic authority guard PASS; S4G policy matrix audit PASS.",
+      "GitHub Actions repo-guard run 34186990865: PASS.",
+      "GitHub Actions Node24 Actions Policy run 34186990859: PASS."
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "legacy_authoritative_capabilities_denied": true,
+    "noncanonical_roles_tested": 6,
+    "authoritative_capabilities_tested": 9,
+    "noncanonical_authority_escalations_denied": 54,
+    "legacy_read_oracle_replay_compatibility_preserved_non_authoritatively": true,
+    "legacy_replay_engineering_only": true,
+    "legacy_startup_fallback_forbidden": true,
+    "forged_identity_and_token_rejected": true,
+    "active_legacy_writer_detection_fail_closed": true,
+    "diagnostic_test_escalation_rejected": true,
+    "retirement_token_grants_positive_runtime_authority": false
+  },
+  "hostile_cases": [
+    {
+      "case": "legacy_authoritative_capability_request",
+      "status": "PASS",
+      "expected": "DENY"
+    },
+    {
+      "case": "failed_r11_startup_legacy_fallback",
+      "status": "PASS",
+      "expected": "DENY"
+    },
+    {
+      "case": "forged_legacy_identity_role",
+      "status": "PASS",
+      "expected": "DENY"
+    },
+    {
+      "case": "forged_capability_token",
+      "status": "PASS",
+      "expected": "DENY"
+    },
+    {
+      "case": "active_legacy_writer",
+      "status": "PASS",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "case": "diagnostic_test_escalation",
+      "status": "PASS",
+      "expected": "DENY"
+    },
+    {
+      "case": "replay_as_authoritative_evidence",
+      "status": "PASS",
+      "expected": "DENY"
+    }
+  ],
+  "known_limitations": [
+    "S4G is a negative retirement/eligibility guard and does not grant positive runtime authority.",
+    "Writer discovery/inventory is supplied by final integration; S4G does not depend on S4A.",
+    "Singleton lease/fencing is outside S4G and must be independently integrated.",
+    "S4G does not implement lifecycle, authority adoption, persistent state roots, permission adapter rewiring, or final writer rewiring.",
+    "HMAC tokens are local integrity bindings whose trust depends on final integration key custody; they are not leases or fencing tokens."
+  ],
+  "integration_notes": [
+    "Place S4G before every authoritative mutation consumer in final integration; import/call reachability must never upgrade legacy code to authority.",
+    "Require S4G admission plus all applicable independent positive authority gates; a valid S4G token alone is never sufficient to write.",
+    "Canonical startup failure must remain terminal for authoritative operation; do not fall back to legacy.",
+    "Legacy oracle/reference/replay/diagnostic/compatibility paths may remain importable only for their declared non-authoritative roles.",
+    "Replay must remain engineering-only and must not be reinterpreted as new Evidence.",
+    "This S4G PASS qualifies only legacy-retirement guard behavior, not final Stage-4 cutover."
+  ]
+}
