@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CB16_R11_STAGE4_TASK_RECEIPT_SCHEMA_V1",
+  "title": "CB16 R11 Stage-4 Parallel Task Receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "task_id",
+    "status",
+    "gatework_base_sha",
+    "task_head_sha",
+    "branch",
+    "owned_paths",
+    "touched_paths",
+    "tests",
+    "semantic_guards",
+    "scientific_status",
+    "integration_notes"
+  ],
+  "properties": {
+    "schema": {"const": "CB16_R11_STAGE4_TASK_RECEIPT_V1"},
+    "task_id": {"enum": ["S4A", "S4B", "S4C", "S4D", "S4E", "S4F", "S4G", "S4H", "S4I"]},
+    "status": {"enum": ["PASS", "FAIL", "BLOCKED", "NOT_RUN"]},
+    "gatework_base_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "task_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "branch": {"type": "string", "minLength": 1},
+    "owned_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "touched_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "tests": {
+      "type": "object",
+      "required": ["commands", "passed"],
+      "properties": {
+        "commands": {"type": "array", "items": {"type": "string"}},
+        "passed": {"type": "boolean"},
+        "evidence": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "semantic_guards": {
+      "type": "object",
+      "required": [
+        "semantic_freeze_unchanged",
+        "final_holdout_untouched",
+        "fresh_market_data_downloaded",
+        "historical_market_data_mutated",
+        "new_scientific_verdict",
+        "scientific_semantics_changed",
+        "replay_reinterpreted_as_new_evidence",
+        "sibling_dependency_used"
+      ],
+      "properties": {
+        "semantic_freeze_unchanged": {"const": true},
+        "final_holdout_untouched": {"const": true},
+        "fresh_market_data_downloaded": {"const": false},
+        "historical_market_data_mutated": {"const": false},
+        "new_scientific_verdict": {"const": false},
+        "scientific_semantics_changed": {"const": false},
+        "replay_reinterpreted_as_new_evidence": {"const": false},
+        "sibling_dependency_used": {"const": false}
+      }
+    },
+    "scientific_status": {"const": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"},
+    "correctness_invariants": {"type": "object"},
+    "hostile_cases": {"type": "array", "items": {"type": "object"}},
+    "known_limitations": {"type": "array", "items": {"type": "string"}},
+    "integration_notes": {"type": "array", "items": {"type": "string"}}
+  }
+}
