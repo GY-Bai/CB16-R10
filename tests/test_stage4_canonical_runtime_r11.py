@@ -121,6 +121,17 @@ def test_no_running_state_when_any_pre_worker_authority_gate_fails():
         assert "workers.start" not in fake.events
 
 
+def test_lease_assertion_failure_after_acquire_releases_authority_without_workers():
+    fake = FakeProviders()
+    fake.fail_at = "lease.assert"
+    runtime = controller(fake)
+    with pytest.raises(RuntimeError, match="synthetic:lease.assert"):
+        runtime.start()
+    assert runtime.phase is s4b.LifecyclePhase.FAILED
+    assert "workers.start" not in fake.events
+    assert fake.events[-1] == "lease.release"
+
+
 def test_partial_worker_startup_unwinds_and_releases_authority():
     fake = FakeProviders()
     fake.fail_at = "workers.start"
@@ -159,6 +170,7 @@ def test_worker_start_rejected_when_acquired_lease_does_not_match_authority():
         runtime.start()
     assert runtime.phase is s4b.LifecyclePhase.FAILED
     assert "workers.start" not in fake.events
+    assert fake.events[-1] == "lease.release"
 
 
 def test_double_start_and_illegal_shutdown_are_rejected():

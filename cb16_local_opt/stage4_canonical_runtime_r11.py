@@ -221,9 +221,12 @@ class CanonicalRuntimeControllerR11:
 
             self._advance(LifecyclePhase.ACQUIRE_AUTHORITY)
             lease = self._authority_lease.acquire_authority(binding)
+            if isinstance(lease, AuthorityLease):
+                # Record a structurally valid returned lease before deeper checks so
+                # fencing/assertion failure can still unwind acquired authority.
+                self._lease = lease
             self._validate_lease(binding, lease)
             self._authority_lease.assert_current(lease)
-            self._lease = lease
 
             context = RuntimeContext(binding=binding, recovered=recovered, lease=lease)
             self._context = context
