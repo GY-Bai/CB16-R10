@@ -1,0 +1,81 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4E",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "2f9e107e8821075865a223477472006f217482f5",
+  "branch": "ai/r11-stage4-task-e-permission-closure-r0",
+  "owned_paths": [
+    ".github/workflows/stage4_s4e_permission_closure.yml",
+    "cb16_local_opt/integration_adapters_r11.py",
+    "cb16_local_opt/stage4_permission_boundary_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4E_PERMISSION_CLOSURE_R0.md",
+    "tests/test_stage4_permission_boundary_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/stage4_s4e_permission_closure.yml",
+    "cb16_local_opt/stage4_permission_boundary_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4E_PERMISSION_CLOSURE_R0.md",
+    "tests/test_stage4_permission_boundary_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_permission_boundary_r11.py",
+      "python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root ."
+    ],
+    "passed": true,
+    "evidence": [
+      "GitHub Actions stage4-s4e-permission-closure run 34189169250: SUCCESS at task_head_sha 2f9e107e8821075865a223477472006f217482f5",
+      "Required pytest command: 15 passed in 0.03s",
+      "R11 static semantic guard: status=PASS, legacy_python_is_runtime_authority=false, scientific_semantics_changed=false"
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "truth_belief_decision_permission_separated": true,
+    "brain_outputs_action_intent_only": true,
+    "requested_risk_is_not_confidence_or_permission": true,
+    "frozen_supervisor_owns_permission": true,
+    "frozen_physics_owns_execution_and_account_transition": true,
+    "caller_supplied_supervisor_decision_rejected": true,
+    "caller_supplied_executable_action_rejected": true,
+    "caller_supplied_permission_rejected": true,
+    "caller_supplied_account_transition_rejected": true,
+    "recovery_permission_reuse_rejected": true,
+    "compatibility_conversion_is_representation_only": true,
+    "permission_minted_by_stage4": false
+  },
+  "hostile_cases": [
+    {"case": "forged_direct_executable_action_from_brain", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "forged_legacy_allowed_action", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "direct_account_transition_bypassing_supervisor", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "requested_risk_as_confidence_or_permission", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "recovery_reuses_stale_permission", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "compatibility_adapter_grants_authority", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "missing_supervisor_or_physics_authority", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "malformed_action_intent", "result": "REJECTED_FAIL_CLOSED"},
+    {"case": "legacy_object_with_privileged_looking_fields", "result": "REJECTED_FAIL_CLOSED"}
+  ],
+  "known_limitations": [
+    "S4E qualifies the permission-ingress boundary independently; final Stage-4 integration must route every production Brain, compatibility, and recovery action ingress through it before canonical cutover.",
+    "Frozen Supervisor and Physics authority modules remain unchanged and importable as upstream authority/reference code; final integration must not expose their low-level executable/physics functions as caller-facing bypass APIs.",
+    "integration_adapters_r11.py was audited but intentionally left unchanged because its exact-base surface contains persistence/control-plane adapters and no ActionIntent, Permission, execute_physics, allowed_action, or direct account-transition writer."
+  ],
+  "integration_notes": [
+    "Inspected cb16_local_opt/integration_adapters_r11.py: EvidenceStoreProtocolAdapterR11, EventJournalProtocolAdapterR11, and CheckpointStoreProtocolAdapterR11 are persistence/control-plane surfaces, not Permission owners.",
+    "Inspected authority/control_plane_r1/ACTION_INTENT_SCHEMA_V1.json and authority/control_plane_r1/risk_supervisor_r1.py as semantic/permission authority; legacy runtime implementations were not promoted to authority by reachability.",
+    "Final integration must route action ingress through FrozenPermissionBoundaryR11 (or prove an equivalent fail-closed boundary) so callers supply only ActionIntent plus state inputs; Supervisor decision, ExecutableAction, Permission, and account-transition objects must never be accepted from Brain/legacy/recovery callers.",
+    "The authoritative execution order remains supervise -> executable_action -> execute_physics; S4E does not redefine Supervisor or Physics semantics.",
+    "cb16_local_opt/integration_adapters_r11.py is exclusively reserved to S4E by Gatework but was not modified because no permission bypass existed in that adapter surface."
+  ]
+}
