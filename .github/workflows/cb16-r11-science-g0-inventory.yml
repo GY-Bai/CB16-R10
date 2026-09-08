@@ -1,9 +1,6 @@
 name: CB16 R11 Science G0 Dataset Seal
 
 on:
-  push:
-    branches:
-      - ai/r11-science-g0-historical-r0
   workflow_dispatch:
 
 permissions:
