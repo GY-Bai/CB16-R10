@@ -1,0 +1,78 @@
+{
+  "schema": "CB16_R11_STAGE4_TASK_RECEIPT_V1",
+  "task_id": "S4D",
+  "status": "PASS",
+  "gatework_base_sha": "0f18e08ec7250b9b4e45c62803c25be966834390",
+  "task_head_sha": "8977b88c4a1d3bdac0a46703f963c74c0da76fec",
+  "branch": "ai/r11-stage4-task-d-singleton-fencing-r0",
+  "owned_paths": [
+    ".github/workflows/cb16-r11-stage4-s4d-singleton-fencing.yml",
+    "cb16_local_opt/stage4_authority_lease_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4D_SINGLETON_FENCING_R0.md",
+    "tests/test_stage4_authority_lease_r11.py"
+  ],
+  "touched_paths": [
+    ".github/workflows/cb16-r11-stage4-s4d-singleton-fencing.yml",
+    "cb16_local_opt/stage4_authority_lease_r11.py",
+    "docs/CB16_R11_STAGE4_TASK_S4D_SINGLETON_FENCING_R0.md",
+    "tests/test_stage4_authority_lease_r11.py"
+  ],
+  "tests": {
+    "commands": [
+      "python -m pytest -q tests/test_stage4_gatework_r11.py tests/test_stage4_authority_lease_r11.py",
+      "python -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .",
+      "python scripts/check_r11_stage4_task_receipt.py --receipt authority/rearchitecture_r11/stage4_receipts/S4D_RECEIPT_V1.json --repo-root ."
+    ],
+    "passed": true,
+    "evidence": [
+      "Local isolated S4D hostile suite: 9 passed",
+      "GitHub Actions run 34187354300 on shanxi-cb16-wss-qualification: required Stage4 tests PASS and R11 static authority check PASS before receipt creation"
+    ]
+  },
+  "semantic_guards": {
+    "semantic_freeze_unchanged": true,
+    "final_holdout_untouched": true,
+    "fresh_market_data_downloaded": false,
+    "historical_market_data_mutated": false,
+    "new_scientific_verdict": false,
+    "scientific_semantics_changed": false,
+    "replay_reinterpreted_as_new_evidence": false,
+    "sibling_dependency_used": false
+  },
+  "scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "correctness_invariants": {
+    "single_machine_only": true,
+    "wall_clock_ttl_is_authority": false,
+    "persistent_fencing_epoch_monotonic": true,
+    "live_owner_exclusive_kernel_lock": true,
+    "pid_is_authority": false,
+    "ordinary_acquire_cannot_steal_crashed_active_state": true,
+    "dead_owner_recovery_advances_fence": true,
+    "stale_token_rejected_after_handoff": true,
+    "release_requires_current_live_fence": true
+  },
+  "hostile_cases": [
+    {"case": "two_processes_concurrent_acquire", "result": "PASS"},
+    {"case": "second_owner_denied", "result": "PASS"},
+    {"case": "same_process_double_acquire", "result": "PASS"},
+    {"case": "stale_token_after_clean_handoff", "result": "PASS"},
+    {"case": "sigkill_then_explicit_recovery", "result": "PASS"},
+    {"case": "stale_token_after_crash_recovery", "result": "PASS"},
+    {"case": "pid_reuse_does_not_authorize", "result": "PASS"},
+    {"case": "corrupt_or_missing_metadata", "result": "PASS"},
+    {"case": "wrong_fence_cannot_release", "result": "PASS"},
+    {"case": "live_owner_blocks_recovery", "result": "PASS"},
+    {"case": "symlink_metadata_rejected", "result": "PASS"}
+  ],
+  "known_limitations": [
+    "S4D qualifies only a single-host POSIX flock plus fencing primitive; it is not distributed consensus and must not be used as cross-machine authority.",
+    "S4D does not wire fencing checks into EventJournal, EvidenceStore, checkpoint, generation, Permission, or Physics/account writers; final Stage-4 integration must do so.",
+    "Canonical persistent root placement and filesystem ownership are intentionally outside S4D and must be supplied by the later state-root/integration layer."
+  ],
+  "integration_notes": [
+    "Inject one Stage4AuthorityLeaseR11 provider into the canonical runtime ownership boundary before any authoritative worker starts.",
+    "Require the current FencingTokenR11 and assert_fencing_token immediately before every authoritative mutation; never infer authority from PID, metadata inspection, or elapsed time.",
+    "On crash residue where durable state is ACTIVE but the kernel lock is free, use explicit recover_after_dead_owner; ordinary acquire must remain fail-closed.",
+    "Do not modify or reinterpret scientific lineage, Evidence, Champion/Challenger, Permission, Physics, requested-risk, or replay semantics while wiring the fence."
+  ]
+}
