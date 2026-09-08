@@ -1,9 +1,17 @@
 name: repo-guard
 on: [push, pull_request]
+
+permissions:
+  contents: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Run repository policy
         run: python3 ci/check_repository_policy.py --root .
+      - name: Enforce Shanxi gate topology
+        run: python3 ci/check_shanxi_workflow_policy.py --root .
