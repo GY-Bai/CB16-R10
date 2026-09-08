@@ -7,8 +7,8 @@ unless:
   1) the caller job depends on the canonical `shanxi-preflight` reusable job;
   2) that reusable job points at the canonical preflight workflow;
   3) the canonical preflight bytes match the pinned git blob below; and
-  4) A Repo Guard and B Node24 Guard already completed successfully in this
-     exact GitHub Actions run.
+  4) the consolidated Repo Guard, including action-runtime compatibility,
+     already completed successfully in this exact GitHub Actions run.
 
 This hook intentionally has no repository write capability.
 """
@@ -26,8 +26,8 @@ EXPECTED_REPOSITORY = "GY-Bai/CB16-R10"
 PREFLIGHT_JOB_ID = "shanxi-preflight"
 PREFLIGHT_PATH = ".github/workflows/_cb16-shanxi-preflight.yml"
 PREFLIGHT_USES = "./.github/workflows/_cb16-shanxi-preflight.yml"
-PREFLIGHT_GIT_BLOB_SHA = "73bb2e190afbee054018d1f3779430499eb3e226"
-REQUIRED_GATE_NAMES = ("A Repo Guard", "B Node24 Guard")
+PREFLIGHT_GIT_BLOB_SHA = "2c663a822e3480e9230f73e9c81409ce906d6a57"
+REQUIRED_GATE_NAME = "Repo Guard"
 
 
 def fail(code: str, detail: str = "") -> None:
@@ -191,13 +191,7 @@ def main() -> int:
         fail("PREFLIGHT_BLOB_MISMATCH", actual_blob)
 
     jobs = _jobs(repo, run_id)
-    gate_a = _gate_job(jobs, REQUIRED_GATE_NAMES[0])
-    gate_b = _gate_job(jobs, REQUIRED_GATE_NAMES[1])
-
-    a_done = str(gate_a.get("completed_at") or "")
-    b_start = str(gate_b.get("started_at") or "")
-    if not a_done or not b_start or b_start < a_done:
-        fail("GATE_ORDER_INVALID", f"A_done={a_done} B_start={b_start}")
+    _gate_job(jobs, REQUIRED_GATE_NAME)
 
     print(
         "CB16_SHANXI_PRE_JOB_GATE=PASS "

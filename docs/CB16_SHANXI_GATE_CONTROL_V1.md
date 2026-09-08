@@ -2,13 +2,15 @@
 
 ## Invariant
 
-No GitHub Actions job may execute CB16 business/qualification steps on either Shanxi self-hosted runner unless the same workflow run has already completed, in order:
+No GitHub Actions job may execute CB16 business/qualification steps on either Shanxi self-hosted runner unless the same workflow run has already completed the canonical **Repo Guard** on a GitHub-hosted runner.
 
-1. **A Repo Guard** on a GitHub-hosted runner;
-2. **B Node24 Guard** on a GitHub-hosted runner;
-3. only then **C**, the Shanxi self-hosted job.
+The Repo Guard is one visible gate and internally performs all required checks:
 
-A or B failure means C is not eligible to start.
+1. repository sensitive-content / secret / forbidden-artifact policy;
+2. Shanxi workflow topology and read-only execution policy;
+3. GitHub Actions runtime compatibility policy, including `actions/checkout@v6` and rejection of insecure/legacy Node-version opt-outs.
+
+Only after the consolidated Guard succeeds may **C**, the Shanxi self-hosted job, become eligible to start.
 
 This applies independently of the event source (`push`, `pull_request`, `workflow_dispatch`, or another supported trigger).
 
@@ -28,9 +30,11 @@ jobs:
     runs-on: [self-hosted, shanxi, <runner-profile>]
 ```
 
-The reusable preflight owns A -> B ordering. Business workflows do not reimplement either gate.
+The reusable preflight owns the consolidated Guard. Business workflows do not reimplement or bypass its checks.
 
 ## Repository-side fail-closed policy
+
+`ci/check_repository_policy.py` scans for forbidden model/data artifacts, oversize files, environment files, private keys, GitHub tokens, AWS keys, and other secret patterns.
 
 `ci/check_shanxi_workflow_policy.py` rejects workflows that:
 
@@ -41,9 +45,11 @@ The reusable preflight owns A -> B ordering. Business workflows do not reimpleme
 - contain direct repository mutation commands in a self-hosted job;
 - use dynamic `runs-on` expressions, which could hide a self-hosted target.
 
-The normal repo guard runs this topology policy on every push/PR.
+`ci/check_node24_actions_policy.py` is a Guard sub-check, not a standalone gate. It enforces current action/runtime compatibility, including `actions/checkout@v6`, current artifact action generations, and rejection of insecure Node-version opt-outs.
 
-The canonical preflight pins the git blob identities of both the repository policy and the Shanxi topology policy before executing them. A task branch cannot silently weaken the gate implementation and still pass A.
+The normal `repo-guard` workflow runs all three policies on every push/PR. The Shanxi reusable preflight runs the same policies before any self-hosted business job.
+
+The canonical preflight pins the git blob identities of the Guard policy sources before executing them. A task branch cannot silently weaken the Guard implementation and still pass the canonical preflight.
 
 ## Host-side non-bypass boundary
 
@@ -62,9 +68,9 @@ The hook is synchronous and runs after GitHub assigns a job but before workflow 
 - the current direct caller job declares `needs: shanxi-preflight`;
 - `shanxi-preflight` calls the canonical reusable workflow;
 - the reusable preflight matches the pinned git blob identity;
-- exactly one `A Repo Guard` job completed successfully in the same run;
-- exactly one `B Node24 Guard` job completed successfully in the same run;
-- B started only after A completed.
+- exactly one consolidated `Repo Guard` job completed successfully in the same run.
+
+Because the preflight blob itself is pinned, successful completion of that single Guard proves that sensitive-content, topology, and action-runtime compatibility checks all executed as part of the same guarded definition.
 
 The installed copy is host authority. It must not be executed from the mutable repository checkout.
 
@@ -112,7 +118,7 @@ For Shanxi jobs:
 
 Task/sub-agents do not own CI orchestration. They may add implementation code, tests, scripts, receipts, and documentation, but must not create an alternative self-hosted execution path.
 
-A task requiring a new runner behavior must extend the central CI authority rather than bypassing A/B.
+A task requiring a new runner behavior must extend the central CI authority rather than bypassing the Guard.
 
 ## Stage-4 receipt preservation
 
