@@ -87,48 +87,26 @@ jobs:
               '''    failures: list[str] = []\n    try:\n        if not measurement_ready:\n            failures.append("measurement_ready_marker_missing")\n        if workload_rc != 0:\n''',
               'supervisor-ready-failure',
           )
-
-          smoke='.github/workflows/cb16-r11-stage2-performance-smoke.yml'
-          replace_once(
-              smoke,
-              '''          GPU_LOG="$GITHUB_WORKSPACE/ci_evidence/gpu_samples.txt"\n          : > "$GPU_LOG"\n          (\n            while true; do\n              nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -1 >> "$GPU_LOG" || true\n              sleep 1\n            done\n          ) &\n          GPUPID=$!\n''',
-              '''          GPU_LOG="$GITHUB_WORKSPACE/ci_evidence/gpu_samples.txt"\n          cat > ci_evidence/gpu_sampler.py <<'PY'\n          import subprocess, time\n          while True:\n              try:\n                  out=subprocess.check_output(\n                      ['nvidia-smi','--query-gpu=utilization.gpu','--format=csv,noheader,nounits'],\n                      text=True, stderr=subprocess.DEVNULL, timeout=1.0,\n                  ).strip().splitlines()[0]\n                  print(f"{time.monotonic():.9f} {float(out):.6f}", flush=True)\n              except Exception:\n                  pass\n              time.sleep(0.25)\n          PY\n          "$PY" -u ci_evidence/gpu_sampler.py > "$GPU_LOG" &\n          GPUPID=$!\n''',
-              'smoke-timestamped-gpu-sampler',
-          )
-          replace_once(
-              smoke,
-              '''          export CB16_R11_BURST_CORRECTNESS_JSON="$GITHUB_WORKSPACE/ci_evidence/smoke_correctness.json"\n          export CB16_R11_BURST_WORK_ROOT="$GITHUB_WORKSPACE/ci_evidence/smoke-control"\n''',
-              '''          export CB16_R11_BURST_CORRECTNESS_JSON="$GITHUB_WORKSPACE/ci_evidence/smoke_correctness.json"\n          export CB16_R11_BURST_READY_MARKER="$GITHUB_WORKSPACE/ci_evidence/measurement_ready.json"\n          export CB16_R11_BURST_WORK_ROOT="$GITHUB_WORKSPACE/ci_evidence/smoke-control"\n''',
-              'smoke-ready-env',
-          )
-          replace_once(
-              smoke,
-              '''          rows=[json.loads(x) for x in Path('ci_evidence/smoke_telemetry.jsonl').read_text().splitlines() if x.strip()]\n          assert len(rows) >= 20, len(rows)\n          first,last=rows[0],rows[-1]\n          fsync_stall=float(last['fsync_stall_seconds'])-float(first['fsync_stall_seconds'])\n          assert fsync_stall <= 4.5, fsync_stall\n\n          gpu=[]\n          for raw in Path('ci_evidence/gpu_samples.txt').read_text().splitlines():\n              try: gpu.append(float(raw.strip()))\n              except ValueError: pass\n          assert len(gpu) >= 20, len(gpu)\n          avg=statistics.fmean(gpu)\n          idle=sum(v <= 1.0 for v in gpu)/len(gpu)\n          # Smoke floors are deliberately lower than qualification floors; this gate only\n          # rejects obvious starvation/regression before spending 420 measured seconds.\n          assert avg >= 15.0, avg\n          assert idle <= 0.70, idle\n''',
-              '''          marker=json.load(open('ci_evidence/measurement_ready.json'))\n          assert marker['schema']=='CB16_R11_STAGE2_BURST_MEASUREMENT_READY_V1'\n          measured_start=float(marker['monotonic_seconds'])\n          measured_end=measured_start+float(marker['measured_seconds'])\n          all_rows=[json.loads(x) for x in Path('ci_evidence/smoke_telemetry.jsonl').read_text().splitlines() if x.strip()]\n          rows=[r for r in all_rows if measured_start <= float(r['monotonic_seconds']) <= measured_end]\n          assert len(rows) >= 70, len(rows)\n          first,last=rows[0]['counters'],rows[-1]['counters']\n          fsync_stall=float(last['fsync_stall_seconds'])-float(first['fsync_stall_seconds'])\n          assert fsync_stall <= 4.5, fsync_stall\n\n          gpu=[]\n          for raw in Path('ci_evidence/gpu_samples.txt').read_text().splitlines():\n              try:\n                  t,value=raw.split()\n                  t=float(t); value=float(value)\n              except ValueError:\n                  continue\n              if measured_start <= t <= measured_end:\n                  gpu.append(value)\n          assert len(gpu) >= 200, len(gpu)\n          avg=statistics.fmean(gpu)\n          idle=sum(v <= 5.0 for v in gpu)/len(gpu)\n          # Use the same starvation floors as the 420-second qualification.\n          assert avg >= 20.0, avg\n          assert idle <= 0.75, idle\n''',
-              'smoke-active-window-gate',
-          )
           PY
 
-      - name: Validate patch scope and syntax
+      - name: Validate runtime patch scope and syntax
         shell: bash
         run: |
           set -euo pipefail
           python3 -m py_compile scripts/run_r11_stage2_integration_burst.py scripts/run_r11_stage2_burst_qualification.py
           changed="$(git diff --name-only | sort)"
-          expected="$(printf '%s\n' '.github/workflows/cb16-r11-stage2-performance-smoke.yml' 'scripts/run_r11_stage2_burst_qualification.py' 'scripts/run_r11_stage2_integration_burst.py' | sort)"
+          expected="$(printf '%s\n' 'scripts/run_r11_stage2_burst_qualification.py' 'scripts/run_r11_stage2_integration_burst.py' | sort)"
           test "$changed" = "$expected" || { echo "UNEXPECTED_PATCH_FILES=$changed" >&2; exit 77; }
           grep -F 'CB16_R11_STAGE2_BURST_MEASUREMENT_READY_V1' scripts/run_r11_stage2_integration_burst.py >/dev/null
           grep -F 'CB16_R11_BURST_READY_MARKER' scripts/run_r11_stage2_burst_qualification.py >/dev/null
-          grep -F 'measured_start <= t <= measured_end' .github/workflows/cb16-r11-stage2-performance-smoke.yml >/dev/null
           git diff --check
-          git diff --stat
 
-      - name: Commit measured-window separation
+      - name: Commit runtime measured-window separation
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/run_r11_stage2_integration_burst.py scripts/run_r11_stage2_burst_qualification.py .github/workflows/cb16-r11-stage2-performance-smoke.yml
+          git add scripts/run_r11_stage2_integration_burst.py scripts/run_r11_stage2_burst_qualification.py
           git commit -m 'perf(r11): start Stage-2 metrics only after correctness prelude'
           git push origin HEAD:ai/r11-stage2-integration-r1
