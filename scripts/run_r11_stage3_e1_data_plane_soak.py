@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from cb16_local_opt.io_runtime_r11 import ImmutableEvidenceObjectR11
 from cb16_local_opt.stage3_e1_endurance_r11 import (
     CounterSnapshot, E1Config, E1Failure, LinuxResourceSampler,
     PersistentTeacherReplayR11, SCHEMA, atomic_json, make_report,
@@ -210,7 +211,7 @@ def run() -> int:
     )
     io_runtime_identity = id(io_runtime)
     io_logical_bytes_per_replay = sum(
-        len(b.ImmutableEvidenceObjectR11.from_item(x).payload_bytes) for x in evidence_items
+        len(ImmutableEvidenceObjectR11.from_item(x).payload_bytes) for x in evidence_items
     )
     for rows in b._batch(evidence_items, 128):
         ticket = io_runtime.submit_evidence(rows, timeout=30)
@@ -327,7 +328,7 @@ def run() -> int:
             last_fsync_ms = (time.monotonic() - t0) * 1000.0
             replay_created_payloads += int(result.receipt.created_payload_count)
             replay_created_evidence += int(result.receipt.created_evidence_count)
-            logical = sum(len(b.ImmutableEvidenceObjectR11.from_item(x).payload_bytes) for x in rows)
+            logical = sum(len(ImmutableEvidenceObjectR11.from_item(x).payload_bytes) for x in rows)
             counters = CounterSnapshot(**{
                 **asdict(counters),
                 "io_requests": counters.io_requests + 1,
