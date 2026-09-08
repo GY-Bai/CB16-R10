@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CB16_R11_STAGE4_HOSTILE_CUTOVER_REPORT_SCHEMA_V1",
+  "title": "CB16 R11 Stage-4 S4H Hostile Cutover Harness Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "matrix_schema",
+    "status",
+    "harness_qualified",
+    "integrated_runtime_qualified",
+    "scientific_status",
+    "semantic_freeze_blob",
+    "case_count",
+    "passed_cases",
+    "failed_cases",
+    "invariants",
+    "cases"
+  ],
+  "properties": {
+    "schema": {"const": "CB16_R11_STAGE4_HOSTILE_CUTOVER_REPORT_V1"},
+    "matrix_schema": {"const": "CB16_R11_STAGE4_HOSTILE_CUTOVER_MATRIX_V1"},
+    "status": {"enum": ["PASS", "FAIL"]},
+    "harness_qualified": {"type": "boolean"},
+    "integrated_runtime_qualified": {"const": false},
+    "scientific_status": {"const": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"},
+    "semantic_freeze_blob": {"const": "3c401a0a350984381912f7860181e3e96eb8d7cf"},
+    "case_count": {"type": "integer", "minimum": 20},
+    "passed_cases": {"type": "integer", "minimum": 0},
+    "failed_cases": {"type": "integer", "minimum": 0},
+    "invariants": {
+      "type": "array",
+      "minItems": 9,
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "title",
+          "category",
+          "passed",
+          "observed",
+          "invariants",
+          "before",
+          "after"
+        ],
+        "properties": {
+          "case_id": {"pattern": "^H[0-9]{2}$", "type": "string"},
+          "title": {"type": "string", "minLength": 1},
+          "category": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "observed": {"type": "array", "items": {"type": "string"}},
+          "invariants": {
+            "type": "object",
+            "additionalProperties": {"type": "boolean"}
+          },
+          "before": {"type": "object"},
+          "after": {"type": "object"}
+        }
+      }
+    }
+  }
+}
