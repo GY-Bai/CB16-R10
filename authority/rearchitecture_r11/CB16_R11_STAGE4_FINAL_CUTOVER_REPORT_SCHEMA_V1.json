@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CB16_R11_STAGE4_FINAL_CUTOVER_REPORT_SCHEMA_V1",
+  "title": "CB16 R11 Stage4 Final Consolidated Cutover Report V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "verdict",
+    "integration_seed_sha",
+    "consolidation_head_sha",
+    "scientific_status",
+    "accepted_integration_receipts",
+    "qualification_gates",
+    "writer_registry",
+    "hostile_matrix",
+    "canonical_machine_smoke",
+    "semantic_guards",
+    "reserved_verdict_issuer"
+  ],
+  "properties": {
+    "schema": {"const": "CB16_R11_STAGE4_FINAL_CUTOVER_REPORT_V1"},
+    "verdict": {"enum": ["R11_CANONICAL_AUTHORITY_CUTOVER_QUALIFIED", "FAIL_CLOSED"]},
+    "integration_seed_sha": {"const": "86a4ac8a9080cd8382600cb998059e9585495a11"},
+    "consolidation_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "scientific_status": {"const": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"},
+    "accepted_integration_receipts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["INTA", "INTB", "INTC", "INTD", "INTE", "INTF", "INTG", "INTH"],
+      "properties": {
+        "INTA": {"$ref": "#/$defs/receipt_identity"},
+        "INTB": {"$ref": "#/$defs/receipt_identity"},
+        "INTC": {"$ref": "#/$defs/receipt_identity"},
+        "INTD": {"$ref": "#/$defs/receipt_identity"},
+        "INTE": {"$ref": "#/$defs/receipt_identity"},
+        "INTF": {"$ref": "#/$defs/receipt_identity"},
+        "INTG": {"$ref": "#/$defs/receipt_identity"},
+        "INTH": {"$ref": "#/$defs/receipt_identity"}
+      }
+    },
+    "qualification_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "all_accepted_integration_receipts",
+        "exact_seed_ancestry",
+        "controlled_consolidation_only",
+        "semantic_freeze_exact",
+        "scientific_status_unchanged",
+        "s4a_writer_registry_rebuilt_and_reaudited_at_final_head",
+        "unknown_authority_zero",
+        "all_stage4_integration_correctness_tests_pass",
+        "real_s4h_h01_h20_against_consolidated_runtime",
+        "exactly_one_live_canonical_authority_writer",
+        "stale_writer_cannot_mutate",
+        "legacy_writer_cannot_mutate",
+        "permission_cannot_be_bypassed",
+        "replay_cannot_become_new_evidence",
+        "short_canonical_machine_startup_steady_drain_shutdown_pass",
+        "fp32_canonical",
+        "amp_false",
+        "final_holdout_2025_09_untouched",
+        "no_fresh_market_data",
+        "no_new_scientific_verdict",
+        "long_endurance_not_required"
+      ],
+      "properties": {
+        "all_accepted_integration_receipts": {"type": "boolean"},
+        "exact_seed_ancestry": {"type": "boolean"},
+        "controlled_consolidation_only": {"type": "boolean"},
+        "semantic_freeze_exact": {"type": "boolean"},
+        "scientific_status_unchanged": {"type": "boolean"},
+        "s4a_writer_registry_rebuilt_and_reaudited_at_final_head": {"type": "boolean"},
+        "unknown_authority_zero": {"type": "boolean"},
+        "all_stage4_integration_correctness_tests_pass": {"type": "boolean"},
+        "real_s4h_h01_h20_against_consolidated_runtime": {"type": "boolean"},
+        "exactly_one_live_canonical_authority_writer": {"type": "boolean"},
+        "stale_writer_cannot_mutate": {"type": "boolean"},
+        "legacy_writer_cannot_mutate": {"type": "boolean"},
+        "permission_cannot_be_bypassed": {"type": "boolean"},
+        "replay_cannot_become_new_evidence": {"type": "boolean"},
+        "short_canonical_machine_startup_steady_drain_shutdown_pass": {"type": "boolean"},
+        "fp32_canonical": {"type": "boolean"},
+        "amp_false": {"type": "boolean"},
+        "final_holdout_2025_09_untouched": {"type": "boolean"},
+        "no_fresh_market_data": {"type": "boolean"},
+        "no_new_scientific_verdict": {"type": "boolean"},
+        "long_endurance_not_required": {"type": "boolean"}
+      }
+    },
+    "writer_registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rebuilt_at_head", "unknown_authority_count", "report_identity"],
+      "properties": {
+        "rebuilt_at_head": {"type": "boolean"},
+        "unknown_authority_count": {"type": "integer"},
+        "report_identity": {"type": "string", "minLength": 1}
+      }
+    },
+    "hostile_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_schema", "integrated_runtime_qualification_claimed", "h01_h20_all_passed"],
+      "properties": {
+        "report_schema": {"const": "CB16_R11_STAGE4_HOSTILE_CUTOVER_REPORT_V1"},
+        "integrated_runtime_qualification_claimed": {"type": "boolean"},
+        "h01_h20_all_passed": {"type": "boolean"}
+      }
+    },
+    "canonical_machine_smoke": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runner_labels", "python_resolution_status", "python_resolution_mode", "numeric_mode", "amp", "lifecycle_passed", "long_endurance_run"],
+      "properties": {
+        "runner_labels": {"const": ["self-hosted", "shanxi", "cb16-wss-qualification"]},
+        "python_resolution_status": {"const": "READY"},
+        "python_resolution_mode": {"const": "VERIFIED_CANONICAL_R104_VENV_REUSE"},
+        "numeric_mode": {"const": "FP32"},
+        "amp": {"const": false},
+        "lifecycle_passed": {"type": "boolean"},
+        "long_endurance_run": {"const": false}
+      }
+    },
+    "semantic_guards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semantic_freeze_unchanged", "final_holdout_untouched", "fresh_market_data_downloaded", "historical_market_data_mutated", "new_scientific_verdict", "scientific_semantics_changed", "replay_reinterpreted_as_new_evidence"],
+      "properties": {
+        "semantic_freeze_unchanged": {"const": true},
+        "final_holdout_untouched": {"const": true},
+        "fresh_market_data_downloaded": {"const": false},
+        "historical_market_data_mutated": {"const": false},
+        "new_scientific_verdict": {"const": false},
+        "scientific_semantics_changed": {"const": false},
+        "replay_reinterpreted_as_new_evidence": {"const": false}
+      }
+    },
+    "reserved_verdict_issuer": {"const": "FINAL_CONSOLIDATED_ADJUDICATOR_ONLY"}
+  },
+  "$defs": {
+    "receipt_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_head_sha", "receipt_commit_sha", "branch"],
+      "properties": {
+        "task_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "receipt_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "branch": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

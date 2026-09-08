@@ -1,0 +1,78 @@
+{
+  "integration_seed_sha": "86a4ac8a9080cd8382600cb998059e9585495a11",
+  "semantic_freeze_blob_sha": "3c401a0a350984381912f7860181e3e96eb8d7cf",
+  "tasks": [
+    {
+      "task_id": "INTA",
+      "branch": "ai/r11-stage4-int-a-runtime-spine-r0",
+      "task_head_sha": "0000000000000000000000000000000000000001",
+      "receipt_commit_sha": "0000000000000000000000000000000000000065",
+      "touched_paths": [
+        "integration_synthetic/inta_new.txt"
+      ]
+    },
+    {
+      "task_id": "INTB",
+      "branch": "ai/r11-stage4-int-b-persistence-fencing-r0",
+      "task_head_sha": "0000000000000000000000000000000000000002",
+      "receipt_commit_sha": "0000000000000000000000000000000000000066",
+      "touched_paths": [
+        "cb16_local_opt/integration_adapters_r11.py"
+      ]
+    },
+    {
+      "task_id": "INTC",
+      "branch": "ai/r11-stage4-int-c-engine-authority-r0",
+      "task_head_sha": "0000000000000000000000000000000000000003",
+      "receipt_commit_sha": "0000000000000000000000000000000000000067",
+      "touched_paths": [
+        "integration_synthetic/intc_new.txt"
+      ]
+    },
+    {
+      "task_id": "INTD",
+      "branch": "ai/r11-stage4-int-d-permission-execution-r0",
+      "task_head_sha": "0000000000000000000000000000000000000004",
+      "receipt_commit_sha": "0000000000000000000000000000000000000068",
+      "touched_paths": [
+        "integration_synthetic/intd_new.txt"
+      ]
+    },
+    {
+      "task_id": "INTE",
+      "branch": "ai/r11-stage4-int-e-adoption-recovery-r0",
+      "task_head_sha": "0000000000000000000000000000000000000005",
+      "receipt_commit_sha": "0000000000000000000000000000000000000069",
+      "touched_paths": [
+        "integration_synthetic/inte_new.txt"
+      ]
+    },
+    {
+      "task_id": "INTF",
+      "branch": "ai/r11-stage4-int-f-worker-lifecycle-r0",
+      "task_head_sha": "0000000000000000000000000000000000000006",
+      "receipt_commit_sha": "000000000000000000000000000000000000006a",
+      "touched_paths": [
+        "integration_synthetic/intf_new.txt"
+      ]
+    },
+    {
+      "task_id": "INTG",
+      "branch": "ai/r11-stage4-int-g-hostile-harness-r0",
+      "task_head_sha": "0000000000000000000000000000000000000007",
+      "receipt_commit_sha": "000000000000000000000000000000000000006b",
+      "touched_paths": [
+        "integration_synthetic/intg_new.txt"
+      ]
+    },
+    {
+      "task_id": "INTH",
+      "branch": "ai/r11-stage4-int-h-final-gates-r0",
+      "task_head_sha": "0000000000000000000000000000000000000008",
+      "receipt_commit_sha": "000000000000000000000000000000000000006c",
+      "touched_paths": [
+        "integration_synthetic/inth_new.txt"
+      ]
+    }
+  ]
+}

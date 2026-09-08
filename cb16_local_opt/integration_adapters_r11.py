@@ -4,11 +4,15 @@ from __future__ import annotations
 
 The adapters do not change scientific evidence, Teacher, Physics, training, or
 Champion/Challenger meaning. They persist only control-plane references and barriers.
+
+Stage-4 integration may inject a fail-closed mutation guard. The guard is optional so
+existing qualification/reference behavior remains unchanged. When supplied it is called
+again at the concrete protocol-adapter mutation boundary immediately before the write.
 """
 
 import json
 import time
-from typing import Any
+from typing import Any, Callable
 
 from .runtime_events_r11 import (
     CheckpointSeal,
@@ -25,6 +29,8 @@ from .runtime_events_r11 import (
     semantic_hash,
 )
 from .event_journal_r11 import EventItemR11
+
+MutationGuardR11 = Callable[[str], None]
 
 
 def _json_bytes(obj: Any) -> bytes:
@@ -151,16 +157,26 @@ def _checkpoint_from_obj(x: dict[str, Any]) -> CheckpointSeal:
     )
 
 
-class EvidenceStoreProtocolAdapterR11:
+class _MutationGuardMixinR11:
+    _mutation_guard: MutationGuardR11 | None
+
+    def _assert_mutation(self, operation: str) -> None:
+        if self._mutation_guard is not None:
+            self._mutation_guard(operation)
+
+
+class EvidenceStoreProtocolAdapterR11(_MutationGuardMixinR11):
     """Persist E's scientific references inside Task D's metadata SQLite.
 
     The underlying payload hash remains an external content address. This adapter
     does not manufacture, transform, or relabel the evidence payload.
     """
 
-    def __init__(self, store: Any):
+    def __init__(self, store: Any, *, mutation_guard: MutationGuardR11 | None = None):
         self.store = store
         self.conn = store.conn
+        self._mutation_guard = mutation_guard
+        self._assert_mutation("evidence.adapter_schema")
         self.conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS orchestrator_evidence_refs(
@@ -184,6 +200,7 @@ class EvidenceStoreProtocolAdapterR11:
         obj = _evidence_obj(evidence)
         raw = _json_bytes(obj)
         sem = semantic_hash(obj)
+        self._assert_mutation(f"evidence.put_once.begin:{evidence.evidence_id}")
         self.conn.execute("BEGIN IMMEDIATE")
         try:
             old = self.conn.execute(
@@ -195,6 +212,7 @@ class EvidenceStoreProtocolAdapterR11:
                 if str(old[1]) != sem or bytes(old[2]) != raw:
                     return StoreReceipt(evidence.evidence_id, str(old[0]), True, False)
                 return StoreReceipt(evidence.evidence_id, evidence.payload_hash, True, False)
+            self._assert_mutation(f"evidence.put_once.insert:{evidence.evidence_id}")
             self.conn.execute(
                 "INSERT INTO orchestrator_evidence_refs VALUES(?,?,?,?,?)",
                 (evidence.evidence_id, evidence.payload_hash, sem, raw, time.time()),
@@ -222,6 +240,7 @@ class EvidenceStoreProtocolAdapterR11:
         obj = _snapshot_obj(seal)
         raw = _json_bytes(obj)
         sem = semantic_hash(obj)
+        self._assert_mutation(f"evidence.seal_snapshot.begin:{seal.snapshot_id}")
         self.conn.execute("BEGIN IMMEDIATE")
         try:
             old = self.conn.execute(
@@ -233,6 +252,7 @@ class EvidenceStoreProtocolAdapterR11:
                     raise RuntimeError(f"R11_ADAPTER_SNAPSHOT_CONFLICT:{seal.snapshot_id}")
                 self.conn.execute("COMMIT")
                 return seal
+            self._assert_mutation(f"evidence.seal_snapshot.insert:{seal.snapshot_id}")
             self.conn.execute(
                 "INSERT INTO orchestrator_snapshots VALUES(?,?,?,?,?)",
                 (seal.snapshot_id, seal.snapshot_hash, sem, raw, time.time()),
@@ -252,14 +272,15 @@ class EvidenceStoreProtocolAdapterR11:
         return None if row is None else _snapshot_from_obj(json.loads(bytes(row[0])))
 
 
-class EventJournalProtocolAdapterR11:
+class EventJournalProtocolAdapterR11(_MutationGuardMixinR11):
     """Persist RuntimeEvent exactly once through Task D's SQLite event journal."""
 
     EVENT_TYPE_PREFIX = "ORCH:"
 
-    def __init__(self, journal: Any):
+    def __init__(self, journal: Any, *, mutation_guard: MutationGuardR11 | None = None):
         self.journal = journal
         self.conn = journal.conn
+        self._mutation_guard = mutation_guard
 
     def append_once(self, event: RuntimeEvent) -> JournalReceipt:
         payload = _runtime_event_obj(event)
@@ -272,6 +293,7 @@ class EventJournalProtocolAdapterR11:
             lineage_hash=event.payload_hash,
             payload=payload,
         )
+        self._assert_mutation(f"journal.append_once:{event.kind.value}:{event.event_id}")
         self.journal.seal_trace_batch([item], trace_batch_id=f"ORCH-EVENT:{event.event_id}")
         row = self.conn.execute("SELECT rowid FROM events WHERE event_id=?", (event.event_id,)).fetchone()
         if row is None:
@@ -289,16 +311,18 @@ class EventJournalProtocolAdapterR11:
         return out
 
 
-class CheckpointStoreProtocolAdapterR11:
+class CheckpointStoreProtocolAdapterR11(_MutationGuardMixinR11):
     """Bind tournament control commits to real content-addressed tensor objects.
 
     Production invariant: Champion/Challenger IDs are their semantic tensor hashes.
     This removes a second mutable naming layer from the promotion barrier.
     """
 
-    def __init__(self, store: Any):
+    def __init__(self, store: Any, *, mutation_guard: MutationGuardR11 | None = None):
         self.store = store
         self.conn = store.conn
+        self._mutation_guard = mutation_guard
+        self._assert_mutation("checkpoint.adapter_schema")
         self.conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS orchestrator_commits(
@@ -348,6 +372,7 @@ class CheckpointStoreProtocolAdapterR11:
         )
         raw = _json_bytes(_commit_obj(receipt))
         sem = semantic_hash(_commit_obj(receipt))
+        self._assert_mutation(f"checkpoint.atomic_commit.begin:{proposal.generation}")
         self.conn.execute("BEGIN IMMEDIATE")
         try:
             old = self.conn.execute(
@@ -360,6 +385,7 @@ class CheckpointStoreProtocolAdapterR11:
                     raise RuntimeError(f"R11_ADAPTER_TOURNAMENT_COMMIT_CONFLICT:{proposal.generation}")
                 self.conn.execute("COMMIT")
                 return existing
+            self._assert_mutation(f"checkpoint.atomic_commit.insert:{proposal.generation}")
             self.conn.execute(
                 "INSERT INTO orchestrator_commits VALUES(?,?,?,?)",
                 (int(proposal.generation), sem, raw, time.time()),
@@ -391,6 +417,7 @@ class CheckpointStoreProtocolAdapterR11:
         obj = _checkpoint_obj(seal)
         raw = _json_bytes(obj)
         sem = semantic_hash(obj)
+        self._assert_mutation(f"checkpoint.seal_checkpoint.begin:{seal.generation}")
         self.conn.execute("BEGIN IMMEDIATE")
         try:
             old = self.conn.execute(
@@ -403,6 +430,7 @@ class CheckpointStoreProtocolAdapterR11:
                     raise RuntimeError(f"R11_ADAPTER_CHECKPOINT_CONFLICT:{seal.generation}")
                 self.conn.execute("COMMIT")
                 return existing
+            self._assert_mutation(f"checkpoint.seal_checkpoint.insert:{seal.generation}")
             self.conn.execute(
                 "INSERT INTO orchestrator_checkpoint_seals VALUES(?,?,?,?)",
                 (int(seal.generation), sem, raw, time.time()),
@@ -423,6 +451,7 @@ class CheckpointStoreProtocolAdapterR11:
 
 
 __all__ = [
+    "MutationGuardR11",
     "EvidenceStoreProtocolAdapterR11",
     "EventJournalProtocolAdapterR11",
     "CheckpointStoreProtocolAdapterR11",
