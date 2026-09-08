@@ -2,7 +2,7 @@
   "schema": "CB16_R11_STAGE2_PERFORMANCE_SMOKE_TRIGGER_V1",
   "armed": true,
   "qualification_branch": "ai/r11-stage2-integration-r1",
-  "source_commit": "ca67ffcfc7de508d02648cf48568d056b9973ef9",
-  "rerun_nonce": "measurement-window-v2",
-  "purpose": "Run the 90-second marker-based real-machine performance smoke after correctness/prelude separation and before any 420-second burst rerun."
+  "source_commit": "995a0a6666849dce3527f834d0262bcbcedbad67",
+  "rerun_nonce": "throughput-first-v3",
+  "purpose": "Run the 90-second marker-based real-machine smoke with throughput regression floors and GPU-starvation canaries before any 420-second burst rerun."
 }
