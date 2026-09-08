@@ -1,0 +1,112 @@
+name: CB16 R11 Science G0 Strong-Lineage Cache
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-historical-r0
+    paths:
+      - scripts/r11_science_g0_materialize_cache.py
+      - .github/workflows/cb16-r11-science-g0-materialize-cache.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  materialize:
+    name: Seal raw data and materialize 10-asset cache
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify R11 science ancestry, freeze, and builder blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git hash-object cb16_local_opt/r102_market.py)" = "f3ea90f99565a36135da123ef0034057534eb40e"
+          test "$(git hash-object cb16_local_opt/binance_archive_input_r10.py)" = "b0d6dc8599d47b8697d5775aabcf5f4029d6b775"
+          test "$(git hash-object cb16_local_opt/r102_common.py)" = "87a28afe7a42aa3fadd999d1dc0acecd35c03a39"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out /tmp/cb16_r11_g0_python.json
+          python3 - <<'PY'
+          import json
+          p=json.load(open('/tmp/cb16_r11_g0_python.json'))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          PY
+
+      - name: Recompute canonical raw dataset seal
+        env:
+          CB16_G0_SEAL_OUT: /tmp/cb16_r11_science_g0_dataset_seal.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - <<'PY'
+          import json
+          p=json.load(open('/tmp/cb16_r11_g0_python.json'))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" scripts/r11_science_g0_seal.py
+          "$PYTHON" - <<'PY'
+          import json
+          p=json.load(open('/tmp/cb16_r11_science_g0_dataset_seal.json'))
+          assert p['canonical_seal_sha256'] == '94bc3288a7e6097c4301c93d836607edee207ac3b2c7cf3e7833c85ea0f9546a', p['canonical_seal_sha256']
+          assert p['holdout_payload_files_opened'] == 0
+          assert p['network_reads'] == 0
+          assert p['writes_under_dataset_root'] == 0
+          PY
+
+      - name: Materialize R11 G0 strong-lineage 10-asset cache
+        env:
+          CB16_G0_SEAL_IN: /tmp/cb16_r11_science_g0_dataset_seal.json
+          CB16_R11_G0_ROOT: /data/cb16_hdd/cb16_runtime/R11/G0
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - <<'PY'
+          import json
+          p=json.load(open('/tmp/cb16_r11_g0_python.json'))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PYTHON" scripts/r11_science_g0_materialize_cache.py
+
+      - name: Show compact lineage receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          p='/data/cb16_hdd/cb16_runtime/R11/G0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json'
+          x=json.load(open(p))
+          print(json.dumps({
+            'status':x['status'],
+            'dataset_seal_sha256':x['dataset_seal_sha256'],
+            'lineage_identity_sha256':x['lineage_identity_sha256'],
+            'asset_count':len(x['per_asset']),
+            'symbols':x['symbols'],
+            'stride_hours':x['stride_hours'],
+            'prehistory_hours':x['prehistory_hours'],
+            'final_holdout_payload_opened':x['final_holdout_payload_opened'],
+            'network_reads':x['network_reads'],
+          }, indent=2, sort_keys=True))
+          PY
