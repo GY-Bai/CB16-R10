@@ -21,7 +21,8 @@ FORBIDDEN_HOST_PATHS = (
     "/cb16_r11_runtime",
 )
 
-DEPLOYED_PROVISION_ENV = Path("/run/secrets/provision.env")
+WORKER_PROVISION_ENV = Path("/cb16/worker/provision.env")
+SECRETS_PROVISION_ENV = Path("/run/secrets/provision.env")
 LEGACY_PROVISION_ALIAS = Path("/run/secrets/cb16-provision.env")
 
 DEFAULTS = {
@@ -31,7 +32,7 @@ DEFAULTS = {
     "CB16_VERIFIED_VENV": "/cb16/venv",
     "CB16_UV_CACHE_DIR": "/cb16/uv-cache",
     "CB16_CI_WORKER_ROOT": "/cb16/worker",
-    "CB16_PROVISION_ENV": str(DEPLOYED_PROVISION_ENV),
+    "CB16_PROVISION_ENV": str(WORKER_PROVISION_ENV),
     "CB16_PACKAGE_ROOT": "/cb16/package",
     "CB16_PARENT_R101_ROOT": "/cb16/parent-r101",
     "CB16_PARENT_G0": "/cb16/parents/r10_1.pt",
@@ -137,8 +138,12 @@ def resolve_provision_env(requested: str) -> tuple[Path, str]:
     path = Path(requested)
     if path.is_file():
         return path, "REQUESTED_PATH"
-    if path == LEGACY_PROVISION_ALIAS and DEPLOYED_PROVISION_ENV.is_file():
-        return DEPLOYED_PROVISION_ENV, "LEGACY_ALIAS_TO_DEPLOYED_VOLUME_FILE"
+    if path in {LEGACY_PROVISION_ALIAS, SECRETS_PROVISION_ENV} and WORKER_PROVISION_ENV.is_file():
+        return WORKER_PROVISION_ENV, "COMPAT_ALIAS_TO_WORKER_VOLUME_FILE"
+    if WORKER_PROVISION_ENV.is_file():
+        return WORKER_PROVISION_ENV, "WORKER_VOLUME_FALLBACK"
+    if SECRETS_PROVISION_ENV.is_file():
+        return SECRETS_PROVISION_ENV, "SECRETS_VOLUME_FALLBACK"
     return path, "UNRESOLVED"
 
 
