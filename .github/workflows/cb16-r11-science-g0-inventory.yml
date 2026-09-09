@@ -6,6 +6,16 @@ on:
 permissions:
   contents: read
 
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /run/secrets/cb16-provision.env
+
 jobs:
   shanxi-preflight:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
@@ -24,6 +34,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_g0_inventory_docker_preflight.json"
+
       - name: Verify clean-main ancestry and frozen authority
         shell: bash
         run: |
@@ -33,19 +49,17 @@ jobs:
           echo SCIENCE_G0_PARENT_AND_FREEZE_PASS
 
       - name: Run metadata-only dataset inventory
-        env:
-          CB16_G0_INVENTORY_OUT: /tmp/cb16_r11_science_g0_inventory.json
         shell: bash
         run: |
           set -euo pipefail
+          export CB16_G0_INVENTORY_OUT="$RUNNER_TEMP/cb16_r11_science_g0_inventory.json"
           python3 scripts/r11_science_g0_inventory.py
 
       - name: Materialize canonical historical dataset seal
-        env:
-          CB16_G0_SEAL_OUT: /tmp/cb16_r11_science_g0_dataset_seal.json
         shell: bash
         run: |
           set -euo pipefail
+          export CB16_G0_SEAL_OUT="$RUNNER_TEMP/cb16_r11_science_g0_dataset_seal.json"
           python3 scripts/r11_science_g0_seal.py
 
       - name: Upload dataset authority evidence
@@ -53,7 +67,7 @@ jobs:
         with:
           name: cb16-r11-science-g0-dataset-authority
           path: |
-            /tmp/cb16_r11_science_g0_inventory.json
-            /tmp/cb16_r11_science_g0_dataset_seal.json
+            ${{ runner.temp }}/cb16_r11_science_g0_inventory.json
+            ${{ runner.temp }}/cb16_r11_science_g0_dataset_seal.json
           if-no-files-found: error
           retention-days: 30
