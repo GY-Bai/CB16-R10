@@ -1,5 +1,4 @@
 name: CB16 R11 Legacy Data Adoption
-# Re-triggered after retiring the temporary stale-run janitor.
 
 on:
   push:
@@ -70,29 +69,37 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          p=Path('/cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V1.json')
+          p=Path('/cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V2.json')
           x=json.loads(p.read_text(encoding='utf-8'))
-          assert x['status'] == 'PASS', x
+          assert x['status'] in {'PASS','PASS_WITH_OPAQUE_PRIVATE_MODEL_REFERENCE'}, x
           assert x['mode'] == 'ZERO_COPY_EXISTING_MOUNT_REGISTRATION', x
           s=x['semantics']
           assert s['legacy_bytes_copied'] == 0, x
           assert s['legacy_roots_mutated'] is False, x
           assert s['symlinks_followed'] is False, x
+          assert s['opaque_private_model_promoted_to_authority'] is False, x
           assert s['new_scientific_evidence_created'] is False, x
           assert s['new_scientific_verdict'] is False, x
           assert s['training_started'] is False, x
           assert s['final_holdout_payload_opened'] is False, x
           assert s['fresh_market_data_downloaded'] is False, x
+          opaque=x['opaque_private_model_references']
+          assert len(opaque) <= 1, x
+          if opaque:
+              assert opaque[0]['root'] == 'parent_r101', x
+              assert opaque[0]['path'] == 'assets/medium/runtime/timesfm_layer3.safetensors', x
+              assert opaque[0]['classification'] == 'PRIVATE_EXTERNAL_MODEL_REFERENCE', x
+              assert opaque[0]['content_opened'] is False, x
           print(json.dumps(x, indent=2, sort_keys=True))
           PY
 
       - name: Upload compact adoption evidence
         uses: actions/upload-artifact@v7
         with:
-          name: cb16-r11-legacy-data-adoption
+          name: cb16-r11-legacy-data-adoption-v2
           path: |
-            /cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V1.json
-            /cb16/g0/authority/legacy_inventory/CB16_R11_LEGACY_FILE_INVENTORY_V1.ndjson.gz
+            /cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V2.json
+            /cb16/g0/authority/legacy_inventory/CB16_R11_LEGACY_FILE_INVENTORY_V2.ndjson.gz
             ${{ runner.temp }}/cb16_r11_legacy_adoption_preflight.json
           if-no-files-found: error
           retention-days: 30

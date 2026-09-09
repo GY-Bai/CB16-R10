@@ -70,8 +70,9 @@ jobs:
           assert p['status'] == 'READY', p
           assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
           assert p['python']['network_install_attempted'] is False, p
-          assert p['expected']['python_series'] == '3.10', p
-          assert p['python']['python_version'].split('.')[:2] == ['3','10'], p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
           PY
 
       - name: Recheck qualified S4C adoption tests
@@ -138,18 +139,7 @@ jobs:
           assert bootstrap.is_file()
           h=hashlib.sha256(bootstrap.read_bytes()).hexdigest()
           assert h == '799167bd0a2a820922c03d77563ed3fd22170666819dfbda048cc036141bccfb', h
-          print(json.dumps({
-            'status':'R11_G0_MIGRATED_GENESIS_AUTHORITY_VERIFIED',
-            'genesis_identity_sha256':g['genesis_identity_sha256'],
-            'adoption_canonical_content_hash':r['canonical_content_hash'],
-            'dataset_seal_sha256':d['canonical_seal_sha256'],
-            'derived_cache_lineage_sha256':l['lineage_identity_sha256'],
-            'bootstrap_checkpoint_sha256':h,
-            'new_evidence_created':False,
-            'new_scientific_verdict':False,
-            'training_started':False,
-            'final_holdout_payload_opened':False,
-          }, indent=2, sort_keys=True))
+          print(json.dumps({'status':'R11_G0_MIGRATED_GENESIS_AUTHORITY_VERIFIED','genesis_identity_sha256':g['genesis_identity_sha256'],'adoption_canonical_content_hash':r['canonical_content_hash'],'dataset_seal_sha256':d['canonical_seal_sha256'],'derived_cache_lineage_sha256':l['lineage_identity_sha256'],'bootstrap_checkpoint_sha256':h,'new_evidence_created':False,'new_scientific_verdict':False,'training_started':False,'final_holdout_payload_opened':False}, indent=2, sort_keys=True))
           PY
 
       - name: Upload compact G0 authority receipts

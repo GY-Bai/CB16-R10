@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Read-only legacy-root scan and zero-copy registration into R11 G0 authority.
 
-The scanner hashes every regular file in the configured legacy mounts, never
-follows symlinks, never mutates legacy roots, and deliberately excludes final
-holdout-named paths from content access. The output is an infrastructure
-availability/adoption receipt, not scientific Evidence and not a new verdict.
+Every readable regular file is SHA256 hashed. Symlinks are never followed and
+final-holdout-named paths are metadata-only. One historically private TimesFM
+runtime weight is explicitly allowed to remain an opaque reference when the
+R11 runner cannot read it; it is never promoted to scientific authority.
 """
 from __future__ import annotations
 
@@ -19,12 +19,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterator
 
-SCHEMA = "CB16_R11_LEGACY_DATA_ADOPTION_V1"
+SCHEMA = "CB16_R11_LEGACY_DATA_ADOPTION_V2"
 G0 = Path(os.environ.get("CB16_G0_ROOT", "/cb16/g0"))
 AUTHORITY = G0 / "authority"
 INVENTORY_DIR = AUTHORITY / "legacy_inventory"
-INVENTORY = INVENTORY_DIR / "CB16_R11_LEGACY_FILE_INVENTORY_V1.ndjson.gz"
-RECEIPT = AUTHORITY / "CB16_R11_LEGACY_DATA_ADOPTION_V1.json"
+INVENTORY = INVENTORY_DIR / "CB16_R11_LEGACY_FILE_INVENTORY_V2.ndjson.gz"
+RECEIPT = AUTHORITY / "CB16_R11_LEGACY_DATA_ADOPTION_V2.json"
 
 ROOTS = (
     ("r104", Path("/cb16/runtime/r104"), "IMMUTABLE_REFERENCE"),
@@ -35,6 +35,9 @@ ROOTS = (
     ("r2_native", Path("/cb16/r2-native"), "MUTABLE_REFERENCE_ONLY"),
 )
 FORBIDDEN_COMPONENTS = {"2025-09", "final_holdout"}
+OPAQUE_PRIVATE_ALLOWLIST = {
+    ("parent_r101", "assets/medium/runtime/timesfm_layer3.safetensors"): "PRIVATE_EXTERNAL_MODEL_REFERENCE",
+}
 CHUNK = 8 * 1024 * 1024
 
 
@@ -89,6 +92,7 @@ def main() -> int:
     started = time.monotonic()
     started_at = now()
     failures: list[str] = []
+    opaque_private: list[dict] = []
     root_summaries: list[dict] = []
 
     AUTHORITY.mkdir(parents=True, exist_ok=True)
@@ -110,6 +114,8 @@ def main() -> int:
                 "other_nodes": 0,
                 "bytes": 0,
                 "hashed_files": 0,
+                "opaque_private_files": 0,
+                "unapproved_unreadable_files": 0,
                 "forbidden_payload_files_skipped": 0,
                 "forbidden_payload_bytes_skipped": 0,
                 "scan_digest_sha256": None,
@@ -122,36 +128,55 @@ def main() -> int:
 
             root_hash = hashlib.sha256()
             try:
-                for path, st in iter_tree(root):
+                iterator = iter_tree(root)
+                for path, st in iterator:
                     rel = path.relative_to(root)
+                    rel_s = rel.as_posix()
                     mode = st.st_mode
                     if stat.S_ISDIR(mode):
                         summary["directories"] += 1
                         continue
                     if stat.S_ISLNK(mode):
                         summary["symlinks"] += 1
-                        target = os.readlink(path)
-                        row = {"root": name, "path": rel.as_posix(), "type": "symlink", "target": target}
+                        row = {"root": name, "path": rel_s, "type": "symlink", "target": os.readlink(path)}
                     elif stat.S_ISREG(mode):
                         summary["files"] += 1
                         summary["bytes"] += st.st_size
                         if forbidden(rel):
                             summary["forbidden_payload_files_skipped"] += 1
                             summary["forbidden_payload_bytes_skipped"] += st.st_size
-                            row = {
-                                "root": name,
-                                "path": rel.as_posix(),
-                                "type": "regular_excluded_final_holdout_name",
-                                "size": st.st_size,
-                                "content_opened": False,
-                            }
+                            row = {"root": name, "path": rel_s, "type": "regular_excluded_final_holdout_name", "size": st.st_size, "content_opened": False}
                         else:
-                            digest = sha256_file(path)
-                            summary["hashed_files"] += 1
-                            row = {"root": name, "path": rel.as_posix(), "type": "regular", "size": st.st_size, "sha256": digest}
+                            try:
+                                digest = sha256_file(path)
+                            except PermissionError as exc:
+                                opaque_key = (name, rel_s)
+                                metadata = {
+                                    "root": name,
+                                    "path": rel_s,
+                                    "size": st.st_size,
+                                    "mode_octal": oct(stat.S_IMODE(st.st_mode)),
+                                    "uid": st.st_uid,
+                                    "gid": st.st_gid,
+                                    "errno": exc.errno,
+                                    "content_opened": False,
+                                }
+                                if opaque_key in OPAQUE_PRIVATE_ALLOWLIST:
+                                    summary["opaque_private_files"] += 1
+                                    summary["registration"] = "ZERO_COPY_REFERENCE_WITH_OPAQUE_PRIVATE_MODEL"
+                                    metadata["classification"] = OPAQUE_PRIVATE_ALLOWLIST[opaque_key]
+                                    opaque_private.append(dict(metadata))
+                                    row = dict(metadata, type="opaque_private_model_reference")
+                                else:
+                                    summary["unapproved_unreadable_files"] += 1
+                                    failures.append(f"UNAPPROVED_UNREADABLE_FILE:{name}:{rel_s}:errno={exc.errno}")
+                                    row = dict(metadata, type="unapproved_unreadable_regular")
+                            else:
+                                summary["hashed_files"] += 1
+                                row = {"root": name, "path": rel_s, "type": "regular", "size": st.st_size, "sha256": digest}
                     else:
                         summary["other_nodes"] += 1
-                        row = {"root": name, "path": rel.as_posix(), "type": "other", "mode": stat.S_IFMT(mode)}
+                        row = {"root": name, "path": rel_s, "type": "other", "mode": stat.S_IFMT(mode)}
 
                     line = canonical(row)
                     gz.write(line)
@@ -175,25 +200,29 @@ def main() -> int:
         except Exception as exc:
             failures.append(f"RAW_SEAL_RECEIPT_UNREADABLE:{type(exc).__name__}:{exc}")
 
+    if failures:
+        status = "FAIL_CLOSED"
+    elif opaque_private:
+        status = "PASS_WITH_OPAQUE_PRIVATE_MODEL_REFERENCE"
+    else:
+        status = "PASS"
+
     receipt = {
         "schema": SCHEMA,
-        "status": "PASS" if not failures else "FAIL_CLOSED",
+        "status": status,
         "mode": "ZERO_COPY_EXISTING_MOUNT_REGISTRATION",
         "started_at_utc": started_at,
         "completed_at_utc": now(),
         "elapsed_seconds": round(time.monotonic() - started, 3),
         "roots": root_summaries,
-        "inventory": {
-            "path": str(INVENTORY),
-            "compressed_sha256": inventory_file_sha,
-            "canonical_rows_sha256": inventory_hash.hexdigest(),
-            "format": "gzip_ndjson",
-        },
+        "opaque_private_model_references": opaque_private,
+        "inventory": {"path": str(INVENTORY), "compressed_sha256": inventory_file_sha, "canonical_rows_sha256": inventory_hash.hexdigest(), "format": "gzip_ndjson"},
         "existing_r11_raw_dataset_seal": raw_seal_summary,
         "semantics": {
             "legacy_bytes_copied": 0,
             "legacy_roots_mutated": False,
             "symlinks_followed": False,
+            "opaque_private_model_promoted_to_authority": False,
             "new_scientific_evidence_created": False,
             "new_scientific_verdict": False,
             "training_started": False,

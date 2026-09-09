@@ -55,7 +55,9 @@ jobs:
           import json, sys
           p=json.load(open(sys.argv[1]))
           assert p['status'] == 'READY', p
-          assert p['expected']['python_series'] == '3.10', p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
           assert p['python']['network_install_attempted'] is False, p
           PY
 
