@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "df5a2c43-8f4e-4208-b7be-52475f5a08bd",
+  "commit_sha": "f6142829b69b7a0dec1b560bd89ae37cc299e83a",
+  "ci_profile": "smoke",
+  "verdict": "ERROR",
+  "started_at": "2026-09-09T13:24:31Z",
+  "finished_at": "2026-09-09T13:24:31Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))",
+  "model_artifacts": []
+}
