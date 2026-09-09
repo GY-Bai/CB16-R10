@@ -10,11 +10,16 @@ on:
       - ci/resolve_verified_r104_python.py
       - provision/scripts/provision_common.py
       - provision/scripts/provision_python.py
+      - scripts/r11_science_g0_inventory.py
+      - scripts/r11_science_g0_prereq_discovery.py
       - scripts/r11_science_g0_seal.py
       - scripts/r11_science_g0_materialize_cache.py
       - scripts/r11_science_g0_initialize_stage4_roots.py
-      - infra/docker/runner/**
       - .github/workflows/cb16-r11-docker-preflight.yml
+      - .github/workflows/cb16-r11-main-smoke.yml
+      - .github/workflows/cb16-r11-science-g0-inventory.yml
+      - .github/workflows/cb16-r11-science-g0-prereq.yml
+      - .github/workflows/cb16-r11-science-g0-storage-probe.yml
       - .github/workflows/cb16-r11-science-g0-r104-authority.yml
       - .github/workflows/cb16-r11-science-g0-s4f-preflight.yml
       - .github/workflows/cb16-r11-science-g0-materialize-cache.yml
@@ -69,6 +74,8 @@ jobs:
             ci/resolve_verified_r104_python.py \
             provision/scripts/provision_common.py \
             provision/scripts/provision_python.py \
+            scripts/r11_science_g0_inventory.py \
+            scripts/r11_science_g0_prereq_discovery.py \
             scripts/r11_science_g0_seal.py \
             scripts/r11_science_g0_materialize_cache.py \
             scripts/r11_science_g0_initialize_stage4_roots.py
@@ -76,7 +83,7 @@ jobs:
   docker-preflight:
     name: Verify R11 Docker execution contract
     needs: [shanxi-preflight, repo-contract]
-    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
     timeout-minutes: 10
     permissions:
       contents: read
