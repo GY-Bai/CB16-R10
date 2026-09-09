@@ -37,7 +37,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -133,7 +133,7 @@ jobs:
           PY
 
       - name: Upload compact Stage-4 root receipt
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-science-g0-stage4-roots
           path: ${{ runner.temp }}/cb16_r11_g0_stage4_roots.json
