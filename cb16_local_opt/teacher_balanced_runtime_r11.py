@@ -5,7 +5,7 @@ from __future__ import annotations
 R2.1/R2.2 qualified one narrow mechanics correction: normalization mass belongs
 to independent market-future dependence groups, not to the number of parent rows
 materialized inside a group. Distinct AccountState contexts remain distinct;
-exact Student-context replicas add zero normalization mass.
+exact Student-context replicas add zero geometry/support mass.
 
 The downstream R11 vectorized Teacher law is reused unchanged. Legacy R10.2 and
 the original R11 vectorized engine remain available for historical reproduction.
@@ -42,24 +42,23 @@ R11_BALANCED_GEOMETRY = "EQUAL_DEPENDENCE_GROUP_MASS__UNIQUE_STUDENT_CONTEXT_WIT
 
 
 def _unique_parent_rows_by_group_r11(*, dep_rows: np.ndarray, index):
+    """Return one canonical support row per unique Student context in each future."""
     groups: list[np.ndarray] = []
     duplicate_count = 0
     for dep_row in np.asarray(dep_rows, dtype=np.int32):
         raw = np.asarray(index.dep_parent_rows[int(dep_row)], dtype=np.int32)
         raw = raw[raw >= 0]
-        seen: dict[str, int] = {}
-        unique: list[int] = []
-        for row in raw:
-            row = int(row)
+        by_context: dict[str, int] = {}
+        for raw_row in raw:
+            row = int(raw_row)
             context_id = str(index.student_context_ids[row])
-            prior = seen.get(context_id)
+            prior = by_context.get(context_id)
             if prior is None:
-                seen[context_id] = row
-                unique.append(row)
+                by_context[context_id] = row
                 continue
             duplicate_count += 1
-            # Same Student identity is allowed to collapse only when it is truly the
-            # same observable context and the same realized counterfactual utility law.
+            # A duplicated Student identity may collapse only when both the observable
+            # context and its realized counterfactual utility vector are exactly equal.
             if not np.array_equal(index.features[row], index.features[prior]):
                 raise RuntimeError(
                     f"R11_BALANCED_CONTEXT_ID_FEATURE_CONFLICT:{index.dep_ids[int(dep_row)]}:{context_id}"
@@ -68,26 +67,41 @@ def _unique_parent_rows_by_group_r11(*, dep_rows: np.ndarray, index):
                 raise RuntimeError(
                     f"R11_BALANCED_CONTEXT_ID_UTILITY_CONFLICT:{index.dep_ids[int(dep_row)]}:{context_id}"
                 )
+            # Make representative choice deterministic even if a replica parent id would
+            # sort before the original. Values are equal, but deterministic row identity
+            # keeps support construction reproducible.
+            if index.parent_ids[row] < index.parent_ids[prior]:
+                by_context[context_id] = row
+        # Context-id order is independent of how many replica parent rows were materialized.
+        unique = [by_context[k] for k in sorted(by_context)]
         groups.append(np.asarray(unique, dtype=np.int32))
     return groups, int(duplicate_count)
 
 
+def _compact_unique_support_matrix_r11(*, unique_groups: Sequence[np.ndarray]) -> np.ndarray:
+    if not unique_groups:
+        return np.empty((0, 0), dtype=np.int32)
+    width = max((len(rows) for rows in unique_groups), default=0)
+    matrix = np.full((len(unique_groups), width), -1, dtype=np.int32)
+    for i, rows in enumerate(unique_groups):
+        if len(rows):
+            matrix[i, : len(rows)] = rows
+    return matrix
+
+
 def prepare_support_regime_balanced_r11(*, dep_rows: np.ndarray, index) -> SupportRegimeR11:
-    """Build normalization with equal total mass per independent future group."""
+    """Build a replica-invariant support regime with equal mass per future group."""
     dep_rows = np.asarray(dep_rows, dtype=np.int32)
     dep_ids = tuple(index.dep_ids[int(i)] for i in dep_rows)
-    parent_matrix = np.asarray(index.dep_parent_rows[dep_rows], dtype=np.int32)
-    valid = parent_matrix >= 0
-    all_parent_rows = parent_matrix[valid]
-    if len(all_parent_rows) == 0:
-        feature_dim = index.feature_dim
+    feature_dim = index.feature_dim
+    if len(dep_rows) == 0:
         return SupportRegimeR11(
             dep_rows=dep_rows,
             dep_ids=dep_ids,
             train_dependence_group_hash=canonical_hash(dep_ids),
             mean=np.zeros(feature_dim, dtype=np.float64),
             std=np.ones(feature_dim, dtype=np.float64),
-            support_parent_rows=parent_matrix,
+            support_parent_rows=np.empty((0, 0), dtype=np.int32),
             normalized_support_flat=np.empty((0, feature_dim), dtype=np.float64),
             normalized_support_norm2=np.empty(0, dtype=np.float64),
             valid_support_flat=np.empty(0, dtype=np.bool_),
@@ -98,9 +112,17 @@ def prepare_support_regime_balanced_r11(*, dep_rows: np.ndarray, index) -> Suppo
     if any(len(rows) == 0 for rows in unique_groups):
         raise RuntimeError("R11_BALANCED_EMPTY_DEPENDENCE_GROUP")
 
-    # Always use the same dependence-balanced arithmetic, even when the input happens
-    # to be perfectly balanced. Otherwise base and replica-injected worlds could take
-    # different floating-point reduction orders and violate strict replica invariance.
+    # Exact replicas are removed not only from normalization mass but from the actual
+    # batched kNN support matrix. This keeps GEMM shape/reduction order identical between
+    # base and replica-injected worlds instead of accepting tiny shape-induced FP drift.
+    parent_matrix = _compact_unique_support_matrix_r11(unique_groups=unique_groups)
+    valid = parent_matrix >= 0
+    all_parent_rows = parent_matrix[valid]
+    if len(all_parent_rows) == 0:
+        raise RuntimeError("R11_BALANCED_EMPTY_SUPPORT")
+
+    # Every independent future contributes equal total normalization mass. Within a
+    # future, each distinct AccountState/Student context shares that future's mass.
     group_means = np.stack(
         [np.asarray(index.features[rows], dtype=np.float64).mean(axis=0) for rows in unique_groups],
         axis=0,
@@ -161,9 +183,9 @@ def _build_balanced_jobs_r11(*, train_parent_ids, val_parent_ids, index, parents
             config=config,
             eligible_train_dependence_groups=eligible_train_groups,
         )
-        for dep_rows, regime_targets in support_groups:
+        for dep_rows_for_regime, regime_targets in support_groups:
             regime = _make_regime_immutable_r11(
-                prepare_support_regime_balanced_r11(dep_rows=dep_rows, index=index)
+                prepare_support_regime_balanced_r11(dep_rows=dep_rows_for_regime, index=index)
             )
             regime_count += 1
             for start in range(0, len(regime_targets), int(block_targets)):
