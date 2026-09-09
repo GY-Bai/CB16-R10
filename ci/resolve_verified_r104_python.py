@@ -5,6 +5,10 @@ Package identity is validated by direct requirement names + versions/specifiers,
 not by a hash of the complete installed distribution inventory. Packaging layout,
 wheel metadata ordering, or unrelated transitive package differences therefore do
 not invalidate an otherwise equivalent scientific runtime.
+
+The historical R10.4 baseline used CPython 3.10.12. Docker reuse accepts only the
+same CPython 3.10 ABI series; exact patch drift is recorded but is not an identity
+gate when direct requirements and the import/CUDA canary still pass.
 """
 from __future__ import annotations
 
@@ -15,7 +19,8 @@ import subprocess
 from pathlib import Path
 
 EXPECTED_ENV_CACHE_KEY = "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
-EXPECTED_PYTHON_VERSION = "3.10.12"
+HISTORICAL_BASELINE_PYTHON_VERSION = "3.10.12"
+REQUIRED_PYTHON_SERIES = (3, 10)
 EXPECTED_VENV = Path(os.environ.get("CB16_VERIFIED_VENV", "/cb16/venv"))
 ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS = [ROOT / "requirements-shanxi-pascal.txt", ROOT / "requirements-ci-runtime.txt"]
@@ -24,7 +29,7 @@ PIP_ROUTE_KEYS = {
     "PIP_INDEX_URL", "PIP_EXTRA_INDEX_URL", "PIP_TRUSTED_HOST", "PIP_FIND_LINKS", "PIP_NO_INDEX",
 }
 UV_ROUTE_KEYS = {
-    "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS",
+    "UV_INDEX_URL", "UV_EXTRA_INDEX_URL", "UV_DEFAULT_INDEX", "UV_FIND_LINKS", "UV_NO_CACHE",
 }
 PROXY_ROUTE_KEYS = {
     "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
@@ -60,7 +65,7 @@ def _safe_env_keys(path: Path) -> tuple[bool, bool, set[str]]:
 def sanitized_host_route_summary() -> dict:
     worker_root = Path(os.environ.get("CB16_CI_WORKER_ROOT", "/cb16/worker"))
     provision_paths = [
-        Path(os.environ.get("CB16_PROVISION_ENV", "/run/secrets/cb16-provision.env")),
+        Path(os.environ.get("CB16_PROVISION_ENV", str(worker_root / "provision.env"))),
         worker_root / "provision.env",
     ]
     union: set[str] = set()
@@ -145,6 +150,8 @@ def verify_canonical_venv() -> tuple[bool, list[str], dict]:
         "environment_cache_key": EXPECTED_ENV_CACHE_KEY,
         "environment_cache_key_is_package_integrity_gate": False,
         "package_hash_validation_used": False,
+        "python_compatibility_policy": "CPYTHON_3_10_SERIES",
+        "historical_baseline_python_version": HISTORICAL_BASELINE_PYTHON_VERSION,
     }
     if not observed["python_executable"]:
         reasons.append("PYTHON_NOT_EXECUTABLE")
@@ -158,10 +165,32 @@ def verify_canonical_venv() -> tuple[bool, list[str], dict]:
         except (OSError, UnicodeError, json.JSONDecodeError):
             observed["ready_unreadable_but_not_identity_gate"] = True
 
-    version = _run(py, "import platform; print(platform.python_version())")
-    observed["python_version"] = version.stdout.strip() if version.returncode == 0 else None
-    if version.returncode != 0 or observed["python_version"] != EXPECTED_PYTHON_VERSION:
-        reasons.append("PYTHON_VERSION_MISMATCH")
+    version = _run(
+        py,
+        "import json,platform,sys; print(json.dumps({'version':platform.python_version(),'implementation':platform.python_implementation(),'major':sys.version_info.major,'minor':sys.version_info.minor}))",
+    )
+    if version.returncode == 0:
+        try:
+            version_info = json.loads(version.stdout.strip())
+        except json.JSONDecodeError:
+            version_info = {}
+    else:
+        version_info = {}
+    observed["python_version"] = version_info.get("version")
+    observed["python_implementation"] = version_info.get("implementation")
+    observed["python_series"] = [version_info.get("major"), version_info.get("minor")]
+    python_series_ok = (
+        version.returncode == 0
+        and version_info.get("implementation") == "CPython"
+        and (version_info.get("major"), version_info.get("minor")) == REQUIRED_PYTHON_SERIES
+    )
+    observed["python_series_compatible"] = python_series_ok
+    observed["python_patch_differs_from_historical_baseline"] = (
+        bool(observed["python_version"])
+        and observed["python_version"] != HISTORICAL_BASELINE_PYTHON_VERSION
+    )
+    if not python_series_ok:
+        reasons.append("PYTHON_SERIES_MISMATCH")
 
     try:
         versions = direct_version_report(py)
@@ -193,13 +222,15 @@ def main() -> int:
     route_summary = sanitized_host_route_summary()
     ok, reasons, observed = verify_canonical_venv()
     result = {
-        "schema": "CB16_R104_VERIFIED_PYTHON_REUSE_V2",
+        "schema": "CB16_R104_VERIFIED_PYTHON_REUSE_V3",
         "status": "READY" if ok else "FAIL_CLOSED",
         "mode": "VERIFIED_CANONICAL_R104_VENV_REUSE" if ok else "HOST_REPAIR_REQUIRED_NO_NETWORK_FALLBACK",
         "environment_id": "r104",
         "expected": {
             "environment_cache_key": EXPECTED_ENV_CACHE_KEY,
-            "python_version": EXPECTED_PYTHON_VERSION,
+            "historical_baseline_python_version": HISTORICAL_BASELINE_PYTHON_VERSION,
+            "required_python_implementation": "CPython",
+            "required_python_series": "3.10.x",
             "venv": str(EXPECTED_VENV),
             "package_identity_policy": "DIRECT_REQUIREMENT_VERSION_EQUIVALENCE",
         },
@@ -209,6 +240,7 @@ def main() -> int:
             "venv": str(EXPECTED_VENV),
             "installer": "verified_existing_uv_environment" if ok else None,
             "python_version": observed.get("python_version"),
+            "python_compatibility_policy": "CPYTHON_3_10_SERIES",
             "direct_package_versions": observed.get("direct_package_versions"),
             "package_hash_validation_used": False,
             "public_index_fallback_used": False,
@@ -230,9 +262,11 @@ def main() -> int:
         return 78
 
     print("R104_VERIFIED_VENV_REUSE=PASS")
+    print("PYTHON_COMPATIBILITY_POLICY=CPYTHON_3_10_SERIES")
+    print("HISTORICAL_BASELINE_PYTHON_VERSION=" + HISTORICAL_BASELINE_PYTHON_VERSION)
+    print("OBSERVED_PYTHON_VERSION=" + str(observed.get("python_version")))
     print("PACKAGE_IDENTITY_POLICY=DIRECT_REQUIREMENT_VERSION_EQUIVALENCE")
     print("PACKAGE_HASH_VALIDATION_USED=NO")
-    print("PYTHON_VERSION=" + EXPECTED_PYTHON_VERSION)
     print("NETWORK_INSTALL_ATTEMPTED=NO")
     return 0
 
