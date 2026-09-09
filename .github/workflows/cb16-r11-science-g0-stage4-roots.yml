@@ -22,7 +22,7 @@ env:
   CB16_R104_ROOT: /cb16/runtime/r104
   CB16_VERIFIED_VENV: /cb16/venv
   CB16_CI_WORKER_ROOT: /cb16/worker
-  CB16_PROVISION_ENV: /run/secrets/cb16-provision.env
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
 
 jobs:
   shanxi-preflight:
@@ -31,7 +31,7 @@ jobs:
   stage4-roots:
     name: Initialize canonical R11 G0 Stage-4 roots
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
+    runs-on: [self-hosted, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
       contents: read
