@@ -3,7 +3,7 @@ name: CB16 R11 Legacy Data Adoption
 on:
   push:
     branches:
-      - ai/r11-docker-runner-r0
+      - main
     paths:
       - scripts/r11_legacy_data_adopt.py
       - .github/workflows/cb16-r11-legacy-data-adoption.yml
@@ -62,7 +62,7 @@ jobs:
           set -euo pipefail
           python3 scripts/r11_legacy_data_adopt.py
 
-      - name: Verify R11 adoption receipt
+      - name: Verify fully readable R11 adoption receipt
         shell: bash
         run: |
           set -euo pipefail
@@ -71,7 +71,7 @@ jobs:
           from pathlib import Path
           p=Path('/cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V2.json')
           x=json.loads(p.read_text(encoding='utf-8'))
-          assert x['status'] == 'PASS_WITH_OPAQUE_PRIVATE_MODEL_REFERENCE', x
+          assert x['status'] == 'PASS', x
           assert x['mode'] == 'ZERO_COPY_EXISTING_MOUNT_REGISTRATION', x
           assert x['failures'] == [], x
           s=x['semantics']
@@ -84,25 +84,31 @@ jobs:
           assert s['training_started'] is False, x
           assert s['final_holdout_payload_opened'] is False, x
           assert s['fresh_market_data_downloaded'] is False, x
-          expected={
-              ('parent_r101','assets/medium/runtime/timesfm_layer3.safetensors'),
-              ('parent_r101','assets/operator/runtime/kronos_tokenizer_encode.safetensors'),
-              ('parent_r101','assets/operator/runtime/kronos_model_l5.safetensors'),
-          }
-          opaque=x['opaque_private_model_references']
-          observed={(o['root'],o['path']) for o in opaque}
-          assert observed == expected, x
-          assert len(opaque) == 3, x
-          for o in opaque:
-              assert o['classification'] == 'PRIVATE_EXTERNAL_MODEL_REFERENCE', x
-              assert o['content_opened'] is False, x
-              assert o['errno'] == 13, x
+
+          assert x['opaque_private_model_references'] == [], x
           assert all(r['unapproved_unreadable_files'] == 0 for r in x['roots']), x
-          parent=next(r for r in x['roots'] if r['name'] == 'parent_r101')
-          assert parent['files'] == parent['hashed_files'] + parent['opaque_private_files'] + parent['forbidden_payload_files_skipped'], x
-          assert parent['opaque_private_files'] == 3, x
-          assert parent['registration'] == 'ZERO_COPY_REFERENCE_WITH_OPAQUE_PRIVATE_MODEL', x
-          print(json.dumps(x, indent=2, sort_keys=True))
+          assert all(r['opaque_private_files'] == 0 for r in x['roots']), x
+          for r in x['roots']:
+              assert r['files'] == r['hashed_files'] + r['forbidden_payload_files_skipped'], r
+              if r['role'] == 'IMMUTABLE_REFERENCE':
+                  assert r['registration'] == 'ZERO_COPY_REFERENCE_REGISTERED', r
+              else:
+                  assert r['role'] == 'MUTABLE_REFERENCE_ONLY', r
+                  assert r['registration'] == 'REFERENCE_ONLY', r
+
+          total_files=sum(r['files'] for r in x['roots'])
+          total_hashed=sum(r['hashed_files'] for r in x['roots'])
+          total_forbidden=sum(r['forbidden_payload_files_skipped'] for r in x['roots'])
+          assert total_files == total_hashed + total_forbidden, x
+          assert total_hashed > 0, x
+          print(json.dumps({
+              'status': x['status'],
+              'total_files': total_files,
+              'total_hashed_files': total_hashed,
+              'forbidden_payload_files_skipped': total_forbidden,
+              'opaque_private_model_references': len(x['opaque_private_model_references']),
+              'inventory': x['inventory'],
+          }, indent=2, sort_keys=True))
           PY
 
       - name: Upload compact adoption evidence
