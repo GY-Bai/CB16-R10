@@ -1,0 +1,59 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHADOW_R3_GATEWORK_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHADOW_R3",
+  "r2_4_pass_seed": "155b5ce8f444ed0e92954ac892d346812920ae90",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_OR_CONVENIENT_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "purpose": "Prove that the production R11 Teacher action-law quantiles can reach a legal Student-owned distributional belief gradient in a disposable shadow path without changing production Student decision/permission semantics or reopening scientific adjudication.",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "allowed": [
+    "consume admitted R11 Teacher action_laws quantiles from frozen authorized history",
+    "read the production Shared Decision Core representation as a detached value",
+    "train a disposable FP32 distributional shadow head",
+    "use equal total statistical mass per independent future dependence group",
+    "measure shadow parameter delta, belief delta, loss, gradients, memory and runtime",
+    "run bounded BTCUSDT historical mechanics qualification strictly before FINAL"
+  ],
+  "forbidden": [
+    "modify TypedCentralBrainR10 production architecture",
+    "modify canonical training_runtime_r11 gradient-owner set",
+    "send R3 gradients into production Student stems, Shared Decision Core, Direction Head or Requested-Risk Head",
+    "change Teacher objective, Teacher authority identity or dependence-balanced geometry",
+    "use any realized future as a correct-action label or direct R3 Student gradient target",
+    "change external LONG/FLAT/SHORT plus requested-risk action contract",
+    "change Supervisor/Permission or Frozen Physics semantics",
+    "advance canonical generation or run Champion/Challenger tournament",
+    "create or change a market-information scientific verdict",
+    "open FINAL beginning 2025-09-01T00:00:00Z",
+    "download fresh market data"
+  ],
+  "distributional_target_contract": {
+    "source": "DependenceAwareTeacherEvidenceR6.action_laws",
+    "target": "per-action Teacher utility quantile function",
+    "action_grid_authority": "CANDIDATES_R102",
+    "quantile_levels_authority": "R11 production Teacher config",
+    "target_autograd": false,
+    "realized_future_direct_gradient_owner": false
+  },
+  "shadow_contract": {
+    "gradient_owner": "Distributional Student Shadow Head",
+    "shared_input_gradient_policy": "DETACHED_SHARED_REPRESENTATION__NO_PRODUCTION_STUDENT_GRADIENT",
+    "external_action_authority": false,
+    "permission_authority": false,
+    "production_cutover_authorized": false,
+    "quantile_monotonicity": "BY_CONSTRUCTION",
+    "distillation_distance": "TRUNCATED_QUANTILE_W1_ON_TEACHER_QUANTILE_SUPPORT"
+  },
+  "scoring_note": "Pinball/qCRPS are proper realized-outcome scores. R3 does not use them as a direct Teacher-quantile distillation loss because doing so against a realized scalar would make that realization a direct Student gradient owner. R3 instead compares Teacher and Student quantile functions over the Teacher-provided quantile support.",
+  "pass_requires": [
+    "Teacher action-law grid and quantile levels are stable and monotone",
+    "shadow quantiles are monotone by construction",
+    "shadow-only gradients are finite and non-zero",
+    "production Student receives zero R3 gradient",
+    "shadow parameters and beliefs measurably change",
+    "bounded training distributional loss decreases",
+    "production Student state, policy hash and external behavior remain identical",
+    "frozen package and G0 authority hashes remain unchanged",
+    "FINAL unopened, fresh data zero, scientific verdict unchanged"
+  ],
+  "next_step_policy": "PASS authorizes adjudication of whether any distributional gradient ownership should later be promoted into the production Student. R3 itself does not authorize production cutover."
+}
