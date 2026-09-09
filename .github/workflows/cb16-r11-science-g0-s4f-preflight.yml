@@ -4,12 +4,17 @@ on:
   push:
     branches:
       - ai/r11-science-g0-historical-r0
+      - ai/r11-docker-runner-r0
     paths:
       - .github/workflows/cb16-r11-science-g0-s4f-preflight.yml
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
 
 jobs:
   shanxi-preflight:
@@ -18,7 +23,7 @@ jobs:
   s4f-preflight:
     name: Observe Stage-4 S4F raw-root compatibility
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
       contents: read
@@ -41,8 +46,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json, os, stat, subprocess
+          python3 - "$RUNNER_TEMP/cb16_r11_g0_s4f_preflight.json" <<'PY'
+          import json, os, stat, subprocess, sys
           from pathlib import Path
           from cb16_local_opt.stage4_state_roots_r11 import (
               Stage4RootSetR11,
@@ -50,9 +55,10 @@ jobs:
               Stage4FrozenRootWritableError,
           )
 
-          raw = Path('/data/cb16_hdd/binance_usdm_1m_funding_2020_2026')
-          control = Path('/cb16_r11_runtime/G0/s4f_preflight_control__DO_NOT_INITIALIZE')
-          data = Path('/cb16_r11_runtime/G0/s4f_preflight_data__DO_NOT_INITIALIZE')
+          raw = Path(os.environ['CB16_RAW_ROOT'])
+          g0 = Path(os.environ['CB16_G0_ROOT'])
+          control = g0 / 's4f_preflight_control__DO_NOT_INITIALIZE'
+          data = g0 / 's4f_preflight_data__DO_NOT_INITIALIZE'
           seal = '94bc3288a7e6097c4301c93d836607edee207ac3b2c7cf3e7833c85ea0f9546a'
 
           st = raw.lstat()
@@ -64,9 +70,6 @@ jobs:
           mount_opts = mount.split(None, 3)[3].split(',') if len(mount.split(None, 3)) == 4 else []
           os_read_only = 'ro' in mount_opts
           mode_has_write_bits = bool(mode & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
-          sudo_noninteractive = subprocess.run(
-              ['sudo','-n','true'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-          ).returncode == 0
 
           roots = Stage4StateRootsR11(Stage4RootSetR11.from_paths(
               control_root=control,
@@ -83,7 +86,7 @@ jobs:
               s4f_error = str(exc)
 
           result = {
-              'schema':'CB16_R11_G0_S4F_REAL_MACHINE_PREFLIGHT_V1',
+              'schema':'CB16_R11_G0_S4F_DOCKER_PREFLIGHT_V1',
               'status': (
                   'S4F_NATIVE_READY' if s4f_status == 'PASS_NATIVE_PREMUTATION_CHECK'
                   else 'S4F_AUTHORITY_VIEW_MISMATCH'
@@ -95,7 +98,6 @@ jobs:
               'raw_root_mode_has_write_bits': mode_has_write_bits,
               'mount_record': mount,
               'mount_is_os_read_only': os_read_only,
-              'runner_sudo_noninteractive': sudo_noninteractive,
               'native_s4f_status': s4f_status,
               'native_s4f_error': s4f_error,
               'control_root_created': control.exists(),
@@ -107,7 +109,7 @@ jobs:
               'new_evidence_created': False,
               'new_scientific_verdict': False,
           }
-          Path('/tmp/cb16_r11_g0_s4f_preflight.json').write_text(
+          Path(sys.argv[1]).write_text(
               json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8'
           )
           print(json.dumps(result, indent=2, sort_keys=True))
@@ -119,6 +121,6 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: cb16-r11-science-g0-s4f-preflight
-          path: /tmp/cb16_r11_g0_s4f_preflight.json
+          path: ${{ runner.temp }}/cb16_r11_g0_s4f_preflight.json
           if-no-files-found: error
           retention-days: 30
