@@ -16,7 +16,7 @@ from pathlib import Path
 
 EXPECTED_ENV_CACHE_KEY = "b6e3e3c287f5f4e8ab0cb1b80a7af8aba0803a0f66a09d4501e7051a33edf7ba"
 EXPECTED_PYTHON_VERSION = "3.10.12"
-EXPECTED_VENV = Path("/data/cb16_ci/venvs") / EXPECTED_ENV_CACHE_KEY
+EXPECTED_VENV = Path(os.environ.get("CB16_VERIFIED_VENV", "/cb16/venv"))
 ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS = [ROOT / "requirements-shanxi-pascal.txt", ROOT / "requirements-ci-runtime.txt"]
 
@@ -58,8 +58,11 @@ def _safe_env_keys(path: Path) -> tuple[bool, bool, set[str]]:
 
 
 def sanitized_host_route_summary() -> dict:
-    worker_root = Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci"))
-    provision_paths = [Path("/etc/cb16-ci/provision.env"), worker_root / "provision.env"]
+    worker_root = Path(os.environ.get("CB16_CI_WORKER_ROOT", "/cb16/worker"))
+    provision_paths = [
+        Path(os.environ.get("CB16_PROVISION_ENV", "/run/secrets/cb16-provision.env")),
+        worker_root / "provision.env",
+    ]
     union: set[str] = set()
     present_count = 0
     readable_count = 0
