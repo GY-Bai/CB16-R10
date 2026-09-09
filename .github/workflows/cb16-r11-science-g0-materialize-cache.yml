@@ -32,7 +32,7 @@ jobs:
   materialize:
     name: Seal raw data and materialize 10-asset cache
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
     timeout-minutes: 30
     permissions:
       contents: read
