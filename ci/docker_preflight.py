@@ -111,8 +111,9 @@ def torch_cuda_report(venv: Path) -> tuple[bool, dict]:
     if not py.is_file() or not os.access(py, os.X_OK):
         return False, {"error": "VERIFIED_VENV_PYTHON_NOT_EXECUTABLE", "python": str(py)}
     code = (
-        "import json,torch;"
+        "import json,platform,torch;"
         "print(json.dumps({"
+        "'python_version':platform.python_version(),"
         "'torch_version':torch.__version__,"
         "'torch_cuda_version':torch.version.cuda,"
         "'cuda_available':bool(torch.cuda.is_available()),"
