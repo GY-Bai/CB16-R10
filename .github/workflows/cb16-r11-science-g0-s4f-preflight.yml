@@ -35,7 +35,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -130,7 +130,7 @@ jobs:
           PY
 
       - name: Upload compact S4F preflight
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-science-g0-s4f-preflight
           path: ${{ runner.temp }}/cb16_r11_g0_s4f_preflight.json
