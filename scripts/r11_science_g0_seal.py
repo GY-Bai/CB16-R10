@@ -5,6 +5,10 @@ Safety law from CB16_SEMANTIC_FREEZE_V1:
 - archives strictly before 2025-09: hash archive bytes and verify official sidecar;
 - archives at/after 2025-09: NEVER open payload; bind path, size, and official sidecar only;
 - never mutate, repair, download, or append market data.
+
+Docker migration note: CB16_RAW_ROOT is the physical access path. The frozen
+semantic contract's expected_root remains the canonical identity path embedded
+in the seal, so relocating access through /cb16/raw cannot rewrite seal identity.
 """
 from __future__ import annotations
 
@@ -59,7 +63,8 @@ def canonical_bytes(obj: object) -> bytes:
 def main() -> int:
     freeze = json.loads(FREEZE_PATH.read_text(encoding="utf-8"))
     ds = freeze["immutable"]["historical_market_dataset"]
-    root = Path(ds["expected_root"])
+    identity_root = Path(ds["expected_root"])
+    root = Path(os.environ.get("CB16_RAW_ROOT", str(identity_root)))
     symbols = set(ds["symbols"])
 
     if not root.is_dir() or root.is_symlink():
@@ -144,12 +149,15 @@ def main() -> int:
         for rel in sorted(set(all_regular) - paired_paths)
     ]
 
+    # Preserve the frozen authority identity even when Docker exposes the same bytes
+    # through a different physical access path.
+    identity_realpath = str(identity_root.resolve(strict=False))
     seal_core = {
         "schema": "CB16_R11_HISTORICAL_MARKET_DATASET_SEAL_V1",
         "status": "SEALED",
         "scientific_verdict_created": False,
-        "dataset_root": str(root),
-        "dataset_root_realpath": str(root.resolve()),
+        "dataset_root": str(identity_root),
+        "dataset_root_realpath": identity_realpath,
         "storage_class": ds["storage_class"],
         "kline_interval": ds["kline_interval"],
         "symbols": ds["symbols"],
