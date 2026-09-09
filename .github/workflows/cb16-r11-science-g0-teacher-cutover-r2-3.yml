@@ -1,0 +1,175 @@
+name: CB16 R11 Science G0 Teacher Cutover R2.3
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-teacher-cutover-r2-3
+    paths:
+      - cb16_local_opt/r11_teacher_authority_candidate.py
+      - scripts/r11_science_g0_teacher_cutover_r2_3.py
+      - scripts/r11_science_g0_teacher_cutover_r2_3_entrypoint.py
+      - tests/test_r11_teacher_authority_candidate.py
+      - .github/workflows/cb16-r11-science-g0-teacher-cutover-r2-3.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  teacher-cutover-r2-3:
+    name: Teacher authority cutover qualification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r2_3_docker_preflight.json"
+
+      - name: Verify R2.2-qualified seed and immutable authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor b79da74f311f7ea20bb772af0856b47ac5d4f514 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test -f /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r2_3_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['observed']['python_series'] == [3,10], p
+          PY
+
+      - name: Compile and run R2.3 authority unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r2_3_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/r11_teacher_authority_candidate.py \
+            scripts/r11_science_g0_teacher_cutover_r2_3.py \
+            scripts/r11_science_g0_teacher_cutover_r2_3_entrypoint.py \
+            tests/test_r11_teacher_authority_candidate.py
+          "$PYTHON" -m pytest -q \
+            tests/test_r11_teacher_authority_candidate.py \
+            tests/test_science_teacher_requalification_r11.py \
+            tests/test_science_teacher_geometry_r11.py \
+            tests/test_teacher_runtime_r11.py
+
+      - name: Execute R2.3 real-history cutover qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r2_3_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-teacher-cutover-r2-3-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"
+          mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r2_3_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_teacher_cutover_r2_3_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_TEACHER_CUTOVER_R2_3_RESULT.json" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --train-groups 48 \
+            --validation-groups 12 \
+            --candidate-factor 2 \
+            --sensory-batch-size 8 \
+            --replicas 32 \
+            --bootstrap-reps 2000
+
+      - name: Verify R2.3 authority qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r2_3_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_TEACHER_CUTOVER_R2_3_RESULT.json" <<'PY'
+          import json, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_TEACHER_CUTOVER_R2_3_RESULT_V1', x
+          assert x['status'] == 'TEACHER_GEOMETRY_AUTHORITY_CUTOVER_QUALIFIED_NOT_BOUND', x
+          i=x['identity_rotation']
+          assert i['legacy_train_protocol_hash'] != i['candidate_train_protocol_hash'], x
+          assert i['legacy_validation_protocol_hash'] != i['candidate_validation_protocol_hash'], x
+          assert i['non_version_hyperparameters_identical'] is True, x
+          m=x['consumed_r2_2_mechanics']
+          assert m['baseline_max_abs_qcrps_delta'] <= 1e-12, x
+          assert m['baseline_max_abs_coverage_delta'] <= 1e-12, x
+          assert m['candidate_replica_max_abs_qcrps_delta'] <= 1e-12, x
+          p=x['production_binding_plan']
+          assert p['authorized'] is True and p['completed'] is False, x
+          s=x['semantic_guards']
+          assert s['student_training_started'] is False, x
+          assert s['historical_market_information_verdict_reopened'] is False, x
+          assert s['scientific_verdict_created'] is False, x
+          assert s['final_holdout_payload_opened'] is False, x
+          assert s['fresh_market_data_downloaded'] is False, x
+          print(json.dumps({
+              'status': x['status'],
+              'legacy_validation_protocol_hash': i['legacy_validation_protocol_hash'],
+              'candidate_validation_protocol_hash': i['candidate_validation_protocol_hash'],
+              'baseline_max_abs_qcrps_delta': m['baseline_max_abs_qcrps_delta'],
+              'candidate_replica_max_abs_qcrps_delta': m['candidate_replica_max_abs_qcrps_delta'],
+              'production_binding_authorized': p['authorized'],
+              'production_binding_completed': p['completed'],
+              'next_legal_step': x['next_legal_step'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact R2.3 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-teacher-cutover-r2-3-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r2_3_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r2_3_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-teacher-cutover-r2-3-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_SCIENCE_G0_TEACHER_CUTOVER_R2_3_RESULT.json
+            ${{ runner.temp }}/cb16-r11-science-g0-teacher-cutover-r2-3-${{ github.run_id }}-${{ github.run_attempt }}/r2_2_requalification/CB16_R11_SCIENCE_G0_TEACHER_REQUAL_R2_2_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30
