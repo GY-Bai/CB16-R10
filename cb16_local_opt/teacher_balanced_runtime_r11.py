@@ -11,7 +11,6 @@ The downstream R11 vectorized Teacher law is reused unchanged. Legacy R10.2 and
 the original R11 vectorized engine remain available for historical reproduction.
 """
 
-from dataclasses import replace
 from typing import Mapping, Sequence
 
 import numpy as np
@@ -35,7 +34,6 @@ from .teacher_vectorized_r11 import (
     VectorizedTeacherStatsR11,
     build_columnar_teacher_index_r11,
     group_targets_by_support_r11,
-    prepare_support_regime_r11 as prepare_legacy_support_regime_r11,
 )
 
 R11_BALANCED_TEACHER_ENGINE = "CB16_R11_COLUMNAR_DEPENDENCE_BALANCED_TEACHER_V2"
@@ -96,18 +94,13 @@ def prepare_support_regime_balanced_r11(*, dep_rows: np.ndarray, index) -> Suppo
             dep_lex_rank=np.empty(0, dtype=np.int32),
         )
 
-    unique_groups, duplicate_count = _unique_parent_rows_by_group_r11(dep_rows=dep_rows, index=index)
+    unique_groups, _ = _unique_parent_rows_by_group_r11(dep_rows=dep_rows, index=index)
     if any(len(rows) == 0 for rows in unique_groups):
         raise RuntimeError("R11_BALANCED_EMPTY_DEPENDENCE_GROUP")
 
-    unique_counts = tuple(len(rows) for rows in unique_groups)
-    # Compatibility fast path. When every future contains the same number of unique
-    # contexts and there are no replicas, equal-group weighting is algebraically the
-    # legacy row weighting. Reusing the legacy builder preserves exact historical bytes.
-    if duplicate_count == 0 and len(set(unique_counts)) <= 1:
-        legacy = prepare_legacy_support_regime_r11(dep_rows=dep_rows, index=index)
-        return replace(legacy)
-
+    # Always use the same dependence-balanced arithmetic, even when the input happens
+    # to be perfectly balanced. Otherwise base and replica-injected worlds could take
+    # different floating-point reduction orders and violate strict replica invariance.
     group_means = np.stack(
         [np.asarray(index.features[rows], dtype=np.float64).mean(axis=0) for rows in unique_groups],
         axis=0,
