@@ -1,0 +1,84 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_BELIEF_DECISION_BRIDGE_R3_4_GATEWORK_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_BELIEF_TO_DECISION_BRIDGE_SHADOW_R3_4",
+  "purpose": "Test whether an already-learned distributional belief representation contributes state-aligned incremental decision information without granting distributional gradients ownership of the Shared Decision Core.",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "pre_registered_protocol": {
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "candidate_factor": 2,
+    "seed_set": [31337, 271828, 314159, 161803, 424242],
+    "distributional_head_steps": 32,
+    "decision_bridge_steps": 32,
+    "learning_rate": 0.002,
+    "weight_decay": 0.0,
+    "gradient_clip": 10.0,
+    "optional_stopping": false,
+    "hyperparameter_changes_after_results": false
+  },
+  "arms": {
+    "production_baseline": "Frozen production Direction/Requested-Risk outputs; no bridge.",
+    "aligned_belief_bridge": "Disposable zero-residual decision bridge consumes frozen production Shared representation plus detached, state-aligned distributional belief quantiles.",
+    "shuffled_belief_control": "Architecturally and parametrically identical bridge with byte-identical initialization; distributional belief is shuffled by whole independent-future dependence groups within each split, preserving marginal belief geometry while breaking state alignment."
+  },
+  "gradient_ownership": {
+    "distributional_head_training": ["Distributional Student Shadow Head"],
+    "decision_bridge_training": ["Disposable Belief-to-Decision Residual Bridge"],
+    "forbidden": [
+      "Production Market/Operator Stem",
+      "Production Medium Stem",
+      "Production Account Stem",
+      "Production Shared Decision Core",
+      "Production Direction Head",
+      "Production Requested-Risk Head",
+      "Teacher",
+      "Future outcomes",
+      "Supervisor",
+      "Physics"
+    ]
+  },
+  "decision_bridge_semantics": {
+    "external_action_contract_changed": false,
+    "direction_output": "Frozen production direction logits plus disposable residual logits.",
+    "requested_risk_output": "Frozen production requested-risk transformed to logit space, plus disposable residual, then sigmoid back to [0,1].",
+    "initial_residual": "Exactly zero; pre-training bridge behavior must equal production bootstrap behavior.",
+    "teacher_direction_target_probs_role": "Training evidence for bridge mechanics; not Truth authority and not a realized-future label.",
+    "teacher_requested_risk_target_role": "Training evidence for bridge mechanics; requested_risk remains distinct from confidence."
+  },
+  "negative_control": {
+    "shuffle_unit": "INDEPENDENT_FUTURE_DEPENDENCE_GROUP",
+    "shuffle_scope": "WITHIN_TRAIN_SPLIT_AND_WITHIN_VALIDATION_SPLIT_ONLY",
+    "same_bridge_architecture": true,
+    "same_parameter_count": true,
+    "same_initial_parameter_bytes": true,
+    "same_optimizer_and_steps": true,
+    "purpose": "Distinguish state-aligned distributional belief information from parameter-count/capacity effects."
+  },
+  "pass_meaning": "Mechanics/authority PASS only. PASS means the bridge and control execute with legal gradients, deterministic group-level negative control, finite losses and unchanged production authority. PASS does not require aligned belief to beat control and does not create a market-information verdict.",
+  "adjudication_metrics": [
+    "aligned_minus_shuffled_validation_total_loss",
+    "aligned_minus_shuffled_validation_direction_loss",
+    "aligned_minus_shuffled_validation_sizing_loss",
+    "aligned_minus_production_validation_total_loss",
+    "aligned_better_than_shuffled_seed_count",
+    "aligned_better_than_production_seed_count",
+    "direction_changed_rows",
+    "requested_risk_delta"
+  ],
+  "prohibited": [
+    "Production Student mutation",
+    "Shared Core distributional gradient",
+    "Supervisor/Permission change",
+    "Physics change",
+    "Fresh market data",
+    "Final holdout opening",
+    "Canonical generation advance",
+    "Champion promotion",
+    "Market-information verdict creation",
+    "Outcome-as-correct-action label",
+    "Post-result seed removal or replacement"
+  ],
+  "next_step_after_pass": "R11_SCIENCE_G0_DISTRIBUTIONAL_BELIEF_DECISION_BRIDGE_R3_4_ADJUDICATION__NO_PRODUCTION_CUTOVER_AUTHORIZED"
+}
