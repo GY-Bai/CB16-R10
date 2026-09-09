@@ -8,6 +8,7 @@ on:
     paths:
       - scripts/verify_r11_stage4_authority_adoption.py
       - ci/resolve_verified_r104_python.py
+      - ci/docker_preflight.py
       - .github/workflows/cb16-r11-science-g0-authority-adoption.yml
   workflow_dispatch:
 
@@ -15,8 +16,10 @@ permissions:
   contents: read
 
 env:
+  CB16_RAW_ROOT: /cb16/raw
   CB16_G0_ROOT: /cb16/g0
   CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
   CB16_VERIFIED_VENV: /cb16/venv
   CB16_CI_WORKER_ROOT: /cb16/worker
   CB16_PROVISION_ENV: /run/secrets/cb16-provision.env
@@ -28,7 +31,7 @@ jobs:
   genesis-adoption:
     name: Verify migrated R11 G0 genesis authority
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
+    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
     timeout-minutes: 10
     permissions:
       contents: read
@@ -38,6 +41,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_authority_docker_preflight.json"
 
       - name: Verify R11 freeze and qualified adoption implementation
         shell: bash
