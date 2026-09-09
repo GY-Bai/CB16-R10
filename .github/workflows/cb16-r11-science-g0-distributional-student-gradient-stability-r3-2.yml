@@ -1,0 +1,206 @@
+name: CB16 R11 Science G0 Distributional Student Gradient Stability R3.2
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-distributional-student-gradient-stability-r3-2
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1_ADJUDICATION_V1.json
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_GATEWORK_V1.json
+      - cb16_local_opt/distributional_student_gradient_stability_r32.py
+      - tests/test_distributional_student_gradient_stability_r32.py
+      - scripts/r11_science_g0_distributional_student_gradient_stability_r3_2.py
+      - scripts/r11_science_g0_distributional_student_gradient_stability_r3_2_entrypoint.py
+      - .github/workflows/cb16-r11-science-g0-distributional-student-gradient-stability-r3-2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  gradient-stability-r3-2:
+    name: R11 distributional Student gradient stability R3.2
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r3_2_docker_preflight.json"
+
+      - name: Verify R3.1 PASS seed and immutable production/R3/R3.1 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 2647abd5bb3d9079739631c3f691e9409cf26b1a HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/typed_central_brain_r10.py)" = "899065a9b9c015fd5a0e24fc919a79ff7d3a67ff"
+          test "$(git rev-parse HEAD:cb16_local_opt/training_runtime_r11.py)" = "56c227800d7a5c82ef88c691bb69d7550aee8b39"
+          test "$(git rev-parse HEAD:cb16_local_opt/probabilistic_teacher_r6.py)" = "3de3092d244c3fd315950c9f8b0bf4d78c50ee2b"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_runtime_r11.py)" = "656f1483f2e6a96daae5c98eb96cd75805d3547c"
+          test "$(git rev-parse HEAD:cb16_local_opt/distributional_student_shadow_r3.py)" = "2e0dac6c4ddac81f3f7f20cfc8c8789ade8f1373"
+          test "$(git rev-parse HEAD:cb16_local_opt/distributional_student_shared_core_shadow_r31.py)" = "f3875d4ff873f189b06cd8b5c8784936b2828fc0"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_distributional_student_shared_core_shadow_r3_1.py)" = "449278dc7d97628f05f8180c5f948ec5d55cf187"
+          test -f authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1_ADJUDICATION_V1.json
+          test -f authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_GATEWORK_V1.json
+          test -f /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r3_2_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['observed']['python_series'] == [3,10], p
+          PY
+
+      - name: Compile and run R3.2 shadow unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r3_2_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/distributional_student_gradient_stability_r32.py \
+            tests/test_distributional_student_gradient_stability_r32.py \
+            scripts/r11_science_g0_distributional_student_gradient_stability_r3_2.py \
+            scripts/r11_science_g0_distributional_student_gradient_stability_r3_2_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_distributional_student_gradient_stability_r32.py \
+            tests/test_distributional_student_shared_core_shadow_r31.py \
+            tests/test_distributional_student_shadow_r3.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_r11_teacher_authority_candidate.py \
+            tests/test_teacher_runtime_r11.py \
+            tests/test_teacher_vectorized_r11.py
+
+      - name: Execute R3.2 fixed-seed real-history qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r3_2_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-distributional-student-gradient-stability-r3-2-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"
+          mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r3_2_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_distributional_student_gradient_stability_r3_2_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_RESULT.json" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --train-groups 48 \
+            --validation-groups 12 \
+            --candidate-factor 2 \
+            --sensory-batch-size 8 \
+            --teacher-workers 4 \
+            --teacher-block-targets 32
+
+      - name: Verify R3.2 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r3_2_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_RESULT.json" <<'PY'
+          import json, math, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_RESULT_V1', x
+          assert x['status'] == 'R11_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_PASS', x
+          assert x['pre_registered_protocol']['seed_set'] == [31337,271828,314159,161803,424242], x
+          assert x['pre_registered_protocol']['optional_stopping'] is False, x
+          assert x['execution']['seed_count_completed'] == 5, x
+          assert len(x['seed_results']) == 5, x
+          for row in x['seed_results']:
+              a=row['arm_a_head_only']; b=row['arm_b_shared_core']; gg=row['gradient_geometry']
+              assert a['gradient_audit_first_step']['production_student_gradient_parameter_count'] == 0, row
+              assert b['gradient_audit_first_step']['production_student_gradient_parameter_count'] == 0, row
+              assert b['gradient_audit_first_step']['shared_core_gradient_parameter_tensors'] == 4, row
+              assert b['gradient_audit_first_step']['distributional_head_gradient_parameter_tensors'] == 4, row
+              assert b['gradient_audit_first_step']['forbidden_disposable_gradient_parameter_count'] == 0, row
+              assert b['disposable_update_audit']['forbidden_parameter_update_count'] == 0, row
+              assert b['disposable_update_audit']['shared_core_parameter_l2_delta'] > 0.0, row
+              assert a['train_loss_after'] < a['train_loss_before'], row
+              assert b['train_loss_after'] < b['train_loss_before'], row
+              for key in ('distributional_vs_canonical_total','distributional_vs_direction','distributional_vs_sizing'):
+                  c=gg[key]['cosine_similarity']
+                  assert math.isfinite(c) and -1.000001 <= c <= 1.000001, row
+                  assert gg[key]['distributional_l2_norm'] > 0.0, row
+                  assert gg[key]['canonical_l2_norm'] > 0.0, row
+          s=x['stability_summary']; p=x['production_student']; g=x['semantic_guards']
+          assert s['seed_count'] == 5, x
+          assert p['architecture_changed'] is False and p['training_started'] is False, x
+          assert p['parameter_state_changed'] is False and p['behavior_identical'] is True, x
+          assert p['policy_hash_before'] == p['policy_hash_after'], x
+          assert g['canonical_generation_advanced'] is False, x
+          assert g['historical_market_information_verdict_reopened'] is False, x
+          assert g['scientific_verdict_created'] is False, x
+          assert g['final_holdout_payload_opened'] is False, x
+          assert g['fresh_market_data_downloaded'] is False, x
+          assert g['production_cutover_authorized'] is False, x
+          print(json.dumps({
+              'status': x['status'],
+              'architecture_pattern': s['architecture_pattern'],
+              'shared_core_better_distributional_seed_count': s['shared_core_better_distributional_seed_count'],
+              'canonical_total_loss_lower_seed_count': s['canonical_total_loss_lower_seed_count'],
+              'gradient_total_cosine_median': s['gradient_cosine_distributional_vs_canonical_total']['median'],
+              'gradient_direction_cosine_median': s['gradient_cosine_distributional_vs_direction']['median'],
+              'gradient_sizing_cosine_median': s['gradient_cosine_distributional_vs_sizing']['median'],
+              'shared_minus_head_validation_loss_median': s['shared_minus_head_validation_distributional_loss']['median'],
+              'canonical_decision_total_delta_median': s['canonical_decision_total_delta']['median'],
+              'direction_changed_rows_median': s['hypothetical_direction_changed_rows']['median'],
+              'next_legal_step': x['next_legal_step'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact R3.2 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-distributional-student-gradient-stability-r3-2-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r3_2_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r3_2_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-distributional-student-gradient-stability-r3-2-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30
