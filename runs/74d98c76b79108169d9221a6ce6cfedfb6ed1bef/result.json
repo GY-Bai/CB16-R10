@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "92ddd58e-3862-4394-b5b3-c8950990782a",
+  "commit_sha": "74d98c76b79108169d9221a6ce6cfedfb6ed1bef",
+  "ci_profile": "smoke",
+  "verdict": "ERROR",
+  "started_at": "2026-09-09T23:11:01Z",
+  "finished_at": "2026-09-09T23:11:01Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "HTTPError: 520 Server Error: <none> for url: https://ci-speedtest.bayesdesk.com/api/v1/worker/jobs/92ddd58e-3862-4394-b5b3-c8950990782a/claim",
+  "model_artifacts": []
+}
