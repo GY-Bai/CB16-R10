@@ -236,6 +236,11 @@ def summarize_context_identity_counts(parents: Mapping[str, ParentContextR102]) 
     }
 
 
+def _project_original_targets(rows, original_parent_ids: set[str]):
+    """Replica parents alter support only; they are not comparison targets."""
+    return [x for x in rows if x.parent_id in original_parent_ids]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--g0-root", type=Path, default=Path(os.environ.get("CB16_G0_ROOT", "/cb16/g0")))
@@ -298,10 +303,17 @@ def main() -> int:
         samples=replica_samples,parents=replica_parents,train_config=TRAIN_TEACHER_CONFIG_R102,
         val_config=VAL_TEACHER_CONFIG_R102,block_targets=int(args.block_targets))
 
-    current_replica_train=compare_teacher_evidence_sets_r11(current_train,current_rep_train)
-    current_replica_val=compare_teacher_evidence_sets_r11(current_val,current_rep_val)
-    shadow_replica_train=compare_teacher_evidence_sets_r11(shadow_train,shadow_rep_train)
-    shadow_replica_val=compare_teacher_evidence_sets_r11(shadow_val,shadow_rep_val)
+    original_train_ids={x.parent_id for x in current_train}
+    original_val_ids={x.parent_id for x in current_val}
+    current_rep_train_original=_project_original_targets(current_rep_train,original_train_ids)
+    current_rep_val_original=_project_original_targets(current_rep_val,original_val_ids)
+    shadow_rep_train_original=_project_original_targets(shadow_rep_train,original_train_ids)
+    shadow_rep_val_original=_project_original_targets(shadow_rep_val,original_val_ids)
+
+    current_replica_train=compare_teacher_evidence_sets_r11(current_train,current_rep_train_original)
+    current_replica_val=compare_teacher_evidence_sets_r11(current_val,current_rep_val_original)
+    shadow_replica_train=compare_teacher_evidence_sets_r11(shadow_train,shadow_rep_train_original)
+    shadow_replica_val=compare_teacher_evidence_sets_r11(shadow_val,shadow_rep_val_original)
     baseline_train_delta=compare_teacher_evidence_sets_r11(current_train,shadow_train)
     baseline_val_delta=compare_teacher_evidence_sets_r11(current_val,shadow_val)
 
