@@ -28,7 +28,7 @@ jobs:
   inspect:
     name: Inspect R10.4 G66 authority
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
       contents: read
