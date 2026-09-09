@@ -34,7 +34,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -81,7 +81,7 @@ jobs:
           CB16_G0_R104_AUTHORITY_OUT="$OUT" PYTHONPATH="$GITHUB_WORKSPACE" "$PYTHON" scripts/r11_science_g0_r104_authority_inspect.py
 
       - name: Upload compact authority evidence
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-science-g0-r104-authority
           path: ${{ runner.temp }}/cb16_r11_g0_r104_authority.json
