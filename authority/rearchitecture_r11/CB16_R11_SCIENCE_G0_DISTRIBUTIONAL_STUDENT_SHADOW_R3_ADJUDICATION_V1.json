@@ -1,0 +1,66 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHADOW_R3_ADJUDICATION_V1",
+  "r3_execution_head": "517689b48bd01c5be4b2a2695bf38d9e8ad60ff3",
+  "r3_workflow_run_id": 34405890391,
+  "r3_artifact_id": 10125601515,
+  "r3_artifact_sha256": "6c12dbf0eb9c492340f60756c098fb20cdf29425c1800167c783c361034ff0d5",
+  "r3_result_status": "R11_DISTRIBUTIONAL_STUDENT_SHADOW_R3_PASS",
+  "adjudication": "HEAD_ONLY_DISTRIBUTIONAL_BELIEF_MECHANICS_QUALIFIED__PRODUCTION_CUTOVER_NOT_AUTHORIZED",
+  "evidence": {
+    "train_rows": 288,
+    "validation_rows": 72,
+    "action_count": 9,
+    "quantile_count": 7,
+    "shadow_parameter_count": 20543,
+    "train_loss_before": 0.0990726500749588,
+    "train_loss_after": 0.008553540334105492,
+    "validation_loss_before": 0.10392256826162338,
+    "validation_loss_after": 0.013913886621594429,
+    "shadow_parameter_l2_delta": 1.6227975505030006,
+    "production_student_gradient_parameter_count": 0,
+    "production_behavior_identical": true,
+    "production_policy_unchanged": true,
+    "prediction_quantile_crossings": 0,
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false,
+    "scientific_verdict_created": false
+  },
+  "what_r3_proves": [
+    "The already-bound R11 Teacher action_laws quantiles can be consumed by a Student-owned distributional belief head.",
+    "The distributional target path is finite, monotone and trainable on frozen authorized history.",
+    "Head-only distributional gradients can be isolated completely from the production Student.",
+    "The GTX1060 6GB has ample compute and memory headroom for this belief head."
+  ],
+  "what_r3_does_not_prove": [
+    "That distributional belief should modify the production Shared Decision Core.",
+    "That distributional belief improves the existing Direction/Requested-Risk objective.",
+    "That any market-information verdict should be changed.",
+    "That production cutover is authorized."
+  ],
+  "next_authorized_shadow": {
+    "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1",
+    "purpose": "Compare head-only distributional learning with a disposable copy whose Shared Decision Core is also allowed to receive distributional gradients, while preserving all production authority and measuring compatibility with the existing Direction/Requested-Risk objective.",
+    "authorized_gradient_owners": [
+      "Disposable Shared Decision Core",
+      "Distributional Student Shadow Head"
+    ],
+    "forbidden_gradient_owners": [
+      "Production Student",
+      "Operator Brain Stem",
+      "Medium Brain Stem",
+      "Account Brain Stem",
+      "Direction Head",
+      "Requested-Risk Head",
+      "Teacher",
+      "Future Outcome",
+      "Supervisor",
+      "Physics"
+    ],
+    "production_cutover_authorized": false,
+    "canonical_generation_advance_authorized": false,
+    "market_verdict_reopen_authorized": false,
+    "final_holdout_open_authorized": false,
+    "fresh_market_data_authorized": false
+  },
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+}
