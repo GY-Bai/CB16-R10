@@ -37,7 +37,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -83,7 +83,7 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE" "$PYTHON" scripts/r11_science_g0_prereq_discovery.py
 
       - name: Upload prerequisite evidence
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-science-g0-prereq-discovery
           path: ${{ runner.temp }}/cb16_r11_science_g0_prereq_discovery.json
