@@ -15,8 +15,8 @@ from cb16_local_opt.stage4_state_roots_r11 import (
     Stage4StateRootsR11,
 )
 
-G0_ROOT = Path(os.environ.get("CB16_R11_G0_ROOT", "/cb16_r11_runtime/G0"))
-RAW_ROOT = Path("/data/cb16_hdd/binance_usdm_1m_funding_2020_2026")
+G0_ROOT = Path(os.environ.get("CB16_R11_G0_ROOT", "/cb16/g0"))
+RAW_ROOT = Path(os.environ.get("CB16_RAW_ROOT", "/cb16/raw"))
 DATASET_SEAL_SHA256 = "94bc3288a7e6097c4301c93d836607edee207ac3b2c7cf3e7833c85ea0f9546a"
 ADOPTION_CANONICAL_HASH = "2e9fed060ff29160197bf4a0ab391575fe15c4bb6e21f3ce368cfddd67ffab81"
 GENESIS_IDENTITY_SHA256 = "dce5f5dc41b9b6ff712269fd0e3b87a861d2296147bd87ee62ff54e6813c798d"
@@ -47,6 +47,13 @@ def publish_exact_no_replace(path: Path, raw: bytes) -> None:
                 raise RuntimeError(f"R11_G0_STAGE4_ROOT_RECEIPT_RACE_CONFLICT:{path}")
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def report_path() -> Path:
+    explicit = os.environ.get("CB16_G0_STAGE4_ROOTS_OUT")
+    if explicit:
+        return Path(explicit)
+    return Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "cb16_r11_g0_stage4_roots.json"
 
 
 def main() -> int:
@@ -80,7 +87,8 @@ def main() -> int:
     write_bits = bool(mode & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
     control = G0_ROOT / "stage4" / "control"
     data = G0_ROOT / "stage4" / "data"
-    out = Path("/tmp/cb16_r11_g0_stage4_roots.json")
+    out = report_path()
+    out.parent.mkdir(parents=True, exist_ok=True)
 
     if write_bits:
         result = {
