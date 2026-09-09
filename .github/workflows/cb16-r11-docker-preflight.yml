@@ -6,10 +6,20 @@ on:
       - ai/r11-docker-runner-r0
     paths:
       - ci/docker_preflight.py
-      - .github/workflows/cb16-r11-docker-preflight.yml
+      - ci/check_r11_docker_path_policy.py
       - ci/resolve_verified_r104_python.py
       - provision/scripts/provision_common.py
       - provision/scripts/provision_python.py
+      - scripts/r11_science_g0_seal.py
+      - scripts/r11_science_g0_materialize_cache.py
+      - scripts/r11_science_g0_initialize_stage4_roots.py
+      - infra/docker/runner/**
+      - .github/workflows/cb16-r11-docker-preflight.yml
+      - .github/workflows/cb16-r11-science-g0-r104-authority.yml
+      - .github/workflows/cb16-r11-science-g0-s4f-preflight.yml
+      - .github/workflows/cb16-r11-science-g0-materialize-cache.yml
+      - .github/workflows/cb16-r11-science-g0-stage4-roots.yml
+      - .github/workflows/cb16-r11-science-g0-authority-adoption.yml
   workflow_dispatch:
 
 permissions:
@@ -32,9 +42,40 @@ jobs:
   shanxi-preflight:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
 
+  repo-contract:
+    name: Verify Docker repo contract
+    needs: shanxi-preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify Docker path contract
+        run: python3 ci/check_r11_docker_path_policy.py
+
+      - name: Compile modified Python entrypoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            ci/docker_preflight.py \
+            ci/check_r11_docker_path_policy.py \
+            ci/resolve_verified_r104_python.py \
+            provision/scripts/provision_common.py \
+            provision/scripts/provision_python.py \
+            scripts/r11_science_g0_seal.py \
+            scripts/r11_science_g0_materialize_cache.py \
+            scripts/r11_science_g0_initialize_stage4_roots.py
+
   docker-preflight:
     name: Verify R11 Docker execution contract
-    needs: shanxi-preflight
+    needs: [shanxi-preflight, repo-contract]
     runs-on: [self-hosted, shanxi, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
