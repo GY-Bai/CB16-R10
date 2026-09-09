@@ -3,7 +3,7 @@
 
 The scanner hashes every regular file in the configured legacy mounts, never
 follows symlinks, never mutates legacy roots, and deliberately excludes final
-holdout-named paths from content access.  The output is an infrastructure
+holdout-named paths from content access. The output is an infrastructure
 availability/adoption receipt, not scientific Evidence and not a new verdict.
 """
 from __future__ import annotations
@@ -96,7 +96,7 @@ def main() -> int:
     inv_tmp = INVENTORY.with_name(INVENTORY.name + f".tmp.{os.getpid()}")
     inventory_hash = hashlib.sha256()
 
-    with gzip.open(inv_tmp, "wb", compresslevel=6, mtime=0) as gz:
+    with gzip.GzipFile(filename=str(inv_tmp), mode="wb", compresslevel=6, mtime=0) as gz:
         for name, root, role in ROOTS:
             summary = {
                 "name": name,
@@ -157,7 +157,7 @@ def main() -> int:
                     gz.write(line)
                     inventory_hash.update(line)
                     root_hash.update(line)
-            except Exception as exc:  # fail closed with exact root attribution
+            except Exception as exc:
                 failures.append(f"SCAN_FAILED:{name}:{type(exc).__name__}:{exc}")
 
             summary["scan_digest_sha256"] = root_hash.hexdigest()
