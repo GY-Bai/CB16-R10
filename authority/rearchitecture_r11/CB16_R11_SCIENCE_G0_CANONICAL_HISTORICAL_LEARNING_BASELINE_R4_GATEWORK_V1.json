@@ -1,0 +1,99 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_GATEWORK_V1",
+  "stage": "R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4",
+  "purpose": "Execute one bounded canonical six-owner Student learning attempt from the immutable R11 G0 Champion using the R2.4 production dependence-balanced Teacher and real frozen multi-account historical support, then produce a shadow Champion/Challenger ranking without mutating canonical generation state.",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "prerequisite": {
+    "r3_4_adjudication_commit": "5a500e572b20f26bb597db726bb768bb46166c10",
+    "r3_distributional_decision_escalation_closed": true,
+    "r2_4_production_teacher_required": true,
+    "historical_r1_connectivity_already_qualified": true
+  },
+  "pre_registered_protocol": {
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "candidate_factor": 2,
+    "multi_account_contexts": true,
+    "teacher": "R11_R2_4_DEPENDENCE_BALANCED_PRODUCTION_TEACHER",
+    "student_architecture": "TIER_1_189052_PARAMS",
+    "trainable_owners": [
+      "Operator Brain Stem",
+      "Medium Brain Stem",
+      "Account Brain Stem",
+      "Shared Decision Core",
+      "Direction Head",
+      "Requested-Risk Head"
+    ],
+    "epochs": 12,
+    "batch_size": 512,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "max_grad_norm": 10.0,
+    "dtype": "FP32",
+    "amp": false,
+    "generation_seed_rule": "R11_CANONICAL_GENERATION_BASE_SEED_24680",
+    "canonical_generation_number_for_training_receipt": 0,
+    "optional_stopping": false,
+    "hyperparameter_changes_after_results": false
+  },
+  "gradient_graph": {
+    "authorized": [
+      "Operator Brain Stem",
+      "Medium Brain Stem",
+      "Account Brain Stem",
+      "Shared Decision Core",
+      "Direction Head",
+      "Requested-Risk Head"
+    ],
+    "forbidden": [
+      "Frozen sensory organs",
+      "Teacher",
+      "Future outcomes",
+      "Supervisor",
+      "Physics",
+      "R3 distributional head",
+      "R3 distributional bridge"
+    ],
+    "distributional_r3_artifacts_enter_gradient_graph": false
+  },
+  "champion_challenger": {
+    "champion": "IMMUTABLE_R11_G0_INITIAL_CHAMPION",
+    "challenger_starts_from_exact_champion": true,
+    "ranking_basis": "FROZEN_VALIDATION_PROBABILISTIC_TEACHER_TARGET_LOSS",
+    "shadow_ranking_rule": "LOWER_TOTAL_VALIDATION_LOSS_WINS__EQUALITY_RETURNS_CHAMPION",
+    "numeric_promotion_threshold_authority": "NOT_SPECIFIED_BY_CB16_R11_SEMANTIC_FREEZE_V1",
+    "legacy_r10_0_1_PERCENT_THRESHOLD_is_R11_authority": false,
+    "canonical_promotion_authorized": false,
+    "canonical_generation_advance_authorized": false,
+    "rejected_challenger_becomes_parent": false
+  },
+  "pass_meaning": "Mechanics and bounded-learning PASS only. PASS requires a legal six-owner gradient/update path, a finite Challenger, exact production/authority immutability, and a complete shadow ranking receipt. PASS does not require Challenger to beat Champion and creates no market-information verdict.",
+  "adjudication_metrics": [
+    "champion_validation_total_loss",
+    "challenger_validation_total_loss",
+    "relative_validation_improvement",
+    "direction_loss_delta",
+    "sizing_loss_delta",
+    "parameter_l2_delta",
+    "six_owner_gradient_norms",
+    "six_owner_update_norms",
+    "behavior_delta",
+    "shadow_ranking"
+  ],
+  "prohibited": [
+    "Final holdout opening",
+    "Fresh market data",
+    "Production G0 checkpoint mutation",
+    "Canonical G1 creation",
+    "Champion promotion",
+    "New market-information verdict",
+    "R3 distributional gradient consumption",
+    "Realized outcome as correct-action label",
+    "Changing canonical optimizer rule",
+    "Post-result threshold selection"
+  ],
+  "next_step_after_pass": "R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_ADJUDICATION__NO_CANONICAL_PROMOTION_AUTHORIZED"
+}
