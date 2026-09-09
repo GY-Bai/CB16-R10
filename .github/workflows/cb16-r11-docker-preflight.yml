@@ -83,7 +83,7 @@ jobs:
   docker-preflight:
     name: Verify R11 Docker execution contract
     needs: [shanxi-preflight, repo-contract]
-    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
       contents: read
