@@ -12,6 +12,16 @@ on:
 permissions:
   contents: read
 
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /run/secrets/cb16-provision.env
+
 jobs:
   shanxi-preflight:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
@@ -30,6 +40,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_g0_prereq_docker_preflight.json"
+
       - name: Verify clean-main ancestry and frozen authority
         shell: bash
         run: |
@@ -41,33 +57,33 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 ci/resolve_verified_r104_python.py --out /tmp/cb16_r11_g0_python.json
-          python3 - <<'PY'
-          import json
-          p=json.load(open('/tmp/cb16_r11_g0_python.json'))
+          OUT="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
           assert p['status'] == 'READY', p
           assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
           assert p['python']['network_install_attempted'] is False, p
           PY
 
-      - name: Discover bounded prerequisites
-        env:
-          CB16_G0_PREREQ_OUT: /tmp/cb16_r11_science_g0_prereq_discovery.json
+      - name: Discover bounded prerequisites from mounted Docker volumes
         shell: bash
         run: |
           set -euo pipefail
-          PYTHON=$(python3 - <<'PY'
-          import json
-          p=json.load(open('/tmp/cb16_r11_g0_python.json'))
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_g0_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
           print(p['python']['venv'] + '/bin/python')
           PY
           )
+          export CB16_G0_PREREQ_OUT="$RUNNER_TEMP/cb16_r11_science_g0_prereq_discovery.json"
           PYTHONPATH="$GITHUB_WORKSPACE" "$PYTHON" scripts/r11_science_g0_prereq_discovery.py
 
       - name: Upload prerequisite evidence
         uses: actions/upload-artifact@v5
         with:
           name: cb16-r11-science-g0-prereq-discovery
-          path: /tmp/cb16_r11_science_g0_prereq_discovery.json
+          path: ${{ runner.temp }}/cb16_r11_science_g0_prereq_discovery.json
           if-no-files-found: error
           retention-days: 30
