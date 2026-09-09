@@ -21,6 +21,9 @@ FORBIDDEN_HOST_PATHS = (
     "/cb16_r11_runtime",
 )
 
+DEPLOYED_PROVISION_ENV = Path("/run/secrets/provision.env")
+LEGACY_PROVISION_ALIAS = Path("/run/secrets/cb16-provision.env")
+
 DEFAULTS = {
     "CB16_RAW_ROOT": "/cb16/raw",
     "CB16_G0_ROOT": "/cb16/g0",
@@ -28,7 +31,7 @@ DEFAULTS = {
     "CB16_VERIFIED_VENV": "/cb16/venv",
     "CB16_UV_CACHE_DIR": "/cb16/uv-cache",
     "CB16_CI_WORKER_ROOT": "/cb16/worker",
-    "CB16_PROVISION_ENV": "/run/secrets/cb16-provision.env",
+    "CB16_PROVISION_ENV": str(DEPLOYED_PROVISION_ENV),
     "CB16_PACKAGE_ROOT": "/cb16/package",
     "CB16_PARENT_R101_ROOT": "/cb16/parent-r101",
     "CB16_PARENT_G0": "/cb16/parents/r10_1.pt",
@@ -130,6 +133,15 @@ def torch_cuda_report(venv: Path) -> tuple[bool, dict]:
     return bool(payload.get("cuda_available") and payload.get("device_count", 0) >= 1), payload
 
 
+def resolve_provision_env(requested: str) -> tuple[Path, str]:
+    path = Path(requested)
+    if path.is_file():
+        return path, "REQUESTED_PATH"
+    if path == LEGACY_PROVISION_ALIAS and DEPLOYED_PROVISION_ENV.is_file():
+        return DEPLOYED_PROVISION_ENV, "LEGACY_ALIAS_TO_DEPLOYED_VOLUME_FILE"
+    return path, "UNRESOLVED"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json-out", type=Path, required=True)
@@ -137,6 +149,9 @@ def main() -> int:
 
     resolved = {key: os.environ.get(key, default) for key, default in DEFAULTS.items()}
     failures: list[str] = []
+
+    provision_env, provision_resolution = resolve_provision_env(resolved["CB16_PROVISION_ENV"])
+    resolved["CB16_PROVISION_ENV"] = str(provision_env)
 
     for key, value in resolved.items():
         if key == "CB16_PROVISION_ENV":
@@ -162,7 +177,6 @@ def main() -> int:
     if not r104.is_dir():
         failures.append("R104_ROOT_MISSING")
 
-    provision_env = Path(resolved["CB16_PROVISION_ENV"])
     if not provision_env.is_file():
         failures.append("PROVISION_ENV_MISSING")
 
@@ -179,6 +193,7 @@ def main() -> int:
         "schema": "CB16_R11_DOCKER_RUNNER_PREFLIGHT_V1",
         "status": "PASS" if not failures else "FAIL_CLOSED",
         "paths": resolved,
+        "provision_env_resolution": provision_resolution,
         "host_business_paths_visible": not no_host_paths,
         "host_path_hits": host_path_hits,
         "raw_root_read_only": raw_ro,
