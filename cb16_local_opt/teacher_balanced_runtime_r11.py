@@ -5,12 +5,13 @@ from __future__ import annotations
 R2.1/R2.2 qualified one narrow mechanics correction: normalization mass belongs
 to independent market-future dependence groups, not to the number of parent rows
 materialized inside a group. Distinct AccountState contexts remain distinct;
-exact Student-context replicas add zero geometry/support mass.
+exact Student-context replicas add zero geometry, support, or target-compute mass.
 
 The downstream R11 vectorized Teacher law is reused unchanged. Legacy R10.2 and
 the original R11 vectorized engine remain available for historical reproduction.
 """
 
+from dataclasses import replace
 from typing import Mapping, Sequence
 
 import numpy as np
@@ -41,11 +42,21 @@ R11_BALANCED_SCHEDULER = "CB16_R11_DEPENDENCE_BALANCED_THREAD_SCHEDULER_V1"
 R11_BALANCED_GEOMETRY = "EQUAL_DEPENDENCE_GROUP_MASS__UNIQUE_STUDENT_CONTEXT_WITHIN_GROUP_V1"
 
 
+def _validate_exact_context_replica_r11(*, prior: int, row: int, dep_id: str, context_id: str, index) -> None:
+    if not np.array_equal(index.features[row], index.features[prior]):
+        raise RuntimeError(f"R11_BALANCED_CONTEXT_ID_FEATURE_CONFLICT:{dep_id}:{context_id}")
+    if not np.array_equal(index.utilities[row], index.utilities[prior]):
+        raise RuntimeError(f"R11_BALANCED_CONTEXT_ID_UTILITY_CONFLICT:{dep_id}:{context_id}")
+    if int(index.parent_timestamps[row]) != int(index.parent_timestamps[prior]):
+        raise RuntimeError(f"R11_BALANCED_CONTEXT_ID_TIMESTAMP_CONFLICT:{dep_id}:{context_id}")
+
+
 def _unique_parent_rows_by_group_r11(*, dep_rows: np.ndarray, index):
     """Return one canonical support row per unique Student context in each future."""
     groups: list[np.ndarray] = []
     duplicate_count = 0
     for dep_row in np.asarray(dep_rows, dtype=np.int32):
+        dep_id = str(index.dep_ids[int(dep_row)])
         raw = np.asarray(index.dep_parent_rows[int(dep_row)], dtype=np.int32)
         raw = raw[raw >= 0]
         by_context: dict[str, int] = {}
@@ -57,24 +68,13 @@ def _unique_parent_rows_by_group_r11(*, dep_rows: np.ndarray, index):
                 by_context[context_id] = row
                 continue
             duplicate_count += 1
-            # A duplicated Student identity may collapse only when both the observable
-            # context and its realized counterfactual utility vector are exactly equal.
-            if not np.array_equal(index.features[row], index.features[prior]):
-                raise RuntimeError(
-                    f"R11_BALANCED_CONTEXT_ID_FEATURE_CONFLICT:{index.dep_ids[int(dep_row)]}:{context_id}"
-                )
-            if not np.array_equal(index.utilities[row], index.utilities[prior]):
-                raise RuntimeError(
-                    f"R11_BALANCED_CONTEXT_ID_UTILITY_CONFLICT:{index.dep_ids[int(dep_row)]}:{context_id}"
-                )
-            # Make representative choice deterministic even if a replica parent id would
-            # sort before the original. Values are equal, but deterministic row identity
-            # keeps support construction reproducible.
+            _validate_exact_context_replica_r11(
+                prior=prior, row=row, dep_id=dep_id, context_id=context_id, index=index
+            )
             if index.parent_ids[row] < index.parent_ids[prior]:
                 by_context[context_id] = row
-        # Context-id order is independent of how many replica parent rows were materialized.
-        unique = [by_context[k] for k in sorted(by_context)]
-        groups.append(np.asarray(unique, dtype=np.int32))
+        # Semantic context order is independent of replica parent naming/volume.
+        groups.append(np.asarray([by_context[k] for k in sorted(by_context)], dtype=np.int32))
     return groups, int(duplicate_count)
 
 
@@ -113,8 +113,8 @@ def prepare_support_regime_balanced_r11(*, dep_rows: np.ndarray, index) -> Suppo
         raise RuntimeError("R11_BALANCED_EMPTY_DEPENDENCE_GROUP")
 
     # Exact replicas are removed not only from normalization mass but from the actual
-    # batched kNN support matrix. This keeps GEMM shape/reduction order identical between
-    # base and replica-injected worlds instead of accepting tiny shape-induced FP drift.
+    # batched kNN support matrix. Base and replica-injected worlds therefore have the
+    # same support values, shape, and floating-point reduction order.
     parent_matrix = _compact_unique_support_matrix_r11(unique_groups=unique_groups)
     valid = parent_matrix >= 0
     all_parent_rows = parent_matrix[valid]
@@ -166,6 +166,42 @@ def prepare_support_regime_balanced_r11(*, dep_rows: np.ndarray, index) -> Suppo
     )
 
 
+def _canonicalize_target_replicas_r11(*, parent_ids: Sequence[str], index):
+    """Collapse exact target replicas by semantic identity before vectorized batching."""
+    representative_by_key: dict[tuple[str, str], int] = {}
+    aliases_by_key: dict[tuple[str, str], list[str]] = {}
+    key_by_parent: dict[str, tuple[str, str]] = {}
+
+    for parent_id in parent_ids:
+        row = int(index.parent_row_by_id[parent_id])
+        dep_id = str(index.dep_ids[int(index.parent_dep_index[row])])
+        context_id = str(index.student_context_ids[row])
+        key = (dep_id, context_id)
+        key_by_parent[parent_id] = key
+        aliases_by_key.setdefault(key, []).append(parent_id)
+        prior = representative_by_key.get(key)
+        if prior is None:
+            representative_by_key[key] = row
+            continue
+        _validate_exact_context_replica_r11(
+            prior=prior, row=row, dep_id=dep_id, context_id=context_id, index=index
+        )
+        if index.parent_ids[row] < index.parent_ids[prior]:
+            representative_by_key[key] = row
+
+    # Sort by semantic key, not parent id, so adding a differently named replica cannot
+    # alter target batch order or target GEMM shape for the original scientific contexts.
+    ordered_keys = sorted(representative_by_key)
+    canonical_ids = tuple(index.parent_ids[representative_by_key[key]] for key in ordered_keys)
+    canonical_by_key = {
+        key: index.parent_ids[representative_by_key[key]] for key in ordered_keys
+    }
+    parent_to_canonical = {
+        parent_id: canonical_by_key[key_by_parent[parent_id]] for parent_id in parent_ids
+    }
+    return canonical_ids, parent_to_canonical
+
+
 def _build_balanced_jobs_r11(*, train_parent_ids, val_parent_ids, index, parents, train_config, val_config, block_targets):
     eligible_train_groups = {
         parent.dependence_group_id for parent in parents.values() if parent.split == "TRAIN"
@@ -203,6 +239,24 @@ def _build_balanced_jobs_r11(*, train_parent_ids, val_parent_ids, index, parents
     return jobs, regime_count
 
 
+def _rebind_evidence_to_parent_r11(*, evidence: DependenceAwareTeacherEvidenceR6, parent_id: str, index):
+    if evidence.parent_id == parent_id:
+        return evidence
+    row = int(index.parent_row_by_id[parent_id])
+    dep_id = str(index.dep_ids[int(index.parent_dep_index[row])])
+    context_id = str(index.student_context_ids[row])
+    if dep_id != evidence.target_dependence_group_id or context_id != evidence.student_context_object_id:
+        raise RuntimeError(f"R11_BALANCED_TARGET_REBIND_IDENTITY_DRIFT:{parent_id}")
+    return replace(
+        evidence,
+        evidence_id=f"R6E:{parent_id}:{evidence.teacher_protocol_hash[:12]}",
+        parent_id=parent_id,
+        student_context_object_id=context_id,
+        target_dependence_group_id=dep_id,
+        timestamp=int(index.parent_timestamps[row]),
+    )
+
+
 def compile_teacher_evidence_balanced_r11(
     *,
     samples: Sequence[CounterfactualBranchSampleR5],
@@ -225,7 +279,14 @@ def compile_teacher_evidence_balanced_r11(
     val_config.validate()
 
     index = _make_index_immutable_r11(build_columnar_teacher_index_r11(samples))
-    train_parent_ids, val_parent_ids = _canonical_target_ids_r11(parents=parents, index=index)
+    all_train_ids, all_val_ids = _canonical_target_ids_r11(parents=parents, index=index)
+    train_parent_ids, train_parent_to_canonical = _canonicalize_target_replicas_r11(
+        parent_ids=all_train_ids, index=index
+    )
+    val_parent_ids, val_parent_to_canonical = _canonicalize_target_replicas_r11(
+        parent_ids=all_val_ids, index=index
+    )
+
     jobs, regime_count = _build_balanced_jobs_r11(
         train_parent_ids=train_parent_ids,
         val_parent_ids=val_parent_ids,
@@ -240,21 +301,36 @@ def compile_teacher_evidence_balanced_r11(
             jobs=jobs, index=index, workers=workers, worker_pool=worker_pool
         )
 
-    compiled = {}
+    compiled_canonical: dict[str, DependenceAwareTeacherEvidenceR6] = {}
     for rows in block_results:
         for evidence in rows:
-            if evidence.parent_id in compiled:
+            if evidence.parent_id in compiled_canonical:
                 raise RuntimeError(f"R11_BALANCED_DUPLICATE_COMPILED_TARGET:{evidence.parent_id}")
-            compiled[evidence.parent_id] = evidence
-    expected = tuple(train_parent_ids + val_parent_ids)
-    missing = [parent_id for parent_id in expected if parent_id not in compiled]
+            compiled_canonical[evidence.parent_id] = evidence
+    expected_canonical = tuple(train_parent_ids + val_parent_ids)
+    missing = [parent_id for parent_id in expected_canonical if parent_id not in compiled_canonical]
     if missing:
         raise RuntimeError(f"R11_BALANCED_MISSING_COMPILED_TARGET:{missing[0]}:COUNT={len(missing)}")
-    extra = sorted(set(compiled) - set(expected))
+    extra = sorted(set(compiled_canonical) - set(expected_canonical))
     if extra:
         raise RuntimeError(f"R11_BALANCED_UNEXPECTED_COMPILED_TARGET:{extra[0]}:COUNT={len(extra)}")
-    train = [compiled[parent_id] for parent_id in train_parent_ids]
-    val = [compiled[parent_id] for parent_id in val_parent_ids]
+
+    train = [
+        _rebind_evidence_to_parent_r11(
+            evidence=compiled_canonical[train_parent_to_canonical[parent_id]],
+            parent_id=parent_id,
+            index=index,
+        )
+        for parent_id in all_train_ids
+    ]
+    val = [
+        _rebind_evidence_to_parent_r11(
+            evidence=compiled_canonical[val_parent_to_canonical[parent_id]],
+            parent_id=parent_id,
+            index=index,
+        )
+        for parent_id in all_val_ids
+    ]
 
     core_stats = VectorizedTeacherStatsR11(
         targets=len(train) + len(val),
