@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """R11 Science G0 R3.4 — shadow distributional-belief to decision bridge.
 
-The production Student and its Shared Decision Core remain frozen.  A trained
+The production Student and its Shared Decision Core remain frozen. A trained
 shadow distributional belief is detached, then consumed by a zero-residual
 bridge that can only perturb disposable Direction/Requested-Risk outputs.
 """
@@ -58,11 +58,10 @@ class DistributionalBeliefDecisionBridgeR34(nn.Module):
             raise RuntimeError("R11_R34_BELIEF_SHAPE_DRIFT")
         if shared.shape[0] != belief_flat.shape[0]:
             raise RuntimeError("R11_R34_SHARED_BELIEF_ROW_DRIFT")
-        x = torch.cat([shared, belief_flat], dim=-1)
-        h = self.body(x)
+        h = self.body(torch.cat([shared, belief_flat], dim=-1))
         return {
             "direction_logit_delta": self.direction_delta(h),
-            "risk_logit_delta": self.risk_logit_delta(h),
+            "risk_logit_delta": self.risk_logit_delta(h).squeeze(-1),
         }
 
 
@@ -97,14 +96,20 @@ def apply_bridge_r34(
     base_risk = base_outputs["requested_risk_raw"].detach()
     if base_logits.ndim != 2 or base_logits.shape[1] != 3:
         raise RuntimeError("R11_R34_BASE_DIRECTION_SHAPE_DRIFT")
-    if base_risk.ndim != 2 or base_risk.shape[1] != 1:
+    if base_risk.ndim != 1 or base_risk.shape[0] != base_logits.shape[0]:
         raise RuntimeError("R11_R34_BASE_RISK_SHAPE_DRIFT")
+    direction_delta = bridge_outputs["direction_logit_delta"]
+    risk_delta = bridge_outputs["risk_logit_delta"]
+    if direction_delta.shape != base_logits.shape:
+        raise RuntimeError("R11_R34_DIRECTION_DELTA_SHAPE_DRIFT")
+    if risk_delta.shape != base_risk.shape:
+        raise RuntimeError("R11_R34_RISK_DELTA_SHAPE_DRIFT")
     if base_logits.requires_grad or base_risk.requires_grad:
         raise RuntimeError("R11_R34_PRODUCTION_OUTPUT_AUTOGRAD_TAINT")
     risk = torch.clamp(base_risk, R34_RISK_EPS, 1.0 - R34_RISK_EPS)
     risk_logit = torch.log(risk) - torch.log1p(-risk)
-    direction_logits = base_logits + bridge_outputs["direction_logit_delta"]
-    requested_risk_raw = torch.sigmoid(risk_logit + bridge_outputs["risk_logit_delta"])
+    direction_logits = base_logits + direction_delta
+    requested_risk_raw = torch.sigmoid(risk_logit + risk_delta)
     return {
         "direction_logits": direction_logits,
         "direction_probs": torch.softmax(direction_logits, dim=-1),
@@ -123,8 +128,12 @@ def assert_zero_residual_equivalence_r34(
         out = apply_bridge_r34(base_outputs, delta)
     if not torch.equal(out["direction_logits"], base_outputs["direction_logits"].detach()):
         raise RuntimeError("R11_R34_ZERO_RESIDUAL_DIRECTION_NOT_EXACT")
-    # sigmoid(logit(x)) is numerically close but not guaranteed byte-identical.
-    if not torch.allclose(out["requested_risk_raw"], base_outputs["requested_risk_raw"].detach(), atol=2e-7, rtol=2e-7):
+    if not torch.allclose(
+        out["requested_risk_raw"],
+        base_outputs["requested_risk_raw"].detach(),
+        atol=2e-7,
+        rtol=2e-7,
+    ):
         raise RuntimeError("R11_R34_ZERO_RESIDUAL_RISK_NOT_EQUIVALENT")
 
 
