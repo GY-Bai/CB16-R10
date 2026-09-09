@@ -1,0 +1,72 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_BELIEF_DECISION_BRIDGE_R3_4_ADJUDICATION_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_BELIEF_TO_DECISION_BRIDGE_SHADOW_R3_4",
+  "status": "ADJUDICATED__STATE_ALIGNED_DISTRIBUTIONAL_BELIEF_INCREMENTAL_DECISION_INFORMATION_NOT_DEMONSTRATED",
+  "source_run_id": 34417225303,
+  "source_head": "3bcb67b46d49f8102152a29c302c2a76cb6f27d3",
+  "source_artifact_id": 10129776263,
+  "source_artifact_sha256": "a058c2ac33456d21f18a99f775f2f08feaeb915522f12872171631af3ff5c466",
+  "source_status": "R11_DISTRIBUTIONAL_BELIEF_DECISION_BRIDGE_R3_4_PASS",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "pre_registered_support": {
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "rows_per_dependence_group": 6,
+    "seed_set": [31337, 271828, 314159, 161803, 424242],
+    "distributional_head_steps": 32,
+    "decision_bridge_steps": 32,
+    "optional_stopping": false
+  },
+  "observations": {
+    "aligned_better_than_production_total_seed_count": 5,
+    "shuffled_better_than_production_total_seed_count": 5,
+    "aligned_better_than_shuffled_total_seed_count": 1,
+    "aligned_better_than_shuffled_direction_seed_count": 2,
+    "aligned_better_than_shuffled_sizing_seed_count": 2,
+    "aligned_minus_production_total_median": -0.08284687995910645,
+    "shuffled_minus_production_total_median": -0.08311045169830322,
+    "aligned_minus_shuffled_total_median": 0.00026357173919677734,
+    "aligned_minus_shuffled_direction_median": 0.00014293193817138672,
+    "aligned_minus_shuffled_sizing_median": 0.000032570213079452515,
+    "aligned_minus_shuffled_total_by_seed": {
+      "31337": 0.00026357173919677734,
+      "271828": 0.0007548332214355469,
+      "314159": -0.0005252361297607422,
+      "161803": 0.0005816221237182617,
+      "424242": 0.00006663799285888672
+    },
+    "distributional_head_validation_loss_median": 0.012678365223109722,
+    "bridge_parameter_count": 20740
+  },
+  "interpretation": [
+    "The residual bridge itself can learn the canonical Direction/Requested-Risk evidence: both aligned-belief and group-shuffled-belief bridges beat the frozen production baseline in all five seeds.",
+    "That improvement is not attributable to state-aligned distributional belief. The aligned arm beats the whole-dependence-group shuffled control in only one of five pre-registered seeds and is slightly worse at the median for total, Direction, and Sizing losses.",
+    "Because aligned and control bridges are architecturally identical, byte-identically initialized, use identical optimization budgets, and differ only in state alignment of the detached belief representation, the observed production-baseline improvement is best classified as adapter capacity / canonical-target refitting rather than demonstrated incremental information carried by the aligned distributional belief.",
+    "R3 head-only distributional belief remains a valid shadow representation mechanics result, but R3.1-R3.4 do not justify giving it production Shared-Core gradient ownership or a production decision bridge."
+  ],
+  "decision": {
+    "distributional_head_shadow_representation_qualified": true,
+    "distributional_shared_core_gradient_authorized": false,
+    "distributional_compatibility_projection_authorized": false,
+    "distributional_belief_decision_bridge_authorized": false,
+    "r3_distributional_decision_escalation_closed": true,
+    "production_cutover_authorized": false,
+    "next_legal_step": "R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4"
+  },
+  "r4_intent": "Return to the canonical R11 six-owner Student path and execute a bounded historical-learning baseline using the R2.4 production Teacher, existing reduced Direction/Requested-Risk evidence, frozen Supervisor/Physics, and Champion/Challenger machinery. Distributional R3 artifacts remain shadow diagnostics and do not enter the R4 gradient graph.",
+  "semantic_guards": {
+    "truth_not_belief_not_decision_not_permission": true,
+    "requested_risk_not_confidence": true,
+    "teacher_action_laws_preserved_as_evidence": true,
+    "distributional_r3_artifacts_not_deleted_or_reinterpreted": true,
+    "historical_negative_market_information_status_preserved": true,
+    "production_student_unchanged_by_r3_4": true,
+    "supervisor_permission_unchanged": true,
+    "physics_unchanged": true,
+    "canonical_generation_advanced_by_r3_4": false,
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false,
+    "scientific_market_verdict_created": false
+  }
+}
