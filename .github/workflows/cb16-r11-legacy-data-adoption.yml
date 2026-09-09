@@ -1,0 +1,97 @@
+name: CB16 R11 Legacy Data Adoption
+
+on:
+  push:
+    branches:
+      - ai/r11-docker-runner-r0
+    paths:
+      - scripts/r11_legacy_data_adopt.py
+      - .github/workflows/cb16-r11-legacy-data-adoption.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_PARENT_R101_ROOT: /cb16/parent-r101
+  CB16_PARENT_G0: /cb16/parents/r10_1.pt
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  adopt:
+    name: Scan legacy mounts and register R11 references
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_legacy_adoption_preflight.json"
+
+      - name: Verify frozen R11 authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+
+      - name: Scan all mounted legacy roots and write zero-copy adoption receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/r11_legacy_data_adopt.py
+
+      - name: Verify R11 adoption receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V1.json')
+          x=json.loads(p.read_text(encoding='utf-8'))
+          assert x['status'] == 'PASS', x
+          assert x['mode'] == 'ZERO_COPY_EXISTING_MOUNT_REGISTRATION', x
+          s=x['semantics']
+          assert s['legacy_bytes_copied'] == 0, x
+          assert s['legacy_roots_mutated'] is False, x
+          assert s['symlinks_followed'] is False, x
+          assert s['new_scientific_evidence_created'] is False, x
+          assert s['new_scientific_verdict'] is False, x
+          assert s['training_started'] is False, x
+          assert s['final_holdout_payload_opened'] is False, x
+          assert s['fresh_market_data_downloaded'] is False, x
+          print(json.dumps(x, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact adoption evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-legacy-data-adoption
+          path: |
+            /cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V1.json
+            /cb16/g0/authority/legacy_inventory/CB16_R11_LEGACY_FILE_INVENTORY_V1.ndjson.gz
+            ${{ runner.temp }}/cb16_r11_legacy_adoption_preflight.json
+          if-no-files-found: error
+          retention-days: 30
