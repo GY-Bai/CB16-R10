@@ -1,0 +1,46 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1_ADJUDICATION_V1",
+  "r3_1_pass_seed": "2647abd5bb3d9079739631c3f691e9409cf26b1a",
+  "observed_status": "R11_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1_PASS",
+  "interpretation": "R3.1 qualified the mechanics of allowing distributional Teacher gradients to reshape a disposable Shared Decision Core. On the single pre-registered seed, the disposable shared-core arm reduced both distributional validation loss and the existing canonical Direction/Requested-Risk validation loss, but changed hypothetical direction on 26 of 72 validation contexts. This is architecture evidence only and is insufficient for production cutover.",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "observed_architecture_metrics": {
+    "head_only_validation_distributional_loss": 0.013913886621594429,
+    "shared_core_validation_distributional_loss": 0.011101977899670601,
+    "shared_minus_head_only_validation_loss": -0.002811908721923828,
+    "canonical_decision_total_before": 1.208237886428833,
+    "canonical_decision_total_after": 1.189879059791565,
+    "canonical_direction_loss_delta": -0.015216827392578125,
+    "canonical_sizing_loss_delta": -0.003141947090625763,
+    "hypothetical_direction_changed_rows": 26,
+    "validation_rows": 72,
+    "shared_core_parameter_l2_delta": 3.1298915995744427
+  },
+  "authorized_next_step": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2",
+  "r3_2_purpose": "Test whether the R3.1 shared-core effect is stable across a fixed pre-registered seed set and measure initial Shared-Core gradient geometry between the distributional action-law objective and the existing canonical Direction/Requested-Risk objective.",
+  "r3_2_constraints": {
+    "support": "EXACT_SAME_BTCUSDT_48_TRAIN_12_VALIDATION_DEPENDENCE_GROUP_PROTOCOL",
+    "fresh_data": false,
+    "final_holdout": false,
+    "hyperparameter_tuning": false,
+    "seed_count": 5,
+    "seed_set": [31337, 271828, 314159, 161803, 424242],
+    "steps_per_arm": 32,
+    "lr": 0.002,
+    "weight_decay": 0.0,
+    "grad_clip": 10.0,
+    "production_student_gradient": false,
+    "production_cutover": false,
+    "market_information_adjudication": false
+  },
+  "forbidden": [
+    "selecting or dropping seeds after observing outcomes",
+    "changing optimization hyperparameters after observing R3.2 results",
+    "expanding support or assets to rescue an unfavorable architecture result",
+    "updating production Student parameters",
+    "advancing canonical generation or running Champion/Challenger tournament",
+    "opening FINAL or downloading fresh market data",
+    "creating or changing a market-information verdict"
+  ],
+  "production_cutover_authorized": false
+}
