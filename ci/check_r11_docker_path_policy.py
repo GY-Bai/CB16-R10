@@ -58,9 +58,8 @@ def main() -> int:
 
     for rel in ACTIVE_R11_WORKFLOWS:
         text = read(rel)
-        if rel != ".github/workflows/cb16-r11-docker-preflight.yml":
-            if "runs-on: [self-hosted, shanxi, cb16-wss-qualification]" not in text:
-                errors.append(f"{rel}:DEPLOYED_DOCKER_QUALIFICATION_RUNNER_LABEL_MISSING")
+        if "runs-on: [self-hosted, shanxi, shanxi-docker-r11]" not in text:
+            errors.append(f"{rel}:SHANXI_DOCKER_R11_RUNNER_LABEL_MISSING")
         if "persist-credentials: false" not in text:
             errors.append(f"{rel}:CHECKOUT_CREDENTIAL_PERSISTENCE_GUARD_MISSING")
         if "python3 ci/docker_preflight.py" not in text:
