@@ -1,0 +1,183 @@
+name: CB16 R11 Science G0 Historical R1
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-historical-r1
+    paths:
+      - cb16_local_opt/science_feedback_diagnostics_r11.py
+      - scripts/r11_science_g0_historical_r1.py
+      - tests/test_science_feedback_diagnostics_r11.py
+      - .github/workflows/cb16-r11-science-g0-historical-r1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  historical-learning-r1:
+    name: Real historical shadow learning connectivity
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r1_docker_preflight.json"
+
+      - name: Verify immutable Science G0 authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor a0848118b3ec39dedd9fc73368e0fbae90de1034 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test -f /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+          test -f /cb16/g0/authority/CB16_R11_G0_AUTHORITY_ADOPTION_RECEIPT.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DATASET_SEAL.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
+          print(p['python']['venv'] + '/bin/python')
+          PY
+
+      - name: Compile and run feedback diagnostic unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r1_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/science_feedback_diagnostics_r11.py \
+            scripts/r11_science_g0_historical_r1.py \
+            tests/test_science_feedback_diagnostics_r11.py
+          "$PYTHON" -m pytest -q \
+            tests/test_science_feedback_diagnostics_r11.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_r11_trace_runtime.py
+
+      - name: Execute bounded real-history Science G0 R1
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r1_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-historical-r1-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"
+          mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r1_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_historical_r1.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_HISTORICAL_R1_RESULT.json" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --train-groups 64 \
+            --validation-groups 16 \
+            --candidate-factor 2 \
+            --sensory-batch-size 8 \
+            --teacher-workers 4 \
+            --teacher-block-targets 8 \
+            --trace-groups 8
+
+      - name: Verify R1 semantic result gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r1_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_HISTORICAL_R1_RESULT.json" <<'PY'
+          import json, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_HISTORICAL_R1_RESULT_V1', x
+          assert x['status'] == 'R11_G0_HISTORICAL_LEARNING_CONNECTIVITY_PASS', x
+          assert x['feedback_diagnostics']['connectivity_pass'] is True, x
+          assert x['feedback_diagnostics']['scientific_market_information_qualification_claimed'] is False, x
+          assert x['feedback_diagnostics']['profitability_or_alpha_claimed'] is False, x
+          assert x['feedback_chain']['authorized_gradient_path'] == 'PASS', x
+          assert x['feedback_chain']['parameter_delta'] == 'PASS', x
+          assert x['feedback_chain']['measurable_behavior_delta'] == 'PASS', x
+          assert x['feedback_chain']['causal_trace_id_on_policy_path'] == 'PASS', x
+          assert x['feedback_chain']['single_realized_future_used_as_correct_action_label'] is False, x
+          assert x['semantic_guards']['canonical_generation_advanced'] is False, x
+          assert x['semantic_guards']['champion_promoted'] is False, x
+          assert x['semantic_guards']['tournament_run'] is False, x
+          assert x['semantic_guards']['scientific_verdict_created'] is False, x
+          assert x['semantic_guards']['final_holdout_payload_opened'] is False, x
+          assert x['semantic_guards']['fresh_market_data_downloaded'] is False, x
+          assert x['authority']['frozen_scientific_status_before'] == 'DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE', x
+          assert x['authority']['frozen_scientific_status_after'] == x['authority']['frozen_scientific_status_before'], x
+          print(json.dumps({
+              'status': x['status'],
+              'learning_direction': x['feedback_diagnostics']['learning_direction'],
+              'validation_loss_before': x['feedback_diagnostics']['validation_loss_before'],
+              'validation_loss_after': x['feedback_diagnostics']['validation_loss_after'],
+              'parameter_l2_delta': x['feedback_diagnostics']['parameter_l2_delta'],
+              'behavior_delta': x['feedback_diagnostics']['behavior_delta'],
+              'trace_count': x['on_policy_realization_probe']['receipt']['trace_count'],
+              'train_teacher': x['teacher']['train'],
+              'validation_teacher': x['teacher']['validation'],
+              'scientific_verdict_created': False,
+              'final_holdout_payload_opened': False,
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact Science G0 R1 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-historical-r1-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r1_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r1_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-historical-r1-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_SCIENCE_G0_HISTORICAL_R1_RESULT.json
+            ${{ runner.temp }}/cb16-r11-science-g0-historical-r1-${{ github.run_id }}-${{ github.run_attempt }}/R11_G0_HISTORICAL_R1_SHADOW_TRAINING_SNAPSHOT.json
+            ${{ runner.temp }}/cb16-r11-science-g0-historical-r1-${{ github.run_id }}-${{ github.run_attempt }}/shadow_training/R11_CHALLENGER_TRAINING_RECEIPT_G0.json
+            ${{ runner.temp }}/cb16-r11-science-g0-historical-r1-${{ github.run_id }}-${{ github.run_attempt }}/shadow_training/R11_SNAPSHOT_CONSUMPTION_G0.json
+          if-no-files-found: warn
+          retention-days: 30
