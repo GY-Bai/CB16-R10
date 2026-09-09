@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import copy
-
 import torch
 
 from cb16_local_opt.distributional_belief_decision_bridge_r34 import (
@@ -30,7 +28,7 @@ class _TinyHead(torch.nn.Module):
 def _base(rows: int = 4):
     return {
         "direction_logits": torch.tensor([[0.2, -0.1, 0.3]]).repeat(rows, 1),
-        "requested_risk_raw": torch.tensor([[0.35]]).repeat(rows, 1),
+        "requested_risk_raw": torch.full((rows,), 0.35),
     }
 
 
@@ -106,7 +104,7 @@ def test_bridge_gradient_ownership_keeps_production_and_belief_head_frozen():
     assert audit["bridge_gradient_parameter_tensors"] > 0
 
 
-def test_aligned_and_control_can_start_from_identical_parameters_and_diverge_only_by_input():
+def test_aligned_and_control_start_identical_and_diverge_only_by_input():
     torch.manual_seed(17)
     aligned = DistributionalBeliefDecisionBridgeR34(shared_dim=5, belief_dim=6)
     shuffled = clone_bridge_r34(aligned)
