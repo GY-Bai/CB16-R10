@@ -1,0 +1,200 @@
+name: CB16 R11 Science G0 Distributional Student Compatibility Projection R3.3
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-distributional-student-compatibility-projection-r3-3
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_ADJUDICATION_V1.json
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_GATEWORK_V1.json
+      - cb16_local_opt/distributional_student_compatibility_projection_r33.py
+      - tests/test_distributional_student_compatibility_projection_r33.py
+      - scripts/r11_science_g0_distributional_student_compatibility_projection_r3_3.py
+      - scripts/r11_science_g0_distributional_student_compatibility_projection_r3_3_entrypoint.py
+      - .github/workflows/cb16-r11-science-g0-distributional-student-compatibility-projection-r3-3.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  compatibility-projection-r3-3:
+    name: R11 distributional Student compatibility projection R3.3
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r3_3_docker_preflight.json"
+
+      - name: Verify R3.2 PASS seed and immutable authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 7e4de752454bb7a57d4554592f810c33d0e97841 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/typed_central_brain_r10.py)" = "899065a9b9c015fd5a0e24fc919a79ff7d3a67ff"
+          test "$(git rev-parse HEAD:cb16_local_opt/training_runtime_r11.py)" = "56c227800d7a5c82ef88c691bb69d7550aee8b39"
+          test "$(git rev-parse HEAD:cb16_local_opt/probabilistic_teacher_r6.py)" = "3de3092d244c3fd315950c9f8b0bf4d78c50ee2b"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_runtime_r11.py)" = "656f1483f2e6a96daae5c98eb96cd75805d3547c"
+          test "$(git rev-parse HEAD:cb16_local_opt/distributional_student_shadow_r3.py)" = "2e0dac6c4ddac81f3f7f20cfc8c8789ade8f1373"
+          test "$(git rev-parse HEAD:cb16_local_opt/distributional_student_shared_core_shadow_r31.py)" = "f3875d4ff873f189b06cd8b5c8784936b2828fc0"
+          test "$(git rev-parse HEAD:cb16_local_opt/distributional_student_gradient_stability_r32.py)" = "34cd6c120d9dd383e1f8496dc7151c8fdd50d83c"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_distributional_student_gradient_stability_r3_2.py)" = "5f209ad8ca1038ab0b1bf11b5979f0560ac7edcf"
+          test -f authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_ADJUDICATION_V1.json
+          test -f authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_GATEWORK_V1.json
+          test -f /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r3_3_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['observed']['python_series'] == [3,10], p
+          PY
+
+      - name: Compile and run R3.3 shadow unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r3_3_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/distributional_student_compatibility_projection_r33.py \
+            tests/test_distributional_student_compatibility_projection_r33.py \
+            scripts/r11_science_g0_distributional_student_compatibility_projection_r3_3.py \
+            scripts/r11_science_g0_distributional_student_compatibility_projection_r3_3_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_distributional_student_compatibility_projection_r33.py \
+            tests/test_distributional_student_gradient_stability_r32.py \
+            tests/test_distributional_student_shared_core_shadow_r31.py \
+            tests/test_distributional_student_shadow_r3.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_r11_teacher_authority_candidate.py \
+            tests/test_teacher_runtime_r11.py \
+            tests/test_teacher_vectorized_r11.py
+
+      - name: Execute R3.3 real-history compatibility qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r3_3_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-distributional-student-compatibility-projection-r3-3-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r3_3_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_distributional_student_compatibility_projection_r3_3_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_RESULT.json" \
+            --device cuda --symbol BTCUSDT --train-groups 48 --validation-groups 12 \
+            --candidate-factor 2 --sensory-batch-size 8 --teacher-workers 4 --teacher-block-targets 32
+
+      - name: Verify R3.3 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r3_3_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_RESULT.json" <<'PY'
+          import json, math, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_RESULT_V1', x
+          assert x['status'] == 'R11_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_PASS', x
+          assert x['protocol']['seed_set'] == [31337,271828,314159,161803,424242], x
+          assert x['execution']['seed_count_completed'] == 5, x
+          assert len(x['seed_results']) == 5, x
+          for row in x['seed_results']:
+              a=row['head_only']; b=row['raw_shared']; c=row['projected_shared']
+              assert b['gradient_audit_first_step']['shared_core_gradient_parameter_tensors'] == 4, row
+              assert c['gradient_audit_first_step']['shared_core_gradient_parameter_tensors'] == 4, row
+              assert b['gradient_audit_first_step']['forbidden_disposable_gradient_parameter_count'] == 0, row
+              assert c['gradient_audit_first_step']['forbidden_disposable_gradient_parameter_count'] == 0, row
+              assert b['disposable_update_audit']['forbidden_parameter_update_count'] == 0, row
+              assert c['disposable_update_audit']['forbidden_parameter_update_count'] == 0, row
+              assert a['train_loss_after'] < a['train_loss_before'], row
+              assert b['train_loss_after'] < b['train_loss_before'], row
+              assert c['train_loss_after'] < c['train_loss_before'], row
+              ps=c['projection_summary']
+              assert ps['step_count'] == 32, row
+              assert ps['projected_step_count'] + ps['unprojected_step_count'] == 32, row
+              assert ps['all_safe_directions_nonconflicting_within_tolerance'] is True, row
+              assert math.isfinite(c['canonical_decision_total_delta']), row
+          p=x['production_student']; g=x['semantic_guards']
+          assert p['architecture_changed'] is False and p['training_started'] is False, x
+          assert p['parameter_state_changed'] is False and p['behavior_identical'] is True, x
+          assert p['policy_hash_before'] == p['policy_hash_after'], x
+          assert g['canonical_generation_advanced'] is False, x
+          assert g['historical_market_information_verdict_reopened'] is False, x
+          assert g['scientific_verdict_created'] is False, x
+          assert g['final_holdout_payload_opened'] is False, x
+          assert g['fresh_market_data_downloaded'] is False, x
+          assert g['production_cutover_authorized'] is False, x
+          s=x['compatibility_summary']
+          print(json.dumps({
+              'status': x['status'],
+              'projected_beats_raw_distributional_seed_count': s['projected_beats_raw_distributional_seed_count'],
+              'projected_beats_head_only_distributional_seed_count': s['projected_beats_head_only_distributional_seed_count'],
+              'projected_canonical_total_lower_than_bootstrap_seed_count': s['projected_canonical_total_lower_than_bootstrap_seed_count'],
+              'projected_canonical_sizing_lower_seed_count': s['projected_canonical_sizing_lower_seed_count'],
+              'projected_canonical_total_better_than_raw_seed_count': s['projected_canonical_total_better_than_raw_seed_count'],
+              'projected_minus_raw_distributional_median': s['projected_minus_raw_validation_distributional_loss']['median'],
+              'projected_canonical_total_delta_median': s['projected_canonical_total_delta']['median'],
+              'projected_canonical_sizing_delta_median': s['projected_canonical_sizing_delta']['median'],
+              'projected_steps_median': s['projected_steps_per_seed']['median'],
+              'next_legal_step': x['next_legal_step'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact R3.3 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-distributional-student-compatibility-projection-r3-3-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r3_3_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r3_3_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-distributional-student-compatibility-projection-r3-3-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30
