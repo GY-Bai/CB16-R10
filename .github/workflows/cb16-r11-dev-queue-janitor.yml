@@ -1,0 +1,55 @@
+name: CB16 R11 Dev Queue Janitor
+
+on:
+  push:
+    branches:
+      - ai/r11-docker-runner-r0
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel-stale-runs:
+    name: Cancel stale Actions runs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Cancel queued/in-progress runs from older heads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          CURRENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cancelled=0
+          for status in queued in_progress; do
+            page=1
+            while :; do
+              payload="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "/repos/${REPO}/actions/runs?status=${status}&per_page=100&page=${page}")"
+              count="$(jq '.workflow_runs | length' <<<"$payload")"
+              [ "$count" -gt 0 ] || break
+              while IFS=$'\t' read -r run_id head_sha name event; do
+                [ -n "$run_id" ] || continue
+                [ "$run_id" != "$CURRENT_RUN_ID" ] || continue
+                [ "$head_sha" != "$CURRENT_SHA" ] || continue
+                echo "Cancelling stale run id=${run_id} sha=${head_sha} status=${status} name=${name} event=${event}"
+                gh api \
+                  --method POST \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "/repos/${REPO}/actions/runs/${run_id}/cancel" >/dev/null || true
+                cancelled=$((cancelled + 1))
+              done < <(jq -r '.workflow_runs[] | [.id, .head_sha, .name, .event] | @tsv' <<<"$payload")
+              [ "$count" -eq 100 ] || break
+              page=$((page + 1))
+            done
+          done
+          echo "STALE_RUN_CANCEL_REQUESTS=${cancelled}"
+          echo "CURRENT_SHA_PRESERVED=${CURRENT_SHA}"
