@@ -3,8 +3,8 @@
 
 Repository code defines package/version requirements only. It must not select a
 package mirror, public index, wheel URL, or find-links location. Those transport
-choices belong to the host environment (for Shanxi, /etc/cb16-ci/provision.env
-plus the local GOST routing policy).
+choices belong to the host environment and are injected into the Docker runner
+through CB16_PROVISION_ENV plus the local GOST routing policy.
 """
 from __future__ import annotations
 
@@ -38,8 +38,8 @@ _FORBIDDEN_REQUIREMENT_PREFIXES = (
 def load_provision_env() -> dict[str, str]:
     out: dict[str, str] = {}
     for path in (
-        Path("/etc/cb16-ci/provision.env"),
-        Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci")) / "provision.env",
+        Path(os.environ.get("CB16_PROVISION_ENV", "/run/secrets/cb16-provision.env")),
+        Path(os.environ.get("CB16_CI_WORKER_ROOT", "/cb16/worker")) / "provision.env",
     ):
         if not path.exists():
             continue
