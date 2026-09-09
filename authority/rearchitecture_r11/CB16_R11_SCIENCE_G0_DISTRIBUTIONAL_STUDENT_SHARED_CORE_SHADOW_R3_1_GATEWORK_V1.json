@@ -1,0 +1,78 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1_GATEWORK_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_SHARED_CORE_SHADOW_R3_1",
+  "r3_pass_seed": "517689b48bd01c5be4b2a2695bf38d9e8ad60ff3",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__SHADOW_RESULTS_DO_NOT_SELF_AUTHORIZE_PRODUCTION",
+  "purpose": "Test whether R11 Teacher distributional belief gradients can legally reshape a disposable copy of the Shared Decision Core, while quantifying compatibility with the existing Direction/Requested-Risk Student objective and preserving production authority unchanged.",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "comparison_protocol": {
+    "history": "same bounded frozen BTCUSDT history as R3",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "arm_a": "HEAD_ONLY_FIXED_PRODUCTION_SHARED_REPRESENTATION",
+    "arm_b": "DISPOSABLE_SHARED_CORE_PLUS_DISTRIBUTIONAL_HEAD",
+    "same_head_architecture": true,
+    "same_head_seed": 31337,
+    "same_optimizer": "AdamW",
+    "same_steps": 32,
+    "same_lr": 0.002,
+    "same_weight_decay": 0.0,
+    "same_distributional_loss": "TRUNCATED_QUANTILE_W1_ON_TEACHER_QUANTILE_SUPPORT",
+    "hyperparameter_tuning": false
+  },
+  "authorized_gradient_owners_arm_b": [
+    "Disposable Shared Decision Core",
+    "Distributional Student Shadow Head"
+  ],
+  "forbidden_gradient_owners_arm_b": [
+    "Production Student",
+    "Operator Brain Stem",
+    "Medium Brain Stem",
+    "Account Brain Stem",
+    "Direction Head",
+    "Requested-Risk Head",
+    "Teacher",
+    "Future Outcome",
+    "Supervisor",
+    "Physics"
+  ],
+  "compatibility_probe": {
+    "objective": "existing canonical R11 soft direction cross-entropy plus requested-risk SmoothL1(beta=0.05), dependence-group weighted",
+    "role": "ARCHITECTURE_COMPATIBILITY_DIAGNOSTIC_ONLY",
+    "status_driving_market_claim": false,
+    "reported_metrics": [
+      "validation total decision loss before/after",
+      "validation direction loss before/after",
+      "validation sizing loss before/after",
+      "hypothetical disposable action/size behavior delta",
+      "validation shared-representation delta",
+      "arm A versus arm B distributional validation loss"
+    ]
+  },
+  "mechanics_pass_requires": [
+    "R3 action-law and quantile authority identities remain unchanged",
+    "production Student state and policy hash remain byte/semantic identical",
+    "production Student receives zero gradient",
+    "only disposable Shared Decision Core and distributional head receive nonzero finite gradients",
+    "only disposable Shared Decision Core and distributional head parameters update",
+    "Teacher targets remain detached and no realized future becomes a direct Student label",
+    "arm A and arm B distributional train losses decrease",
+    "predicted quantiles remain monotone",
+    "frozen package and G0 authority remain unchanged",
+    "FINAL unopened, fresh-data reads zero, canonical generation unchanged, no scientific verdict created"
+  ],
+  "compatibility_classification_policy": "REPORT_CONTINUOUS_DELTAS_WITHOUT_MARKET_VERDICT_OR_PRODUCTION_CUTOVER; R3.1 mechanics PASS does not require the existing Direction/Risk objective to improve.",
+  "forbidden": [
+    "modify production TypedCentralBrainR10",
+    "modify canonical training_runtime_r11 gradient ownership",
+    "persist disposable Student as Champion or Challenger",
+    "advance generation or run tournament",
+    "change Teacher authority or geometry",
+    "change external action, Supervisor, Permission or Physics semantics",
+    "open FINAL or download fresh market data",
+    "create, reopen or upgrade market-information verdict",
+    "authorize production cutover from R3.1 alone"
+  ],
+  "production_cutover_authorized": false,
+  "next_step_policy": "R3.1 PASS proceeds only to explicit R3.1 adjudication. Any production integration requires a later separately authorized multi-objective shadow and authority rotation."
+}
