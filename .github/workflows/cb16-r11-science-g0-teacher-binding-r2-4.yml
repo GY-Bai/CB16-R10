@@ -1,0 +1,175 @@
+name: CB16 R11 Science G0 Teacher Binding R2.4
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-teacher-binding-r2-4
+    paths:
+      - cb16_local_opt/teacher_balanced_runtime_r11.py
+      - cb16_local_opt/teacher_runtime_r11.py
+      - tests/test_r11_teacher_balanced_binding.py
+      - scripts/r11_science_g0_teacher_binding_r2_4.py
+      - scripts/r11_science_g0_teacher_binding_r2_4_entrypoint.py
+      - .github/workflows/cb16-r11-science-g0-teacher-binding-r2-4.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  teacher-binding-r2-4:
+    name: R11 production Teacher binding
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r2_4_docker_preflight.json"
+
+      - name: Verify R2.3-qualified seed and immutable authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor a5c55654e89e348a7132f1c0a42baf64eaf9db98 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_learning.py)" = "8d76e14c1141d0b5e1d6e4ede7b59fe07b47b4be"
+          test "$(git rev-parse HEAD:cb16_local_opt/probabilistic_teacher_r6.py)" = "3de3092d244c3fd315950c9f8b0bf4d78c50ee2b"
+          test -f /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r2_4_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['observed']['python_series'] == [3,10], p
+          PY
+
+      - name: Compile and run R2.4 binding unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r2_4_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/teacher_balanced_runtime_r11.py \
+            cb16_local_opt/teacher_runtime_r11.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            scripts/r11_science_g0_teacher_binding_r2_4.py \
+            scripts/r11_science_g0_teacher_binding_r2_4_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_r11_teacher_authority_candidate.py \
+            tests/test_teacher_runtime_r11.py \
+            tests/test_teacher_vectorized_r11.py \
+            tests/test_science_teacher_requalification_r11.py
+
+      - name: Execute R2.4 real-history post-binding qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r2_4_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-teacher-binding-r2-4-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"
+          mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r2_4_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_teacher_binding_r2_4_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_TEACHER_BINDING_R2_4_RESULT.json" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --train-groups 48 \
+            --validation-groups 12 \
+            --candidate-factor 2 \
+            --sensory-batch-size 8 \
+            --replicas 32
+
+      - name: Verify R2.4 production binding receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r2_4_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_TEACHER_BINDING_R2_4_RESULT.json" <<'PY'
+          import json, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_TEACHER_BINDING_R2_4_RESULT_V1', x
+          assert x['status'] == 'R11_TEACHER_DEPENDENCE_BALANCED_PRODUCTION_BINDING_PASS', x
+          t=x['teacher_binding']
+          assert t['legacy_train_protocol_hash'] != t['r11_train_protocol_hash'], x
+          assert t['legacy_validation_protocol_hash'] != t['r11_validation_protocol_hash'], x
+          assert t['r10_2_legacy_modules_mutated'] is False, x
+          p=x['post_binding_checks']
+          assert p['worker_1_vs_4_evidence_byte_identical'] is True, x
+          assert p['original_targets_exactly_replica_invariant'] is True, x
+          assert p['direct_candidate_validation_comparison']['maximum_abs_numeric_delta'] <= 3e-10, x
+          s=x['semantic_guards']
+          assert s['student_training_started'] is False, x
+          assert s['historical_market_information_verdict_reopened'] is False, x
+          assert s['scientific_verdict_created'] is False, x
+          assert s['final_holdout_payload_opened'] is False, x
+          assert s['fresh_market_data_downloaded'] is False, x
+          print(json.dumps({
+              'status': x['status'],
+              'r11_train_protocol_hash': t['r11_train_protocol_hash'],
+              'r11_validation_protocol_hash': t['r11_validation_protocol_hash'],
+              'worker_1_vs_4_evidence_byte_identical': p['worker_1_vs_4_evidence_byte_identical'],
+              'original_targets_exactly_replica_invariant': p['original_targets_exactly_replica_invariant'],
+              'direct_candidate_max_abs_numeric_delta': p['direct_candidate_validation_comparison']['maximum_abs_numeric_delta'],
+              'next_legal_step': x['next_legal_step'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact R2.4 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-teacher-binding-r2-4-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r2_4_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r2_4_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-teacher-binding-r2-4-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_SCIENCE_G0_TEACHER_BINDING_R2_4_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30
