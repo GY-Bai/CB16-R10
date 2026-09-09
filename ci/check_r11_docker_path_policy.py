@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static fail-closed path/runner contract for the CB16 R11 Docker migration."""
+"""Static fail-closed path/runner contract for the CB16 R11 Docker cutover."""
 from __future__ import annotations
 
 import sys
@@ -13,8 +13,12 @@ FORBIDDEN_RUNTIME_PATHS = (
     "/cb16_r11_runtime",
 )
 
-DOCKER_WORKFLOWS = (
+ACTIVE_R11_WORKFLOWS = (
     ".github/workflows/cb16-r11-docker-preflight.yml",
+    ".github/workflows/cb16-r11-main-smoke.yml",
+    ".github/workflows/cb16-r11-science-g0-inventory.yml",
+    ".github/workflows/cb16-r11-science-g0-prereq.yml",
+    ".github/workflows/cb16-r11-science-g0-storage-probe.yml",
     ".github/workflows/cb16-r11-science-g0-r104-authority.yml",
     ".github/workflows/cb16-r11-science-g0-s4f-preflight.yml",
     ".github/workflows/cb16-r11-science-g0-materialize-cache.yml",
@@ -23,14 +27,14 @@ DOCKER_WORKFLOWS = (
 )
 
 RUNTIME_CODE = (
+    "ci/docker_preflight.py",
     "ci/resolve_verified_r104_python.py",
     "provision/scripts/provision_common.py",
     "provision/scripts/provision_python.py",
+    "scripts/r11_science_g0_inventory.py",
+    "scripts/r11_science_g0_prereq_discovery.py",
     "scripts/r11_science_g0_initialize_stage4_roots.py",
     "scripts/r11_science_g0_seal.py",
-    "infra/docker/runner/Dockerfile",
-    "infra/docker/runner/entrypoint.sh",
-    "infra/docker/runner/compose.r11.yml",
 )
 
 
@@ -41,29 +45,35 @@ def read(rel: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def check_forbidden_paths(rel: str, text: str, errors: list[str]) -> None:
+    for prefix in FORBIDDEN_RUNTIME_PATHS:
+        if prefix in text:
+            errors.append(f"{rel}:FORBIDDEN_RUNTIME_PATH:{prefix}")
+    if "git-annex" in text.lower():
+        errors.append(f"{rel}:GIT_ANNEX_FORBIDDEN_IN_ACTIVE_R11_DOCKER_PATH")
+
+
 def main() -> int:
     errors: list[str] = []
 
-    for rel in DOCKER_WORKFLOWS:
+    for rel in ACTIVE_R11_WORKFLOWS:
         text = read(rel)
-        if "shanxi-docker-r11" not in text:
-            errors.append(f"{rel}:DOCKER_RUNNER_LABEL_MISSING")
+        if rel != ".github/workflows/cb16-r11-docker-preflight.yml":
+            if "runs-on: [self-hosted, shanxi, cb16-wss-qualification]" not in text:
+                errors.append(f"{rel}:DEPLOYED_DOCKER_QUALIFICATION_RUNNER_LABEL_MISSING")
         if "persist-credentials: false" not in text:
             errors.append(f"{rel}:CHECKOUT_CREDENTIAL_PERSISTENCE_GUARD_MISSING")
-        for prefix in FORBIDDEN_RUNTIME_PATHS:
-            if prefix in text:
-                errors.append(f"{rel}:FORBIDDEN_RUNTIME_PATH:{prefix}")
+        if "python3 ci/docker_preflight.py" not in text:
+            errors.append(f"{rel}:DOCKER_EXECUTION_PREFLIGHT_MISSING")
+        check_forbidden_paths(rel, text, errors)
 
     for rel in RUNTIME_CODE:
-        text = read(rel)
-        for prefix in FORBIDDEN_RUNTIME_PATHS:
-            if prefix in text:
-                errors.append(f"{rel}:FORBIDDEN_RUNTIME_PATH:{prefix}")
+        check_forbidden_paths(rel, read(rel), errors)
 
-    # This script intentionally keeps legacy path strings only as canonical identity
-    # fields so the already-qualified lineage hash remains byte-identical. They must
-    # never become the physical I/O defaults in Docker.
-    materialize = read("scripts/r11_science_g0_materialize_cache.py")
+    # Strong-lineage canonical hashes already include historical path strings. Those
+    # strings remain identity-only and must never become the Docker I/O path.
+    materialize_rel = "scripts/r11_science_g0_materialize_cache.py"
+    materialize = read(materialize_rel)
     required_identity = (
         'RAW_IDENTITY_ROOT = Path("/data/cb16_hdd/binance_usdm_1m_funding_2020_2026")',
         'R11_IDENTITY_ROOT = Path("/home/bgy/cb16_ssd/runtime/R11/G0")',
@@ -72,7 +82,11 @@ def main() -> int:
     )
     for needle in required_identity:
         if needle not in materialize:
-            errors.append("scripts/r11_science_g0_materialize_cache.py:IDENTITY_ACCESS_SPLIT_DRIFT")
+            errors.append(f"{materialize_rel}:IDENTITY_ACCESS_SPLIT_DRIFT")
+    scrubbed = materialize
+    for needle in required_identity[:2]:
+        scrubbed = scrubbed.replace(needle, "IDENTITY_ONLY_PATH_REDACTED")
+    check_forbidden_paths(materialize_rel, scrubbed, errors)
 
     resolver = read("ci/resolve_verified_r104_python.py")
     if 'CB16_VERIFIED_VENV", "/cb16/venv"' not in resolver:
@@ -85,6 +99,19 @@ def main() -> int:
     common = read("provision/scripts/provision_common.py")
     if 'CB16_CI_WORKER_ROOT", "/cb16/worker"' not in common:
         errors.append("provision/scripts/provision_common.py:DOCKER_WORKER_DEFAULT_MISSING")
+
+    inventory = read("scripts/r11_science_g0_inventory.py")
+    if 'CB16_RAW_ROOT", str(identity_root)' not in inventory:
+        errors.append("scripts/r11_science_g0_inventory.py:DOCKER_RAW_ACCESS_OVERRIDE_MISSING")
+
+    prereq = read("scripts/r11_science_g0_prereq_discovery.py")
+    for needle in (
+        'CB16_RAW_ROOT", "/cb16/raw"',
+        'CB16_G0_ROOT", os.environ.get("CB16_R11_G0_ROOT", "/cb16/g0")',
+        'CB16_R104_ROOT", "/cb16/runtime/r104"',
+    ):
+        if needle not in prereq:
+            errors.append("scripts/r11_science_g0_prereq_discovery.py:DOCKER_VOLUME_ROOT_DRIFT")
 
     if errors:
         print("CB16_R11_DOCKER_PATH_POLICY=FAIL")
