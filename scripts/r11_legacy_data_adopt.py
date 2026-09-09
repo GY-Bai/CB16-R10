@@ -2,9 +2,9 @@
 """Read-only legacy-root scan and zero-copy registration into R11 G0 authority.
 
 Every readable regular file is SHA256 hashed. Symlinks are never followed and
-final-holdout-named paths are metadata-only. One historically private TimesFM
-runtime weight is explicitly allowed to remain an opaque reference when the
-R11 runner cannot read it; it is never promoted to scientific authority.
+final-holdout-named paths are metadata-only. A small explicit set of historically
+private external-model runtime weights may remain opaque references when the R11
+runner cannot read them; they are never promoted to scientific authority.
 """
 from __future__ import annotations
 
@@ -37,6 +37,8 @@ ROOTS = (
 FORBIDDEN_COMPONENTS = {"2025-09", "final_holdout"}
 OPAQUE_PRIVATE_ALLOWLIST = {
     ("parent_r101", "assets/medium/runtime/timesfm_layer3.safetensors"): "PRIVATE_EXTERNAL_MODEL_REFERENCE",
+    ("parent_r101", "assets/operator/runtime/kronos_tokenizer_encode.safetensors"): "PRIVATE_EXTERNAL_MODEL_REFERENCE",
+    ("parent_r101", "assets/operator/runtime/kronos_model_l5.safetensors"): "PRIVATE_EXTERNAL_MODEL_REFERENCE",
 }
 CHUNK = 8 * 1024 * 1024
 
