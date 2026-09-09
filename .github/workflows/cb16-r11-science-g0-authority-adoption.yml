@@ -69,6 +69,8 @@ jobs:
           p=json.load(open(sys.argv[1]))
           assert p['status'] == 'READY', p
           assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['python_compatibility_policy'] == 'CPYTHON_3_10_SERIES', p
+          assert p['python']['python_version'].startswith('3.10.'), p
           assert p['python']['network_install_attempted'] is False, p
           PY
 
