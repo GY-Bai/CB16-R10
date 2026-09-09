@@ -1,0 +1,38 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_ADJUDICATION_V1",
+  "r3_2_pass_seed": "7e4de752454bb7a57d4554592f810c33d0e97841",
+  "observed_status": "R11_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_PASS",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "interpretation": "Across all five pre-registered seeds, allowing raw distributional gradients into a disposable Shared Decision Core improved distributional validation loss relative to head-only. Compatibility with the existing canonical Direction/Requested-Risk objective was not stable: canonical total loss improved on only two of five seeds and had a positive median delta. The instability was concentrated in Requested-Risk/Sizing more than Direction. Initial Shared-Core gradient cosines were near zero with a mildly negative median, so direct raw distributional updates are not sufficiently compatible for production cutover.",
+  "observed_stability": {
+    "shared_core_better_distributional_seed_count": 5,
+    "canonical_total_loss_lower_seed_count": 2,
+    "canonical_direction_loss_lower_seed_count": 3,
+    "canonical_sizing_loss_lower_seed_count": 2,
+    "median_shared_minus_head_validation_distributional_loss": -0.003048536367714405,
+    "median_canonical_total_loss_delta": 0.050054311752319336,
+    "median_canonical_direction_loss_delta": -0.010130763053894043,
+    "median_canonical_sizing_loss_delta": 0.06018521636724472,
+    "median_distributional_vs_canonical_total_gradient_cosine": -0.05305358022451401,
+    "median_distributional_vs_direction_gradient_cosine": -0.03960739076137543,
+    "median_distributional_vs_sizing_gradient_cosine": -0.053195688873529434,
+    "median_hypothetical_direction_changed_rows_out_of_72": 26.0,
+    "canonical_over_distributional_shared_gradient_norm_ratio_range": [5.865227452367371, 8.723805419153464]
+  },
+  "critical_per_seed_observation": {
+    "worst_canonical_total_delta": 0.3871133327484131,
+    "corresponding_sizing_delta": 0.3580209091305733,
+    "note": "The worst canonical degradation is predominantly sizing-related. Positive initial gradient cosine did not guarantee favorable final canonical loss, so a one-time initial cosine check is insufficient as a compatibility mechanism."
+  },
+  "production_cutover_authorized": false,
+  "authorized_next_step": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3",
+  "r3_3_principle": "Preserve full distributional learning in the disposable belief head. On the disposable Shared Decision Core only, treat the existing canonical total Direction/Requested-Risk gradient as a compatibility guard rather than a new truth target: when the actual Adam update direction from the distributional objective is first-order conflicting with the current canonical total gradient, remove only the conflicting component. Do not add the canonical gradient as an optimization objective and do not tune an arbitrary scalar mixing weight.",
+  "forbidden": [
+    "production Student mutation or production cutover",
+    "arbitrary validation-tuned scalar weighting between canonical and distributional losses",
+    "dropping or replacing pre-registered seeds after observing results",
+    "expanding support/assets to rescue an unfavorable R3.3 result",
+    "opening FINAL or downloading fresh market data",
+    "creating or changing a market-information verdict"
+  ]
+}
