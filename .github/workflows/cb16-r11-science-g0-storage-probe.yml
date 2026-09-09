@@ -1,22 +1,36 @@
-name: CB16 R11 Science G0 Storage Probe
+name: CB16 R11 Docker Storage Contract
 
 on:
   push:
     branches:
       - ai/r11-science-g0-historical-r0
     paths:
+      - ci/docker_preflight.py
       - .github/workflows/cb16-r11-science-g0-storage-probe.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /run/secrets/cb16-provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_PARENT_R101_ROOT: /cb16/parent-r101
+  CB16_PARENT_G0: /cb16/parents/r10_1.pt
+
 jobs:
   shanxi-preflight:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
 
   probe:
-    name: Probe persistent R11 storage permissions
+    name: Verify Docker volume permissions
     needs: shanxi-preflight
     runs-on: [self-hosted, shanxi, cb16-wss-qualification]
     timeout-minutes: 10
@@ -36,43 +50,95 @@ jobs:
           git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
 
-      - name: Read-only permission and mount probe
+      - name: Verify core Docker execution contract
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== identity ==='
-          id
-          umask
-          echo '=== candidates ==='
-          for p in \
-            /data/cb16_ci \
-            /data/cb16_ci/workspaces \
-            /data/cb16_ci/github-runner-canonical \
-            /data/cb16_ci/github-runner-canonical/_work \
-            /home/bgy \
-            /home/bgy/cb16_ssd \
-            /home/bgy/cb16_ssd/runtime \
-            /home/bgy/cb16_ssd/runtime/R10_2 \
-            /home/bgy/cb16_ssd/runtime/R10_3 \
-            /data/cb16_hdd \
-            /data/cb16_hdd/cb16_runtime \
-            /data/cb16_hdd/cb16_runtime/R10_4
-          do
-            echo "--- $p"
-            if [ -e "$p" ]; then
-              stat -c 'mode=%A octal=%a uid=%u gid=%g owner=%U group=%G type=%F' "$p" || true
-              python3 - "$p" <<'PY'
-          import os, sys
-          p=sys.argv[1]
-          print(f"os_access_read={os.access(p, os.R_OK)} os_access_write={os.access(p, os.W_OK)} os_access_exec={os.access(p, os.X_OK)}")
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_docker_preflight.json"
+
+      - name: Verify mounted volume contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/cb16_r11_storage_contract.json" <<'PY'
+          import json, os, sys
+          from pathlib import Path
+
+          out = Path(sys.argv[1])
+          failures = []
+
+          required_readable = {
+              'raw': Path('/cb16/raw'),
+              'r104': Path('/cb16/runtime/r104'),
+              'venv': Path('/cb16/venv'),
+              'package': Path('/cb16/package'),
+              'parent_r101': Path('/cb16/parent-r101'),
+              'parents': Path('/cb16/parents'),
+              'r2_authority': Path('/cb16/r2-authority'),
+          }
+          required_writable = {
+              'g0': Path('/cb16/g0'),
+              'worker': Path('/cb16/worker'),
+              'uv_cache': Path('/cb16/uv-cache'),
+              'r2_native': Path('/cb16/r2-native'),
+          }
+
+          readable = {}
+          for name, path in required_readable.items():
+              ok = path.exists() and os.access(path, os.R_OK)
+              readable[name] = {'path': str(path), 'ok': ok}
+              if not ok:
+                  failures.append(f'READABLE_VOLUME_MISSING:{name}:{path}')
+
+          writable = {}
+          for name, path in required_writable.items():
+              ok = path.is_dir() and os.access(path, os.W_OK)
+              detail = 'ACCESS_OK' if ok else 'NOT_WRITABLE'
+              if ok and name in {'worker', 'uv_cache'}:
+                  probe = path / f'.cb16_storage_probe_{os.getpid()}'
+                  try:
+                      probe.write_text('probe\n', encoding='utf-8')
+                      probe.unlink()
+                      detail = 'WRITE_UNLINK_PASS'
+                  except OSError as exc:
+                      ok = False
+                      detail = f'WRITE_FAILED:{exc.errno}'
+              writable[name] = {'path': str(path), 'ok': ok, 'detail': detail}
+              if not ok:
+                  failures.append(f'WRITABLE_VOLUME_FAILED:{name}:{detail}')
+
+          provision = Path('/run/secrets/cb16-provision.env')
+          provision_ok = provision.is_file() and os.access(provision, os.R_OK)
+          if not provision_ok:
+              failures.append('PROVISION_SECRET_MISSING')
+
+          result = {
+              'schema': 'CB16_R11_DOCKER_STORAGE_CONTRACT_V1',
+              'status': 'PASS' if not failures else 'FAIL_CLOSED',
+              'readable_volumes': readable,
+              'writable_volumes': writable,
+              'provision_secret_present': provision_ok,
+              'git_annex_used': False,
+              'host_directory_scan_performed': False,
+              'scientific_payload_opened': False,
+              'training_started': False,
+              'final_holdout_payload_opened': False,
+              'new_evidence_created': False,
+              'new_scientific_verdict': False,
+              'failures': failures,
+          }
+          out.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(result, indent=2, sort_keys=True))
+          if failures:
+              raise SystemExit(78)
           PY
-              findmnt -T "$p" -o TARGET,SOURCE,FSTYPE,OPTIONS -n || true
-              namei -l "$p" || true
-            else
-              echo 'MISSING'
-            fi
-          done
-          echo '=== safety ==='
-          echo 'probe_created_files=0'
-          echo 'market_payload_opened=0'
-          echo 'training_started=0'
+
+      - name: Upload Docker storage receipts
+        uses: actions/upload-artifact@v5
+        with:
+          name: cb16-r11-docker-storage-contract
+          path: |
+            ${{ runner.temp }}/cb16_r11_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_storage_contract.json
+          if-no-files-found: error
+          retention-days: 30
