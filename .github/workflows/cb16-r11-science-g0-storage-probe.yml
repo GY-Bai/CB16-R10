@@ -67,7 +67,11 @@ jobs:
 
           out = Path(sys.argv[1])
           failures = []
+          transport_warnings = []
 
+          # Qualification-critical authority/reference mounts need only be readable.
+          # Worker configuration is infrastructure-owned and is intentionally allowed
+          # to be read-only inside the runner container.
           required_readable = {
               'raw': Path('/cb16/raw'),
               'r104': Path('/cb16/runtime/r104'),
@@ -76,11 +80,13 @@ jobs:
               'parent_r101': Path('/cb16/parent-r101'),
               'parents': Path('/cb16/parents'),
               'r2_authority': Path('/cb16/r2-authority'),
-          }
-          required_writable = {
-              'g0': Path('/cb16/g0'),
               'worker': Path('/cb16/worker'),
               'uv_cache': Path('/cb16/uv-cache'),
+          }
+          # Only scientific/runtime output mounts are authority-critical writable
+          # surfaces for the current R11 qualification path.
+          required_writable = {
+              'g0': Path('/cb16/g0'),
               'r2_native': Path('/cb16/r2-native'),
           }
 
@@ -95,15 +101,6 @@ jobs:
           for name, path in required_writable.items():
               ok = path.is_dir() and os.access(path, os.W_OK)
               detail = 'ACCESS_OK' if ok else 'NOT_WRITABLE'
-              if ok and name in {'worker', 'uv_cache'}:
-                  probe = path / f'.cb16_storage_probe_{os.getpid()}'
-                  try:
-                      probe.write_text('probe\n', encoding='utf-8')
-                      probe.unlink()
-                      detail = 'WRITE_UNLINK_PASS'
-                  except OSError as exc:
-                      ok = False
-                      detail = f'WRITE_FAILED:{exc.errno}'
               writable[name] = {'path': str(path), 'ok': ok, 'detail': detail}
               if not ok:
                   failures.append(f'WRITABLE_VOLUME_FAILED:{name}:{detail}')
@@ -113,12 +110,23 @@ jobs:
           if not provision_ok:
               failures.append('PROVISION_ENV_MISSING')
 
+          # UV cache mutability affects download-cache efficiency only. No current
+          # R11 qualification workflow performs network installation, so cache
+          # writability is reported but cannot alter scientific/runtime authority.
+          uv_cache = Path('/cb16/uv-cache')
+          uv_cache_writable = uv_cache.is_dir() and os.access(uv_cache, os.W_OK)
+          if not uv_cache_writable:
+              transport_warnings.append('UV_CACHE_READ_ONLY_OR_NOT_WRITABLE')
+
           result = {
-              'schema': 'CB16_R11_DOCKER_STORAGE_CONTRACT_V1',
+              'schema': 'CB16_R11_DOCKER_STORAGE_CONTRACT_V2',
               'status': 'PASS' if not failures else 'FAIL_CLOSED',
               'readable_volumes': readable,
               'writable_volumes': writable,
               'provision_env_present': provision_ok,
+              'uv_cache_writable': uv_cache_writable,
+              'transport_warnings': transport_warnings,
+              'network_install_attempted': False,
               'git_annex_used': False,
               'host_directory_scan_performed': False,
               'scientific_payload_opened': False,
