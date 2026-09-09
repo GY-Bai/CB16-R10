@@ -21,7 +21,7 @@ env:
   CB16_VERIFIED_VENV: /cb16/venv
   CB16_UV_CACHE_DIR: /cb16/uv-cache
   CB16_CI_WORKER_ROOT: /cb16/worker
-  CB16_PROVISION_ENV: /run/secrets/cb16-provision.env
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
   CB16_PACKAGE_ROOT: /cb16/package
   CB16_PARENT_R101_ROOT: /cb16/parent-r101
   CB16_PARENT_G0: /cb16/parents/r10_1.pt
@@ -33,7 +33,7 @@ jobs:
   probe:
     name: Verify Docker volume permissions
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
+    runs-on: [self-hosted, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
       contents: read
@@ -108,17 +108,17 @@ jobs:
               if not ok:
                   failures.append(f'WRITABLE_VOLUME_FAILED:{name}:{detail}')
 
-          provision = Path('/run/secrets/cb16-provision.env')
+          provision = Path('/cb16/worker/provision.env')
           provision_ok = provision.is_file() and os.access(provision, os.R_OK)
           if not provision_ok:
-              failures.append('PROVISION_SECRET_MISSING')
+              failures.append('PROVISION_ENV_MISSING')
 
           result = {
               'schema': 'CB16_R11_DOCKER_STORAGE_CONTRACT_V1',
               'status': 'PASS' if not failures else 'FAIL_CLOSED',
               'readable_volumes': readable,
               'writable_volumes': writable,
-              'provision_secret_present': provision_ok,
+              'provision_env_present': provision_ok,
               'git_annex_used': False,
               'host_directory_scan_performed': False,
               'scientific_payload_opened': False,
