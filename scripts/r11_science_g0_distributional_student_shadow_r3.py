@@ -134,6 +134,22 @@ def loss_value(head, shared, batch: DistributionalEvidenceBatchR3) -> tuple[floa
     return float(loss.item()), diag, pred.detach().clone()
 
 
+def teacher_action_grid_from_frozen_candidates() -> tuple[tuple[int, float], ...]:
+    """Project Frozen Physics V5.5 direction encoding into Teacher direction semantics.
+
+    ``CANDIDATES_R102`` uses the recovered Physics constants SHORT=0, FLAT=1,
+    LONG=2. CounterfactualBranchSampleR5/Teacher semantics use direction
+    {-1,0,+1}, created by ``direction_v55 - 1`` in the R11 support builder.
+    Teacher compile_one then sorts that semantic grid by (direction, risk).
+    """
+    return tuple(
+        sorted(
+            ((int(direction_v55) - 1, float(risk)) for direction_v55, risk in CANDIDATES_R102),
+            key=lambda x: (x[0], x[1]),
+        )
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--g0-root", type=Path, default=Path(os.environ.get("CB16_G0_ROOT", "/cb16/g0")))
@@ -234,7 +250,8 @@ def main() -> int:
     validation_batch = DistributionalEvidenceBatchR3.from_evidence(validation_evidence, parents, device=args.device)
     require(train_batch.action_grid == validation_batch.action_grid, "R11_R3_TRAIN_VALIDATION_ACTION_GRID_DRIFT")
     require(train_batch.quantile_levels == validation_batch.quantile_levels, "R11_R3_TRAIN_VALIDATION_QUANTILE_LEVEL_DRIFT")
-    require(train_batch.action_grid == tuple((int(d), float(r)) for d, r in CANDIDATES_R102), "R11_R3_ACTION_GRID_NOT_FROZEN_PHYSICS_GRID")
+    expected_teacher_action_grid = teacher_action_grid_from_frozen_candidates()
+    require(train_batch.action_grid == expected_teacher_action_grid, "R11_R3_ACTION_GRID_NOT_FROZEN_PHYSICS_SEMANTIC_PROJECTION")
     require(train_batch.quantile_levels == tuple(float(x) for x in R11_TRAIN_TEACHER_CONFIG.quantile_levels), "R11_R3_TEACHER_QUANTILE_LEVEL_NOT_BOUND")
 
     model = r1.load_bootstrap_model(g0_root, args.device)
@@ -370,6 +387,7 @@ def main() -> int:
             "belief_semantics": R3_BELIEF_SEMANTICS,
             "distance": R3_DISTANCE,
             "action_grid": [list(x) for x in train_batch.action_grid],
+            "frozen_physics_teacher_semantic_projection": [list(x) for x in expected_teacher_action_grid],
             "action_count": train_batch.action_count,
             "quantile_levels": list(train_batch.quantile_levels),
             "quantile_count": train_batch.quantile_count,
