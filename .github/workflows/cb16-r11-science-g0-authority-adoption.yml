@@ -37,7 +37,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -69,9 +69,9 @@ jobs:
           p=json.load(open(sys.argv[1]))
           assert p['status'] == 'READY', p
           assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
-          assert p['python']['python_compatibility_policy'] == 'CPYTHON_3_10_SERIES', p
-          assert p['python']['python_version'].startswith('3.10.'), p
           assert p['python']['network_install_attempted'] is False, p
+          assert p['expected']['python_series'] == '3.10', p
+          assert p['python']['python_version'].split('.')[:2] == ['3','10'], p
           PY
 
       - name: Recheck qualified S4C adoption tests
@@ -153,7 +153,7 @@ jobs:
           PY
 
       - name: Upload compact G0 authority receipts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-science-g0-genesis-authority
           path: |
