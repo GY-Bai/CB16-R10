@@ -20,8 +20,10 @@ EXPECTED_BLOBS = {
     "cb16_local_opt/binance_archive_input_r10.py": "b0d6dc8599d47b8697d5775aabcf5f4029d6b775",
     "cb16_local_opt/r102_common.py": "87a28afe7a42aa3fadd999d1dc0acecd35c03a39",
 }
-RAW_ROOT = Path("/data/cb16_hdd/binance_usdm_1m_funding_2020_2026")
-R11_ROOT = Path(os.environ.get("CB16_R11_G0_ROOT", "/home/bgy/cb16_ssd/runtime/R11/G0"))
+RAW_IDENTITY_ROOT = Path("/data/cb16_hdd/binance_usdm_1m_funding_2020_2026")
+R11_IDENTITY_ROOT = Path("/home/bgy/cb16_ssd/runtime/R11/G0")
+RAW_ROOT = Path(os.environ.get("CB16_RAW_ROOT", str(RAW_IDENTITY_ROOT)))
+R11_ROOT = Path(os.environ.get("CB16_R11_G0_ROOT", "/cb16/g0"))
 SEAL_IN = Path(os.environ.get("CB16_G0_SEAL_IN", "/tmp/cb16_r11_science_g0_dataset_seal.json"))
 STRIDE_HOURS = 256
 PREHISTORY_HOURS = 96
@@ -67,8 +69,8 @@ def validate_seal() -> tuple[dict[str, Any], bytes]:
         raise RuntimeError("R11_G0_DATASET_SEAL_SCHEMA_MISMATCH")
     if obj.get("canonical_seal_sha256") != EXPECTED_DATASET_SEAL:
         raise RuntimeError(f"R11_G0_DATASET_SEAL_IDENTITY_MISMATCH:{obj.get('canonical_seal_sha256')}")
-    if obj.get("dataset_root") != str(RAW_ROOT):
-        raise RuntimeError("R11_G0_DATASET_ROOT_MISMATCH")
+    if obj.get("dataset_root") != str(RAW_IDENTITY_ROOT):
+        raise RuntimeError("R11_G0_DATASET_ROOT_IDENTITY_MISMATCH")
     if obj.get("unopened_holdout_start") != "2025-09-01T00:00:00Z":
         raise RuntimeError("R11_G0_HOLDOUT_BOUNDARY_MISMATCH")
     if obj.get("holdout_payload_files_opened") != 0 or obj.get("network_reads") != 0 or obj.get("writes_under_dataset_root") != 0:
@@ -87,6 +89,7 @@ def main() -> int:
     cache_target = R11_ROOT / "market_cache"
     dataset_receipt = authority_dir / "CB16_R11_G0_DATASET_SEAL.json"
     lineage_receipt = authority_dir / "CB16_R11_G0_DERIVED_CACHE_LINEAGE.json"
+    identity_dataset_receipt = R11_IDENTITY_ROOT / "authority" / "CB16_R11_G0_DATASET_SEAL.json"
     publish_exact_no_replace(dataset_receipt, seal_raw)
 
     if cache_target.exists():
@@ -95,6 +98,8 @@ def main() -> int:
         existing = json.loads(lineage_receipt.read_text(encoding="utf-8"))
         if existing.get("dataset_seal_sha256") != EXPECTED_DATASET_SEAL:
             raise SystemExit("R11_G0_EXISTING_CACHE_LINEAGE_SEAL_CONFLICT")
+        if existing.get("lineage_identity_sha256") != "69e3bb82ba717104422dd45608d6a05725ccc53a08bded621c8f52095ccbb1d6":
+            raise SystemExit("R11_G0_EXISTING_CACHE_LINEAGE_IDENTITY_CONFLICT")
         print(json.dumps({"status": "ALREADY_MATERIALIZED", "lineage_receipt": str(lineage_receipt), "lineage_identity": existing.get("lineage_identity_sha256")}, indent=2))
         return 0
 
@@ -138,13 +143,15 @@ def main() -> int:
                 "anchors": manifest.get("anchors"),
             })
 
+        # Access paths may relocate into Docker volumes; canonical identity fields stay
+        # byte-identical to the qualified R11 G0 lineage receipt.
         core = {
             "schema": "CB16_R11_G0_DERIVED_CACHE_LINEAGE_V1",
             "status": "STRONG_LINEAGE",
             "scientific_verdict_created": False,
-            "raw_dataset_root": str(RAW_ROOT),
+            "raw_dataset_root": str(RAW_IDENTITY_ROOT),
             "dataset_seal_sha256": EXPECTED_DATASET_SEAL,
-            "dataset_seal_receipt": str(dataset_receipt),
+            "dataset_seal_receipt": str(identity_dataset_receipt),
             "builder_git_blobs": EXPECTED_BLOBS,
             "builder_entrypoint": "cb16_local_opt.r102_market.build_symbol_market_cache",
             "symbols": symbols,
@@ -157,6 +164,8 @@ def main() -> int:
             "per_asset": per_asset,
         }
         lineage_id = sha256_bytes(canonical_bytes(core))
+        if lineage_id != "69e3bb82ba717104422dd45608d6a05725ccc53a08bded621c8f52095ccbb1d6":
+            raise RuntimeError(f"R11_G0_LINEAGE_IDENTITY_DRIFT:{lineage_id}")
         receipt = {**core, "lineage_identity_sha256": lineage_id}
         (stage / "CB16_R11_G0_DERIVED_CACHE_LINEAGE.json").write_bytes(canonical_bytes(receipt))
 
