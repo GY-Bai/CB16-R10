@@ -71,8 +71,9 @@ jobs:
           from pathlib import Path
           p=Path('/cb16/g0/authority/CB16_R11_LEGACY_DATA_ADOPTION_V2.json')
           x=json.loads(p.read_text(encoding='utf-8'))
-          assert x['status'] in {'PASS','PASS_WITH_OPAQUE_PRIVATE_MODEL_REFERENCE'}, x
+          assert x['status'] == 'PASS_WITH_OPAQUE_PRIVATE_MODEL_REFERENCE', x
           assert x['mode'] == 'ZERO_COPY_EXISTING_MOUNT_REGISTRATION', x
+          assert x['failures'] == [], x
           s=x['semantics']
           assert s['legacy_bytes_copied'] == 0, x
           assert s['legacy_roots_mutated'] is False, x
@@ -83,13 +84,24 @@ jobs:
           assert s['training_started'] is False, x
           assert s['final_holdout_payload_opened'] is False, x
           assert s['fresh_market_data_downloaded'] is False, x
+          expected={
+              ('parent_r101','assets/medium/runtime/timesfm_layer3.safetensors'),
+              ('parent_r101','assets/operator/runtime/kronos_tokenizer_encode.safetensors'),
+              ('parent_r101','assets/operator/runtime/kronos_model_l5.safetensors'),
+          }
           opaque=x['opaque_private_model_references']
-          assert len(opaque) <= 1, x
-          if opaque:
-              assert opaque[0]['root'] == 'parent_r101', x
-              assert opaque[0]['path'] == 'assets/medium/runtime/timesfm_layer3.safetensors', x
-              assert opaque[0]['classification'] == 'PRIVATE_EXTERNAL_MODEL_REFERENCE', x
-              assert opaque[0]['content_opened'] is False, x
+          observed={(o['root'],o['path']) for o in opaque}
+          assert observed == expected, x
+          assert len(opaque) == 3, x
+          for o in opaque:
+              assert o['classification'] == 'PRIVATE_EXTERNAL_MODEL_REFERENCE', x
+              assert o['content_opened'] is False, x
+              assert o['errno'] == 13, x
+          assert all(r['unapproved_unreadable_files'] == 0 for r in x['roots']), x
+          parent=next(r for r in x['roots'] if r['name'] == 'parent_r101')
+          assert parent['files'] == parent['hashed_files'] + parent['opaque_private_files'] + parent['forbidden_payload_files_skipped'], x
+          assert parent['opaque_private_files'] == 3, x
+          assert parent['registration'] == 'ZERO_COPY_REFERENCE_WITH_OPAQUE_PRIVATE_MODEL', x
           print(json.dumps(x, indent=2, sort_keys=True))
           PY
 
