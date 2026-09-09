@@ -1,0 +1,47 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_ADJUDICATION_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3",
+  "status": "ADJUDICATED__DO_NOT_CUT_OVER_SHARED_CORE_DISTRIBUTIONAL_GRADIENT",
+  "source_run_id": 34415757636,
+  "source_head": "47c25779d0325dca7ac1ff5b3542e829b42157d1",
+  "source_status": "R11_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_PASS",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "observations": {
+    "projected_beats_head_only_distributional_seed_count": 5,
+    "projected_beats_raw_distributional_seed_count": 3,
+    "projected_canonical_total_better_than_raw_seed_count": 3,
+    "projected_canonical_total_lower_than_bootstrap_seed_count": 1,
+    "projected_canonical_sizing_lower_seed_count": 1,
+    "projected_minus_raw_distributional_loss_median": -0.000018981285393238068,
+    "projected_canonical_total_delta_median": 0.06985676288604736,
+    "projected_canonical_sizing_delta_median": 0.0859794095158577,
+    "projected_steps_per_seed_median": 22.0
+  },
+  "interpretation": [
+    "Dynamic first-order compatibility projection preserves a useful distributional-learning path but does not stabilize the existing canonical Direction/Requested-Risk objective.",
+    "Requested-Risk/Sizing remains the dominant compatibility failure: only one of five pre-registered seeds improves sizing versus bootstrap.",
+    "The conflict is persistent enough that a median 22 of 32 Shared-Core update steps require projection.",
+    "Therefore R3.3 does not authorize raw or projected distributional gradient ownership of the production Shared Decision Core."
+  ],
+  "decision": {
+    "production_cutover_authorized": false,
+    "shared_core_distributional_gradient_authorized": false,
+    "shared_core_projection_mechanism_authorized_for_production": false,
+    "distributional_head_shadow_remains_qualified": true,
+    "next_legal_step": "R11_SCIENCE_G0_DISTRIBUTIONAL_BELIEF_TO_DECISION_BRIDGE_SHADOW_R3_4"
+  },
+  "r3_4_question": "With production Market/Account stems, Shared Decision Core, Direction Head and Requested-Risk Head frozen, does a learned distributional belief representation provide state-aligned incremental information to a disposable decision-residual bridge beyond an identical bridge receiving a dependence-safe shuffled belief control?",
+  "semantic_guards": {
+    "truth_not_belief_not_decision_not_permission": true,
+    "teacher_action_laws_remain_teacher_evidence": true,
+    "canonical_direction_risk_targets_are_training_evidence_not_truth_authority": true,
+    "requested_risk_not_confidence": true,
+    "supervisor_permission_unchanged": true,
+    "physics_unchanged": true,
+    "production_student_unchanged": true,
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false,
+    "scientific_verdict_created": false,
+    "canonical_generation_advanced": false
+  }
+}
