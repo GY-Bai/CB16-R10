@@ -3,16 +3,16 @@ from __future__ import annotations
 """Shadow-only geometry diagnostics for the R11 probabilistic Teacher.
 
 R2 found that the frozen R11/R6 Teacher counts independent market-future
-support correctly, but its feature normalization is parent-row weighted.  Thus
+support correctly, but its feature normalization is parent-row weighted. Thus
 exact AccountState replicas inside one dependence group can alter the metric
 without adding independent future support.
 
-This module does NOT replace Teacher authority.  It constructs one candidate
+This module does NOT replace Teacher authority. It constructs one candidate
 shadow metric whose normalization gives every dependence group equal total
 weight and deduplicates exact Student context identities within each group.
 The existing nearest-context-per-group law, cross-fit support, utility law,
 quantiles, admission thresholds, and decision projection are otherwise reused
-byte-for-byte through the qualified vectorized kernel.
+through the qualified vectorized kernel.
 """
 
 from dataclasses import dataclass
@@ -29,7 +29,6 @@ from .r102_evidence_cache import ParentContextR102
 from .teacher_vectorized_r11 import (
     ColumnarTeacherIndexR11,
     SupportRegimeR11,
-    VectorizedTeacherStatsR11,
     _compile_block_r11,
     build_columnar_teacher_index_r11,
     group_targets_by_support_r11,
@@ -96,9 +95,6 @@ def dependence_balanced_unique_context_moments_r11(
         unique_total += int(len(rows))
         group_features.append(np.asarray(index.features[rows], dtype=np.float64))
 
-    # Equal total mass per dependence group.  Within a group, exact Student
-    # context identities are deduplicated and the remaining contexts share the
-    # group's mass equally.
     group_means = np.stack([x.mean(axis=0) for x in group_features], axis=0)
     mean = group_means.mean(axis=0)
     group_second = np.stack(
@@ -196,7 +192,8 @@ def compile_teacher_evidence_dependence_balanced_shadow_r11(
 ]:
     if int(block_targets) <= 0:
         raise ValueError("block_targets")
-    train_config.validate(); val_config.validate()
+    train_config.validate()
+    val_config.validate()
     index = build_columnar_teacher_index_r11(samples)
     train_parent_ids = sorted(
         p.parent_id for p in parents.values()
@@ -211,7 +208,8 @@ def compile_teacher_evidence_dependence_balanced_shadow_r11(
     }
 
     compiled: dict[str, DependenceAwareTeacherEvidenceR6] = {}
-    regimes = 0; blocks = 0
+    regimes = 0
+    blocks = 0
     aggregate = {
         "support_regime_physical_parent_rows": 0,
         "support_regime_unique_context_rows": 0,
@@ -263,27 +261,41 @@ def compare_teacher_evidence_sets_r11(
     a: Sequence[DependenceAwareTeacherEvidenceR6],
     b: Sequence[DependenceAwareTeacherEvidenceR6],
 ) -> dict[str, object]:
-    aa = {x.parent_id: x for x in a}; bb = {x.parent_id: x for x in b}
+    aa = {x.parent_id: x for x in a}
+    bb = {x.parent_id: x for x in b}
     if aa.keys() != bb.keys():
         raise RuntimeError("R11_R2_1_TEACHER_TARGET_SET_DRIFT")
     changed = 0
     admission_changes = 0
-    max_prob = 0.0; max_risk = 0.0; max_mean = 0.0; max_quantile = 0.0
+    max_prob = 0.0
+    max_risk = 0.0
+    max_mean = 0.0
+    max_quantile = 0.0
     for parent_id in sorted(aa):
-        x = aa[parent_id]; y = bb[parent_id]
-        if x.content_hash != y.content_hash:
+        x = aa[parent_id]
+        y = bb[parent_id]
+        # Unadmitted receipts may legitimately carry +/-inf distance sentinels.
+        # Their dataclass structure is still directly comparable, while the
+        # canonical evidence hash intentionally rejects non-finite JSON.
+        if x != y:
             changed += 1
         if x.admission.status != y.admission.status:
             admission_changes += 1
-        max_prob = max(max_prob, max(abs(float(u)-float(v)) for u,v in zip(x.direction_target_probs,y.direction_target_probs)))
-        max_risk = max(max_risk, abs(float(x.requested_risk_target)-float(y.requested_risk_target)))
+        max_prob = max(
+            max_prob,
+            max(abs(float(u) - float(v)) for u, v in zip(x.direction_target_probs, y.direction_target_probs)),
+        )
+        max_risk = max(max_risk, abs(float(x.requested_risk_target) - float(y.requested_risk_target)))
         if len(x.action_laws) != len(y.action_laws):
             raise RuntimeError("R11_R2_1_ACTION_LAW_COUNT_DRIFT")
         for lx, ly in zip(x.action_laws, y.action_laws):
-            max_mean = max(max_mean, abs(float(lx.mean_utility)-float(ly.mean_utility)))
+            max_mean = max(max_mean, abs(float(lx.mean_utility) - float(ly.mean_utility)))
             if len(lx.quantiles) != len(ly.quantiles):
                 raise RuntimeError("R11_R2_1_QUANTILE_COUNT_DRIFT")
-            max_quantile = max(max_quantile, max(abs(float(u)-float(v)) for u,v in zip(lx.quantiles,ly.quantiles)))
+            max_quantile = max(
+                max_quantile,
+                max(abs(float(u) - float(v)) for u, v in zip(lx.quantiles, ly.quantiles)),
+            )
     return {
         "targets": len(aa),
         "content_hash_changed_targets": int(changed),
@@ -293,6 +305,7 @@ def compare_teacher_evidence_sets_r11(
         "maximum_requested_risk_abs_delta": float(max_risk),
         "maximum_action_mean_utility_abs_delta": float(max_mean),
         "maximum_action_quantile_abs_delta": float(max_quantile),
+        "comparison_semantics": "STRUCTURAL_DATACLASS_EQUALITY__NONFINITE_UNADMITTED_RECEIPTS_SAFE",
     }
 
 
