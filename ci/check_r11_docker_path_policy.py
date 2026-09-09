@@ -59,12 +59,16 @@ def main() -> int:
 
     for rel in ACTIVE_R11_WORKFLOWS:
         text = read(rel)
-        if "runs-on: [self-hosted, shanxi, shanxi-docker-r11]" not in text:
+        if "runs-on: [self-hosted, shanxi-docker-r11]" not in text:
             errors.append(f"{rel}:SHANXI_DOCKER_R11_RUNNER_LABEL_MISSING")
+        if "runs-on: [self-hosted, shanxi," in text:
+            errors.append(f"{rel}:LEGACY_SHANXI_LABEL_FORBIDDEN")
         if "persist-credentials: false" not in text:
             errors.append(f"{rel}:CHECKOUT_CREDENTIAL_PERSISTENCE_GUARD_MISSING")
         if "python3 ci/docker_preflight.py" not in text:
             errors.append(f"{rel}:DOCKER_EXECUTION_PREFLIGHT_MISSING")
+        if "CB16_PROVISION_ENV: /cb16/worker/provision.env" not in text:
+            errors.append(f"{rel}:CANONICAL_PROVISION_ENV_MISSING")
         check_forbidden_paths(rel, text, errors)
 
         # Transport is host/container infrastructure authority. R11 workflows must
@@ -86,8 +90,7 @@ def main() -> int:
         "check_no_host_paths",
         'Path("/proc/self/mountinfo")',
         'failures.append("HOST_BUSINESS_PATH_VISIBLE")',
-        'Path("/run/secrets/provision.env")',
-        'Path("/run/secrets/cb16-provision.env")',
+        'Path("/cb16/worker/provision.env")',
     ):
         if needle not in docker_preflight:
             errors.append("ci/docker_preflight.py:DOCKER_PREFLIGHT_CONTRACT_DRIFT")
