@@ -29,7 +29,7 @@ jobs:
   s4f-preflight:
     name: Observe Stage-4 S4F raw-root compatibility
     needs: shanxi-preflight
-    runs-on: [self-hosted, shanxi, cb16-wss-qualification]
+    runs-on: [self-hosted, shanxi, shanxi-docker-r11]
     timeout-minutes: 10
     permissions:
       contents: read
