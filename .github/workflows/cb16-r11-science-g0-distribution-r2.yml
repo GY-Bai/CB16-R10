@@ -1,0 +1,181 @@
+name: CB16 R11 Science G0 Distribution Boundary R2
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-distribution-r2
+    paths:
+      - cb16_local_opt/science_distribution_boundary_r11.py
+      - scripts/r11_science_g0_distribution_r2.py
+      - scripts/r11_science_g0_distribution_r2_entrypoint.py
+      - tests/test_science_distribution_boundary_r11.py
+      - .github/workflows/cb16-r11-science-g0-distribution-r2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  distribution-boundary-r2:
+    name: Real historical distributional feedback boundary audit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r2_docker_preflight.json"
+
+      - name: Verify R1-qualified seed and immutable authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 2e213f3dffcc3c2fb13c5209b5f1e3b5ff977eb9 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test -f /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+          test -f /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r2_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['observed']['python_series'] == [3,10], p
+          PY
+
+      - name: Compile and run R2 diagnostic unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r2_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/science_distribution_boundary_r11.py \
+            scripts/r11_science_g0_distribution_r2.py \
+            scripts/r11_science_g0_distribution_r2_entrypoint.py \
+            tests/test_science_distribution_boundary_r11.py
+          "$PYTHON" -m pytest -q \
+            tests/test_science_distribution_boundary_r11.py \
+            tests/test_science_feedback_diagnostics_r11.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_teacher_runtime_r11.py
+
+      - name: Execute bounded real-history distribution boundary R2
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r2_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-distribution-r2-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"
+          mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r2_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_distribution_r2_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_BOUNDARY_R2_RESULT.json" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --train-groups 64 \
+            --validation-groups 16 \
+            --candidate-factor 2 \
+            --sensory-batch-size 8 \
+            --teacher-workers 4 \
+            --teacher-block-targets 8 \
+            --same-future-replicas 32
+
+      - name: Verify R2 completion and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r2_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_BOUNDARY_R2_RESULT.json" <<'PY'
+          import json, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_BOUNDARY_R2_RESULT_V1', x
+          assert x['status'] in {
+              'R11_DISTRIBUTIONAL_FEEDBACK_BOUNDARY_AUDIT_COMPLETE',
+              'R11_DISTRIBUTIONAL_FEEDBACK_BOUNDARY_AUDIT_COMPLETE_WITH_FINDING',
+          }, x
+          b=x['student_distributional_projection']['boundary_classification']
+          assert b['status'] == 'R11_DISTRIBUTIONAL_FEEDBACK_BOUNDARY_AUDIT_COMPLETE', x
+          assert b['teacher_distributional_law_integrity'] == 'PASS', x
+          assert b['projected_target_positive_control_changes_gradient'] is True, x
+          assert x['crossfit_self_future_exclusion']['status'] == 'PASS', x
+          assert x['replay_identity_and_support']['status'] == 'PASS', x
+          assert x['replay_identity_and_support']['identical_replay']['created_evidence_count'] == 0, x
+          assert x['replay_identity_and_support']['identical_replay']['created_payload_count'] == 0, x
+          assert x['qr_dqn_iqn_adjudication']['convert_cb16_to_qr_dqn'] == 'NO', x
+          s=x['semantic_guards']
+          assert s['canonical_generation_advanced'] is False, x
+          assert s['student_architecture_changed'] is False, x
+          assert s['teacher_semantics_changed'] is False, x
+          assert s['economic_objective_changed'] is False, x
+          assert s['scientific_verdict_created'] is False, x
+          assert s['final_holdout_payload_opened'] is False, x
+          assert s['fresh_market_data_downloaded'] is False, x
+          print(json.dumps({
+              'status': x['status'],
+              'distributional_gradient_diagnosis': b['diagnosis'],
+              'tail_only_changes_student_gradient': b['tail_only_law_changes_student_gradient'],
+              'projected_targets_change_student_gradient': b['projected_target_positive_control_changes_gradient'],
+              'same_future_replica_sensitivity': x['same_future_replica_sensitivity']['status'],
+              'same_future_replica_mean_max_abs_delta': x['same_future_replica_sensitivity']['maximum_action_mean_utility_abs_delta'],
+              'replay_created_evidence': x['replay_identity_and_support']['identical_replay']['created_evidence_count'],
+              'qr_dqn_conversion': x['qr_dqn_iqn_adjudication']['convert_cb16_to_qr_dqn'],
+              'scientific_verdict_created': False,
+              'final_holdout_payload_opened': False,
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact R2 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-distribution-r2-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r2_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r2_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-distribution-r2-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_BOUNDARY_R2_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30
