@@ -1,0 +1,50 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2_GATEWORK_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_GRADIENT_STABILITY_R3_2",
+  "r3_1_pass_seed": "2647abd5bb3d9079739631c3f691e9409cf26b1a",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__SHADOW_ARCHITECTURE_RESULTS_DO_NOT_AUTHORIZE_PRODUCTION",
+  "purpose": "Measure fixed-seed stability and Shared-Core gradient geometry for the already-qualified disposable distributional Student architecture, without tuning, production mutation, or market-information adjudication.",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "pre_registered_protocol": {
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "seed_set": [31337, 271828, 314159, 161803, 424242],
+    "seed_order_is_authoritative": true,
+    "steps_per_arm": 32,
+    "lr": 0.002,
+    "weight_decay": 0.0,
+    "grad_clip": 10.0,
+    "arm_a": "HEAD_ONLY__DETACHED_SHARED_REPRESENTATION",
+    "arm_b": "DISPOSABLE_SHARED_CORE_PLUS_DISTRIBUTIONAL_HEAD",
+    "same_head_initialization_within_seed": true,
+    "hyperparameter_tuning": false,
+    "optional_stopping": false
+  },
+  "gradient_geometry": {
+    "parameter_surface": "DISPOSABLE_SHARED_DECISION_CORE_ONLY",
+    "distributional_gradient": "TRUNCATED_QUANTILE_W1_ACTION_LAW_DISTILLATION",
+    "canonical_gradients": ["DIRECTION_SOFT_TARGET_CE", "REQUESTED_RISK_SMOOTHL1", "TOTAL_CANONICAL_DECISION_LOSS"],
+    "measurement_point": "INITIAL_BOOTSTRAP_BEFORE_ANY_R3_2_UPDATE",
+    "metric": "COSINE_SIMILARITY_PLUS_L2_NORMS",
+    "canonical_gradient_is_DIAGNOSTIC_ONLY": true
+  },
+  "pass_requires": [
+    "all five pre-registered seeds execute without omission",
+    "all gradients and metrics are finite",
+    "arm A remains head-only and production-gradient-free",
+    "arm B gradients are limited to disposable Shared Core plus distributional head",
+    "forbidden disposable parameters never update",
+    "production Student state/policy/behavior remain identical",
+    "Teacher targets remain detached and no realized future becomes a correct-action label",
+    "G0 and frozen package authority remain unchanged",
+    "FINAL remains closed, fresh data remains zero, scientific verdict remains unchanged"
+  ],
+  "non_gates": [
+    "R3.2 does not require any particular sign of gradient cosine",
+    "R3.2 does not require shared-core arm to beat head-only on every seed",
+    "R3.2 does not require canonical decision loss to improve",
+    "architecture metrics are reported for adjudication, not converted into a market-information verdict"
+  ],
+  "production_cutover_authorized": false
+}
