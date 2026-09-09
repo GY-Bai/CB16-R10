@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Metadata-only inventory for the frozen Shanxi 10-asset 1m dataset.
 
-This script MUST NOT open market payload bytes.  It performs only directory
+This script MUST NOT open market payload bytes. It performs only directory
 enumeration and lstat/stat metadata reads so the unopened 2025-09+ holdout
-remains unopened.  Its output is engineering evidence for constructing the
-R11 historical-data seal; it is not scientific Evidence and not a verdict.
+remains unopened. Docker access is through CB16_RAW_ROOT; the frozen semantic
+contract path remains an identity field only.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import json
 import os
 import re
 import stat
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,10 +21,19 @@ EXPECTED_FREEZE_BLOB = "3c401a0a350984381912f7860181e3e96eb8d7cf"
 DATE_RE = re.compile(r"(?<!\d)(20\d{2})[-_/]?([01]\d)(?!\d)")
 
 
+def DATE_RE_MONTHS(text: str) -> list[str]:
+    months: list[str] = []
+    for y, m in DATE_RE.findall(text):
+        if 1 <= int(m) <= 12:
+            months.append(f"{y}-{m}")
+    return months
+
+
 def main() -> int:
     freeze = json.loads(FREEZE_PATH.read_text(encoding="utf-8"))
     ds = freeze["immutable"]["historical_market_dataset"]
-    root = Path(ds["expected_root"])
+    identity_root = Path(ds["expected_root"])
+    root = Path(os.environ.get("CB16_RAW_ROOT", str(identity_root)))
     symbols = tuple(ds["symbols"])
 
     if ds["storage_class"] != "SHANXI_LOCAL_READ_ONLY":
@@ -38,9 +47,9 @@ def main() -> int:
     if ds["kline_interval"] != "1m" or len(symbols) != 10:
         raise SystemExit("DATASET_GEOMETRY_MISMATCH")
     if not root.is_dir():
-        raise SystemExit(f"DATASET_ROOT_MISSING:{root}")
+        raise SystemExit(f"DATASET_ACCESS_ROOT_MISSING:{root}")
     if root.is_symlink():
-        raise SystemExit("DATASET_ROOT_SYMLINK_FORBIDDEN")
+        raise SystemExit("DATASET_ACCESS_ROOT_SYMLINK_FORBIDDEN")
 
     records: list[dict] = []
     suffix_counts: Counter[str] = Counter()
@@ -49,7 +58,7 @@ def main() -> int:
     suspicious_symlinks: list[str] = []
     total_file_bytes = 0
 
-    # os.walk/lstat only.  NEVER open(), read_bytes(), mmap(), hash payloads, etc.
+    # os.walk/lstat only. NEVER open(), read_bytes(), mmap(), hash payloads, etc.
     for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
         dirnames.sort()
         filenames.sort()
@@ -81,10 +90,14 @@ def main() -> int:
 
     holdout_named = [r for r in records if any(k >= "2025-09" for k in DATE_RE_MONTHS(r["path"]))]
     pre_holdout_named = [r for r in records if any(k < "2025-09" for k in DATE_RE_MONTHS(r["path"]))]
-    sidecars = [r for r in records if r["path"].lower().endswith((".sha256", ".sha256sum", ".checksum", ".checksums")) or "sha256" in Path(r["path"]).name.lower()]
+    sidecars = [
+        r for r in records
+        if r["path"].lower().endswith((".sha256", ".sha256sum", ".checksum", ".checksums"))
+        or "sha256" in Path(r["path"]).name.lower()
+    ]
 
     result = {
-        "schema": "CB16_R11_SCIENCE_G0_DATASET_METADATA_INVENTORY_V1",
+        "schema": "CB16_R11_SCIENCE_G0_DATASET_METADATA_INVENTORY_V2",
         "status": "METADATA_ONLY_INVENTORY_PASS",
         "scientific_evidence": False,
         "scientific_verdict_created": False,
@@ -92,8 +105,10 @@ def main() -> int:
         "holdout_payload_files_opened": 0,
         "network_reads": 0,
         "writes_under_dataset_root": 0,
-        "dataset_root": str(root),
-        "dataset_root_realpath": str(root.resolve()),
+        "dataset_identity_root": str(identity_root),
+        "dataset_access_root": str(root),
+        "dataset_access_root_realpath": str(root.resolve()),
+        "docker_abstract_path_used": str(root).startswith("/cb16/"),
         "expected_discovered_size_bytes": int(ds["discovered_size_bytes"]),
         "regular_file_count": len(records),
         "total_regular_file_bytes": total_file_bytes,
@@ -113,14 +128,6 @@ def main() -> int:
     out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in result.items() if k != "file_metadata"}, indent=2, sort_keys=True))
     return 0
-
-
-def DATE_RE_MONTHS(text: str) -> list[str]:
-    months: list[str] = []
-    for y, m in DATE_RE.findall(text):
-        if 1 <= int(m) <= 12:
-            months.append(f"{y}-{m}")
-    return months
 
 
 if __name__ == "__main__":
