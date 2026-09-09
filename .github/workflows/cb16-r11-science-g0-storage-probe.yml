@@ -39,7 +39,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -67,11 +67,8 @@ jobs:
 
           out = Path(sys.argv[1])
           failures = []
-          transport_warnings = []
+          warnings = []
 
-          # Qualification-critical authority/reference mounts need only be readable.
-          # Worker configuration is infrastructure-owned and is intentionally allowed
-          # to be read-only inside the runner container.
           required_readable = {
               'raw': Path('/cb16/raw'),
               'r104': Path('/cb16/runtime/r104'),
@@ -83,8 +80,6 @@ jobs:
               'worker': Path('/cb16/worker'),
               'uv_cache': Path('/cb16/uv-cache'),
           }
-          # Only scientific/runtime output mounts are authority-critical writable
-          # surfaces for the current R11 qualification path.
           required_writable = {
               'g0': Path('/cb16/g0'),
               'r2_native': Path('/cb16/r2-native'),
@@ -105,28 +100,27 @@ jobs:
               if not ok:
                   failures.append(f'WRITABLE_VOLUME_FAILED:{name}:{detail}')
 
+          transport = {}
+          for name, path in {'worker': Path('/cb16/worker'), 'uv_cache': Path('/cb16/uv-cache')}.items():
+              writable_now = path.is_dir() and os.access(path, os.W_OK)
+              detail = 'WRITABLE' if writable_now else 'READ_ONLY_OR_NOT_WRITABLE'
+              transport[name] = {'path': str(path), 'writable': writable_now, 'detail': detail}
+              if not writable_now:
+                  warnings.append(f'TRANSPORT_VOLUME_NOT_WRITABLE:{name}')
+
           provision = Path('/cb16/worker/provision.env')
           provision_ok = provision.is_file() and os.access(provision, os.R_OK)
           if not provision_ok:
               failures.append('PROVISION_ENV_MISSING')
 
-          # UV cache mutability affects download-cache efficiency only. No current
-          # R11 qualification workflow performs network installation, so cache
-          # writability is reported but cannot alter scientific/runtime authority.
-          uv_cache = Path('/cb16/uv-cache')
-          uv_cache_writable = uv_cache.is_dir() and os.access(uv_cache, os.W_OK)
-          if not uv_cache_writable:
-              transport_warnings.append('UV_CACHE_READ_ONLY_OR_NOT_WRITABLE')
-
           result = {
               'schema': 'CB16_R11_DOCKER_STORAGE_CONTRACT_V2',
               'status': 'PASS' if not failures else 'FAIL_CLOSED',
               'readable_volumes': readable,
-              'writable_volumes': writable,
+              'writable_authority_volumes': writable,
+              'transport_volumes': transport,
               'provision_env_present': provision_ok,
-              'uv_cache_writable': uv_cache_writable,
-              'transport_warnings': transport_warnings,
-              'network_install_attempted': False,
+              'warnings': warnings,
               'git_annex_used': False,
               'host_directory_scan_performed': False,
               'scientific_payload_opened': False,
@@ -143,7 +137,7 @@ jobs:
           PY
 
       - name: Upload Docker storage receipts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-docker-storage-contract
           path: |
