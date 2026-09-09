@@ -56,7 +56,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -89,7 +89,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -101,7 +101,7 @@ jobs:
           python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16-r11-docker-preflight.json"
 
       - name: Upload Docker preflight receipt
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-docker-preflight
           path: ${{ runner.temp }}/cb16-r11-docker-preflight.json
