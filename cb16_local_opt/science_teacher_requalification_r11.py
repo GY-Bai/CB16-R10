@@ -2,18 +2,31 @@ from __future__ import annotations
 
 """R11 shadow requalification utilities for dependence-balanced Teacher geometry.
 
-No production Teacher authority is changed here.  The shadow differs from the
-frozen R6 Teacher only in normalization geometry: every independent future
-(dependence group) contributes equal total normalization mass, and exact
-Student-context replicas inside that future are deduplicated.
+No production Teacher authority is changed here. The shadow differs from the
+frozen R6 Teacher only where exact AccountState replica volume can change a
+belief without adding independent market-future support:
+
+1) feature normalization gives each dependence group equal total mass and
+   deduplicates exact Student-context identities within the group;
+2) F0 climatology likewise deduplicates exact contexts before forming the one
+   utility value contributed by that future group.
+
+Distinct AccountStates remain distinct. Cross-fit chronology, kNN selection,
+utility samples, quantile law, admission thresholds, and objective are unchanged.
 """
 
+import math
 from dataclasses import asdict
 from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from .probabilistic_teacher_r6 import DependenceAwareProbabilisticTeacherR6
+from .probabilistic_teacher_r5 import weighted_quantile
+from .probabilistic_teacher_r6 import (
+    DependenceAwarePredictiveLawR6,
+    DependenceAwareProbabilisticTeacherR6,
+    canonical_hash,
+)
 from .scientific_controls_r6 import (
     FORMULATIONS,
     DependenceAwareControlSuiteConfigR6,
@@ -25,20 +38,27 @@ SHADOW_GEOMETRY_VERSION = "CB16_R11_DEPENDENCE_BALANCED_UNIQUE_CONTEXT_GEOMETRY_
 
 
 class DependenceBalancedProbabilisticTeacherShadowR11(DependenceAwareProbabilisticTeacherR6):
-    """R6 Teacher semantics with replica-invariant dependence-balanced scaling."""
+    """R6 Teacher semantics with exact-replica-invariant group weighting."""
+
+    @staticmethod
+    def _unique_context_parents(dep: str, index) -> list[str]:
+        seen = set()
+        out = []
+        for p in index.parents_by_dependence_group[dep]:
+            context_id = index.rows_by_parent[p][0].student_context_object_id
+            if context_id in seen:
+                continue
+            seen.add(context_id)
+            out.append(p)
+        return out
 
     def _normalization(self, *, train_deps, index, feature_override=None):
         if not train_deps:
             raise RuntimeError("R11_R2_2_NO_TRAIN_DEPENDENCE_GROUPS_FOR_NORMALIZATION")
         group_arrays = []
         for dep in train_deps:
-            seen = set()
             rows = []
-            for p in index.parents_by_dependence_group[dep]:
-                context_id = index.rows_by_parent[p][0].student_context_object_id
-                if context_id in seen:
-                    continue
-                seen.add(context_id)
+            for p in self._unique_context_parents(dep, index):
                 feat = (
                     feature_override[p]
                     if feature_override is not None
@@ -49,8 +69,8 @@ class DependenceBalancedProbabilisticTeacherShadowR11(DependenceAwareProbabilist
                 raise RuntimeError(f"R11_R2_2_EMPTY_DEPENDENCE_GROUP:{dep}")
             group_arrays.append(np.stack(rows, axis=0))
 
-        # Each independent future has equal total mass; different AccountStates
-        # inside that future share its mass. Exact replicas add zero mass.
+        # Equal total normalization mass per independent future. Different
+        # AccountStates inside a future share that future's mass.
         group_means = np.stack([x.mean(axis=0) for x in group_arrays], axis=0)
         mean = group_means.mean(axis=0)
         group_second = np.stack(
@@ -59,9 +79,75 @@ class DependenceBalancedProbabilisticTeacherShadowR11(DependenceAwareProbabilist
         std = np.sqrt(np.maximum(group_second.mean(axis=0), 0.0))
         return mean, np.where(std < 1e-8, 1.0, std)
 
+    def predictive_law(
+        self,
+        *,
+        target_features,
+        train_deps,
+        index,
+        direction,
+        risk,
+        feature_override=None,
+        equal_weight_climatology=False,
+    ):
+        if not equal_weight_climatology:
+            return super().predictive_law(
+                target_features=target_features,
+                train_deps=train_deps,
+                index=index,
+                direction=direction,
+                risk=risk,
+                feature_override=feature_override,
+                equal_weight_climatology=False,
+            )
+        if not train_deps:
+            return None
+
+        selected_y = []
+        selected_groups = []
+        for dep in train_deps:
+            vals = []
+            for p in self._unique_context_parents(dep, index):
+                match = [
+                    s for s in index.rows_by_parent[p]
+                    if s.direction == direction
+                    and abs(s.requested_risk - risk) <= 1e-12
+                ]
+                if not match:
+                    continue
+                if len(match) != 1:
+                    raise RuntimeError("DUPLICATE_ACTION_BRANCH_WITHIN_PARENT")
+                vals.append(float(match[0].realized_utility))
+            if vals:
+                selected_y.append(float(np.mean(vals)))
+                selected_groups.append(dep)
+        if not selected_y:
+            return None
+        y = np.asarray(selected_y, dtype=np.float64)
+        w = np.full(len(y), 1.0 / len(y), dtype=np.float64)
+        q = weighted_quantile(
+            y,
+            w,
+            np.asarray(self.config.quantile_levels, dtype=np.float64),
+        )
+        mu = float(np.mean(y))
+        return DependenceAwarePredictiveLawR6(
+            direction=direction,
+            requested_risk=float(risk),
+            mean_utility=mu,
+            std_utility=float(np.std(y, ddof=0)),
+            quantile_levels=self.config.quantile_levels,
+            quantiles=tuple(float(x) for x in q),
+            effective_dependence_n=float(len(y)),
+            unique_dependence_groups=len(y),
+            nearest_distance=0.0,
+            max_distance_used=0.0,
+            support_dependence_group_hash=canonical_hash(selected_groups),
+        )
+
 
 class DependenceBalancedHistoricalControlSuiteShadowR11(DependenceAwareHistoricalControlSuiteR6):
-    """Exact R6 F0/F1/F2/F3 control suite with only shadow geometry substituted."""
+    """Exact R6 F0/F1/F2/F3 suite with only shadow group weighting substituted."""
 
     def __init__(self, config: DependenceAwareControlSuiteConfigR6):
         super().__init__(config)
@@ -176,10 +262,7 @@ def compare_coverage_r11(current: Mapping[str, Any], shadow: Mapping[str, Any]) 
         c = current["formulations"][f]
         s = shadow["formulations"][f]
         qd = float(s["qcrps_group_weighted"] - c["qcrps_group_weighted"])
-        cov = {
-            k: float(s[k] - c[k])
-            for k in ("coverage50", "coverage80", "coverage90")
-        }
+        cov = {k: float(s[k] - c[k]) for k in ("coverage50", "coverage80", "coverage90")}
         max_q = max(max_q, abs(qd))
         max_cov = max(max_cov, *(abs(x) for x in cov.values()))
         per[f] = {"qcrps_delta": qd, "coverage_deltas": cov}
