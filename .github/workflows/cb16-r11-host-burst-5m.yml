@@ -1,0 +1,105 @@
+name: CB16 R11 Host Burst 5m
+
+on:
+  push:
+    branches:
+      - ai/r11-docker-runner-r0
+    paths:
+      - ci/r11_host_burst_5m.py
+      - .github/workflows/cb16-r11-host-burst-5m.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_BURST_SECONDS: '300'
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  burst:
+    name: Five-minute CPU GPU RAM disk burst
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_burst_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_burst_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
+          assert p['python']['network_install_attempted'] is False, p
+          PY
+
+      - name: Run bounded 300-second comprehensive burst
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_burst_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          CB16_BURST_OUT="$RUNNER_TEMP/cb16_r11_host_burst_5m.json" "$PYTHON" ci/r11_host_burst_5m.py
+
+      - name: Verify burst safety receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/cb16_r11_host_burst_5m.json" <<'PY'
+          import json, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status'] == 'PASS', x
+          assert x['elapsed_seconds'] >= 295, x
+          assert x['cpu']['hash_iterations'] > 0, x
+          assert x['gpu']['iterations'] > 0, x
+          assert x['ram']['touch_passes'] > 0, x
+          assert x['disk']['written_bytes'] == 512 * 1024 * 1024, x
+          assert x['disk']['verify_passes'] > 0, x
+          assert x['safety']['legacy_or_raw_data_mutated'] is False, x
+          assert x['safety']['training_started'] is False, x
+          assert x['safety']['final_holdout_payload_opened'] is False, x
+          print(json.dumps(x, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload burst receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-host-burst-5m
+          path: |
+            ${{ runner.temp }}/cb16_r11_burst_preflight.json
+            ${{ runner.temp }}/cb16_r11_burst_python.json
+            ${{ runner.temp }}/cb16_r11_host_burst_5m.json
+          if-no-files-found: error
+          retention-days: 30

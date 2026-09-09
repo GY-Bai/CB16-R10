@@ -1,0 +1,109 @@
+name: CB16 R11 Docker Runner Preflight
+
+on:
+  push:
+    branches:
+      - ai/r11-docker-runner-r0
+    paths:
+      - ci/docker_preflight.py
+      - ci/check_r11_docker_path_policy.py
+      - ci/resolve_verified_r104_python.py
+      - provision/scripts/provision_common.py
+      - provision/scripts/provision_python.py
+      - scripts/r11_science_g0_inventory.py
+      - scripts/r11_science_g0_prereq_discovery.py
+      - scripts/r11_science_g0_seal.py
+      - scripts/r11_science_g0_materialize_cache.py
+      - scripts/r11_science_g0_initialize_stage4_roots.py
+      - .github/workflows/cb16-r11-docker-preflight.yml
+      - .github/workflows/cb16-r11-main-smoke.yml
+      - .github/workflows/cb16-r11-science-g0-inventory.yml
+      - .github/workflows/cb16-r11-science-g0-prereq.yml
+      - .github/workflows/cb16-r11-science-g0-storage-probe.yml
+      - .github/workflows/cb16-r11-science-g0-r104-authority.yml
+      - .github/workflows/cb16-r11-science-g0-s4f-preflight.yml
+      - .github/workflows/cb16-r11-science-g0-materialize-cache.yml
+      - .github/workflows/cb16-r11-science-g0-stage4-roots.yml
+      - .github/workflows/cb16-r11-science-g0-authority-adoption.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_PARENT_R101_ROOT: /cb16/parent-r101
+  CB16_PARENT_G0: /cb16/parents/r10_1.pt
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  repo-contract:
+    name: Verify Docker repo contract
+    needs: shanxi-preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify Docker path contract
+        run: python3 ci/check_r11_docker_path_policy.py
+
+      - name: Compile modified Python entrypoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            ci/docker_preflight.py \
+            ci/check_r11_docker_path_policy.py \
+            ci/resolve_verified_r104_python.py \
+            provision/scripts/provision_common.py \
+            provision/scripts/provision_python.py \
+            scripts/r11_science_g0_inventory.py \
+            scripts/r11_science_g0_prereq_discovery.py \
+            scripts/r11_science_g0_seal.py \
+            scripts/r11_science_g0_materialize_cache.py \
+            scripts/r11_science_g0_initialize_stage4_roots.py
+
+  docker-preflight:
+    name: Verify R11 Docker execution contract
+    needs: [shanxi-preflight, repo-contract]
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify Docker runner contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16-r11-docker-preflight.json"
+
+      - name: Upload Docker preflight receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-docker-preflight
+          path: ${{ runner.temp }}/cb16-r11-docker-preflight.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,141 @@
+name: CB16 R11 Science G0 Stage4 Roots
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-historical-r0
+      - ai/r11-docker-runner-r0
+    paths:
+      - scripts/r11_science_g0_initialize_stage4_roots.py
+      - ci/resolve_verified_r104_python.py
+      - ci/docker_preflight.py
+      - .github/workflows/cb16-r11-science-g0-stage4-roots.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  stage4-roots:
+    name: Initialize canonical R11 G0 Stage-4 roots
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_stage4_docker_preflight.json"
+
+      - name: Verify frozen authority implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/stage4_state_roots_r11.py)" = "7080b77f3e9323e6b6bbd445f0c3af8f620903b3"
+          test "$(git rev-parse HEAD:cb16_local_opt/stage4_authority_adoption_r11.py)" = "d67d567d2a9a5bc18cbb04a78bb3307c00847b08"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          PY
+
+      - name: Recheck qualified S4F tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY_JSON="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          PYTHON=$(python3 - "$PY_JSON" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m pytest -q tests/test_stage4_state_roots_r11.py
+
+      - name: Verify sealed G0 adoption first
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY_JSON="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          PYTHON=$(python3 - "$PY_JSON" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" scripts/verify_r11_stage4_authority_adoption.py \
+            --receipt "$CB16_G0_ROOT/authority/CB16_R11_G0_AUTHORITY_ADOPTION_RECEIPT.json" \
+            --contract "$CB16_G0_ROOT/authority/CB16_R11_G0_AUTHORITY_ADOPTION_CONTRACT.json"
+
+      - name: Initialize or report exact S4F blocker
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY_JSON="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          PYTHON=$(python3 - "$PY_JSON" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH="$GITHUB_WORKSPACE" "$PYTHON" scripts/r11_science_g0_initialize_stage4_roots.py
+
+      - name: Verify no scientific work occurred
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/cb16_r11_g0_stage4_roots.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] in {'BLOCKED_FROZEN_RAW_MODE_BITS','R11_G0_STAGE4_ROOTS_READY'}, p
+          assert p['raw_files_modified'] == 0, p
+          assert p['training_started'] is False, p
+          assert p['final_holdout_payload_opened'] is False, p
+          assert p['new_evidence_created'] is False, p
+          assert p['new_scientific_verdict'] is False, p
+          if p['status'] == 'R11_G0_STAGE4_ROOTS_READY':
+              assert p['r11_generation'] == 0, p
+              assert p['generation_advanced'] is False, p
+              assert p['sealed_object_count'] == 0, p
+          print(json.dumps(p, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact Stage-4 root receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-stage4-roots
+          path: ${{ runner.temp }}/cb16_r11_g0_stage4_roots.json
+          if-no-files-found: error
+          retention-days: 30

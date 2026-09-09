@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Fail-closed GitHub Actions runtime compatibility policy.
 
-This is a Guard sub-check, not a standalone workflow gate. It keeps action
-versions on the Node24-compatible generation and prevents insecure opt-outs.
+This is a Guard sub-check, not a standalone workflow gate. It keeps selected
+first-party action references on the current Node 24-compatible major releases
+and prevents insecure runtime opt-outs.
 """
 from __future__ import annotations
 
@@ -11,9 +12,11 @@ import re
 import sys
 from pathlib import Path
 
-CHECKOUT_RE = re.compile(r"actions/checkout@([^\s#]+)")
-UPLOAD_RE = re.compile(r"actions/upload-artifact@([^\s#]+)")
-DOWNLOAD_RE = re.compile(r"actions/download-artifact@([^\s#]+)")
+ACTION_RULES: tuple[tuple[str, re.Pattern[str], int], ...] = (
+    ("actions/checkout", re.compile(r"actions/checkout@([^\s#]+)"), 7),
+    ("actions/upload-artifact", re.compile(r"actions/upload-artifact@([^\s#]+)"), 7),
+    ("actions/download-artifact", re.compile(r"actions/download-artifact@([^\s#]+)"), 8),
+)
 FORBIDDEN_OPT_OUT = "ACTIONS_ALLOW_USE_" + "UNSECURE_NODE_VERSION"
 
 
@@ -34,31 +37,16 @@ def check_workflows(root: Path) -> list[str]:
             errors.append(f"{path}: forbidden insecure Node-version opt-out")
 
         for lineno, line in enumerate(text.splitlines(), 1):
-            m = CHECKOUT_RE.search(line)
-            if m:
-                ref = m.group(1)
+            for action_name, pattern, required_major in ACTION_RULES:
+                match = pattern.search(line)
+                if not match:
+                    continue
+                ref = match.group(1)
                 major = _major(ref)
-                if major != 6:
+                if major != required_major:
                     errors.append(
-                        f"{path}:{lineno}: actions/checkout must use @v6; found @{ref}"
-                    )
-
-            m = UPLOAD_RE.search(line)
-            if m:
-                ref = m.group(1)
-                major = _major(ref)
-                if major is not None and major < 5:
-                    errors.append(
-                        f"{path}:{lineno}: actions/upload-artifact must use v5+; found @{ref}"
-                    )
-
-            m = DOWNLOAD_RE.search(line)
-            if m:
-                ref = m.group(1)
-                major = _major(ref)
-                if major is not None and major < 5:
-                    errors.append(
-                        f"{path}:{lineno}: actions/download-artifact must use v5+; found @{ref}"
+                        f"{path}:{lineno}: {action_name} must use @v{required_major}; "
+                        f"found @{ref}"
                     )
 
     return errors

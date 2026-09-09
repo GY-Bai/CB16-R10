@@ -1,0 +1,156 @@
+name: CB16 R11 Science G0 Genesis Authority
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-historical-r0
+      - ai/r11-docker-runner-r0
+    paths:
+      - scripts/verify_r11_stage4_authority_adoption.py
+      - ci/resolve_verified_r104_python.py
+      - ci/docker_preflight.py
+      - .github/workflows/cb16-r11-science-g0-authority-adoption.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  genesis-adoption:
+    name: Verify migrated R11 G0 genesis authority
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_authority_docker_preflight.json"
+
+      - name: Verify R11 freeze and qualified adoption implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/stage4_authority_adoption_r11.py)" = "d67d567d2a9a5bc18cbb04a78bb3307c00847b08"
+          git cat-file -e f056ae6a0722e3e92d71793024a6e6d3fe9af003^{commit}
+          test "$(git rev-parse f056ae6a0722e3e92d71793024a6e6d3fe9af003:ACTIVE_AUTHORITY_R10_2.json)" = "22aaa0b5bd816e5271a281ae0ad55fe1624497c7"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
+          PY
+
+      - name: Recheck qualified S4C adoption tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY_JSON="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          PYTHON=$(python3 - "$PY_JSON" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m pytest -q tests/test_stage4_authority_adoption_r11.py
+
+      - name: Verify migrated adoption receipt without mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY_JSON="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          PYTHON=$(python3 - "$PY_JSON" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" scripts/verify_r11_stage4_authority_adoption.py \
+            --receipt "$CB16_G0_ROOT/authority/CB16_R11_G0_AUTHORITY_ADOPTION_RECEIPT.json" \
+            --contract "$CB16_G0_ROOT/authority/CB16_R11_G0_AUTHORITY_ADOPTION_CONTRACT.json"
+
+      - name: Verify migrated genesis identity and scientific guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          a=Path(os.environ['CB16_G0_ROOT'])/'authority'
+          g=json.load(open(a/'CB16_R11_G0_GENESIS_SOURCE_RECORD.json'))
+          r=json.load(open(a/'CB16_R11_G0_AUTHORITY_ADOPTION_RECEIPT.json'))
+          l=json.load(open(a/'CB16_R11_G0_DERIVED_CACHE_LINEAGE.json'))
+          d=json.load(open(a/'CB16_R11_G0_DATASET_SEAL.json'))
+          assert g['status'] == 'ACCEPTED_R11_G0_SOURCE_STATE'
+          assert g['genesis_identity_sha256'] == 'dce5f5dc41b9b6ff712269fd0e3b87a861d2296147bd87ee62ff54e6813c798d'
+          assert g['r11']['generation'] == 0
+          assert g['r11']['semantic_freeze_git_blob'] == '3c401a0a350984381912f7860181e3e96eb8d7cf'
+          assert g['legacy_predecessor']['last_committed_generation'] == 66
+          assert g['legacy_predecessor']['champion_semantic_sha256'] == 'd0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886'
+          assert g['historical_data']['dataset_seal_sha256'] == '94bc3288a7e6097c4301c93d836607edee207ac3b2c7cf3e7833c85ea0f9546a'
+          assert g['historical_data']['derived_cache_lineage_sha256'] == '69e3bb82ba717104422dd45608d6a05725ccc53a08bded621c8f52095ccbb1d6'
+          assert l['lineage_identity_sha256'] == '69e3bb82ba717104422dd45608d6a05725ccc53a08bded621c8f52095ccbb1d6'
+          assert d['canonical_seal_sha256'] == '94bc3288a7e6097c4301c93d836607edee207ac3b2c7cf3e7833c85ea0f9546a'
+          assert r['canonical_content_hash'] == '2e9fed060ff29160197bf4a0ab391575fe15c4bb6e21f3ce368cfddd67ffab81'
+          assert r['source']['source_generation'] == 0
+          assert r['target']['adoption_generation'] == 0
+          assert g['semantic_guards']['new_evidence_created'] is False
+          assert g['semantic_guards']['new_scientific_verdict'] is False
+          assert g['semantic_guards']['training_started'] is False
+          assert g['semantic_guards']['final_holdout_payload_opened'] is False
+          assert r['semantic_guards']['new_evidence_created'] is False
+          assert r['semantic_guards']['new_scientific_verdict'] is False
+          assert r['semantic_guards']['generation_advanced_by_adoption'] is False
+          bootstrap=Path(os.environ['CB16_G0_ROOT'])/'bootstrap/R11_G0_INITIAL_CHAMPION.pt'
+          assert bootstrap.is_file()
+          h=hashlib.sha256(bootstrap.read_bytes()).hexdigest()
+          assert h == '799167bd0a2a820922c03d77563ed3fd22170666819dfbda048cc036141bccfb', h
+          print(json.dumps({'status':'R11_G0_MIGRATED_GENESIS_AUTHORITY_VERIFIED','genesis_identity_sha256':g['genesis_identity_sha256'],'adoption_canonical_content_hash':r['canonical_content_hash'],'dataset_seal_sha256':d['canonical_seal_sha256'],'derived_cache_lineage_sha256':l['lineage_identity_sha256'],'bootstrap_checkpoint_sha256':h,'new_evidence_created':False,'new_scientific_verdict':False,'training_started':False,'final_holdout_payload_opened':False}, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload compact G0 authority receipts
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-genesis-authority
+          path: |
+            /cb16/g0/authority/CB16_R11_G0_GENESIS_SOURCE_RECORD.json
+            /cb16/g0/authority/CB16_R11_G0_AUTHORITY_ADOPTION_CONTRACT.json
+            /cb16/g0/authority/CB16_R11_G0_AUTHORITY_ADOPTION_RECEIPT.json
+            /cb16/g0/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json
+            /cb16/g0/authority/CB16_R11_G0_DATASET_SEAL.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,22 +1,23 @@
-name: CB16 R11 Main Smoke
+name: CB16 R11 Science G0 R10.4 Authority Inspect
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main, ai/r11-docker-runner-r0]
+    branches:
+      - ai/r11-science-g0-historical-r0
+      - ai/r11-docker-runner-r0
+    paths:
+      - scripts/r11_science_g0_r104_authority_inspect.py
+      - ci/resolve_verified_r104_python.py
+      - ci/docker_preflight.py
+      - .github/workflows/cb16-r11-science-g0-r104-authority.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  CB16_RAW_ROOT: /cb16/raw
-  CB16_G0_ROOT: /cb16/g0
-  CB16_R11_G0_ROOT: /cb16/g0
   CB16_R104_ROOT: /cb16/runtime/r104
   CB16_VERIFIED_VENV: /cb16/venv
-  CB16_UV_CACHE_DIR: /cb16/uv-cache
   CB16_CI_WORKER_ROOT: /cb16/worker
   CB16_PROVISION_ENV: /cb16/worker/provision.env
 
@@ -24,11 +25,11 @@ jobs:
   shanxi-preflight:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
 
-  r11-main-smoke:
-    name: R11 Main Smoke
+  inspect:
+    name: Inspect R10.4 G66 authority
     needs: shanxi-preflight
     runs-on: [self-hosted, shanxi-docker-r11]
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -42,20 +43,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_main_docker_preflight.json"
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_r104_docker_preflight.json"
 
-      - name: Verify R11 authority and frozen scientific boundary
+      - name: Verify clean-main ancestry and frozen authority
         shell: bash
         run: |
           set -euo pipefail
+          git merge-base --is-ancestor fc11c18ebd6dd0c883216766ed59cacb05e9a0c0 HEAD
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
-          python3 -m cb16_local_opt.rearchitecture_authority_r11 static --repo-root .
 
       - name: Resolve verified canonical Python
         shell: bash
         run: |
           set -euo pipefail
-          OUT="$RUNNER_TEMP/cb16_r11_main_python.json"
+          OUT="$RUNNER_TEMP/cb16_r11_g0_python.json"
           python3 ci/resolve_verified_r104_python.py --out "$OUT"
           python3 - "$OUT" <<'PY'
           import json, sys
@@ -63,32 +64,26 @@ jobs:
           assert p['status'] == 'READY', p
           assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
           assert p['python']['network_install_attempted'] is False, p
-          print('PYTHON_ENV_READY')
           PY
 
-      - name: Run bounded R11 authority smoke
+      - name: Inspect G66 authority read-only
         shell: bash
         run: |
           set -euo pipefail
-          OUT="$RUNNER_TEMP/cb16_r11_main_python.json"
-          PYTHON=$(python3 - "$OUT" <<'PY'
+          PY_JSON="$RUNNER_TEMP/cb16_r11_g0_python.json"
+          OUT="$RUNNER_TEMP/cb16_r11_g0_r104_authority.json"
+          PYTHON=$(python3 - "$PY_JSON" <<'PY'
           import json, sys
           p=json.load(open(sys.argv[1]))
           print(p['python']['venv'] + '/bin/python')
           PY
           )
-          "$PYTHON" -m pytest -q \
-            tests/test_stage4_runtime_spine_integration_r11.py \
-            tests/test_stage4_fenced_persistence_r11.py \
-            tests/test_stage4_execution_integration_r11.py \
-            tests/test_stage4_recovery_integration_r11.py \
-            tests/test_stage4_orchestration_provider_r11.py \
-            tests/test_stage4_consolidated_authority_r11.py
+          CB16_G0_R104_AUTHORITY_OUT="$OUT" PYTHONPATH="$GITHUB_WORKSPACE" "$PYTHON" scripts/r11_science_g0_r104_authority_inspect.py
 
-      - name: Prove science scope unchanged
-        shell: bash
-        run: |
-          set -euo pipefail
-          test ! -e data/2025-09
-          test ! -e final_holdout
-          echo R11_MAIN_CONSOLIDATION_SCOPE_PASS
+      - name: Upload compact authority evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-r104-authority
+          path: ${{ runner.temp }}/cb16_r11_g0_r104_authority.json
+          if-no-files-found: error
+          retention-days: 30

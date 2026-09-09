@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 PROVISION_ROOT = Path(__file__).resolve().parent.parent
-WORKER_ROOT = Path(os.environ.get("CB16_CI_WORKER_ROOT", "/data/cb16_ci"))
+WORKER_ROOT = Path(os.environ.get("CB16_CI_WORKER_ROOT", "/cb16/worker"))
 VENV_ROOT = Path(os.environ.get("CB16_VENV_ROOT", WORKER_ROOT / "venvs"))
 ASSET_REGISTRY_DIR = Path(os.environ.get("CB16_ASSET_REGISTRY_DIR", WORKER_ROOT / "asset_registry"))
 LOCK_ROOT = Path(os.environ.get("CB16_LOCK_ROOT", WORKER_ROOT / "locks"))
