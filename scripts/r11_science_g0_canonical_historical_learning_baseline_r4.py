@@ -101,6 +101,20 @@ def metric_close(a: Mapping[str, Any], b: Mapping[str, Any], *, atol: float = 1e
     return True
 
 
+def market_cache_stats_receipt_r4(market_cache: MarketRuntimeCacheR11) -> dict[str, Any]:
+    """Serialize cache telemetry without deep-copying its MappingProxyType field."""
+    stats = market_cache.stats()
+    return {
+        "compressed_loads_total": int(stats.compressed_loads_total),
+        "index_builds_total": int(stats.index_builds_total),
+        "loaded_symbols": list(stats.loaded_symbols),
+        "compressed_loads_by_symbol": {
+            str(symbol): int(count)
+            for symbol, count in stats.compressed_loads_by_symbol.items()
+        },
+    }
+
+
 def save_shadow_challenger(path: Path, model: torch.nn.Module, *, champion_hash: str, snapshot_hash: str) -> dict[str, Any]:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
@@ -346,7 +360,7 @@ def main() -> int:
             "support": support,
             "anchor_file": str(anchor_path),
             "anchor_sha256": str(per_asset["anchors_sha256"]),
-            "market_cache_stats": asdict(market_cache.stats()),
+            "market_cache_stats": market_cache_stats_receipt_r4(market_cache),
             "final_holdout_payload_opened": False,
             "fresh_market_data_downloaded": False,
             "network_reads_by_r4": 0,
