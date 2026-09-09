@@ -26,10 +26,8 @@ ACTIVE_R11_WORKFLOWS = (
     ".github/workflows/cb16-r11-science-g0-authority-adoption.yml",
 )
 
-# These files are active runtime code and may not contain host business paths.
-# ci/docker_preflight.py is deliberately excluded from this generic scan because
-# it contains the forbidden host paths as NEGATIVE MATCH MARKERS used to prove
-# that those paths are not visible inside the container.
+# Active runtime code may not depend on host business paths. docker_preflight.py is
+# excluded because it intentionally names those paths as negative visibility markers.
 RUNTIME_CODE = (
     "ci/resolve_verified_r104_python.py",
     "provision/scripts/provision_common.py",
@@ -69,12 +67,16 @@ def main() -> int:
             errors.append(f"{rel}:DOCKER_EXECUTION_PREFLIGHT_MISSING")
         check_forbidden_paths(rel, text, errors)
 
+        # Transport is host/container infrastructure authority. R11 workflows must
+        # not bypass provision_python.py with an unsourced ad-hoc UV install.
+        lowered = text.lower()
+        if "uv pip install" in lowered or "uv sync" in lowered:
+            if "source /cb16/worker/provision.env" not in text and "source \"/cb16/worker/provision.env\"" not in text:
+                errors.append(f"{rel}:DIRECT_UV_INSTALL_WITHOUT_PROVISION_ENV")
+
     for rel in RUNTIME_CODE:
         check_forbidden_paths(rel, read(rel), errors)
 
-    # Docker preflight is the one intentional exception: it must name the host
-    # paths it rejects. Require those strings only as a negative-visibility set,
-    # and require mount/env inspection so they cannot silently become I/O roots.
     docker_preflight = read("ci/docker_preflight.py")
     for marker in FORBIDDEN_RUNTIME_PATHS:
         if f'    "{marker}",' not in docker_preflight:
@@ -84,14 +86,16 @@ def main() -> int:
         "check_no_host_paths",
         'Path("/proc/self/mountinfo")',
         'failures.append("HOST_BUSINESS_PATH_VISIBLE")',
+        'Path("/run/secrets/provision.env")',
+        'Path("/run/secrets/cb16-provision.env")',
     ):
         if needle not in docker_preflight:
-            errors.append("ci/docker_preflight.py:NEGATIVE_HOST_VISIBILITY_GUARD_DRIFT")
+            errors.append("ci/docker_preflight.py:DOCKER_PREFLIGHT_CONTRACT_DRIFT")
     if "git-annex" in docker_preflight.lower():
         errors.append("ci/docker_preflight.py:GIT_ANNEX_FORBIDDEN_IN_ACTIVE_R11_DOCKER_PATH")
 
-    # Strong-lineage canonical hashes already include historical path strings. Those
-    # strings remain identity-only and must never become the Docker I/O path.
+    # Strong-lineage hashes already include historical path strings. Those strings
+    # remain identity-only and must never become physical Docker I/O roots.
     materialize_rel = "scripts/r11_science_g0_materialize_cache.py"
     materialize = read(materialize_rel)
     required_identity = (
@@ -111,10 +115,12 @@ def main() -> int:
     resolver = read("ci/resolve_verified_r104_python.py")
     if 'CB16_VERIFIED_VENV", "/cb16/venv"' not in resolver:
         errors.append("ci/resolve_verified_r104_python.py:DOCKER_VENV_DEFAULT_MISSING")
+    if 'worker_root / "provision.env"' not in resolver:
+        errors.append("ci/resolve_verified_r104_python.py:WORKER_PROVISION_ENV_FALLBACK_MISSING")
 
     provision = read("provision/scripts/provision_python.py")
-    if 'CB16_PROVISION_ENV", "/run/secrets/cb16-provision.env"' not in provision:
-        errors.append("provision/scripts/provision_python.py:DOCKER_PROVISION_SECRET_MISSING")
+    if 'Path(os.environ.get("CB16_CI_WORKER_ROOT", "/cb16/worker")) / "provision.env"' not in provision:
+        errors.append("provision/scripts/provision_python.py:WORKER_PROVISION_ENV_FALLBACK_MISSING")
 
     common = read("provision/scripts/provision_common.py")
     if 'CB16_CI_WORKER_ROOT", "/cb16/worker"' not in common:
