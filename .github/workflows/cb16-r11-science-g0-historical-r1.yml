@@ -7,6 +7,7 @@ on:
     paths:
       - cb16_local_opt/science_feedback_diagnostics_r11.py
       - scripts/r11_science_g0_historical_r1.py
+      - scripts/r11_science_g0_historical_r1_entrypoint.py
       - tests/test_science_feedback_diagnostics_r11.py
       - .github/workflows/cb16-r11-science-g0-historical-r1.yml
   workflow_dispatch:
@@ -92,6 +93,7 @@ jobs:
           "$PYTHON" -m py_compile \
             cb16_local_opt/science_feedback_diagnostics_r11.py \
             scripts/r11_science_g0_historical_r1.py \
+            scripts/r11_science_g0_historical_r1_entrypoint.py \
             tests/test_science_feedback_diagnostics_r11.py
           "$PYTHON" -m pytest -q \
             tests/test_science_feedback_diagnostics_r11.py \
@@ -111,7 +113,7 @@ jobs:
           rm -rf "$RUN_ROOT"
           mkdir -p "$RUN_ROOT"
           printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r1_run_root.txt"
-          "$PYTHON" scripts/r11_science_g0_historical_r1.py \
+          "$PYTHON" scripts/r11_science_g0_historical_r1_entrypoint.py \
             --g0-root "$CB16_G0_ROOT" \
             --package-root "$CB16_PACKAGE_ROOT" \
             --work-root "$RUN_ROOT" \
