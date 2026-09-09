@@ -1,0 +1,60 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3_GATEWORK_V1",
+  "stage": "R11_SCIENCE_G0_DISTRIBUTIONAL_STUDENT_COMPATIBILITY_PROJECTION_R3_3",
+  "r3_2_pass_seed": "7e4de752454bb7a57d4554592f810c33d0e97841",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__CANONICAL_OBJECTIVE_IS_A_COMPATIBILITY_GUARD_NOT_DISTRIBUTIONAL_TRUTH",
+  "purpose": "Test whether a dynamically non-conflicting disposable Shared-Core update can retain distributional-belief learning while reducing the unstable canonical Direction/Requested-Risk degradation observed under raw shared-core distributional updates.",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "pre_registered_protocol": {
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "seed_set": [31337, 271828, 314159, 161803, 424242],
+    "steps_per_arm": 32,
+    "lr": 0.002,
+    "weight_decay": 0.0,
+    "grad_clip": 10.0,
+    "adam_betas": [0.9, 0.999],
+    "adam_eps": 1e-8,
+    "arms": {
+      "A": "HEAD_ONLY__DETACHED_SHARED_REPRESENTATION",
+      "B": "RAW_DISTRIBUTIONAL_ADAM_DIRECTION_ON_DISPOSABLE_SHARED_CORE_PLUS_FULL_DISTRIBUTIONAL_HEAD",
+      "C": "CANONICAL_COMPATIBILITY_PROJECTED_DISTRIBUTIONAL_ADAM_DIRECTION_ON_DISPOSABLE_SHARED_CORE_PLUS_FULL_DISTRIBUTIONAL_HEAD"
+    },
+    "same_head_initialization_within_seed": true,
+    "same_disposable_student_bootstrap_within_seed": true,
+    "hyperparameter_tuning": false,
+    "optional_stopping": false,
+    "support_expansion": false
+  },
+  "projection_contract": {
+    "scope": "DISPOSABLE_SHARED_DECISION_CORE_UPDATE_DIRECTION_ONLY",
+    "distributional_head_gradient": "FULL_UNPROJECTED_DISTRIBUTIONAL_GRADIENT",
+    "shared_raw_optimizer_direction": "ADAM_DIRECTION_FROM_DISTRIBUTIONAL_GRADIENT_AFTER_FROZEN_GRAD_CLIP",
+    "compatibility_gradient": "CURRENT_CANONICAL_TOTAL_DIRECTION_PLUS_REQUESTED_RISK_GRADIENT_ON_DISPOSABLE_SHARED_CORE",
+    "conflict_test": "DOT(ADAM_DISTRIBUTIONAL_DIRECTION,CANONICAL_TOTAL_GRADIENT)<0",
+    "projection_if_conflicting": "D_SAFE=D_RAW-(DOT(D_RAW,G_CANON)/NORM2(G_CANON))*G_CANON",
+    "first_order_semantics": "UPDATE_DELTA=-LR*D_SAFE_SO_CANONICAL_DIRECTIONAL_DERIVATIVE_IS_NONPOSITIVE_TO_NUMERICAL_TOLERANCE",
+    "canonical_gradient_added_to_objective": false,
+    "scalar_loss_mix": false,
+    "projection_recomputed_each_step": true,
+    "adam_moments_follow_raw_distributional_gradient": true
+  },
+  "pass_requires": [
+    "all three arms execute for all five pre-registered seeds",
+    "manual raw Shared-Core Adam direction reproduces torch AdamW update semantics in unit gate",
+    "every projected conflicting step has nonnegative DOT(D_SAFE,G_CANON) within numerical tolerance",
+    "head gradients remain full distributional gradients",
+    "Shared Core is the only disposable Student parameter surface updated in B/C",
+    "production Student receives zero gradient and zero update",
+    "Teacher targets stay detached; realized future is never a correct-action label",
+    "G0/frozen package authority remain unchanged",
+    "FINAL remains closed, fresh data zero, scientific verdict unchanged"
+  ],
+  "non_gates": [
+    "R3.3 mechanics PASS does not require projected arm to improve canonical loss",
+    "R3.3 mechanics PASS does not require projected arm to beat raw shared-core distributional loss",
+    "R3.3 does not authorize production cutover"
+  ],
+  "production_cutover_authorized": false
+}
