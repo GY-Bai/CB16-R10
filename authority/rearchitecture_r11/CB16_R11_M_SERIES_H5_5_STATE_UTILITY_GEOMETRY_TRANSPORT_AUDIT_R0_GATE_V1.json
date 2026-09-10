@@ -1,0 +1,119 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_4_adjudication_commit": "ca51dbfd4314b5a3765e0b8a83cd39806f0e0203",
+    "h5_4_conclusion": "H5_4_MEDIUM48_WEIGHTING_GAIN_DOES_NOT_RESTORE_H5_STYLE_STATE_ALIGNMENT_TRANSPORT__DO_NOT_CHANGE_CANONICAL_TEACHER"
+  },
+  "question": "Before any Teacher neighbor selection, kernel weighting, quantile aggregation, Student target compression, or Student optimization, do the frozen state representations themselves retain time-forward alignment-specific geometry with the realized 9-action counterfactual utility profile?",
+  "scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_R6_H5_TRAIN_ONLY_OUTER_FOLDS",
+    "outer_folds": 5,
+    "clock_blocks": 6,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "teacher_hyperparameter_tuning": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "comparison_contract": {
+    "target_unit": "EVAL_PARENT_CONTEXT",
+    "support_unit": "ONE_OUTER_TRAIN_PARENT_WITH_THE_SAME_ACCOUNT_SCENARIO_FROM_EACH_TRAIN_FUTURE_DEPENDENCE_GROUP",
+    "same_scenario_match_must_be_unique": true,
+    "support_parent_selection_uses_future_utility": false,
+    "no_nearest_parent_selection_within_group": true,
+    "utility_read_only_after_state_distance_is_computed": true,
+    "future_dependence_groups_equal_weighted": true,
+    "six_scenarios_equal_weighted_within_eval_future_group": true
+  },
+  "state_metrics": {
+    "FULL102": "Operator48+Medium48+Account6",
+    "MARKET96": "Operator48+Medium48",
+    "OPERATOR48": "Operator48",
+    "MEDIUM48": "Medium48",
+    "ACCOUNT6": "AccountState6"
+  },
+  "state_distance": {
+    "normalization": "OUTER_TRAIN_MEAN_STD_PER_DIMENSION_ONLY",
+    "std_floor": 1e-8,
+    "definition": "SQRT(MEAN_SQUARED_STANDARDIZED_DISTANCE_OVER_ACTIVE_DIMENSIONS)",
+    "eval_information_used_for_normalization": false
+  },
+  "utility_geometry": {
+    "action_grid": 9,
+    "primary_profile": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE",
+    "centering": "SUBTRACT_WITHIN_PARENT_MEAN_UTILITY_ACROSS_THE_9_ACTIONS",
+    "primary_distance": "MEAN_SQUARED_DIFFERENCE_BETWEEN_CENTERED_9_ACTION_PROFILES",
+    "secondary_distance": "RAW_9_ACTION_PROFILE_MSE",
+    "realized_utility_semantics": "COUNTERFACTUAL_PHYSICS_OUTCOME_SAMPLE_USED_ONLY_AS_POST_DISTANCE_GEOMETRY_TRUTH__NEVER_CORRECT_ACTION_LABEL"
+  },
+  "alignment_control": {
+    "shifts": [1,7,13,23,31],
+    "transform": "EXACT_H5_WHOLE_FUTURE_GROUP_TARGET_FEATURE_ROTATION",
+    "scenario_identity_preserved": true,
+    "train_features_byte_identical": true,
+    "eval_target_feature_multiset_preserved": true,
+    "utility_profiles_not_rotated": true
+  },
+  "primary_statistic": {
+    "per_target": "SPEARMAN_RANK_CORRELATION_ACROSS_ALL_OUTER_TRAIN_FUTURE_GROUPS_BETWEEN_STATE_DISTANCE_AND_CENTERED_9_ACTION_UTILITY_PROFILE_MSE",
+    "desired_sign": "POSITIVE__CLOSER_STATE_SHOULD_HAVE_SMALLER_UTILITY_PROFILE_DISTANCE",
+    "aggregation": "MEAN_ACROSS_SIX_SCENARIOS_WITHIN_EVAL_FUTURE_GROUP_THEN_EQUAL_WEIGHT_MEAN_ACROSS_EVAL_FUTURE_GROUPS"
+  },
+  "per_metric_transport_gate": {
+    "positive_geometry": "ALIGNED_AGGREGATE_SPEARMAN_RHO > 0_IN_AT_LEAST_4_OF_5_FOLDS_AND_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "beats_shuffle_median": "ALIGNED_RHO > MEDIAN_OF_5_ROTATED_RHOS_IN_AT_LEAST_4_OF_5_FOLDS_AND_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "pairwise_shuffle": "ALIGNED_RHO > EACH_ROTATED_RHO_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS",
+    "metric_transport_supported": "ALL_THREE_CONDITIONS_ABOVE"
+  },
+  "preregistered_classification": {
+    "FULL_STATE_GEOMETRY_TRANSPORT_SUPPORTED": "FULL102_METRIC_TRANSPORT_SUPPORTED",
+    "OPERATOR48_TRANSPORT_SURVIVES_MEDIUM48_SUSPECT": "FULL102_FAILS_AND_OPERATOR48_PASSES_AND_MEDIUM48_FAILS",
+    "MEDIUM48_TRANSPORT_SURVIVES_OPERATOR48_SUSPECT": "FULL102_FAILS_AND_MEDIUM48_PASSES_AND_OPERATOR48_FAILS",
+    "MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT": "FULL102_FAILS_AND_MARKET96_FAILS_AND_OPERATOR48_FAILS_AND_MEDIUM48_FAILS",
+    "MIXED_STATE_UTILITY_GEOMETRY_TRANSPORT_UNRESOLVED": "OTHERWISE"
+  },
+  "secondary_readouts": [
+    "RAW_9_ACTION_PROFILE_MSE_DISTANCE_SPEARMAN",
+    "NEAREST_DECILE_CENTERED_PROFILE_MSE_VS_ALL_SUPPORT_CENTERED_PROFILE_MSE",
+    "ACCOUNT6_METRIC_TRANSPORT_GATE",
+    "PER_FOLD_PER_METRIC_ALIGNED_MINUS_SHUFFLE_MEDIAN_RHO"
+  ],
+  "interpretation": {
+    "if_full102_pass": "THE_FROZEN_STATE_GEOMETRY_ITSELF_RETAINS_ALIGNMENT_SPECIFIC_COUNTERFACTUAL_UTILITY_GEOMETRY__TEACHER_TRANSPORT_FAILURE_REMAINS_ALGORITHMIC_OR_AGGREGATION_LEVEL__NEXT_MAY_RETURN_TO_H2_H3_WITH_H5_CAVEAT",
+    "if_operator_only": "MEDIUM48_IS_IMPLICATED_AT_THE_REPRESENTATION_TO_UTILITY_GEOMETRY_LEVEL_RATHER_THAN_ONLY_THE_TEACHER_KERNEL__DO_NOT_DROP_IT_CANONICALLY_WITHOUT_SEPARATE_QUALIFICATION",
+    "if_market_nontransport": "THE_MARKET_STATE_REPRESENTATIONS_DO_NOT_SHOW_STABLE_ALIGNMENT_SPECIFIC_COUNTERFACTUAL_UTILITY_GEOMETRY_ON_LATE_CONSUMED_TRAIN_BLOCKS__MATERIALLY_INCREASE_H1_TEMPORAL_NONTRANSFER_WEIGHT",
+    "if_unresolved": "DO_NOT_TUNE_ORGAN_WEIGHTS_OR_TEACHER_KERNELS__REASSESS_H1_H2_H3_WITH_THE_DIRECT_GEOMETRY_EVIDENCE"
+  },
+  "forbidden": [
+    "TEACHER_COMPILATION_FOR_SCIENTIFIC_SCORE",
+    "TEACHER_KERNEL_OR_SUPPORT_SELECTION",
+    "TUNING_ORGAN_WEIGHTS",
+    "TUNING_DISTANCE_METRIC_AFTER_RESULTS",
+    "ROTATING_UTILITY_OUTCOMES_WITH_FEATURES",
+    "USING_FUTURE_UTILITY_TO_CHOOSE_SUPPORT_PARENT",
+    "MODIFYING_STUDENT",
+    "NEW_DIRECTION_LOSS",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
