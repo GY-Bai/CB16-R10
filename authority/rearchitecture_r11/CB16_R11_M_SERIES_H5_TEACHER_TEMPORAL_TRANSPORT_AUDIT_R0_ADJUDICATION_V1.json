@@ -1,0 +1,142 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "ee1ff7962f816ebdf9034813de5ddd521cf4a654",
+    "gate_blob": "e0e0c6422bef5e5731044952a01eb465b85482cd",
+    "implementation_branch": "ai/m-series-h5-teacher-temporal-transport-audit-r0",
+    "execution_head": "1a29d497ea8a0daf06df51baf3d0e652d6909744",
+    "github_actions_run_id": 34439146747,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10137336569,
+    "artifact_digest": "sha256:ef66d123af9f949d648b152a93b957c72596402e49398f44459e5e9244813f38",
+    "result_schema": "CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_RESULT_V1"
+  },
+  "support": {
+    "classification": "ALREADY_OBSERVED_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "all_ten_symbols": true,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "train_dependence_groups": 1619,
+    "outer_folds": 5,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "student_training": false,
+    "student_inference": false,
+    "raw_market_payload_read": false,
+    "legacy_validation_rows_used": false,
+    "r5_purge_support_used": false,
+    "final_holdout_opened": false,
+    "fresh_market_data_downloaded": false,
+    "r7_candidate_evaluated": false
+  },
+  "engineering_adjudication": {
+    "status": "PASS",
+    "repo_guard": "PASS",
+    "immutable_h5_gate_and_r6_authority": "PASS",
+    "verified_python_and_docker": "PASS",
+    "unit_and_frozen_teacher_regression_gates": "PASS",
+    "exact_r6_aligned_teacher_identity_guard_all_folds": "PASS",
+    "student_free_teacher_only_execution": "PASS",
+    "receipt_and_semantic_guards": "PASS"
+  },
+  "primary_result": {
+    "overall_pass": false,
+    "conclusion": "H5_TEACHER_TEMPORAL_TRANSPORT_NOT_MECHANISTICALLY_SUPPORTED_ON_CONSUMED_TRAIN__PRIORITIZE_TEACHER_SUPPORT_CALIBRATION_TRANSPORT_DIAGNOSTICS__DO_NOT_OPEN_NEW_DIRECTION_LOSS",
+    "aligned_lt_climatology_fold_count": 5,
+    "required_aligned_lt_climatology_fold_count": 4,
+    "aligned_lt_median_shuffle_fold_count": 2,
+    "required_aligned_lt_median_shuffle_fold_count": 4,
+    "aligned_lt_each_shuffle_pair_count_of_25": 10,
+    "required_aligned_lt_each_shuffle_pair_count_of_25": 20,
+    "folds_4_and_5_both_pass_climatology_and_shuffle": false,
+    "late_transport_required": true
+  },
+  "per_fold": [
+    {
+      "fold": 1,
+      "aligned_qscore": 0.0014662354153126605,
+      "climatology_qscore": 0.0016743133616537965,
+      "median_shuffle_qscore": 0.0014614969435062582,
+      "aligned_minus_climatology_qscore": -0.00020807794634113597,
+      "aligned_minus_median_shuffle_qscore": 0.000004738471806402331,
+      "aligned_lt_climatology": true,
+      "aligned_lt_median_shuffle": false,
+      "aligned_lt_each_shuffle_count": 2
+    },
+    {
+      "fold": 2,
+      "aligned_qscore": 0.0014813988816589684,
+      "climatology_qscore": 0.0018046556387823962,
+      "median_shuffle_qscore": 0.0014847070988248268,
+      "aligned_minus_climatology_qscore": -0.0003232567571234278,
+      "aligned_minus_median_shuffle_qscore": -0.0000033082171658584732,
+      "aligned_lt_climatology": true,
+      "aligned_lt_median_shuffle": true,
+      "aligned_lt_each_shuffle_count": 3
+    },
+    {
+      "fold": 3,
+      "aligned_qscore": 0.0015052804889556922,
+      "climatology_qscore": 0.0017916777194630306,
+      "median_shuffle_qscore": 0.0015159416045257904,
+      "aligned_minus_climatology_qscore": -0.00028639723050733834,
+      "aligned_minus_median_shuffle_qscore": -0.000010661115570098113,
+      "aligned_lt_climatology": true,
+      "aligned_lt_median_shuffle": true,
+      "aligned_lt_each_shuffle_count": 3
+    },
+    {
+      "fold": 4,
+      "aligned_qscore": 0.0014301334198175567,
+      "climatology_qscore": 0.0016985724774746345,
+      "median_shuffle_qscore": 0.0014004462356334675,
+      "aligned_minus_climatology_qscore": -0.00026843905765707777,
+      "aligned_minus_median_shuffle_qscore": 0.000029687184184089234,
+      "aligned_lt_climatology": true,
+      "aligned_lt_median_shuffle": false,
+      "aligned_lt_each_shuffle_count": 2
+    },
+    {
+      "fold": 5,
+      "aligned_qscore": 0.0016653054149199553,
+      "climatology_qscore": 0.0018862735833099949,
+      "median_shuffle_qscore": 0.0016188920999175864,
+      "aligned_minus_climatology_qscore": -0.00022096816839003953,
+      "aligned_minus_median_shuffle_qscore": 0.00004641331500236895,
+      "aligned_lt_climatology": true,
+      "aligned_lt_median_shuffle": false,
+      "aligned_lt_each_shuffle_count": 0
+    }
+  ],
+  "mechanistic_interpretation": {
+    "established": [
+      "The frozen conditional Teacher retains substantial distributional advantage over an action-risk-specific state-free climatology in all five chronological TRAIN-only outer folds.",
+      "That broad advantage is not sufficient evidence of correct state-to-future transport: aligned state conditioning beats the median whole-future-group state shuffle in only two of five folds and beats only ten of twenty-five matched shuffle comparisons.",
+      "Late chronological transport fails. Fold 4 aligned is worse than the shuffle median and fold 5 aligned is worse than every preregistered shuffle while remaining better than climatology.",
+      "Therefore a large part of the Teacher proper-score gain can be generated by localized conditional distribution construction without preserving the exact destination state-to-future alignment needed by CB16 decisions."
+    ],
+    "not_established": [
+      "This does not show the Teacher is globally uninformative; 5/5 climatology wins directly contradict that stronger claim.",
+      "This does not identify which frozen Teacher component is responsible: support-neighbor selection, normalization geometry, cross-asset/state feature transport, distribution width/calibration, or temporal instability remain unresolved.",
+      "This does not reopen the market-information verdict, authorize Teacher tuning, authorize another Direction loss, authorize H2 Student audit, or authorize canonical change."
+    ],
+    "bottleneck_update": "H5_TEACHER_STATE_CONDITIONED_TEMPORAL_TRANSPORT_IS_NOW_A_PRIMARY_UPSTREAM_BOTTLENECK_CANDIDATE. STUDENT_LOSS_SHAPE_IS_DEPRIORITIZED; H2_REMAINS_BLOCKED_UNTIL_FROZEN_TEACHER_FAILURE_MODE_LOCALIZATION."
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "semantic_guards": {
+    "canonical_generation_advanced": false,
+    "champion_promoted": false,
+    "production_cutover": false,
+    "market_information_verdict_reopened": false,
+    "canonical_change_authorized": false,
+    "new_direction_loss_authorized": false,
+    "h2_student_update_interference_audit_authorized": false,
+    "m3_sizing_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false,
+    "fresh_market_data_allowed": false
+  },
+  "next_legal_step": "PREREGISTER_FROZEN_TEACHER_SUPPORT_AND_CALIBRATION_FAILURE_MODE_LOCALIZATION_ON_THE_SAME_CONSUMED_TRAIN_ONLY_OUTER_FOLDS__STUDENT_ABSENT__NO_TEACHER_TUNING__NO_NEW_LOSS"
+}
