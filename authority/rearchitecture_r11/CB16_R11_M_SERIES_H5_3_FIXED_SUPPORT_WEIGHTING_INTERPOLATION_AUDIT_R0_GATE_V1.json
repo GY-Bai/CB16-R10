@@ -1,0 +1,109 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_2_adjudication_commit": "2fb8ec82043f8bec3ff92adcb3899171b23e72b2",
+    "h5_2_conclusion": "H5_2_MEDIUM48_SUPPORT_SELECTION_MECHANISM_NOT_SUPPORTED__DO_NOT_DROP_OR_REWEIGHT_MEDIUM48",
+    "h5_1_localization": "H5_1_LOCALIZED__MARKET_STATE_TRANSPORT_FAILURE__TAIL_CALIBRATION_PRIMARY=FALSE__MARKET_SUB=MEDIUM48_PRIMARY"
+  },
+  "question": "With the frozen FULL102 Teacher support membership and nearest parent identity held fixed exactly, does Medium48 harm late temporal transport through the Gaussian distance weights / predictive-law interpolation rather than through support selection?",
+  "scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_R6_TRAIN_ONLY_OUTER_FOLDS",
+    "outer_folds": 5,
+    "primary_late_folds": [4, 5],
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_training": false,
+    "production_teacher_change": false,
+    "teacher_hyperparameter_tuning": false,
+    "candidate_support_reselection": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "fixed_support_contract": {
+    "support_dependence_groups": "EXACT_CANONICAL_FULL102_TOP64_FOR_EACH_TARGET",
+    "selected_parent_rows": "EXACT_CANONICAL_FULL102_NEAREST_PARENT_WITHIN_EACH_SELECTED_DEPENDENCE_GROUP",
+    "full102_support_hash_identity": "MUST_MATCH_FROZEN_REFERENCE_TEACHER_ALL_TARGETS_ALL_FOLDS",
+    "all_shadow_weight_arms_use_same_selected_parent_rows": true,
+    "no_shadow_arm_may_reselect_support": true
+  },
+  "weight_arms": {
+    "FULL102_CANONICAL": {
+      "active_dimensions": "Operator48+Medium48+Account6",
+      "distance": "SQRT(MEAN_SQUARED_STANDARDIZED_DISTANCE_OVER_102_DIMS)",
+      "weight": "EXP(-0.5*(DISTANCE/FROZEN_DISTANCE_TEMPERATURE)^2)+1E-12_THEN_NORMALIZE",
+      "role": "EXACT_FROZEN_TEACHER_REFERENCE"
+    },
+    "DROP_MEDIUM48_WEIGHT_ONLY": {
+      "active_dimensions": "Operator48+Account6",
+      "distance": "SQRT(MEAN_SQUARED_STANDARDIZED_DISTANCE_OVER_54_RETAINED_DIMS)",
+      "weight": "SAME_FROZEN_GAUSSIAN_FORM_AND_DISTANCE_TEMPERATURE",
+      "role": "PRIMARY_MEDIUM48_WEIGHTING_INTERVENTION"
+    },
+    "DROP_OPERATOR48_WEIGHT_ONLY": {
+      "active_dimensions": "Medium48+Account6",
+      "distance": "SQRT(MEAN_SQUARED_STANDARDIZED_DISTANCE_OVER_54_RETAINED_DIMS)",
+      "weight": "SAME_FROZEN_GAUSSIAN_FORM_AND_DISTANCE_TEMPERATURE",
+      "role": "MARKET_BLOCK_SPECIFICITY_NEGATIVE_CONTROL"
+    },
+    "UNIFORM_WEIGHT_FIXED_SUPPORT": {
+      "active_dimensions": "NONE_FOR_WEIGHTING",
+      "weight": "1/K_EXACTLY_OVER_THE_SAME_CANONICAL_SELECTED_PARENT_ROWS",
+      "role": "BROAD_KERNEL_WEIGHTING_CONTROL"
+    }
+  },
+  "predictive_law_contract": {
+    "actions": 9,
+    "means": "WEIGHTED_MEAN_OF_SELECTED_PARENT_REALIZED_UTILITY_PER_ACTION",
+    "stds": "WEIGHTED_POPULATION_STD_USING_SAME_ARM_WEIGHTS",
+    "quantiles": "EXACT_FROZEN_WEIGHTED_QUANTILE_ALGORITHM_AT_[0.05,0.10,0.25,0.50,0.75,0.90,0.95]",
+    "score": "DEPENDENCE_GROUP_EQUAL_WEIGHTED_MEAN_7_QUANTILE_PINBALL_SCORE_ON_EVAL_BRANCH_REALIZATIONS",
+    "realized_utility_role": "ONE_REALIZATION_SAMPLE_FOR_POST_LAW_SCORING_ONLY__NEVER_CORRECT_ACTION_LABEL"
+  },
+  "identity_and_nonleakage_guards": {
+    "full102_qscore_must_match_h5_h5_1_frozen_teacher": true,
+    "full102_support_hash_must_match_frozen_teacher": true,
+    "shadow_weight_computation_must_not_read_eval_future_utility": true,
+    "selected_parent_identity_must_be_byte_identical_across_all_four_arms": true,
+    "teacher_config_unchanged": true
+  },
+  "preregistered_classification": {
+    "medium48_weighting_primary": "DROP_MEDIUM48_WEIGHT_ONLY_QSCORE < FULL102_CANONICAL_QSCORE_IN_BOTH_FOLD_4_AND_FOLD_5__AND_DROP_OPERATOR48_WEIGHT_ONLY_BEATS_FULL102_MUST_NOT_HOLD_IN_BOTH__AND_UNIFORM_WEIGHT_BEATS_FULL102_MUST_NOT_HOLD_IN_BOTH",
+    "broad_kernel_weighting_failure": "UNIFORM_WEIGHT_FIXED_SUPPORT_QSCORE < FULL102_CANONICAL_QSCORE_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "operator48_weighting_primary": "DROP_OPERATOR48_WEIGHT_ONLY_QSCORE < FULL102_CANONICAL_QSCORE_IN_BOTH_FOLD_4_AND_FOLD_5__AND_DROP_MEDIUM48_WEIGHT_ONLY_BEATS_FULL102_MUST_NOT_HOLD_IN_BOTH",
+    "otherwise": "H5_3_WEIGHTING_INTERPOLATION_UNRESOLVED"
+  },
+  "interpretation": {
+    "medium48_weighting_primary": "SUPPORTS_A_MEDIUM48_SPECIFIC_WEIGHTING_INTERPOLATION_MECHANISM_ON_CONSUMED_TRAIN_ONLY_SUPPORT__DOES_NOT_AUTHORIZE_CANONICAL_CHANGE",
+    "broad_kernel_weighting_failure": "SUPPORTS_A_BROADER_GAUSSIAN_KERNEL_INTERPOLATION_FAILURE_NOT_SPECIFIC_TO_MEDIUM48__DOES_NOT_AUTHORIZE_TUNING_TEMPERATURE",
+    "operator48_weighting_primary": "CONTRADICTS_H5_1_MEDIUM48_SPECIFIC_INTERPRETATION_AND_REDIRECTS_TO_OPERATOR_WEIGHTING_OR_BROADER_GEOMETRY",
+    "unresolved": "DO_NOT_TUNE_WEIGHTS_OR_ORGANS__REASSESS_BROADER_TEACHER_TRANSPORT_OR_H1_H2"
+  },
+  "forbidden": [
+    "SUPPORT_RESELECTION_IN_SHADOW_ARMS",
+    "TUNING_DISTANCE_TEMPERATURE",
+    "TUNING_MEDIUM48_OR_OPERATOR48_WEIGHT",
+    "CHOOSING_AN_INTERPOLATION_FORM_AFTER_RESULTS",
+    "USING_EVAL_FUTURE_UTILITY_TO_COMPUTE_WEIGHTS",
+    "MODIFYING_FROZEN_TEACHER_CONFIG",
+    "MODIFYING_STUDENT",
+    "NEW_DIRECTION_LOSS",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
