@@ -3,7 +3,7 @@ name: CB16 R11 M-Series H5.2 Medium48 Support Selection Causal Audit R0
 on:
   push:
     branches:
-      - ai/m-series-h5-2-medium48-support-selection-causal-audit-r0-exec
+      - ai/m-series-h5-2-medium48-support-selection-causal-audit-r0-final
     paths:
       - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_GATE_V1.json
       - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_ADJUDICATION_V1.json
