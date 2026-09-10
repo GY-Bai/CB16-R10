@@ -1,0 +1,91 @@
+{
+  "controls": {
+    "aligned": "CORRECT_OUTER_TRAIN_STATE_TO_REDUCED_TEACHER_TARGET_ALIGNMENT",
+    "evaluation": "ORIGINAL_ALIGNED_OUTER_EVAL_REDUCED_TEACHER_TARGETS_ONLY",
+    "g0_baseline": "UNTRAINED_IMMUTABLE_G0_CHAMPION",
+    "marginal_baseline": "ANALYTIC_GLOBAL_TRAIN_TARGET_MARGINAL__MEAN_DIRECTION_DISTRIBUTION_PLUS_MEAN_REQUESTED_RISK__NO_STATE_FEATURES",
+    "shuffles": {
+      "kind": "WHOLE_FUTURE_GROUP_TARGET_ROTATION__SCENARIO_IDENTITY_PRESERVED__TARGET_MULTISET_PRESERVED",
+      "shifts": [1,7,13,23,31]
+    }
+  },
+  "data_authority": {
+    "all_outer_eval_outcomes_are_within_ALREADY_CONSUMED_TRAIN_HISTORY": true,
+    "final_holdout_allowed": false,
+    "fresh_market_data_allowed": false,
+    "legacy_validation_rows_allowed": false,
+    "r5_purge_support_allowed": false,
+    "raw_market_payload_required": false,
+    "source": "R10.4_FIXED_REAL_EVIDENCE_CACHE__TRAIN_SPLIT_ONLY",
+    "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","LINKUSDT","LTCUSDT","SOLUSDT"]
+  },
+  "failure_semantics": {
+    "engineering_failure": "PATCH_MINIMAL_ENGINEERING_CAUSE_AND_RERUN_WITH_GATE_UNCHANGED",
+    "negative_information_result": "PRESERVE_RESULT__DO_NOT_TUNE_ON_R5_PURGE_OR_R6_EVAL_FOLDS",
+    "support_not_ready": "STOP_AND_RECORD_SUPPORT_LIMIT__DO_NOT_REPARTITION"
+  },
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "nested_teacher_protocol": {
+    "eval_outcomes_may_not_affect_train_teacher_geometry_or_targets": true,
+    "eval_targets": "R2.4_R11_VALIDATION_PREQUENTIAL_TARGET_ONLY_COMPILED_AGAINST_OUTER_TRAIN_SUPPORT",
+    "realized_future_is_not_direct_student_label": true,
+    "teacher_protocols_frozen": true,
+    "train_targets": "R2.4_R11_TRAIN_BLOCKED_CROSSFIT_COMPILED_FROM_OUTER_TRAIN_PARENTS_AND_OUTCOMES_ONLY"
+  },
+  "outer_split_protocol": {
+    "fold_i_eval": "BLOCK_i_ONLY",
+    "fold_i_train": "ALL_CLOCK_BLOCKS_STRICTLY_BEFORE_BLOCK_i",
+    "folds": [1,2,3,4,5],
+    "future_blocks_after_eval": "IGNORED_IN_THAT_FOLD",
+    "minimum_outer_eval_dependence_groups": 8,
+    "minimum_outer_train_dependence_groups": 32,
+    "minimum_train_to_eval_clock_gap_hours": 72,
+    "no_fold_dropping_or_repartition_after_results": true,
+    "ordering": "ASCENDING_DECISION_TIME",
+    "partition": "NP_ARRAY_SPLIT_INTO_6_CONTIGUOUS_CLOCK_BLOCKS",
+    "unit": "UNIQUE_DECISION_CLOCK_TIMESTAMP__ALL_SYMBOLS_AT_SAME_CLOCK_STAY_TOGETHER"
+  },
+  "parent_adjudication": {
+    "commit": "020e4b0306af530d0ce5c63c513b1c473e3fa837",
+    "git_blob": "3f0305bea4edd77d091531987a36009038de4e40",
+    "path": "authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION_V1.json",
+    "purge_support_now_closed_for_tuning": true,
+    "r5_positive_rule_failed": true
+  },
+  "primary_readout": {
+    "conditional_information_supported_rule": "ALIGNED_TOTAL_LOWER_THAN_MEDIAN_OF_FIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS__AND_ALIGNED_DIRECTION_LOWER_THAN_MEDIAN_OF_FIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS__AND_ALIGNED_DIRECTION_LOWER_THAN_ANALYTIC_MARGINAL_BASELINE_IN_AT_LEAST_4_OF_5_FOLDS",
+    "metrics": ["TOTAL_SOFT_CE_PLUS_SMOOTHL1","DIRECTION_SOFT_CE","SIZING_SMOOTHL1"],
+    "otherwise": "TRAIN_ONLY_CONDITIONAL_INFORMATION_NOT_SUPPORTED",
+    "report_all_25_aligned_vs_shuffle_pairwise_comparisons": true,
+    "report_direction_and_sizing_separately": true,
+    "report_target_dispersion_per_fold": true
+  },
+  "purpose": "Determine whether the existing reduced Direction/Requested-Risk Teacher targets contain stable conditional Market+Account-state information that the unchanged canonical 189,052-parameter Student can learn, versus target-marginal structure. This is a train-only mechanistic audit, not a market-information test.",
+  "schema": "CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1",
+  "semantic_guards": {
+    "all_five_folds_and_all_five_shuffles_must_complete_if_support_ready": true,
+    "canonical_generation_advance_authorized": false,
+    "canonical_promotion_authorized": false,
+    "final_holdout_open_allowed": false,
+    "fresh_data_allowed": false,
+    "market_information_verdict_may_change": false,
+    "no_optional_stopping": true,
+    "non_status_driving_mechanistic_audit_only": true,
+    "production_cutover_authorized": false,
+    "profitability_or_alpha_claim_allowed": false,
+    "r5_purge_support_reopen_allowed": false
+  },
+  "stage": "R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_TRAIN_ONLY",
+  "student_probe": {
+    "architecture_change_allowed": false,
+    "batch_size": 512,
+    "epochs": 12,
+    "gradient_owners": ["Operator Brain Stem","Medium Brain Stem","Account Brain Stem","Shared Decision Core","Direction Head","Requested-Risk Head"],
+    "hyperparameter_change_allowed": false,
+    "initialization": "IMMUTABLE_R11_G0_CHAMPION_FOR_EVERY_ARM_AND_FOLD",
+    "lr": 0.0003,
+    "model": "CURRENT_CANONICAL_TIER1_189052_PARAMETER_STUDENT",
+    "optimizer": "CANONICAL_ADAMW_FP32",
+    "weight_decay": 0.0001
+  }
+}
