@@ -30,7 +30,7 @@ PINNED = {
     ),
     "h56_helper": (
         "cb16_local_opt/time_local_vs_forward_geometry_contrast_h56.py",
-        "8c9a16cb5597f313394ada2e5e753663e313d79f",
+        "a264ff21d0447527c4dda06ee8fd63cf20207daf",
     ),
     "h56_test": (
         "tests/test_time_local_vs_forward_geometry_contrast_h56.py",
@@ -185,7 +185,7 @@ def main() -> int:
             "state_metrics": list(H56_METRICS),
             "time_forward": "EXACT_CLARIFIED_H5_5",
             "time_local": "SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
-            "local_normalization": "TARGET_FUTURE_GROUP_EXCLUDED_STATE_FEATURE_MEAN_STD",
+            "local_normalization": "EXACT_SAME_SCENARIO_LOCAL_SUPPORT_ROWS_TARGET_GROUP_EXCLUDED",
             "shifts": [1, 7, 13, 23, 31],
             "utility_profiles_rotated": False,
             "teacher_compilation": False,
@@ -223,9 +223,7 @@ def main() -> int:
             "final_holdout_payload_opened": False,
             "r7_candidate_evaluated": False,
         },
-        "next_legal_step": (
-            "ADJUDICATE_H5_6__IF_LOCAL_MARKET_GEOMETRY_EXISTS_PRIORITIZE_H1_TEMPORAL_NONTRANSFER_MECHANISM__IF_LOCAL_GEOMETRY_WEAK_PRIORITIZE_REPRESENTATION_OBSERVATION_FALSIFICATION__NO_AUTOMATIC_CANONICAL_CHANGE"
-        ),
+        "next_legal_step": "ADJUDICATE_H5_6__IF_LOCAL_MARKET_GEOMETRY_EXISTS_PRIORITIZE_H1_TEMPORAL_NONTRANSFER_MECHANISM__IF_LOCAL_GEOMETRY_WEAK_PRIORITIZE_REPRESENTATION_OBSERVATION_FALSIFICATION__NO_AUTOMATIC_CANONICAL_CHANGE",
     }
     atomic_json(args.output.resolve(), result)
     print(json.dumps({
