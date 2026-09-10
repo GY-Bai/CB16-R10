@@ -1,0 +1,193 @@
+name: CB16 R11 M-Series H5.2 Medium48 Support Selection Causal Audit R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-2-medium48-support-selection-causal-audit-r0-exec
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_ADJUDICATION_V1.json
+      - cb16_local_opt/medium48_support_selection_causal_audit_h52.py
+      - tests/test_medium48_support_selection_causal_audit_h52.py
+      - scripts/r11_m_series_h5_2_medium48_support_selection_causal_audit_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-2-medium48-support-selection-causal-audit-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-2-causal-audit:
+    name: H5.2 Student-free Medium48 support-selection causal audit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable H5.2 preregistration and parent authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 682fd6ad84de6793ff531aeb0dc0e3bc4c780d61 HEAD
+          git merge-base --is-ancestor f2f545f15fb49a7569ad946baa0f7f37e5ad50cb HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_GATE_V1.json)" = "f97c743d3c6a6d020b816f18ee81c4eb51e4de55"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_ADJUDICATION_V1.json)" = "ca3d105d304af3cb1f6e91dd7fbc242b02a0f736"
+          test "$(git rev-parse HEAD:cb16_local_opt/medium48_support_selection_causal_audit_h52.py)" = "eadcfc071a58f5b3825d224a067bac15242d2a58"
+          test "$(git rev-parse HEAD:tests/test_medium48_support_selection_causal_audit_h52.py)" = "6633a37de222874991bd2b8ff805bcee78d2a254"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_2_medium48_support_selection_causal_audit_r0.py)" = "2a580502130cbcb7d4ec71c4e56dab0a3a436cf3"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_failure_localization_h51_batch_geometry.py)" = "9b91ca1d2b8cae05cdf28a7e04ccbdf1698fadf7"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_failure_localization_h51.py)" = "8dba35e5c54c8bc9d8eeb97ea6d3aec373a09ccc"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_balanced_runtime_r11.py)" = "e834facdbf2d08de25e3cab917f0faf587f3386e"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r11_teacher_authority_candidate.py)" = "6e77e8f989a6d4358a7feac99c269db7b7d6549e"
+          test "$(git rev-parse HEAD:cb16_local_opt/probabilistic_teacher_r6.py)" = "3de3092d244c3fd315950c9f8b0bf4d78c50ee2b"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h52_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h52_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5.2 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h52_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/medium48_support_selection_causal_audit_h52.py \
+            tests/test_medium48_support_selection_causal_audit_h52.py \
+            scripts/r11_m_series_h5_2_medium48_support_selection_causal_audit_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_medium48_support_selection_causal_audit_h52.py \
+            tests/test_teacher_failure_localization_h51.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute preregistered H5.2 causal audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h52_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h52-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h52_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_2_medium48_support_selection_causal_audit_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_RESULT.json"
+
+      - name: Verify H5.2 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h52_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_RESULT_V1',x
+          assert x['status']=='H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_COMPLETE',x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          r=x['runtime_identity']
+          assert r['student_training'] is False and r['student_inference'] is False,r
+          assert r['candidate_teacher_output_compilation'] is False,r
+          assert r['frozen_reference_teacher_compilation_for_identity_guard'] is True,r
+          assert r['selection_utility_access'] is False and r['post_selection_truth_scoring'] is True,r
+          p=x['protocol']
+          assert p['support_classification']=='CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT',p
+          assert p['outer_folds']==5 and p['primary_late_folds']==[4,5] and p['train_to_eval_gap_hours_each_fold']==256,p
+          assert p['diagnostic_metrics']==['FULL102','DROP_MEDIUM48','DROP_OPERATOR48'],p
+          assert p['selection_reads_future_utility'] is False and p['utility_read_after_selection_only'] is True,p
+          assert p['candidate_teacher_output_compiled'] is False and p['frozen_reference_teacher_compiled_for_full102_identity_only'] is True,p
+          assert p['teacher_config_tuning'] is False and p['teacher_semantics_changed'] is False,p
+          assert p['fresh_market_data_downloaded'] is False and p['final_holdout_opened'] is False and p['r7_candidate_evaluated'] is False,p
+          assert len(x['folds'])==5,x
+          for f in x['folds']:
+              assert f['fold'] in [1,2,3,4,5],f
+              assert f['full102_exact_support_identity_guard']=='PASS',f
+              assert f['selection_utility_access'] is False and f['post_selection_truth_scoring'] is True,f
+              assert f['teacher_output_compiled'] is False,f
+              assert set(f['metrics'])=={'FULL102','DROP_MEDIUM48','DROP_OPERATOR48'},f
+              for m in f['metrics'].values():
+                  for k in ('profile_mse','profile_mae','best_action_agreement','spearman_action_profile','selected_support_jaccard_vs_full102_median_group_equal_mean','selected_support_age_hours_median_group_equal_mean','same_symbol_fraction','same_account_scenario_fraction','nearest_distance_group_equal_mean'):
+                      assert math.isfinite(float(m[k])),(k,m)
+                  assert float(m['profile_mse'])>=0.0 and float(m['profile_mae'])>=0.0,m
+          s=x['h5_2_summary']
+          assert s['conclusion'] in {
+              'H5_2_MEDIUM48_SUPPORT_SELECTION_MECHANISM_SUPPORTED_ON_CONSUMED_TRAIN_ONLY_SUPPORT',
+              'H5_2_MEDIUM48_SUPPORT_SELECTION_MECHANISM_NOT_SUPPORTED__DO_NOT_DROP_OR_REWEIGHT_MEDIUM48',
+          },s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False,s
+          assert s['teacher_change_authorized'] is False and s['student_change_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['student_trained'] is False and g['student_inference_used'] is False,g
+          assert g['candidate_teacher_created'] is False and g['teacher_changed'] is False and g['teacher_hyperparameter_tuned'] is False,g
+          assert g['selection_used_target_future_utility'] is False and g['new_direction_loss_created'] is False,g
+          assert g['canonical_generation_advanced'] is False and g['champion_promoted'] is False and g['production_cutover'] is False,g
+          assert g['market_information_verdict_reopened'] is False and g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({
+              'status':x['status'],'conclusion':s['conclusion'],
+              'overall_support_selection_mechanism_supported':s['overall_support_selection_mechanism_supported'],
+              'medium_better_both_late':s['drop_medium48_profile_mse_better_than_full102_both_late_folds'],
+              'operator_better_both_late':s['drop_operator48_profile_mse_better_than_full102_both_late_folds'],
+              'medium_selection_nontrivial_both_late':s['drop_medium48_selection_nontrivial_both_late_folds'],
+              'full102_identity_all':s['full102_exact_support_identity_all_folds'],
+              'per_fold':s['per_fold'],'next_legal_step':x['next_legal_step']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5.2 audit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-2-medium48-support-selection-causal-audit-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h52_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h52_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h52-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
