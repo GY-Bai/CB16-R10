@@ -1,0 +1,129 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_6_adjudication_commit": "995fc53389646900e2033d74c4b4d6c370e92780",
+    "h5_6_adjudication_blob": "de6b2c53ff08b98f2232989dfd368dfe7ffa1998",
+    "h5_6_conclusion": "H5_6_TIME_LOCAL_OPERATOR_GEOMETRY_EXISTS__MEDIUM48_DEGRADES_CROSS_TIME_COMPOSITION"
+  },
+  "question": "Within the exact H5.6 time-local support, does the correctly aligned Medium48 relational distance contribution specifically improve or harm Operator48-to-Market96 utility-neighborhood ranking, beyond adding the same per-anchor Medium48 distance multiset with its support-group identity broken?",
+  "scope": {
+    "support": "EXACT_H5_6_TIME_LOCAL_EVAL_BLOCKS_AND_SAME_SCENARIO_OTHER_FUTURE_GROUP_SUPPORT__TARGET_GROUP_EXCLUDED",
+    "outer_folds": 5,
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "organ_weights_tuned": false,
+    "distance_metric_tuned": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "frozen_geometry": {
+    "normalization": "EXACT_H5_6_SAME_SCENARIO_LEAVE_TARGET_FUTURE_GROUP_OUT_MEAN_STD__STD_FLOOR_1E_8",
+    "operator_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_OPERATOR48",
+    "medium_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MEDIUM48",
+    "market_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MARKET96",
+    "required_identity": "D_MARKET_SQUARED_EQUALS_0_5_TIMES_D_OPERATOR_SQUARED_PLUS_D_MEDIUM_SQUARED_WITHIN_NUMERICAL_TOLERANCE",
+    "operator_duplicate_96d_sanity": "UNDER_THE_FROZEN_RMS_NORMALIZATION_DUPLICATING_OPERATOR48_TO_96D_LEAVES_OPERATOR_DISTANCE_UNCHANGED__DIMENSION_COUNT_ALONE_CANNOT_CHANGE_RANKING"
+  },
+  "utility_truth": {
+    "action_grid": 9,
+    "profile": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE",
+    "distance": "MEAN_SQUARED_DIFFERENCE_BETWEEN_CENTERED_9_ACTION_PROFILES",
+    "ranking": "SMALLER_UTILITY_PROFILE_MSE_IS_BETTER",
+    "semantics": "POST_DISTANCE_COUNTERFACTUAL_GEOMETRY_TRUTH_ONLY__NEVER_CORRECT_ACTION_LABEL"
+  },
+  "primary_measure": {
+    "name": "TAU_GAP_PER_ANCHOR",
+    "reference": "UTILITY_PROFILE_MSE_ASCENDING",
+    "prediction": "STATE_DISTANCE_ASCENDING",
+    "gap_weight": "REFERENCE_UTILITY_MSE_GAP",
+    "head_weighting": "GAO_OARD_TAU_GAP_POSITION_STRUCTURE",
+    "positive_affine_scale_invariant": true,
+    "extra_per_anchor_minmax_or_zscore": false,
+    "true_reference_tie_pair": "ZERO_GAP_WEIGHT",
+    "prediction_exact_tie": "HALF_CREDIT",
+    "rank_with_zero_total_reference_gap": "NEUTRAL_HALF_CREDIT_SO_THE_RANK_TERM_CONTRIBUTES_ZERO_INFORMATION_AFTER_MAPPING_TO_MINUS1_PLUS1",
+    "aggregation": "MEAN_ACROSS_SIX_SCENARIOS_WITHIN_EVAL_FUTURE_GROUP_THEN_EQUAL_WEIGHT_MEAN_ACROSS_EVAL_FUTURE_GROUPS"
+  },
+  "arms": {
+    "OPERATOR48": "TAU_GAP_FROM_D_OPERATOR",
+    "TRUE_MARKET96": "TAU_GAP_FROM_SQRT_0_5_TIMES_D_OPERATOR_SQUARED_PLUS_D_MEDIUM_SQUARED",
+    "MEDIUM_RELATIONAL_NULL": {
+      "shifts": [1, 7, 13, 23, 31],
+      "transform": "FOR_EACH_ANCHOR_AND_SCENARIO_CYCLICALLY_ROTATE_ONLY_THE_MEDIUM48_SQUARED_DISTANCE_VECTOR_ACROSS_THE_ALREADY_SELECTED_SUPPORT_FUTURE_GROUP_IDENTITIES",
+      "operator_distance_unchanged": true,
+      "utility_truth_unchanged": true,
+      "support_identity_set_unchanged": true,
+      "medium_distance_multiset_per_anchor_unchanged": true,
+      "synthetic_feature_vectors_created": false,
+      "formal_exchangeability_or_permutation_p_value_claim": false,
+      "role": "STRUCTURED_ALIGNMENT_NEGATIVE_CONTROL_ONLY"
+    }
+  },
+  "fold_statistics": {
+    "tau_operator": "MEAN_FUTURE_GROUP_MACRO_AVERAGED_OPERATOR48_TAU_GAP",
+    "tau_true_market": "MEAN_FUTURE_GROUP_MACRO_AVERAGED_TRUE_MARKET96_TAU_GAP",
+    "delta_true_market_minus_operator": "TAU_TRUE_MARKET_MINUS_TAU_OPERATOR",
+    "tau_null_by_shift": "MEAN_FUTURE_GROUP_MACRO_AVERAGED_NULL_MARKET_TAU_GAP_FOR_EACH_SHIFT",
+    "aligned_minus_null_median": "TAU_TRUE_MARKET_MINUS_MEDIAN_TAU_NULL_BY_SHIFT"
+  },
+  "preregistered_gates": {
+    "true_market_beats_operator": "DELTA_TRUE_MARKET_MINUS_OPERATOR_GT_0_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "true_market_worse_than_operator": "DELTA_TRUE_MARKET_MINUS_OPERATOR_LT_0_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "aligned_medium_beats_null": "TAU_TRUE_MARKET_GT_MEDIAN_NULL_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_LATE_FOLDS_AND_TRUE_GT_EACH_NULL_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS",
+    "aligned_medium_worse_than_null": "TAU_TRUE_MARKET_LT_MEDIAN_NULL_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_LATE_FOLDS_AND_TRUE_LT_EACH_NULL_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS"
+  },
+  "preregistered_classification": {
+    "ALIGNED_MEDIUM_BENEFITS_AND_MARKET_BEATS_OPERATOR": "ALIGNED_MEDIUM_BEATS_NULL_AND_TRUE_MARKET_BEATS_OPERATOR",
+    "ALIGNED_MEDIUM_BENEFICIAL_BUT_INSUFFICIENT_TO_BEAT_OPERATOR": "ALIGNED_MEDIUM_BEATS_NULL_AND_TRUE_MARKET_WORSE_THAN_OPERATOR",
+    "ALIGNED_MEDIUM_RELATIONAL_STRUCTURE_SPECIFICALLY_HARMS_COMPOSITE_GEOMETRY": "ALIGNED_MEDIUM_WORSE_THAN_NULL_AND_TRUE_MARKET_WORSE_THAN_OPERATOR",
+    "NO_STABLE_ALIGNMENT_SPECIFIC_EFFECT__GENERIC_AUGMENTATION_COMPATIBLE": "NEITHER_ALIGNED_DIRECTIONAL_NULL_GATE_PASSES_AND_TRUE_MARKET_WORSE_THAN_OPERATOR",
+    "MEDIUM48_RELATIONAL_COMPOSITION_MIXED_UNRESOLVED": "OTHERWISE"
+  },
+  "secondary_descriptive_only": {
+    "h5_6_spearman_continuity": "REPORT_OPERATOR48_TRUE_MARKET96_AND_NULL_SPEARMAN_STATE_DISTANCE_VS_CENTERED_UTILITY_PROFILE_MSE_WITHOUT_USING_IT_FOR_H5_7_CLASSIFICATION",
+    "distance_identity_error": "REPORT_MAX_ABS_TRUE_MARKET_DISTANCE_MINUS_DECOMPOSED_MARKET_DISTANCE",
+    "null_multiset_identity": "REQUIRE_EXACT_MEDIUM_SQUARED_DISTANCE_MULTISET_PRESERVATION_PER_ANCHOR_AND_SHIFT",
+    "tau_gap_scale_identity": "UNIT_TEST_POSITIVE_AFFINE_REFERENCE_SCALE_INVARIANCE"
+  },
+  "interpretation_limits": [
+    "DO_NOT_CALL_THE_STRUCTURED_SHIFT_NULL_A_FORMAL_CONDITIONAL_RANDOMIZATION_TEST",
+    "DO_NOT_CLAIM_LITERAL_OPERATOR_VS_MEDIUM_ACTION_DIRECTION_CONFLICT",
+    "DO_NOT_CLAIM_MEDIUM48_IS_USELESS_OR_SHOULD_BE_DELETED",
+    "DO_NOT_TUNE_ORGAN_WEIGHTS_OR_DISTANCE_METRICS_FROM_H5_7_RESULTS",
+    "DO_NOT_INFER_MARKET_INFORMATION_QUALIFICATION_FROM_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT"
+  ],
+  "forbidden": [
+    "TEACHER_COMPILATION_FOR_SCIENTIFIC_SCORE",
+    "TEACHER_KERNEL_OR_SUPPORT_SELECTION",
+    "STUDENT_TRAINING_OR_INFERENCE",
+    "SYNTHETIC_OPERATOR_MEDIUM_FEATURE_CONCATENATION_FOR_THE_NULL",
+    "TUNING_ORGAN_WEIGHTS",
+    "TUNING_DISTANCE_METRIC_AFTER_RESULTS",
+    "USING_UTILITY_TO_SELECT_SUPPORT_OR_NULL_MAPPING",
+    "ROTATING_UTILITY_OUTCOMES",
+    "NEW_DIRECTION_LOSS",
+    "CANONICAL_TEACHER_OR_STUDENT_CHANGE",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
