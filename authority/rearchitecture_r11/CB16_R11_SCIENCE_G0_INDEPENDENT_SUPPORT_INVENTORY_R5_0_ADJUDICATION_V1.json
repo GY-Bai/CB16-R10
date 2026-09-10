@@ -1,0 +1,35 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0_ADJUDICATION_V1",
+  "stage": "R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "branch": "ai/r11-science-g0-independent-support-inventory-r5-0",
+    "passing_head": "cbb33e21fa64932410783357262e5b3a25176b28",
+    "passing_run_id": 34422297114,
+    "artifact_id": 10131365986,
+    "artifact_digest": "sha256:22bd7e115353816c93d4ba99541ff458ff94e1bb173de2ef84be282bb3e9d147"
+  },
+  "result": {
+    "status": "INDEPENDENT_PURGE_GAP_SUPPORT_METADATA_QUALIFIED",
+    "candidate_timestamp": "2024-12-28T08:00:00Z",
+    "candidate_future_group_count": 10,
+    "candidate_symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","LINKUSDT","LTCUSDT","SOLUSDT"],
+    "each_symbol_g0_purged_boundary_anchors": 1,
+    "each_symbol_legacy_r104_purged_boundary_anchors": 1,
+    "candidate_was_not_legacy_train_or_validation": true,
+    "legacy_g66_generation_verified": true,
+    "market_payload_files_opened": 0,
+    "teacher_outcomes_compiled": 0,
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false
+  },
+  "interpretation": {
+    "scientific_evidence_created": false,
+    "scientific_verdict_changed": false,
+    "metadata_support_surface_exists": true,
+    "effective_independent_information_warning": "All ten nominal symbol-future groups share one clock timestamp; cross-symbol macro dependence can make effective independent information far below ten.",
+    "promotion_authorized": false,
+    "generation_advance_authorized": false
+  },
+  "next_legal_step": "PRE_REGISTER_R5_INDEPENDENT_PURGE_GAP_ALIGNMENT_REPLICATION_BEFORE_OPENING_ANY_CANDIDATE_MARKET_OR_TEACHER_OUTCOME"
+}

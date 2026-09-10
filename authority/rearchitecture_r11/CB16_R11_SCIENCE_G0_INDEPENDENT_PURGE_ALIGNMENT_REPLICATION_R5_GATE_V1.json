@@ -1,0 +1,72 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_GATE_V1",
+  "stage": "R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5",
+  "status": "PRE_REGISTERED_BEFORE_CANDIDATE_OUTCOME_OPEN",
+  "authority_parent_r5_0_adjudication_blob": "41506938c433e34514834bb07888c37e5a304c99",
+  "frozen_scientific_status": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "candidate_support": {
+    "timestamp": "2024-12-28T08:00:00Z",
+    "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","LINKUSDT","LTCUSDT","SOLUSDT"],
+    "nominal_future_groups": 10,
+    "macro_clock_blocks": 1,
+    "source": "R5.0 metadata-qualified frozen purge-gap support",
+    "must_not_have_been_legacy_train_or_validation": true,
+    "final_holdout": false,
+    "fresh_data": false
+  },
+  "training_arms": {
+    "initial_model": "immutable R11 G0 Champion",
+    "aligned_arm": "exact R4 aligned BTCUSDT 48-train-group reduced-Teacher training",
+    "shuffled_arms": [1,7,13,23,31],
+    "shuffle_semantics": "whole independent future group rotation; AccountState scenario identity preserved; exact reduced-target multiset preserved",
+    "same_seed": 24680,
+    "optimizer": "AdamW_FP32",
+    "epochs": 12,
+    "batch_size": 512,
+    "lr": 0.0003,
+    "weight_decay": 0.0001,
+    "authorized_gradient_owners": ["Operator Brain Stem","Medium Brain Stem","Account Brain Stem","Shared Decision Core","Direction Head","Requested-Risk Head"],
+    "candidate_support_may_not_affect_training": true,
+    "no_hyperparameter_or_architecture_tuning": true
+  },
+  "candidate_teacher": {
+    "semantics": "R11 R2.4 dependence-balanced PREQUENTIAL validation Teacher",
+    "target": "reduced probabilistic Teacher direction_target_probs + requested_risk_target",
+    "train_support": "all complete legacy R10.4 TRAIN dependence groups only; no legacy validation groups; candidate groups excluded from support by prequential time rule",
+    "candidate_target_compilation": "target-only execution through the exact R11 balanced support geometry and vectorized law; unit-gated against full canonical compiler output",
+    "realized_future_role": "Teacher distribution sample source only; never a direct Student correct-action label"
+  },
+  "support_readiness_gate": {
+    "required_candidate_dependence_groups": 10,
+    "required_account_scenarios_per_group": 6,
+    "required_candidate_parent_contexts": 60,
+    "required_candidate_action_branches": 540,
+    "all_candidate_branches_matured_finite": true,
+    "all_60_candidate_teacher_targets_admitted": true,
+    "if_not_ready": "RETURN_SUPPORT_NOT_READY_WITHOUT_ALIGNMENT_INFERENCE"
+  },
+  "primary_evaluation": {
+    "objective": "canonical reduced Teacher target loss = soft-target CE + SmoothL1(beta=0.05), dependence-group weighted",
+    "arms": ["G0_CHAMPION","ALIGNED","SHUFFLE_1","SHUFFLE_7","SHUFFLE_13","SHUFFLE_23","SHUFFLE_31"],
+    "primary_metrics": ["loss","direction_loss"],
+    "sizing_loss": "SECONDARY_DESCRIPTIVE_ONLY",
+    "per_symbol_losses": "SECONDARY_DESCRIPTIVE_ONLY",
+    "positive_replication_rule": "ALIGNED loss must be strictly lower than G0 Champion and every one of the five shuffled arms, AND ALIGNED direction_loss must be strictly lower than G0 Champion and every one of the five shuffled arms",
+    "otherwise": "STATE_ALIGNMENT_NOT_REPLICATED_ON_INDEPENDENT_PURGE_SUPPORT"
+  },
+  "adjudication_asymmetry": {
+    "negative_result": "may falsify the R4 state-alignment interpretation and keeps promotion blocked",
+    "positive_result": "mechanistic replication only; cannot authorize promotion, generation advance, market-information qualification, profitability claim, or production cutover because only one macro clock block is available"
+  },
+  "post_open_policy": {
+    "candidate_support_may_not_be_used_for_architecture_or_hyperparameter_tuning": true,
+    "candidate_support_may_not_be_reused_to_choose_a_promotion_threshold": true,
+    "no_optional_stopping": true,
+    "canonical_generation_advance": false,
+    "champion_promotion": false,
+    "production_cutover": false,
+    "market_information_verdict_reopen": false,
+    "final_holdout_open": false,
+    "fresh_market_data": false
+  }
+}
