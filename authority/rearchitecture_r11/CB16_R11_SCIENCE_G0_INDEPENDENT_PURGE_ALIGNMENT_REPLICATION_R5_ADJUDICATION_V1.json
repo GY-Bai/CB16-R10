@@ -1,0 +1,118 @@
+{
+  "adjudication": {
+    "alignment_specific_direction_signal": "WEAK_SECONDARY_SIGNAL__ALIGNED_BEATS_ALL_FIVE_SHUFFLES_ON_DIRECTION_BUT_NOT_G0",
+    "alignment_specific_sizing_signal": "NOT_DEMONSTRATED__ALIGNED_BEATS_ONLY_ONE_OF_FIVE_SHUFFLES",
+    "alignment_specific_total_signal": "NOT_DEMONSTRATED__ALIGNED_BEATS_ONLY_THREE_OF_FIVE_SHUFFLES_AND_NOT_G0",
+    "canonical_generation_advance": "BLOCKED",
+    "canonical_r4_challenger_promotion": "BLOCKED",
+    "interpretation": "The canonical R4 aligned update carries a reproducible direction-specific advantage over every pre-registered target-misaligned control on the independent purge support, but the untrained G0 Champion remains better on Direction and total loss. The aligned update therefore does not establish net state-aligned learning improvement. The update appears to trade a broad change in policy/risk behavior for partial target fit, and the pre-registered replication criterion fails.",
+    "market_information_verdict": "NOT_REOPENED",
+    "mechanistic_state_alignment_replication": "NOT_REPLICATED_ON_INDEPENDENT_PURGE_SUPPORT",
+    "pre_registered_positive_rule": "FAILED",
+    "production_cutover": "BLOCKED",
+    "profitability_or_alpha": "NOT_CLAIMED",
+    "r5_mechanics": "QUALIFIED"
+  },
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "next_legal_direction": {
+    "action": "R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_TRAIN_ONLY",
+    "infra_reopen": false,
+    "purpose": "Reassess whether the reduced Direction/Requested-Risk Teacher targets contain stable conditional state information, using only already-consumed TRAIN history and nested train-only controls. Do not tune against R5 purge outcomes.",
+    "required_controls": [
+      "ALL_TEN_SYMBOLS_TRAIN_ONLY",
+      "STATE_ALIGNED_VS_TARGET_MULTISET_PRESERVING_WHOLE_FUTURE_SHUFFLE",
+      "MARGINAL_TARGET_BASELINE",
+      "DIRECTION_AND_SIZING_REPORTED_SEPARATELY",
+      "NO_ARCHITECTURE_OR_HYPERPARAMETER_CHANGE",
+      "NO_PURGE_SUPPORT",
+      "NO_FINAL_HOLDOUT",
+      "NO_FRESH_DATA",
+      "NON_STATUS_DRIVING_MECHANISTIC_AUDIT_ONLY"
+    ]
+  },
+  "observed": {
+    "aligned_behavior": {
+      "flat_rate": 0.7666666666666667,
+      "long_rate": 0.23333333333333334,
+      "mean_direction_probs": [0.3066891133785248,0.3718935251235962,0.32141736149787903],
+      "mean_requested_risk": 0.1741504818201065,
+      "rows": 60,
+      "sha256": "8c213551f04a5a7cf62065500aa78945d2b6dd64ba3f17e5501796b53a9729cb",
+      "short_rate": 0.0
+    },
+    "aligned_direction_better_than_champion": false,
+    "aligned_lower_direction_count_vs_shuffles": 5,
+    "aligned_lower_sizing_count_vs_shuffles": 1,
+    "aligned_lower_total_count_vs_shuffles": 3,
+    "aligned_total_better_than_champion": false,
+    "candidate_losses": {
+      "ALIGNED": {"direction_loss":1.0793943405151367,"loss":1.2592977285385132,"sizing_loss":0.17990326881408691},
+      "G0_CHAMPION": {"direction_loss":1.0454745292663574,"loss":1.2423440217971802,"sizing_loss":0.19686950743198395},
+      "SHUFFLE_1": {"direction_loss":1.0818265676498413,"loss":1.263248324394226,"sizing_loss":0.18142180144786835},
+      "SHUFFLE_7": {"direction_loss":1.0880701541900635,"loss":1.2678910493850708,"sizing_loss":0.17982089519500732},
+      "SHUFFLE_13": {"direction_loss":1.0839121341705322,"loss":1.2443602085113525,"sizing_loss":0.16044801473617554},
+      "SHUFFLE_23": {"direction_loss":1.0808910131454468,"loss":1.255366325378418,"sizing_loss":0.17447535693645477},
+      "SHUFFLE_31": {"direction_loss":1.0994428396224976,"loss":1.274576187133789,"sizing_loss":0.17513346672058105}
+    },
+    "direction_ranking_best_to_worst": ["G0_CHAMPION","ALIGNED","SHUFFLE_23","SHUFFLE_1","SHUFFLE_13","SHUFFLE_7","SHUFFLE_31"],
+    "g0_behavior": {
+      "flat_rate": 0.26666666666666666,
+      "long_rate": 0.5666666666666667,
+      "mean_direction_probs": [0.26368895173072815,0.3475273549556732,0.38878384232521057],
+      "mean_requested_risk": 0.22837115824222565,
+      "rows": 60,
+      "sha256": "d5cfc2e7301701d338d188a52f252289a52d11c5d398d30f00f8b5789d3ea7ec",
+      "short_rate": 0.16666666666666666
+    },
+    "total_ranking_best_to_worst": ["G0_CHAMPION","SHUFFLE_13","SHUFFLE_23","ALIGNED","SHUFFLE_1","SHUFFLE_7","SHUFFLE_31"]
+  },
+  "preregistered_protocol": {
+    "candidate_support_used_for_hyperparameter_or_architecture_tuning": false,
+    "candidate_support_used_in_training": false,
+    "candidate_symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","LINKUSDT","LTCUSDT","SOLUSDT"],
+    "candidate_timestamp": "2024-12-28T08:00:00Z",
+    "macro_clock_blocks": 1,
+    "nominal_future_groups": 10,
+    "positive_result_could_not_authorize_promotion": true,
+    "positive_rule": "ALIGNED_TOTAL_AND_DIRECTION_STRICTLY_LOWER_THAN_G0_AND_ALL_FIVE_SHUFFLES",
+    "pre_registered_shifts": [1,7,13,23,31]
+  },
+  "schema": "CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION_V1",
+  "source": {
+    "artifact_digest": "sha256:4f445df96cc1b82ada992da2deada2e425252915aec004c5bb03d70e43c02130",
+    "artifact_id": 10131939024,
+    "branch": "ai/r11-science-g0-independent-purge-alignment-replication-r5",
+    "passing_head": "0dd40ab3cd9d471e870e58fcdc65f40e37e395d1",
+    "passing_run_id": 34423236882,
+    "r50_inventory_artifact_digest": "sha256:22bd7e115353816c93d4ba99541ff458ff94e1bb173de2ef84be282bb3e9d147",
+    "r50_inventory_artifact_id": 10131365986,
+    "r50_inventory_run_id": 34422297114
+  },
+  "stage": "R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION",
+  "support_integrity": {
+    "candidate_branch_samples": 540,
+    "candidate_optimizer_steps": 0,
+    "candidate_parent_contexts": 60,
+    "candidate_teacher_admitted": 60,
+    "candidate_teacher_mode": "PREQUENTIAL",
+    "candidate_teacher_protocol_hash": "9169f85e921d380ff13588027f65485e7b65679ca60743ebad7c724e5d90f080",
+    "candidate_teacher_support_is_legacy_train_only": true,
+    "candidate_teacher_targets": 60,
+    "legacy_train_branch_samples": 87426,
+    "legacy_train_dependence_groups": 1619,
+    "legacy_train_parent_contexts": 9714,
+    "one_shared_clock_timestamp_caution": true,
+    "r50_metadata_only_inventory_qualified": true,
+    "teacher_geometry": "EQUAL_DEPENDENCE_GROUP_MASS__UNIQUE_STUDENT_CONTEXT_WITHIN_GROUP_V1"
+  },
+  "support_reuse_policy": {
+    "final_holdout_remains_closed": true,
+    "legacy_validation_support_remains_non_status_driving_after_prior_observation": true,
+    "purge_support_may_be_reused_to_set_promotion_thresholds": false,
+    "purge_support_may_be_used_for_architecture_or_hyperparameter_tuning": false,
+    "purge_support_may_be_used_only_for_descriptive_root_cause_analysis": true,
+    "purge_support_now_observed": true
+  }
+}
