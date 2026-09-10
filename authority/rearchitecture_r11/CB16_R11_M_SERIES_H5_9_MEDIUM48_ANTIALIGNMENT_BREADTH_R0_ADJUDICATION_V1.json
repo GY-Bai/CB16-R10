@@ -1,0 +1,156 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_8_adjudication_commit": "67168af364aeadb6b28e78371a4d92daa2962ab4",
+    "parent_h5_8_adjudication_blob": "f2c8a075b9fd67afccc66198a9efc64ec0b1ceed",
+    "preregistration_commit": "ea234bd381ffded3149704d3df46bc7fc704a102",
+    "gate_blob": "91902d36806c70108de8eca2472e717acb5f3a20",
+    "implementation_branch": "ai/m-series-h5-9-medium48-antialignment-breadth-r0",
+    "execution_head": "9ccfe02b1d659b1ca75735ba128ae9986914afc4",
+    "github_actions_run_id": 34494335448,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10159246447,
+    "artifact_digest": "sha256:82e47a39c5656f116e34f9375d5b7cc42388e9cc01af37a0e2282f1d28b25246",
+    "result_file_sha256": "f396cfdd32d48422b9eb21a0df9d5bdd9952f881ad740337beadb01c8390b7b0",
+    "result_schema": "CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_RESULT_V1"
+  },
+  "execution_receipt": {
+    "unit_and_inherited_regression_tests": 62,
+    "unit_and_inherited_regression_tests_passed": true,
+    "scientific_execution_completed": true,
+    "receipt_and_semantic_guards_passed": true,
+    "artifact_sha256_independently_verified": true,
+    "result_json_sha256_independently_verified": true
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "scientific_folds": [1, 3],
+    "train_dependence_groups": 1619,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "fold_1_eval_dependence_groups": 290,
+    "fold_3_eval_dependence_groups": 280,
+    "fold_1_target_rows": 1740,
+    "fold_3_target_rows": 1680,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "raw_market_payload_used": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "protocol_receipt": {
+    "primary_measure": "EXACT_H5_8_OPERATOR_CONDITIONAL_PARTIAL_SPEARMAN",
+    "time_local_support": "EXACT_H5_8_SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
+    "leave_one_symbol_out": "REMOVE_ONLY_TARGET_FUTURE_GROUPS_OF_ONE_FROZEN_SYMBOL_FROM_FINAL_AGGREGATION",
+    "leave_one_scenario_out": "REMOVE_ONLY_ONE_FROZEN_SCENARIO_FROM_FINAL_WITHIN_FUTURE_GROUP_AGGREGATION",
+    "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "DOTUSDT", "LINKUSDT", "LTCUSDT", "SOLUSDT"],
+    "scenario_count": 6,
+    "support_recomputed_after_omission": false,
+    "normalization_recomputed_after_omission": false,
+    "null_mapping_recomputed_after_omission": false,
+    "medium_dimensions_subselected": false,
+    "timesfm_1280d_pre_adapter_latent_accessed": false,
+    "new_representation_used": false,
+    "fusion_weights_searched": false,
+    "distance_metric_tuned": false,
+    "handcrafted_regime_or_cycle_activation_created": false,
+    "zero_information_target_count_all_scientific_folds": 0,
+    "all_null_medium_distance_multisets_preserved": true,
+    "all_semantic_and_receipt_guards_pass": true
+  },
+  "baseline_reproduction": {
+    "passed": true,
+    "absolute_tolerance": 1e-12,
+    "fold_1": {
+      "aligned_partial_rho": -0.012411348281499165,
+      "null_median_partial_rho": 0.027034529350260697,
+      "aligned_minus_null_median": -0.039445877631759864,
+      "anti_alignment": true
+    },
+    "fold_3": {
+      "aligned_partial_rho": -0.06450510517280353,
+      "null_median_partial_rho": -0.010316589086094265,
+      "aligned_minus_null_median": -0.054188516086709264,
+      "anti_alignment": true
+    }
+  },
+  "adjudication": {
+    "classification": "MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_BROAD_ACROSS_SYMBOLS_AND_SCENARIOS",
+    "conclusion": "H5_9_MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_BROAD_ACROSS_SYMBOLS_AND_SCENARIOS",
+    "symbol_loo_robust_both_failure_folds": true,
+    "scenario_loo_robust_both_failure_folds": true,
+    "key_result": "IN BOTH H5_8 FAILURE FOLDS_1_AND_3__REMOVING ANY ONE OF THE TEN FROZEN TARGET SYMBOLS OR ANY ONE OF THE SIX FROZEN ACCOUNT SCENARIOS FAILS TO REMOVE MEDIUM48 OPERATOR-CONDITIONAL UTILITY ANTI-ALIGNMENT__THE EFFECT IS NOT DRIVEN BY A SINGLE SYMBOL OR SINGLE SCENARIO"
+  },
+  "robustness_receipts": {
+    "fold_1": {
+      "symbol_loo_robust": true,
+      "symbol_sensitive_omissions": [],
+      "symbol_loo_max_aligned_partial_rho": -0.00928727945730137,
+      "symbol_loo_min_null_minus_aligned_margin": 0.03657593550202654,
+      "scenario_loo_robust": true,
+      "scenario_sensitive_omissions": [],
+      "scenario_loo_max_aligned_partial_rho": -0.01220278882314941,
+      "scenario_loo_min_null_minus_aligned_margin": 0.03907361688552475
+    },
+    "fold_3": {
+      "symbol_loo_robust": true,
+      "symbol_sensitive_omissions": [],
+      "symbol_loo_max_aligned_partial_rho": -0.061739968360236624,
+      "symbol_loo_min_null_minus_aligned_margin": 0.04995441897730557,
+      "scenario_loo_robust": true,
+      "scenario_sensitive_omissions": [],
+      "scenario_loo_max_aligned_partial_rho": -0.06432814282952463,
+      "scenario_loo_min_null_minus_aligned_margin": 0.05396774317550782
+    }
+  },
+  "mechanistic_interpretation": {
+    "supported": [
+      "H5_8_MEDIUM48_OPERATOR_CONDITIONAL_ANTI_ALIGNMENT_IN_FOLDS_1_AND_3_IS_ROBUST_TO_EVERY_SINGLE_SYMBOL_OMISSION_SEPARATELY",
+      "H5_8_MEDIUM48_OPERATOR_CONDITIONAL_ANTI_ALIGNMENT_IN_FOLDS_1_AND_3_IS_ROBUST_TO_EVERY_SINGLE_ACCOUNT_SCENARIO_OMISSION_SEPARATELY",
+      "THE_FOLD_1_AND_FOLD_3_SIGN_REVERSAL_IS_NOT_EXPLAINED_BY_ONE_DOMINANT_ASSET_OR_ONE_DOMINANT_ACCOUNT_SCENARIO",
+      "H5_8_AND_H5_9_TOGETHER_STRENGTHEN_A_BROAD_TIME_BLOCK_CHANGE_IN_THE_RELATION_BETWEEN_FROZEN_MEDIUM48_GEOMETRY_AND_REALIZED_UTILITY_GEOMETRY",
+      "A_PURE_GENERIC_96D_DIMENSION_BURDEN_OR_NARROW_SYMBOL_SCENARIO_COMPOSITION_ARTIFACT_IS_INSUFFICIENT_AS_A_COMPLETE_EXPLANATION",
+      "THE_CURRENT_UPSTREAM_FRONTIER_IS_TEMPORAL_STABILITY_OF_THE_REPRESENTATION_TO_UTILITY_RELATION__NOT_STUDENT_LOSS_OR_MEDIUM48_DELETION"
+    ],
+    "not_supported": [
+      "MEDIUM48_IS_GLOBALLY_HARMFUL",
+      "MEDIUM48_IS_USELESS",
+      "MEDIUM48_SHOULD_BE_DELETED_OR_CANONICALLY_DOWNWEIGHTED",
+      "A_FIXED_NEGATIVE_OR_TIME_VARYING_MEDIUM48_WEIGHT_IS_AUTHORIZED",
+      "THE_H5_9_FOLDS_DEFINE_A_REAL_TIME_REGIME_CLASSIFIER",
+      "HANDCRAFTED_REGIME_OR_CYCLE_ACTIVATION",
+      "CHRONOLOGICAL_BELIEF_EXPIRY_OR_RECENCY_OVERWRITE",
+      "PARTIAL_SPEARMAN_ESTABLISHES GENERAL CONDITIONAL_INDEPENDENCE_OR CAUSALITY",
+      "MARKET_INFORMATION_IS_QUALIFIED",
+      "CANONICAL_ARCHITECTURE_CHANGE",
+      "TEACHER_CHANGE",
+      "STUDENT_CHANGE",
+      "NEW_DIRECTION_LOSS",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ],
+    "updated_failure_view": "H5_9_STRENGTHENS_BROAD_TIME_BLOCK_MEDIUM48_RELATION_SIGN_REVERSAL__NOT_SINGLE_SYMBOL_OR_SCENARIO__CURRENT_FRONTIER_IS_REPRESENTATION_RELATION_NONSTATIONARITY_OR_READOUT_SEMANTICS_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION"
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "organ_weight_tuning_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "handcrafted_regime_activation_authorized": false,
+    "chronological_belief_expiry_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_9_RESULT__DO_NOT_TUNE_OR_GATE_MEDIUM48_BY_HANDCRAFTED_TIME_REGIMES__IF_CONTINUING, A SEPARATE PREREGISTERED TEACHER_FREE STUDENT_FREE TEMPORAL_STABILITY AUDIT MAY LOCALIZE WHETHER THE OPERATOR_CONDITIONAL_MEDIUM48_RELATION CHANGES SMOOTHLY OR ABRUPTLY ACROSS PREDEFINED TRAIN_ONLY CLOCK BLOCKS__SUCH AN AUDIT MUST NOT CREATE DECISION OR PERMISSION AUTHORITY"
+}
