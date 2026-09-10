@@ -1,0 +1,97 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_FULL_TRAIN_MULTI_ASSET_CANONICAL_CANDIDATE_R7_ADJUDICATION_V1",
+  "stage": "R11_SCIENCE_G0_FULL_TRAIN_MULTI_ASSET_CANONICAL_CANDIDATE_R7_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "branch": "ai/r11-science-g0-full-train-multi-asset-candidate-r7",
+    "passing_head": "93759e17e239da3b68025b509aa42c445afcc702",
+    "passing_run_id": 34425691561,
+    "artifact_id": 10132598717,
+    "artifact_digest": "sha256:111309b5c355618a5431cbfd8815abd467920a910150f586eb795b0c8949fe7a",
+    "preregistration_commit": "6bcea1ea631d1df077a70199d62acd83bbd35da1",
+    "preregistered_gate_blob": "40f2431e1dfea2f3198272b4f57147f97f3cd43e"
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "materialization_integrity": {
+    "all_ten_symbols_train_only": true,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "train_dependence_groups": 1619,
+    "teacher_admitted_parent_contexts": 9714,
+    "teacher_rejected_parent_contexts": 0,
+    "r2_4_train_teacher_protocol_hash": "0e29fdfc2002488657e217fd332193cad1692106eeef87a9eb3c7920c378e0a9",
+    "full_train_prepared_evidence_hash": "288c869734b2805eda346477c24345c842a690bfc888c2676e563aef351a6ba5",
+    "canonical_student_parameters": 189052,
+    "canonical_training_rule_unchanged": true,
+    "optimizer_steps_each_run": 228,
+    "reproduction_runs": 2,
+    "reproduction_policy_hash_match": true,
+    "reproduction_state_tensors_exact_match": true,
+    "all_six_gradient_owners_connected": true,
+    "all_six_gradient_owners_updated": true,
+    "canonical_g0_unchanged": true
+  },
+  "candidate": {
+    "schema": "CB16_R11_R7_FROZEN_UNEVALUATED_CANDIDATE_V1",
+    "g0_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+    "candidate_policy_hash": "186ad6f3694ad6b256125ab90a9890f5a2f0336a1c991468b29b49b258f715d4",
+    "candidate_identity_sha256": "79adf03ce2d19b5fc42dc298007ecf14caa4e054609a7c263a7512aca9916b8c",
+    "candidate_checkpoint": "R11_R7_FROZEN_UNEVALUATED_CANDIDATE.pt",
+    "candidate_checkpoint_sha256": "50be8335b296e0190e3a8addce06c048b6fc19e25d976a508c33f7513b3313c3",
+    "candidate_evaluation_state": "UNEVALUATED_OUTSIDE_TRAIN_FIT",
+    "candidate_promotion_state": "NOT_AUTHORIZED",
+    "parameter_l2_delta_from_g0": 3.2794576690899286
+  },
+  "train_fit_diagnostic_only": {
+    "is_independent_evaluation": false,
+    "may_authorize_promotion": false,
+    "total_loss_before": 1.1541118621826172,
+    "total_loss_after": 1.0769069194793701,
+    "relative_total_loss_reduction": 0.06689554559922788,
+    "direction_loss_before": 1.0444512367248535,
+    "direction_loss_after": 1.0204824209213257,
+    "sizing_loss_before": 0.10966058820486069,
+    "sizing_loss_after": 0.0564245842397213,
+    "interpretation": "The full-TRAIN candidate fits the cross-fit TRAIN Teacher objective better than G0, but this metric is explicitly in-sample/train-fit diagnostic evidence and carries no independent validation authority."
+  },
+  "support_guards": {
+    "legacy_validation_evaluated": false,
+    "r5_purge_evaluated": false,
+    "r6_outer_eval_reused": false,
+    "final_holdout_opened": false,
+    "fresh_market_data_downloaded": false,
+    "raw_market_payload_used": false
+  },
+  "adjudication": {
+    "r7_candidate_materialization": "QUALIFIED",
+    "candidate_determinism": "QUALIFIED",
+    "candidate_out_of_sample_quality": "UNKNOWN__UNEVALUATED",
+    "candidate_market_information": "UNKNOWN__NOT_TESTED",
+    "canonical_promotion": "NOT_AUTHORIZED",
+    "canonical_generation_advance": "NOT_AUTHORIZED",
+    "production_cutover": "NOT_AUTHORIZED",
+    "market_information_verdict": "NOT_REOPENED",
+    "profitability_or_alpha": "NOT_CLAIMED",
+    "r5_negative_independent_replication_overturned": false,
+    "final_holdout": "CLOSED"
+  },
+  "support_reuse_policy": {
+    "legacy_validation_is_previously_observed_and_may_not_be_used_to_promote_r7": true,
+    "r5_purge_support_is_observed_and_may_not_be_reused_to_promote_r7": true,
+    "r6_outer_eval_folds_are_observed_and_may_not_be_reused_to_promote_r7": true,
+    "final_holdout_requires_separate_explicit_authorization": true,
+    "new_genuinely_independent_frozen_support_requires_separate_authorization_and_preregistration": true
+  },
+  "next_legal_direction": {
+    "action": "STOP_AT_UNEVALUATED_CANDIDATE_BOUNDARY",
+    "reason": "No genuinely independent unopened support surface remains authorized. Reusing legacy validation, R5 purge support, or R6 outer-evaluation folds would convert observed evidence into a promotion test. FINAL remains closed.",
+    "resume_only_if": [
+      "USER_EXPLICITLY_AUTHORIZES_A_GENUINELY_INDEPENDENT_SUPPORT_SURFACE_UNDER_A_PREREGISTERED_GATE",
+      "OR_USER_EXPLICITLY_AUTHORIZES_FINAL_HOLDOUT_OPENING_UNDER_ITS_SEPARATE_FINAL_ADJUDICATION_PROTOCOL"
+    ],
+    "infra_reopen": false,
+    "fresh_market_data": false,
+    "automatic_next_science_run": false
+  }
+}
