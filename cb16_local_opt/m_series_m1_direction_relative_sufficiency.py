@@ -24,7 +24,10 @@ def _prob_matrix(x: Any) -> np.ndarray:
     require(p.ndim == 2 and p.shape[1] == 3, "M1_PROB_SHAPE")
     require(np.isfinite(p).all(), "M1_PROB_NONFINITE")
     require(np.all(p > 0.0), "M1_PROB_NONPOSITIVE")
-    require(np.all(np.abs(p.sum(axis=1) - 1.0) <= 1e-10), "M1_PROB_NOT_DISTRIBUTION")
+    # Reduced Teacher probabilities originate in float64 while G0 probabilities originate
+    # in the canonical FP32 Student. M1 tests information sufficiency, not serialization-level
+    # probability normalization, so accept the same numerical scale as the frozen runtime.
+    require(np.all(np.abs(p.sum(axis=1) - 1.0) <= 1e-5), "M1_PROB_NOT_DISTRIBUTION")
     return p
 
 
