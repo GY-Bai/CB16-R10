@@ -1,0 +1,41 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0_EXECUTION_BLOCKED_AUTHORITY_WIRING_RECEIPT_V1",
+  "stage": "R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0",
+  "status": "EXECUTION_BLOCKED__WORKFLOW_AUTHORITY_WIRING_BEFORE_SCIENTIFIC_PAYLOAD_LOAD",
+  "run": {
+    "workflow_run_id": 34537107349,
+    "job_id": 103071211261,
+    "head_sha": "a58fdf83fb2ea9370f1b08c28c8c30aaa9243350",
+    "repo_guard_conclusion": "success",
+    "checkout": "PASS",
+    "authority_verification": "FAIL",
+    "docker_preflight": "NOT_RUN",
+    "canonical_python_resolution": "NOT_RUN",
+    "pre_science_tests": "NOT_RUN",
+    "scientific_execution": "NOT_RUN"
+  },
+  "failure": {
+    "step": "Verify preregistration authority and immutable scientific inputs",
+    "cause": "REPAIR_WORKFLOW_ACCIDENTALLY_REPLACED_THE_ALREADY_QUALIFIED_EXACT_SEMANTIC_FREEZE_GIT_REV_PARSE_PATH_WITH_A_FALLBACK_COMMAND_SUBSTITUTION_EXPRESSION",
+    "scientific_payload_loaded": false,
+    "centered_utility9_target_constructed": false,
+    "random_forest_fit_started": false,
+    "h5_16_outcome_observed": false,
+    "scientific_authority": "NONE"
+  },
+  "repair_authority": {
+    "allowed_change": "WORKFLOW_ONLY__RESTORE_EXACT_PREVIOUSLY_QUALIFIED_SEMANTIC_FREEZE_PATH_PIN_WHILE_KEEPING_THE_IMPORT_PATH_MODULE_INVOCATION_REPAIR",
+    "required_semantic_freeze_check": "git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json",
+    "required_executor_invocation": "python -m scripts.r11_m_series_h5_16_full_state_nonlinear_utility_invariance_r0",
+    "gate_change_allowed": false,
+    "clarification_change_allowed": false,
+    "helper_change_allowed": false,
+    "test_change_allowed": false,
+    "executor_change_allowed": false,
+    "rf_hyperparameter_or_seed_change_allowed": false,
+    "clock_split_change_allowed": false,
+    "negative_control_change_allowed": false,
+    "classification_change_allowed": false
+  },
+  "next_legal_step": "REPLAY_THE_SAME_FROZEN_H5_16_AFTER_WORKFLOW_AUTHORITY_WIRING_ONLY_REPAIR__DO_NOT_USE_THIS_BLOCKED_RUN_AS_SCIENTIFIC_EVIDENCE"
+}
