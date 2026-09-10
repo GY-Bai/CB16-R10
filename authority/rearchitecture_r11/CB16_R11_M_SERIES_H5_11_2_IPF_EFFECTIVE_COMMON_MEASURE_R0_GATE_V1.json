@@ -1,0 +1,153 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_11_2_IPF_EFFECTIVE_COMMON_MEASURE_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_11_2_IPF_EFFECTIVE_COMMON_MEASURE_R0",
+  "status": "PREREGISTERED__UNEVALUATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_11_1_adjudication_commit": "dca61e693858d90af785dfb7697d399df4eb65c3",
+    "h5_11_1_adjudication_blob": "d4be3239da97e89b99f9992068ce13490d86cabf",
+    "required_parent_classification": "H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_FALSE__SHARED_CELL_MULTIPLIER_ROBUSTNESS_ONLY",
+    "h5_12_status": "HELD_BEFORE_IMPLEMENTATION_OR_SCIENTIFIC_EXECUTION",
+    "frozen_market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "question": "WHEN_THE_H5_11_3X3_OPERATOR_MEDIUM_CELL_MARGINS_ARE_CALIBRATED_TO_THE_SAME_PAIRWISE_Q_UNDER_THE_ACTUAL_PER_TARGET_SCENARIO_LOCAL_WEIGHT_NORMALIZATION_AND_EQUAL_MACRO_AGGREGATION__DO_THE_THREE_NATIVE_ORIENTATION_TRANSITIONS_PERSIST",
+  "single_manipulated_variable": "H5_11_CELL_MULTIPLIER_ESTIMATION__REPLACE_ONE_STEP_Q_DIVIDED_BY_P_WITH_OUTCOME_BLIND_ITERATIVE_PROPORTIONAL_FITTING_THAT_CLOSES_THE_ACTUAL_LOCALLY_NORMALIZED_EFFECTIVE_MACRO_CELL_MARGIN_TO_THE_SAME_FROZEN_Q",
+  "methodological_basis": {
+    "family": "ITERATIVE_PROPORTIONAL_FITTING__BIPROPORTIONAL_MATRIX_SCALING__CALIBRATION_WEIGHTING",
+    "matrix_scaling_interpretation": "TARGET_FUTURE_GROUP_X_SCENARIO_MACRO_ROWS_BY_NINE_FROZEN_OPERATOR_MEDIUM_CELLS__ROW_MARGINS_ARE_EQUAL_MACRO_AUTHORITY__COLUMN_MARGINS_ARE_FROZEN_H5_11_Q",
+    "references": [
+      "SINKHORN_KNOPP_MATRIX_SCALING_AND_ITERATIVE_PROPORTIONAL_FITTING_FOR_PRESCRIBED_ROW_AND_COLUMN_MARGINS",
+      "HAINMUELLER_2012_ENTROPY_BALANCING__EXACT_PRESPECIFIED_MOMENT_BALANCE"
+    ],
+    "propensity_model_fit": false,
+    "utility_or_outcome_model_fit": false
+  },
+  "frozen_objects": {
+    "adjacent_pairs": [[1,2],[2,3],[3,4],[4,5]],
+    "native_flip_pairs": [[1,2],[2,3],[3,4]],
+    "native_positive_control_pair": [4,5],
+    "grid": "EXACT_H5_11_FIXED_3X3_OPERATOR_DISTANCE_RANK_PERCENTILE_X_MEDIUM_DISTANCE_RANK_PERCENTILE",
+    "cell_count": 9,
+    "base_macro_measure": "TARGET_FUTURE_GROUP_EQUAL__SIX_SCENARIOS_EQUAL__SUPPORT_CANDIDATES_EQUAL_WITHIN_TARGET_SCENARIO",
+    "pairwise_target_q": "EXACT_H5_11_OUTCOME_BLIND_SYMMETRIC_Q_C_PROPORTIONAL_TO_P_A_C_P_B_C_DIVIDED_BY_P_A_C_PLUS_P_B_C",
+    "support": "EXACT_H5_8_H5_11_SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
+    "normalization": "EXACT_H5_6_H5_8_H5_11_SAME_SCENARIO_LEAVE_TARGET_GROUP_OUT_NORMALIZATION",
+    "operator_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_OPERATOR48",
+    "medium_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MEDIUM48",
+    "utility_distance": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE_MSE",
+    "candidate_rank_method": "AVERAGE_TIE_RANK_WITHIN_EACH_TARGET_FUTURE_GROUP_X_SCENARIO_SUPPORT_VECTOR",
+    "primary_statistic": "EXACT_H5_11_WEIGHTED_PARTIAL_PEARSON_ON_FROZEN_OPERATOR_MEDIUM_UTILITY_RANKS_WITH_PER_TARGET_SCENARIO_LOCAL_WEIGHT_NORMALIZATION__THEN_SCENARIO_EQUAL_AND_FUTURE_GROUP_EQUAL_MACRO_AVERAGE",
+    "structured_medium_null": "EXACT_H5_8_H5_11_CYCLIC_ROTATION_ONLY_OF_MEDIUM_DISTANCE_VECTOR_ACROSS_ALREADY_SELECTED_SUPPORT_FUTURE_GROUP_IDENTITIES",
+    "structured_null_shifts": [1,7,13,23,31],
+    "same_calibrated_aligned_candidate_weights_reused_for_all_nulls": true,
+    "q_recomputed_for_null": false,
+    "utility_rotated": false,
+    "support_reselected": false,
+    "distance_metric_changed": false
+  },
+  "h5_11_sibling_evaluator_reproduction_gate": {
+    "purpose": "PROVE_THE_NEW_SIBLING_EVALUATOR_CHANGES_ONLY_THE_WEIGHT_BALANCE_RECEIPT_AND_NOT_THE_H5_11_STATISTIC",
+    "use_original_h5_11_one_step_multipliers": true,
+    "tolerance": 1e-12,
+    "required_pair_side_aligned_partial_rho": {
+      "1_2_side_1": -0.012201241546667371,
+      "1_2_side_2": 0.0757920928516409,
+      "2_3_side_2": 0.07559551358028137,
+      "2_3_side_3": -0.06423014220641754,
+      "3_4_side_3": -0.06472527778999451,
+      "3_4_side_4": 0.027361436145023205,
+      "4_5_side_4": 0.027303464917482766,
+      "4_5_side_5": 0.02475537614322986
+    },
+    "required_pair_side_null_median": {
+      "1_2_side_1": 0.027107308096015317,
+      "1_2_side_2": 0.020380980392137902,
+      "2_3_side_2": 0.020467704769428437,
+      "2_3_side_3": -0.010307509062586047,
+      "3_4_side_3": -0.010431534580797685,
+      "3_4_side_4": 0.006912327986265356,
+      "4_5_side_4": 0.0068160565016999256,
+      "4_5_side_5": 0.011845155477429018
+    },
+    "if_failed": "EXECUTION_BLOCKED__H5_11_SIBLING_EVALUATOR_REPRODUCTION_FAILED"
+  },
+  "ipf_calibration": {
+    "input_matrix": "A_I_C_EQUALS_NUMBER_OF_SUPPORT_CANDIDATES_IN_CELL_C_FOR_TARGET_FUTURE_GROUP_X_SCENARIO_MACRO_ROW_I",
+    "row_target": "ONE_DIVIDED_BY_NUMBER_OF_MACRO_ROWS_FOR_EVERY_ROW",
+    "column_target": "PAIR_SPECIFIC_FROZEN_H5_11_Q",
+    "initial_column_multiplier": "EXACT_H5_11_ONE_STEP_Q_DIVIDED_BY_P_MULTIPLIER",
+    "iteration": "COMPUTE_EFFECTIVE_COLUMN_MARGIN_F_C_AFTER_LOCAL_ROW_NORMALIZATION__THEN_UPDATE_M_C_LEFT_ARROW_M_C_TIMES_Q_C_DIVIDED_BY_F_C__THEN_REMOVE_GLOBAL_MULTIPLICATIVE_GAUGE_BY_DIVIDING_BY_GEOMETRIC_MEAN",
+    "all_nine_q_cells_required_positive": true,
+    "internal_stop_max_abs_effective_margin_minus_q": 1e-13,
+    "formal_closure_tolerance": 1e-12,
+    "max_iterations": 10000,
+    "damping": false,
+    "regularization": false,
+    "multiplier_clipping": false,
+    "post_result_tuning": false,
+    "fail_closed_if_nonfinite_or_zero_margin_or_nonconvergent": true,
+    "interpretation": "BIPROPORTIONAL_COLUMN_SCALING_WITH_THE_H5_8_LOCAL_NORMALIZATION_ACTING_AS_THE_ROW_SCALING"
+  },
+  "exact_effective_margin_gate": {
+    "requires_every_pair_side_max_abs_effective_macro_cell_mass_minus_q_le": 1e-12,
+    "requires_every_pair_effective_side_to_side_max_abs_cell_mass_difference_le": 2e-12,
+    "note": "SIDE_TO_SIDE_BOUND_IS_TWO_TIMES_SINGLE_SIDE_TOLERANCE_BY_TRIANGLE_INEQUALITY__NOT_A_SEPARATE_APPROXIMATE_SCIENCE_THRESHOLD",
+    "if_failed": "EXECUTION_BLOCKED__IPF_EFFECTIVE_MARGIN_CLOSURE_FAILED",
+    "multiplier_min_max_and_ratio_must_be_reported": true,
+    "iterations_must_be_reported": true,
+    "no_weight_extremeness_rescue_or_cap": true
+  },
+  "orientation_rule": {
+    "POSITIVE_ALIGNMENT": "ALIGNED_RHO_GT_0_AND_ALIGNED_RHO_GT_MEDIAN_STRUCTURED_NULL_RHO",
+    "ANTI_ALIGNMENT": "ALIGNED_RHO_LT_0_AND_ALIGNED_RHO_LT_MEDIAN_STRUCTURED_NULL_RHO",
+    "MIXED": "OTHERWISE",
+    "identical_to_h5_10_h5_11": true
+  },
+  "preregistered_classification": {
+    "EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST": "VALID_CALIBRATION_AND_ALL_THREE_NATIVE_FLIP_PAIRS_RETAIN_THEIR_NATIVE_SIDE_SPECIFIC_ORIENTATIONS_AND_F4_F5_REMAINS_POSITIVE_TO_POSITIVE",
+    "EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__NATIVE_TRANSITIONS_REMOVED": "VALID_CALIBRATION_AND_ALL_THREE_NATIVE_FLIP_PAIRS_BECOME_CLEAN_SAME_ORIENTATION_PAIRS_WITH_NEITHER_SIDE_MIXED_AND_F4_F5_REMAINS_POSITIVE_TO_POSITIVE",
+    "EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__MIXED": "VALID_CALIBRATION_NOT_SATISFYING_EITHER_STRONG_CLASS",
+    "EXECUTION_BLOCKED__H5_11_SIBLING_EVALUATOR_REPRODUCTION_FAILED": "ANY_REQUIRED_H5_11_PAIR_SIDE_STATISTIC_OR_NULL_MEDIAN_FAILS_1E_MINUS_12_REPRODUCTION",
+    "EXECUTION_BLOCKED__IPF_CALIBRATION_INFEASIBLE_OR_NONCONVERGENT": "ANY_PAIR_SIDE_IPF_FAILS_NUMERICAL_OR_CONVERGENCE_GUARDS",
+    "EXECUTION_BLOCKED__IPF_EFFECTIVE_MARGIN_CLOSURE_FAILED": "ANY_PAIR_SIDE_FINAL_EFFECTIVE_MARGIN_OR_SIDE_TO_SIDE_MARGIN_FAILS_THE_FROZEN_EXACT_GATE"
+  },
+  "interpretation_limits": {
+    "persistent_result_supports": "DIFFERENCES_IN_THE_PAIRWISE_3X3_OPERATOR_MEDIUM_EFFECTIVE_MACRO_CANDIDATE_CELL_MARGINS_ARE_INSUFFICIENT_TO_REMOVE_THE_NATIVE_H5_8_ORIENTATION_TRANSITIONS_UNDER_THE_FROZEN_H5_8_LOCAL_STATISTIC",
+    "removed_result_supports": "THE_NATIVE_TRANSITIONS_ARE_CONSISTENT_WITH_DIFFERENCES_IN_THE_3X3_EFFECTIVE_MACRO_CANDIDATE_CELL_MARGINS_AS_AN_EXPLANATION",
+    "does_not_establish": [
+      "THE_FULL_JOINT_DISTRIBUTION_OF_TARGET_MACRO_ROWS_AND_CANDIDATE_CELLS_IS_IDENTICAL_BETWEEN_ENVIRONMENTS",
+      "WITHIN_TARGET_SCENARIO_CELL_COMPOSITION_IS_IDENTICAL_BETWEEN_ENVIRONMENTS",
+      "FULL_96D_OR_102D_CONDITIONAL_DISTRIBUTION_STABILITY_OR_DRIFT",
+      "CAUSALITY",
+      "ACCOUNT6_IS_OR_IS_NOT_THE_MISSING_CONTEXT",
+      "A_RUNTIME_COMPATIBILITY_GATE_IS_VALID",
+      "A_LEARNED_ENGRAM_STYLE_GATE_IS_AUTHORIZED",
+      "TIME_OR_CALENDAR_IS_CAUSAL",
+      "INDEPENDENT_MARKET_INFORMATION_IS_QUALIFIED"
+    ]
+  },
+  "forbidden_actions": {
+    "change_h5_11_q": true,
+    "change_grid": true,
+    "change_support": true,
+    "change_normalization": true,
+    "change_distance_metric": true,
+    "change_primary_rank_statistic": true,
+    "change_structured_null": true,
+    "account6_extension": true,
+    "execute_h5_12": true,
+    "teacher_change": true,
+    "student_change": true,
+    "canonical_architecture_change": true,
+    "medium48_deletion_or_reweighting": true,
+    "fusion_weight_search": true,
+    "learned_router_or_gate": true,
+    "handcrafted_time_or_regime_gate": true,
+    "calendar_or_fold_id_as_runtime_feature": true,
+    "fresh_market_data": true,
+    "final_holdout_opening": true,
+    "r7_evaluation": true,
+    "champion_promotion": true
+  },
+  "next_legal_step": "IMPLEMENT_AND_EXECUTE_THIS_H5_11_2_IPF_CORRECTED_STANDARDIZATION_ONLY__KEEP_H5_12_HELD__NO_RESULT_ADAPTIVE_CALIBRATION_GRID_SUPPORT_STATISTIC_NULL_OR_THRESHOLD_CHANGES__ADJUDICATE_BEFORE_ANY_ACCOUNT6_EXTENSION"
+}
