@@ -1,0 +1,132 @@
+{
+  "schema": "CB16_R11_M_SERIES_M0_POLICY_DRIFT_ATTRIBUTION_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_M0_POLICY_DRIFT_ATTRIBUTION_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "branch": "ai/m-series-research-r0",
+    "passing_head": "b7682bb39e11853bef8188ad1651b81f500cc390",
+    "passing_run_id": 34432011949,
+    "artifact_id": 10134879678,
+    "artifact_digest": "sha256:b29d81784cdd057d4183afd3f26ec0bf571d4b16278130801e54c69d278d0865",
+    "result_sha256": "bf2468061b77e063ab62016044df923ba6dc0845a786aa69de18e941fe3a0681",
+    "preregistered_gate": "CB16_R11_M_SERIES_M0_POLICY_DRIFT_ATTRIBUTION_GATE_V2",
+    "preregistration_commit": "54e1b2135acf97fdf34bcaf97e487b929d39fd17",
+    "preregistered_gate_blob": "ef2edc3d4cdad1ba6e9e808f5ca024ece74bc1ff",
+    "v1_superseded_before_any_m0_execution": true
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "execution_integrity": {
+    "repo_guard_passed": true,
+    "m0_unit_and_regression_gates_passed": true,
+    "all_five_folds_completed": true,
+    "all_five_aligned_updates_numerically_reproduced_authoritative_r6": true,
+    "r7_candidate_evaluated": false,
+    "legacy_validation_used": false,
+    "r5_purge_support_reopened": false,
+    "final_holdout_opened": false,
+    "fresh_market_data_downloaded": false,
+    "canonical_generation_advanced": false,
+    "champion_promoted": false,
+    "production_cutover": false
+  },
+  "primary_result": {
+    "preregistered_conclusion": "DIRECTION_UPDATE_MAJORITY_TEACHER_ATTRIBUTABLE_ON_CONSUMED_TRAIN_ONLY_SUPPORT",
+    "direct_teacher_correction_majority_fold_count": 5,
+    "non_teacher_attributable_majority_fold_count": 0,
+    "zero_direction_change_fold_count": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "rows": 1740,
+        "direction_change_rate": 0.5695402298850575,
+        "direct_teacher_correction_fraction_of_all_direction_changes": 0.7406659939455096,
+        "non_teacher_attributable_fraction_of_all_direction_changes": 0.2593340060544904,
+        "teacher_g0_agreement_direction_change_rate": 0.18723404255319148,
+        "teacher_g0_disagreement_move_to_teacher_rate": 0.7091787439613526
+      },
+      {
+        "fold": 2,
+        "rows": 1644,
+        "direction_change_rate": 0.4422141119221411,
+        "direct_teacher_correction_fraction_of_all_direction_changes": 0.5185694635488308,
+        "non_teacher_attributable_fraction_of_all_direction_changes": 0.4814305364511692,
+        "teacher_g0_agreement_direction_change_rate": 0.26397919375812745,
+        "teacher_g0_disagreement_move_to_teacher_rate": 0.4308571428571429
+      },
+      {
+        "fold": 3,
+        "rows": 1680,
+        "direction_change_rate": 0.4232142857142857,
+        "direct_teacher_correction_fraction_of_all_direction_changes": 0.5161744022503516,
+        "non_teacher_attributable_fraction_of_all_direction_changes": 0.4838255977496484,
+        "teacher_g0_agreement_direction_change_rate": 0.2566585956416465,
+        "teacher_g0_disagreement_move_to_teacher_rate": 0.4297423887587822
+      },
+      {
+        "fold": 4,
+        "rows": 1680,
+        "direction_change_rate": 0.31666666666666665,
+        "direct_teacher_correction_fraction_of_all_direction_changes": 0.5394736842105263,
+        "non_teacher_attributable_fraction_of_all_direction_changes": 0.4605263157894737,
+        "teacher_g0_agreement_direction_change_rate": 0.13485280151946819,
+        "teacher_g0_disagreement_move_to_teacher_rate": 0.45773524720893144
+      },
+      {
+        "fold": 5,
+        "rows": 1680,
+        "direction_change_rate": 0.29523809523809524,
+        "direct_teacher_correction_fraction_of_all_direction_changes": 0.5221774193548387,
+        "non_teacher_attributable_fraction_of_all_direction_changes": 0.4778225806451613,
+        "teacher_g0_agreement_direction_change_rate": 0.15534883720930232,
+        "teacher_g0_disagreement_move_to_teacher_rate": 0.428099173553719
+      }
+    ]
+  },
+  "advantage_stratification": {
+    "definition": "Exact best-by-Direction mean-utility advantage from unchanged R6 eval Teacher action_laws relative to the G0 Direction; no continuous G0-risk projection and no quantile subtraction.",
+    "changed_rows_have_higher_mean_advantage_than_unchanged_rows_in_all_five_folds": true,
+    "q1_to_q4_move_to_teacher_rate": [
+      [0.3178294573643411, 1.0],
+      [0.2420091324200913, 0.7442922374429224],
+      [0.2523364485981308, 0.6651162790697674],
+      [0.25161290322580643, 0.6751592356687898],
+      [0.23841059602649006, 0.5460526315789473]
+    ],
+    "interpretation": "In every fold, the highest-advantage quartile is much more likely than the lowest-advantage quartile to move from G0 to the Teacher-best Direction. The canonical absolute Direction objective is therefore not merely producing undirected global migration; Teacher state-specific Direction margin materially shapes behavior on this consumed TRAIN-only support."
+  },
+  "secondary_drift": {
+    "non_teacher_attributable_fraction_range": [0.2593340060544904, 0.4838255977496484],
+    "teacher_g0_agreement_change_rate_range": [0.13485280151946819, 0.26397919375812745],
+    "mean_abs_composed_requested_risk_delta_range": [0.1261559312010095, 0.26451389382796725],
+    "interpretation": "Substantial non-Teacher-attributable Direction migration and requested-risk movement remain. M0 rejects the stronger claim that most Direction changes are unrelated to Teacher corrections, but it does not establish that the update is conservative or that the remaining drift is harmless."
+  },
+  "research_update": {
+    "destructive_update_as_dominant_direction_explanation": "DOWNRANKED_ON_R6_CONSUMED_TRAIN_ONLY_SUPPORT",
+    "state_specific_direction_information_affects_behavior": "SUPPORTED_MECHANISTICALLY",
+    "absolute_ce_marginal_shortcut_from_r4_1": "UNCHANGED__M0_DOES_NOT_OVERTURN_R4_1",
+    "direction_3_probability_compression_erases_best_direction_mean_ranking": "DOWNRANKED",
+    "direction_target_may_still_lose_absolute_utility_level_tails_support_and_clipped_large_margins": true,
+    "sizing_target_factorization_and_direction_sizing_gradient_coupling": "REMAINS_OPEN_AND_RELATIVELY_MORE_IMPORTANT",
+    "temporal_transfer_or_nonstationarity_as_r5_gap_explanation": "REMAINS_OPEN_AND_RELATIVELY_MORE_IMPORTANT",
+    "fundamental_cb16_philosophy_failure": "NOT_ESTABLISHED"
+  },
+  "legal_interpretation": [
+    "M0 shows that a majority of canonical R6 Direction changes are direct moves toward the Teacher-best Direction in every preregistered TRAIN-only outer fold.",
+    "M0 also shows that the strength of the Teacher best-Direction mean-utility advantage strongly stratifies the probability of a direct correction.",
+    "Therefore the simple hypothesis that R6 learns useful Direction information but then mostly moves Direction arbitrarily is not supported as the dominant mechanism on this support.",
+    "R4.1 remains valid: large absolute Teacher-loss improvement can still be obtained from marginal structure, so raw CE reduction remains an invalid proxy for conditional learning.",
+    "R5 remains valid: this mechanistic alignment of Direction migration does not establish independent policy improvement and does not overturn the independent purge failure.",
+    "The remaining R5 gap should now be investigated through objective/baseline preservation, sizing factorization and gradient coupling, and temporal transfer rather than by assuming wholesale undirected Direction drift."
+  ],
+  "next_legal_direction": {
+    "stage": "M1_DIRECTION_RELATIVE_SUFFICIENCY_AND_OBJECTIVE_AUDIT",
+    "purpose": "Before training a new residual policy, determine how much of the exact best-by-Direction mean-utility geometry is already retained by the reduced three-probability Teacher target, whether softmax clipping materially loses Direction margin, and which part of Champion-relative Direction learning is a reparameterization/objective change rather than genuinely new Teacher information.",
+    "support": "CONSUMED_TRAIN_ONLY_MECHANISTIC_ONLY",
+    "training_required": false,
+    "r7_candidate_evaluation": false,
+    "final_holdout": "CLOSED",
+    "fresh_data": false,
+    "m2_residual_training_before_m1": false
+  }
+}
