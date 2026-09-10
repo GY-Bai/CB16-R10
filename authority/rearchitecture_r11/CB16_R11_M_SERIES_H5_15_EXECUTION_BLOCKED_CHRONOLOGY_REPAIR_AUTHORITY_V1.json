@@ -1,0 +1,79 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_15_EXECUTION_BLOCKED_CHRONOLOGY_REPAIR_AUTHORITY_V1",
+  "stage": "R11_M_SERIES_H5_15_EXECUTION_BLOCKED_CHRONOLOGY_REPAIR",
+  "status": "REPAIR_AUTHORIZED__SCIENTIFIC_RESULT_UNEVALUATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "original_preregistration": {
+    "commit": "99509da77e0e09ac91a15f6940fbcb4e1dc69c4d",
+    "gate_path": "authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_GATE_V1.json",
+    "gate_blob": "1d73d20b6863629cb11e864bbaa3c09dc524c935",
+    "gate_must_remain_byte_identical": true
+  },
+  "blocked_execution": {
+    "execution_head": "f860256acf4d432fd8c761b9c914394655325aae",
+    "workflow_run_id": 34525417797,
+    "workflow_job_id": 103033033485,
+    "artifact_id": 10171457649,
+    "artifact_sha256": "d1a0374307a54922a18fa1745a525ae3866b7170a56d482fba8ce6e2f02eb914",
+    "result_json_sha256": "a8d2af21cd80e87c493c682ba67472a5e638049c5d56355232fcbd66ed52abca",
+    "classification": "EXECUTION_BLOCKED__DEPENDENCE_OR_SCENARIO_BUNDLE_DRIFT",
+    "valid_pair_count": 0,
+    "ridge_scientific_evaluation_occurred": false,
+    "h5_12r_parent_max_aligned_abs_error": 0.0,
+    "h5_12r_parent_max_null_median_abs_error": 0.0,
+    "all_future_group_ids_unique": true,
+    "all_future_groups_have_exactly_six_scenarios": true,
+    "strict_timestamp_increase_failed_in_all_five_folds": true
+  },
+  "root_cause": {
+    "type": "EXECUTOR_GATE_SEMANTIC_OVERCONSTRAINT",
+    "description": "THE_EXECUTOR_IMPLEMENTED_CHRONOLOGICAL_FUTURE_GROUP_ORDER_AS_STRICT_TIMESTAMP_INCREASE__THIS_INCORRECTLY_REQUIRES_ONE_UNIQUE_TIMESTAMP_PER_FUTURE_GROUP_AND_REJECTS_MULTIPLE_DISTINCT_DEPENDENCE_GROUPS_AT_THE_SAME_DECISION_CLOCK",
+    "not_a_scientific_result": true,
+    "not_a_parent_reproduction_failure": true,
+    "not_a_state_dimension_failure": true,
+    "not_a_scenario_bundle_cardinality_failure": true
+  },
+  "inherited_chronology_authority": {
+    "source_path": "cb16_local_opt/medium48_temporal_halfblock_stability_h510.py",
+    "source_blob": "176983eb0f7beb6396823126f4bc1504c4418054",
+    "existing_check": "timestamps == sorted(timestamps)",
+    "existing_half_boundary_check": "half0_last_timestamp <= half1_first_timestamp",
+    "semantic_meaning": "CHRONOLOGICAL_ORDER_IS_NONDECREASING_IN_TIMESTAMP__TIES_ARE_ALLOWED__FUTURE_GROUP_ID_NOT_TIMESTAMP_IS_THE_DEPENDENCE_IDENTITY",
+    "consistent_with_h5_15_preregistration": "H5_15_GATE_REQUIRES_PAIR_SIDE_GROUP_ORDER_UNIQUE_AND_CHRONOLOGICAL__IT_DOES_NOT_REQUIRE_UNIQUE_TIMESTAMPS"
+  },
+  "authorized_repair": {
+    "scope": "EXECUTOR_CHRONOLOGY_RECEIPT_AND_PREDICATE_ONLY",
+    "replace": "timestamps[i] < timestamps[i+1]",
+    "with": "timestamps[i] <= timestamps[i+1]",
+    "retain_unique_future_group_id_gate": true,
+    "retain_exact_six_scenario_gate": true,
+    "record_tied_adjacent_timestamp_count": true,
+    "record_unique_decision_clock_count": true,
+    "original_gate_change_authorized": false,
+    "model_change_authorized": false,
+    "ridge_alpha_change_authorized": false,
+    "feature_change_authorized": false,
+    "label_change_authorized": false,
+    "metric_or_threshold_change_authorized": false,
+    "negative_control_change_authorized": false,
+    "pair_or_fold_change_authorized": false,
+    "support_or_normalization_change_authorized": false,
+    "calendar_or_fold_id_feature_authorized": false
+  },
+  "replay_semantics": {
+    "replay_allowed": true,
+    "reason": "THE_ORIGINAL_RUN_PRODUCED_ZERO_VALID_PAIRS_AND_NO_RIDGE_SCIENTIFIC_EVALUATION__THE_REPLAY_EXECUTES_THE_ORIGINAL_FROZEN_PREREGISTRATION_AFTER_REMOVING_ONLY_AN_EXECUTOR_OVERCONSTRAINT",
+    "replay_is_not_new_preregistration": true,
+    "replay_is_not_result_adaptive_rescue": true,
+    "all_original_h5_15_scientific_gates_remain_frozen": true
+  },
+  "authority_effect": {
+    "frozen_market_information_verdict_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "frozen_market_information_verdict_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_architecture_change_authorized": false,
+    "runtime_gate_authorized": false,
+    "final_holdout_opening_authorized": false,
+    "r7_evaluation_authorized": false
+  },
+  "next_legal_step": "PATCH_ONLY_THE_H5_15_EXECUTOR_CHRONOLOGY_PREDICATE_AND_RECEIPT_TO_INHERITED_NONDECREASING_TIMESTAMP_SEMANTICS__KEEP_THE_ORIGINAL_GATE_BYTE_IDENTICAL__REPLAY_H5_15_ONCE__THEN_ADJUDICATE_THE_REPLAY_RESULT"
+}
