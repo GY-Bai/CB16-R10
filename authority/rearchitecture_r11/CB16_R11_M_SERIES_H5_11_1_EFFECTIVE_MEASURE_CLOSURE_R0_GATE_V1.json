@@ -1,0 +1,80 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_11_1_EFFECTIVE_MEASURE_CLOSURE_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_11_1_EFFECTIVE_MEASURE_CLOSURE_R0",
+  "status": "PREREGISTERED__UNEVALUATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_11_adjudication_commit": "ffa3c1c1c9277e6ed50c66dc66aff0079a0cf8ee",
+    "h5_11_adjudication_blob": "58f9c604cab90f61853bf6bb8594371485b21caf",
+    "h5_11_execution_head": "209b3096fd563b51b8ba96609ac12e78768da5af",
+    "h5_11_helper_blob": "918f98d499ff5ed2f36e7d6a6bf3268fca37c27c",
+    "required_h5_11_classification": "COARSENED_COMMON_SUPPORT_CONDITIONAL_MAPPING_INSTABILITY_SUPPORTED"
+  },
+  "question": "DID_THE_ACTUAL_H5_11_LOCAL_WEIGHT_NORMALIZATION_AND_MACRO_AGGREGATION_INDUCE_THE_SAME_EFFECTIVE_MACRO_CANDIDATE_CELL_MEASURE_Q_ON_BOTH_ENVIRONMENT_SIDES_AS_CLAIMED_BY_THE_NOMINAL_POST_WEIGHT_RECEIPT",
+  "audit_type": "OUTCOME_UNUSED_AUTHORITY_CLOSURE_AUDIT__NO_NEW_MARKET_INFORMATION_TEST",
+  "frozen_objects": {
+    "adjacent_pairs": [[1,2],[2,3],[3,4],[4,5]],
+    "grid": "EXACT_H5_11_3X3_OPERATOR_X_MEDIUM_RANK_PERCENTILE_GRID",
+    "base_measure": "EXACT_H5_11_TARGET_FUTURE_GROUP_EQUAL__SCENARIO_EQUAL__CANDIDATE_EQUAL",
+    "pair_overlap_q": "EXACT_H5_11_Q_C_PROPORTIONAL_TO_P_A_C_P_B_C_DIVIDED_BY_P_A_C_PLUS_P_B_C",
+    "cell_multipliers": "EXACT_H5_11_M_E_C_EQUALS_Q_C_DIVIDED_BY_P_E_C",
+    "local_weight_usage": "EXACT_H5_11_WEIGHTED_CORRELATION_NORMALIZES_W_EQUALS_M_E_CELL_WITHIN_EACH_TARGET_FUTURE_GROUP_X_SCENARIO",
+    "macro_usage": "EXACT_H5_11_EQUAL_MEAN_OVER_SIX_SCENARIO_STATISTICS_THEN_EQUAL_MEAN_OVER_TARGET_FUTURE_GROUPS",
+    "utility_values_used_by_audit_computation": false,
+    "teacher_or_student_used": false
+  },
+  "definitions": {
+    "nominal_post_weight_cell_mass": "NORMALIZE_OVER_C_OF_P_E_C_TIMES_M_E_C__THIS_IS_THE_H5_11_RECEIPT_AND_EQUALS_Q_ALGEBRAICALLY",
+    "local_normalized_candidate_weight": "FOR_ANCHOR_SCENARIO_I_AND_CANDIDATE_J__W_TILDE_IJ_EQUALS_M_E_CELL_IJ_DIVIDED_BY_SUM_K_M_E_CELL_IK",
+    "effective_macro_candidate_cell_mass": "P_TILDE_E_C_EQUALS_ONE_OVER_NUMBER_TARGET_GROUPS_TIMES_ONE_OVER_SIX_TIMES_SUM_OVER_ANCHOR_SCENARIOS_I_AND_CANDIDATES_J_IN_CELL_C_OF_W_TILDE_IJ",
+    "effective_mass_sums_to_one": true,
+    "interpretation": "P_TILDE_DESCRIBES_THE_CANDIDATE_WEIGHT_MASS_ACTUALLY_USED_AFTER_THE_LOCAL_NORMALIZATION_STEP_UNDER_THE_FROZEN_TARGET_SCENARIO_MACRO_WEIGHTS__IT_DOES_NOT_LINEARIZE_THE_NONLINEAR_AVERAGE_OF_PARTIAL_CORRELATIONS"
+  },
+  "primary_receipts": {
+    "per_pair_per_side_nominal_mass": true,
+    "per_pair_per_side_effective_macro_candidate_mass": true,
+    "per_pair_per_side_max_abs_effective_minus_q": true,
+    "per_pair_effective_side_to_side_max_abs_difference": true,
+    "per_pair_per_side_l1_and_total_variation_effective_minus_q": true,
+    "per_pair_l1_and_total_variation_between_effective_sides": true,
+    "per_pair_per_side_target_scenario_raw_multiplier_sum_min_max": true,
+    "h5_11_q_reproduced_from_frozen_design_tolerance": 1e-12
+  },
+  "exact_closure_gate": {
+    "tolerance": 1e-12,
+    "requires_every_pair_side_max_abs_effective_minus_q_le_tolerance": true,
+    "requires_every_pair_effective_side_to_side_max_abs_difference_le_tolerance": true,
+    "no_approximate_threshold_or_rescue_class": true
+  },
+  "preregistered_classification": {
+    "H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_CONFIRMED": "ALL_EXACT_CLOSURE_REQUIREMENTS_PASS_AT_1E_MINUS_12",
+    "H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_FALSE__SHARED_CELL_MULTIPLIER_ROBUSTNESS_ONLY": "ANY_EXACT_CLOSURE_REQUIREMENT_FAILS_AT_1E_MINUS_12_WHILE_FROZEN_H5_11_Q_AND_MULTIPLIERS_REPRODUCE",
+    "EXECUTION_BLOCKED__H5_11_DESIGN_REPRODUCTION_FAILED": "ANY_FROZEN_H5_11_Q_OR_REQUIRED_DESIGN_OBJECT_FAILS_REPRODUCTION_AT_1E_MINUS_12"
+  },
+  "authority_effect": {
+    "if_exact_claim_confirmed": "H5_11_COMMON_MEASURE_WORDING_REMAINS_UNCHANGED__H5_12_MAY_BE_RECONSIDERED_ONLY_AFTER_ADJUDICATION",
+    "if_exact_claim_false": "H5_11_ORIENTATION_NUMBERS_REMAIN_VALID_AS_SHARED_OUTCOME_BLIND_CELL_MULTIPLIER_ROBUSTNESS_RESULTS_BUT_THE_STRONG_CLAIM_THAT_NATIVE_OCCUPANCY_WAS_EXACTLY_REPLACED_BY_THE_SAME_EFFECTIVE_Q_IS_WITHDRAWN__H5_11_DOES_NOT_BY_ITSELF_RULE_OUT_COARSENED_OCCUPANCY_ONLY_EXPLANATIONS__H5_12_REMAINS_HELD_PENDING_A_CORRECTED_SEPARATELY_PREREGISTERED_STANDARDIZATION_TEST",
+    "market_information_verdict_changed": false,
+    "canonical_change_authorized": false,
+    "learned_gate_authorized": false,
+    "time_or_regime_gate_authorized": false,
+    "final_opening_authorized": false
+  },
+  "forbidden_actions": {
+    "read_utility_values_for_audit_statistic": true,
+    "recompute_or_tune_h5_11_q": true,
+    "change_grid": true,
+    "change_support": true,
+    "change_normalization": true,
+    "change_distance_metric": true,
+    "change_h5_11_orientation_statistic": true,
+    "execute_h5_12": true,
+    "teacher_change": true,
+    "student_change": true,
+    "canonical_change": true,
+    "fresh_market_data": true,
+    "final_holdout_opening": true,
+    "r7_evaluation": true
+  },
+  "next_legal_step": "IMPLEMENT_AND_EXECUTE_THIS_OUTCOME_UNUSED_EFFECTIVE_MEASURE_CLOSURE_AUDIT_ONLY__ADJUDICATE_THE_H5_11_AUTHORITY_EFFECT_BEFORE_ANY_H5_12_EXECUTION_OR_NEW_STANDARDIZATION_EXPERIMENT"
+}
