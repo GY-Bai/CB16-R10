@@ -1,0 +1,201 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0",
+  "status": "ADJUDICATED__FROZEN",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "classification": "FULL102_NONLINEAR_UTILITY_MAP_WEAK_EVEN_LOCAL",
+  "frozen_market_information_verdict_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_market_information_verdict_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "authority_chain": {
+    "post_h515_reassessment_commit": "efd6427a861c836185919d8192f6f74c66cb440e",
+    "preregistration_commit": "68f2f7ea43c333983297a67a7253f963db19eb7f",
+    "preregistration_gate_blob": "b4847abda958f0c3e00b6fb23ccd4463c4e41084",
+    "pre_execution_clarification_commit": "1fe97c634f0d7850dc638b51f8e068e5c5957e84",
+    "pre_execution_clarification_blob": "c92f8dcbed19175e4781a6095105bd1bd49d20ed",
+    "h515_adjudication_commit": "1d5c68706cbc227a014951e8df12eada6440e084",
+    "h515_adjudication_blob": "22fd3a62b9695e3246eb95b457bfb36ad0b4ce29",
+    "h515_reassessment_blob": "41a1b0e70c612ea268d84c15a08752edc84d0836",
+    "h55_gate_blob": "54b9492e74d5017711b671837ef402abd604c7c6",
+    "h55_adjudication_blob": "c336e2789ba41e2131679abcd1e6d51c1b545a1c",
+    "semantic_freeze_blob": "3c401a0a350984381912f7860181e3e96eb8d7cf"
+  },
+  "frozen_scientific_implementation": {
+    "h516_helper_blob": "bfa28be3ad6676f26676404bb170a73b474b6192",
+    "h516_test_blob": "7937c23facc6305b960c0ec19ae976ebb53df3ae",
+    "h516_executor_blob": "f7351e08f6a4c22c009843fc4da60661685f80d5",
+    "h55_helper_blob": "1dd00ea9b40b8da4061c0983fc44fb2307c72587",
+    "h5_helper_blob": "09b05de23c659fe6f47a43117ec70b5cafcf7d21",
+    "columnar_index_blob": "083ca6541b45577cfeb6d9a376b25e0eaf8d060a",
+    "r6_helper_blob": "bd7a8780e8dcab05cfae92744fde523ce62cc9ae",
+    "r6_executor_blob": "72bede8dd09015c702ec26ead639a81f48efe38a",
+    "shanxi_requirements_blob": "da3813ec5bfd79973e425ce49eff473db6f07c4b"
+  },
+  "execution_repair": {
+    "repair_branch": "ai/m-series-h5-16-fake-env-clock-marginal-repair-r0",
+    "repair_gate_commit": "364f66049f5dd8392b924b93ffedbe843a77258d",
+    "repair_gate_blob": "6eeb2a9ad91af8ca3e7906bca5fbd2effa60d8ba",
+    "repair_wrapper_blob": "b45ddcc24dbbfc8415e1ea116494bf834931e78f",
+    "repair_test_blob": "33cffb09b17efbd25c85ca26e5aede27d48dd4ce",
+    "execution_head": "f2c20aeb7284667858aad7a2b9552e82446771cb",
+    "scope": "ONLY_THE_FAKE_ENVIRONMENT_NEGATIVE_CONTROL_MARGINAL_GUARD_WAS_REPAIRED_FROM_EXPANDED_FUTURE_GROUP_WEIGHTED_COUNTS_TO_THE_PREREGISTERED_UNIQUE_DECISION_CLOCK_BINARY_LABEL_COUNTS__ORIGINAL_H5_16_HELPER_TEST_EXECUTOR_AND_ALL_SCIENTIFIC_GATES_REMAIN_BYTE_IDENTICAL",
+    "repair_specific_regression_tests_passed": 27,
+    "scientific_method_changed": false,
+    "rf_hyperparameters_changed": false,
+    "clock_split_changed": false,
+    "state_or_target_changed": false,
+    "classification_gate_changed": false
+  },
+  "blocked_predecessor_receipt": {
+    "run_id": 34542930624,
+    "head_sha": "5580a4e192efba98c90629f7492616185ce142d7",
+    "classification": "EXECUTION_BLOCKED__NEGATIVE_CONTROL_IDENTITY",
+    "error": "H516_FAKE_ENV_MARGINAL_DRIFT",
+    "environment_arm_completed_pair_count": 0,
+    "artifact_id": 10177999386,
+    "artifact_digest_sha256": "e0e684d9dd2e7ecb22593a49fcd97b92e567b040193c5c3e2d09cc590c89f17b",
+    "result_json_sha256": "bd6cece4026fd34f2d7068f23bb02cdc5bc07c570b6a76c821f9e7ef43674315",
+    "scientific_authority": "NONE_FOR_FINAL_H5_16_CLASSIFICATION",
+    "repair_reproduction_note": "THE_VALID_REPAIR_RUN_REPRODUCED_ALL_FIVE_ALREADY_COMPUTED_LOCAL_RESULT_OBJECTS_AND_THE_ALREADY_COMPUTED_FORWARD_1_TO_2_RESULT_OBJECT_EXACTLY"
+  },
+  "valid_execution": {
+    "run_id": 34538465119,
+    "job_id": 103075446477,
+    "repo_guard_run_id": 34538464715,
+    "execution_head": "f2c20aeb7284667858aad7a2b9552e82446771cb",
+    "artifact_id": 10176458565,
+    "artifact_name": "cb16-r11-m-series-h5-16-fake-env-clock-marginal-repair-r0-1",
+    "artifact_digest_sha256": "4b7326753df54d7ac3321418d4852c4abc70b0f9610e0e3fe2d20268705b722d",
+    "independent_download_sha256": "4b7326753df54d7ac3321418d4852c4abc70b0f9610e0e3fe2d20268705b722d",
+    "result_json_sha256": "7bd339a34cc81c965ce98547d7bee1f3d0c1cf9e9cfeb76453b6eef0361229b0",
+    "result_status": "H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_EXECUTION_COMPLETE",
+    "python_version": "3.10.21",
+    "sklearn_version": "1.7.2",
+    "tests_passed": 27
+  },
+  "support_receipt": {
+    "train_dependence_groups": 1619,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "raw_market_payload_used": false,
+    "r5_purge_support_used": false,
+    "legacy_validation_rows_used": false,
+    "folds": [
+      {"fold": 1, "future_group_count": 290, "unique_decision_clock_count": 29, "scenario_count_per_group": 6, "state_dimension": 102, "utility_dimension": 9},
+      {"fold": 2, "future_group_count": 274, "unique_decision_clock_count": 28, "scenario_count_per_group": 6, "state_dimension": 102, "utility_dimension": 9},
+      {"fold": 3, "future_group_count": 280, "unique_decision_clock_count": 28, "scenario_count_per_group": 6, "state_dimension": 102, "utility_dimension": 9},
+      {"fold": 4, "future_group_count": 280, "unique_decision_clock_count": 28, "scenario_count_per_group": 6, "state_dimension": 102, "utility_dimension": 9},
+      {"fold": 5, "future_group_count": 280, "unique_decision_clock_count": 28, "scenario_count_per_group": 6, "state_dimension": 102, "utility_dimension": 9}
+    ]
+  },
+  "frozen_function_class": {
+    "model": "RandomForestRegressor",
+    "n_estimators": 100,
+    "criterion": "squared_error",
+    "max_features": 10,
+    "max_depth": null,
+    "min_samples_split": 2,
+    "min_samples_leaf": 5,
+    "bootstrap": true,
+    "max_samples": null,
+    "ccp_alpha": 0.0,
+    "random_state": 51616,
+    "n_jobs": 1,
+    "target": "COMMON_CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE",
+    "input": "FROZEN_FULL102_CURRENT_STATE",
+    "hyperparameter_or_seed_search_used": false
+  },
+  "local_arm": {
+    "positive_gain_fold_count": 1,
+    "positive_gain_both_late": false,
+    "beats_shift_median_fold_count": 2,
+    "beats_shift_median_both_late": true,
+    "pairwise_shift_wins_of_25": 9,
+    "local_map_supported": false,
+    "fold_results": [
+      {"fold": 1, "baseline_loss": 0.00007335334630537752, "true_binding_gain": -0.0000030866156334648513, "median_shift_control_gain": -0.0000012846220387445522, "positive_gain": false, "beats_shift_median": false, "beats_each_shift_count": 1},
+      {"fold": 2, "baseline_loss": 0.00007735281224792848, "true_binding_gain": -0.000019322730477785535, "median_shift_control_gain": -0.0000063205874712407014, "positive_gain": false, "beats_shift_median": false, "beats_each_shift_count": 0},
+      {"fold": 3, "baseline_loss": 0.00007592735236220339, "true_binding_gain": -0.00001155457097423975, "median_shift_control_gain": -0.000001973012784115146, "positive_gain": false, "beats_shift_median": false, "beats_each_shift_count": 0},
+      {"fold": 4, "baseline_loss": 0.00006428674047766271, "true_binding_gain": 0.0000006131924212858167, "median_shift_control_gain": -0.000002701011095768903, "positive_gain": true, "beats_shift_median": true, "beats_each_shift_count": 4},
+      {"fold": 5, "baseline_loss": 0.00008863163932749666, "true_binding_gain": -0.0000035458861600926874, "median_shift_control_gain": -0.000003964326578765514, "positive_gain": false, "beats_shift_median": true, "beats_each_shift_count": 4}
+    ]
+  },
+  "forward_arm": {
+    "native_pair_pass_count": 0,
+    "stability_pair_4_to_5_pass": true,
+    "pair_results": [
+      {"pair": [1,2], "true_binding_gain": -0.000005927599063714961, "median_shift_control_gain": -0.000005422157766704177, "beats_each_shift_count": 2, "pair_pass": false},
+      {"pair": [2,3], "true_binding_gain": -0.0000060794354543499, "median_shift_control_gain": -0.0000024966258833246304, "beats_each_shift_count": 0, "pair_pass": false},
+      {"pair": [3,4], "true_binding_gain": -0.000004716169410765364, "median_shift_control_gain": -0.000003954749663058149, "beats_each_shift_count": 2, "pair_pass": false},
+      {"pair": [4,5], "true_binding_gain": 0.0000009303047772371185, "median_shift_control_gain": -0.00000062748551410706, "beats_each_shift_count": 4, "pair_pass": true}
+    ]
+  },
+  "pooled_environment_increment_arm": {
+    "native_pair_pass_count": 0,
+    "stability_pair_4_to_5_pass": false,
+    "pair_results": [
+      {"pair": [1,2], "true_environment_increment": -0.00000016813307126086786, "median_fake_environment_increment": -0.0000008199663347570118, "beats_each_fake_environment_count": 5, "pair_pass": false},
+      {"pair": [2,3], "true_environment_increment": -0.0000009271550602373008, "median_fake_environment_increment": -0.0000005087699278359122, "beats_each_fake_environment_count": 0, "pair_pass": false},
+      {"pair": [3,4], "true_environment_increment": -0.0000009797631509660104, "median_fake_environment_increment": -0.0000010319283167742788, "beats_each_fake_environment_count": 3, "pair_pass": false},
+      {"pair": [4,5], "true_environment_increment": -0.0000010131656473106454, "median_fake_environment_increment": -0.0000007268277799100535, "beats_each_fake_environment_count": 1, "pair_pass": false}
+    ],
+    "secondary_support_separability_is_not_a_gate": true,
+    "secondary_oof_environment_accuracy": {
+      "1_2": 0.14461152882205516,
+      "2_3": 0.2950680272108844,
+      "3_4": 0.2982142857142857,
+      "4_5": 0.22202380952380957
+    }
+  },
+  "adjudication": {
+    "primary_reason": "THE_PREREGISTERED_FIXED_RF_FULL102_TO_CENTERED_UTILITY9_FUNCTION_CLASS_DID_NOT_ESTABLISH_LOCAL_LEARNABILITY__ONLY_ONE_OF_FIVE_FOLDS_HAD_POSITIVE_GAIN__THE_LATE_FOLD_POSITIVE_REQUIREMENT_FAILED__THE_SHIFT_MEDIAN_AND_20_OF_25_PAIRWISE_CONTROL_REQUIREMENTS_FAILED",
+    "supports": [
+      "THE_SPECIFIC_HYPOTHESIS_THAT_H5_15_FAILED_ONLY_BECAUSE_A_FIXED_LINEAR_READOUT_MISSED_A_ROBUST_LOCALLY_LEARNABLE_FULL102_TO_CENTERED_UTILITY9_MAPPING_IS_NOT_SUPPORTED_BY_THIS_PREDEFINED_RANDOM_FOREST_FUNCTION_CLASS",
+      "A_SMALL_FORWARD_POSITIVE_RESULT_EXISTS_FOR_THE_PREREGISTERED_4_TO_5_STABILITY_CONTROL_PAIR_ONLY"
+    ],
+    "does_not_support": [
+      "FULL102_NONLINEAR_LOCAL_MAP_EXISTS_WITH_FORWARD_NONTRANSPORT",
+      "ENVIRONMENT_INDEX_INCREMENT_AS_EVIDENCE_FOR_CONDITIONAL_RELATION_CHANGE",
+      "A_LEARNED_CONTEXT_COMPATIBILITY_GATE",
+      "A_TIME_OR_REGIME_GATE"
+    ],
+    "does_not_establish": [
+      "ABSENCE_OF_ALL_NONLINEAR_INFORMATION_IN_FULL102",
+      "CONDITIONAL_INVARIANCE_OF_UTILITY_GIVEN_FULL102",
+      "CAUSAL_CONCEPT_DRIFT",
+      "FULL_COMMON_SUPPORT_BETWEEN_ENVIRONMENTS",
+      "THAT_RANDOM_FOREST_IS_THE_CORRECT_FUNCTION_CLASS",
+      "THAT_OPERATOR48_OR_MEDIUM48_OR_ACCOUNT6_SHOULD_BE_DELETED_OR_REWEIGHTED",
+      "THAT_H5_13_GLOBAL_LEVEL_SHIFT_HAS_NO_CURRENT_STATE_EXPLANATION",
+      "INDEPENDENT_MARKET_INFORMATION_QUALIFICATION"
+    ]
+  },
+  "semantic_guards": {
+    "h5_12r_pair_side_ipf_target_used": false,
+    "target_is_common_centered_9_action_realized_utility_profile": true,
+    "rf_hyperparameter_or_seed_search_used": false,
+    "feature_subselection_ablation_or_reweighting_search_used": false,
+    "calendar_or_fold_id_runtime_input_used": false,
+    "environment_index_runtime_feature_used": false,
+    "environment_index_science_diagnostic_only": true,
+    "teacher_changed": false,
+    "student_changed": false,
+    "canonical_architecture_changed": false,
+    "learned_runtime_router_or_regime_gate_created": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_payload_opened": false,
+    "r7_candidate_evaluated": false,
+    "champion_promoted": false
+  },
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "runtime_environment_gate_authorized": false,
+    "learned_compatibility_gate_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false,
+    "promotion_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_16_RESULT__DO_NOT_AUTOMATICALLY_OPEN_H5_17__REASSESS_THE_H5_5_THROUGH_H5_16_MECHANISM_CHAIN_BEFORE_ANY_NEW_FUNCTION_CLASS_OR_RUNTIME_GATE__ANY_NEXT_EXPERIMENT_MUST_BE_SEPARATELY_PREREGISTERED_AND_MUST_NOT_TREAT_FIXED_RF_FAILURE_AS_PROOF_OF_REPRESENTATION_ABSENCE"
+}
