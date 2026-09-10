@@ -1,0 +1,168 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0",
+  "status": "PREREGISTERED__UNEVALUATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_14_adjudication_commit": "bfb87e9e1129f533939ba15c8bcba4de52d6d909",
+    "h5_14_adjudication_blob": "e02d453de9a898f4f96d3047cb7d22cae8ff7e8f",
+    "required_h5_14_classification": "TARGET_OM_CONCORDANCE_OCCUPANCY_INSUFFICIENT__GLOBAL_OFFSET_TRANSITIONS_PERSIST",
+    "h5_13_adjudication_commit": "e6301f78be3f7fe1013c1b433bb8ce8b244b3d6b",
+    "h5_13_adjudication_blob": "0851985984839fa880e0014e85ab725f52c2b0f4",
+    "required_h5_13_classification": "CENTERED_CELL_PATTERN_TRANSPORTS__GLOBAL_LEVEL_SHIFT_DOMINANT",
+    "h5_12r_adjudication_commit": "f772da0663ba7c4b930d0a7fe4ac5ffe703992b2",
+    "h5_12r_adjudication_blob": "4c9887a6649c0009d98507ffcd0f80c1ee0fd017",
+    "frozen_market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "question": "CAN_A_SINGLE_PREDEFINED_LOW_CAPACITY_MAPPING_FROM_THE_FROZEN_FULL_102D_CURRENT_STATE_TRANSPORT_FORWARD_ACROSS_ADJACENT_ENVIRONMENTS_AND_PREDICT_THE_H5_12R_OPERATOR_CONDITIONAL_MEDIUM_ALIGNMENT_LEVEL_AND_RESULTING_ORIENTATION_TRANSITIONS_WITHOUT_CALENDAR_FOLD_ID_OR_REALIZED_FUTURE_AS_INPUT",
+  "single_scientific_manipulated_variable": "REPLACE_RESULT_ADAPTIVE_HAND_SELECTED_STATE_SUMMARY_SEARCH_WITH_ONE_FIXED_FULL_102D_LINEAR_RIDGE_STATE_TO_LOCAL_ALIGNMENT_MAPPING_EVALUATED_ONLY_FORWARD_A_TO_B",
+  "frozen_examples": {
+    "adjacent_forward_pairs": [[1,2],[2,3],[3,4],[4,5]],
+    "native_flip_pairs": [[1,2],[2,3],[3,4]],
+    "positive_control_pair": [4,5],
+    "row_unit": "TARGET_FUTURE_GROUP_X_ACCOUNT_SCENARIO",
+    "dependence_authority_unit": "FUTURE_GROUP",
+    "six_scenarios_equal_within_future_group": true,
+    "no_pair_direction_reversal": true
+  },
+  "input_state": {
+    "dimension": 102,
+    "source": "EXACT_FROZEN_TARGET_ROW_FEATURE_VECTOR_FROM_THE_H5_12R_COLUMNAR_INDEX",
+    "layout": "OPERATOR48_PLUS_MEDIUM48_PLUS_ACCOUNT6",
+    "feature_subselection": false,
+    "feature_reweighting_or_ablation_scan": false,
+    "calendar_feature": false,
+    "fold_id_feature": false,
+    "future_realized_utility_feature": false,
+    "teacher_output_feature": false,
+    "student_output_feature": false,
+    "normalization": "FOR_EACH_FORWARD_PAIR_FIT_PER_COORDINATE_MEAN_AND_POPULATION_STD_ON_SIDE_A_ROWS_ONLY__STD_LE_1E_MINUS_12_REPLACED_BY_ONE_AFTER_CENTERING__APPLY_UNCHANGED_TO_SIDE_B",
+    "scenario_bundle_semantics": "MARKET96_CAN_REPEAT_ACROSS_ACCOUNT_SCENARIOS_WHILE_ACCOUNT6_REMAINS_SCENARIO_SPECIFIC__NO_SCENARIO_ID_ONE_HOT_IS_ADDED"
+  },
+  "labels": {
+    "aligned_row_target": "EXACT_H5_12R_SIDE_SPECIFIC_WEIGHTED_PARTIAL_PEARSON_RHO_FOR_EACH_TARGET_X_SCENARIO_USING_THE_FROZEN_PAIR_SPECIFIC_Q27_AND_SIDE_IPF_CANDIDATE_MULTIPLIER",
+    "structured_null_row_targets": "THE_FIVE_EXACT_H5_12R_WEIGHTED_PARTIAL_RHO_VALUES_USING_MEDIUM_SHIFTS_1_7_13_23_31_WITH_THE_SAME_ALIGNED_CANDIDATE_WEIGHTS",
+    "utility_is_used_only_to_construct_training_and_evaluation_labels": true,
+    "utility_is_never_an_input_feature": true,
+    "pair_specific_parent_weights_reproduced_before_probe": true,
+    "no_new_target_smoothing_or_thresholding": true
+  },
+  "model": {
+    "family": "DETERMINISTIC_LINEAR_RIDGE_WITH_INTERCEPT",
+    "alpha": 1.0,
+    "alpha_search": false,
+    "nonlinearity": false,
+    "interaction_terms": false,
+    "hidden_layers": 0,
+    "fit": "ON_SIDE_A_ONLY_FOR_EACH_PAIR_AND_FOR_EACH_OF_ALIGNED_PLUS_FIVE_STRUCTURED_NULL_TARGETS",
+    "solver": "NUMPY_LINEAR_SOLVE_ON_X_TRANSPOSE_X_PLUS_ALPHA_I_AFTER_TRAIN_ONLY_STANDARDIZATION_AND_CENTERING_Y",
+    "intercept": "SIDE_A_LABEL_MEAN",
+    "sample_weight": "EQUAL_ROW_WEIGHT__EXACTLY_SIX_ROWS_PER_FUTURE_GROUP_SO_EACH_FUTURE_GROUP_HAS_EQUAL_TOTAL_TRAIN_WEIGHT",
+    "capacity_or_hyperparameter_search": false
+  },
+  "forward_evaluation": {
+    "predict_side": "B_ONLY",
+    "row_prediction_aggregation": "AVERAGE_SIX_SCENARIOS_WITHIN_EACH_FUTURE_GROUP_THEN_AVERAGE_FUTURE_GROUPS",
+    "actual_side_b_aligned_mean": "MUST_REPRODUCE_H5_12R_SIDE_B_ALIGNED_RHO",
+    "actual_side_b_null_means": "MUST_REPRODUCE_THE_FIVE_H5_12R_SIDE_B_STRUCTURED_NULL_RHOS",
+    "predicted_side_b_orientation": "APPLY_THE_EXACT_H5_12R_ORIENTATION_RULE_TO_PREDICTED_ALIGNED_MEAN_AND_MEDIAN_OF_FIVE_PREDICTED_NULL_MEANS",
+    "constant_baseline": "SIDE_A_LABEL_MEAN_FOR_EACH_ALIGNED_OR_NULL_TARGET__THEREFORE_BASELINE_ORIENTATION_EQUALS_SIDE_A_ORIENTATION",
+    "group_qmse": "MEAN_SQUARED_ERROR_ACROSS_FUTURE_GROUP_MEAN_LABELS_AND_FUTURE_GROUP_MEAN_PREDICTIONS_ON_SIDE_B",
+    "baseline_group_qmse": "SAME_B_LABELS_VERSUS_CONSTANT_SIDE_A_LABEL_MEAN"
+  },
+  "negative_controls": {
+    "training_state_bundle_shifts": [1,7,13,23,31],
+    "definition": "WITHIN_SIDE_A_CHRONOLOGICAL_TARGET_FUTURE_GROUP_ORDER_CYCLICALLY_SHIFT_THE_ENTIRE_SIX_SCENARIO_102D_STATE_BUNDLE_BY_THE_FIXED_GROUP_SHIFT_WHILE_KEEPING_ALIGNED_AND_NULL_LABEL_BUNDLES_AT_THEIR_ORIGINAL_TARGET_GROUPS__SCENARIO_INDEX_IS_PRESERVED_WITHIN_BUNDLE",
+    "fit_same_six_ridge_models_per_shift": true,
+    "side_b_inputs_unshifted": true,
+    "purpose": "DESTROY_STATE_TO_ALIGNMENT_BINDING_IN_TRAINING_WHILE_PRESERVING_STATE_MARGINALS_ACCOUNT_SCENARIO_STRUCTURE_AND_MODEL_CAPACITY",
+    "no_result_adaptive_new_shift": true
+  },
+  "primary_pair_metrics": {
+    "observed_delta_rho": "ACTUAL_B_ALIGNED_MEAN_MINUS_ACTUAL_A_ALIGNED_MEAN",
+    "predicted_delta_rho": "PREDICTED_B_ALIGNED_MEAN_MINUS_ACTUAL_A_ALIGNED_MEAN",
+    "level_recovery": "ONE_MINUS_ABS_PREDICTED_DELTA_MINUS_OBSERVED_DELTA_DIVIDED_BY_ABS_OBSERVED_DELTA__DEFINED_ONLY_FOR_THE_THREE_NATIVE_FLIP_PAIRS",
+    "shift_control_level_recovery": "SAME_METRIC_FOR_EACH_OF_FIVE_TRAINING_STATE_BUNDLE_SHIFT_MODELS",
+    "level_gate": "ALIGNED_LEVEL_RECOVERY_GT_ZERO_AND_GT_MEDIAN_OF_FIVE_SHIFT_CONTROL_LEVEL_RECOVERIES",
+    "qmse_gain": "BASELINE_GROUP_QMSE_MINUS_ALIGNED_MODEL_GROUP_QMSE",
+    "shift_control_qmse_gain": "BASELINE_GROUP_QMSE_MINUS_SHIFT_MODEL_GROUP_QMSE",
+    "qmse_gate": "ALIGNED_QMSE_GAIN_GT_ZERO_AND_GT_MEDIAN_OF_FIVE_SHIFT_CONTROL_QMSE_GAINS",
+    "orientation_gate": "PREDICTED_SIDE_B_ORIENTATION_EQUALS_ACTUAL_SIDE_B_ORIENTATION_AND_FOR_NATIVE_FLIP_PAIRS_DIFFERS_FROM_ACTUAL_SIDE_A_ORIENTATION",
+    "native_flip_pair_pass": "LEVEL_GATE_AND_QMSE_GATE_AND_ORIENTATION_GATE"
+  },
+  "positive_control": {
+    "pair": [4,5],
+    "required_actual_orientation": "POSITIVE_ALIGNMENT_TO_POSITIVE_ALIGNMENT",
+    "required_predicted_side_b_orientation": "POSITIVE_ALIGNMENT",
+    "no_level_recovery_ratio_gate_due_to_near_zero_parent_delta": true
+  },
+  "parent_reproduction_gate": {
+    "required_h5_12r_pair_side_aligned_values": {
+      "1_2_side_1": -0.012509684045844762,
+      "1_2_side_2": 0.07730006699262673,
+      "2_3_side_2": 0.07715614853227404,
+      "2_3_side_3": -0.06489947963947308,
+      "3_4_side_3": -0.06475864398633559,
+      "3_4_side_4": 0.0274523536839416,
+      "4_5_side_4": 0.027368387155182364,
+      "4_5_side_5": 0.024395056580269282
+    },
+    "required_h5_12r_pair_side_null_medians": {
+      "1_2_side_1": 0.02684489713060975,
+      "1_2_side_2": 0.02109081084215446,
+      "2_3_side_2": 0.021104988397598765,
+      "2_3_side_3": -0.009878361539897731,
+      "3_4_side_3": -0.010623334822663425,
+      "3_4_side_4": 0.0070842618530431445,
+      "4_5_side_4": 0.006870778298632983,
+      "4_5_side_5": 0.011875436825137883
+    },
+    "tolerance": 1e-12,
+    "required_h5_12r_classification": "ACCOUNT6_EXACT_EFFECTIVE_MARGIN_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST",
+    "required_h5_13_classification": "CENTERED_CELL_PATTERN_TRANSPORTS__GLOBAL_LEVEL_SHIFT_DOMINANT",
+    "required_h5_14_classification": "TARGET_OM_CONCORDANCE_OCCUPANCY_INSUFFICIENT__GLOBAL_OFFSET_TRANSITIONS_PERSIST",
+    "if_failed": "EXECUTION_BLOCKED__H5_14_H5_13_H5_12R_PARENT_REPRODUCTION_FAILED"
+  },
+  "preregistered_classification": {
+    "FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_SUPPORTED": "VALID_EXECUTION_AND_ALL_THREE_NATIVE_FLIP_PAIRS_PASS_LEVEL_QMSE_AND_ORIENTATION_GATES_AND_F4_TO_F5_PREDICTED_SIDE_B_ORIENTATION_IS_POSITIVE_ALIGNMENT",
+    "FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_NOT_SUPPORTED": "VALID_EXECUTION_AND_ZERO_OF_THREE_NATIVE_FLIP_PAIRS_PASS_THE_COMBINED_LEVEL_QMSE_ORIENTATION_GATE_WHILE_F4_TO_F5_PREDICTED_SIDE_B_ORIENTATION_IS_POSITIVE_ALIGNMENT",
+    "FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_PARTIAL_OR_MIXED": "VALID_EXECUTION_NOT_SATISFYING_EITHER_STRONG_CLASS",
+    "EXECUTION_BLOCKED__H5_14_H5_13_H5_12R_PARENT_REPRODUCTION_FAILED": "ANY_REQUIRED_PARENT_CLASSIFICATION_OR_H5_12R_NUMERIC_VALUE_FAILS_FROZEN_AUTHORITY",
+    "EXECUTION_BLOCKED__FULL_STATE_DIMENSION_OR_LAYOUT_DRIFT": "ANY_TARGET_ROW_DOES_NOT_HAVE_EXACTLY_102_FINITE_FROZEN_FEATURES",
+    "EXECUTION_BLOCKED__RIDGE_NUMERICAL_FAILURE": "ANY_REQUIRED_ALIGNED_NULL_OR_SHIFT_CONTROL_RIDGE_FIT_OR_PREDICTION_IS_NONFINITE_OR_LINEAR_SOLVE_FAILS",
+    "EXECUTION_BLOCKED__DEPENDENCE_OR_SCENARIO_BUNDLE_DRIFT": "ANY_FUTURE_GROUP_DOES_NOT_HAVE_EXACTLY_THE_SIX_FROZEN_SCENARIOS_OR_PAIR_SIDE_GROUP_ORDER_IS_NOT_UNIQUE_AND_CHRONOLOGICAL"
+  },
+  "interpretation_limits": {
+    "supported_result_would_establish": "A_SINGLE_PREDEFINED_LOW_CAPACITY_LINEAR_FUNCTION_OF_THE_FROZEN_FULL_CURRENT_STATE_CONTAINS_FORWARD_TRANSPORTABLE_INFORMATION_ABOUT_THE_BROAD_OPERATOR_CONDITIONAL_MEDIUM_ALIGNMENT_LEVEL_SUFFICIENT_TO_PREDICT_ALL_THREE_NATIVE_ORIENTATION_TRANSITIONS_UNDER_THE_PREREGISTERED_GATES",
+    "not_supported_result_would_establish": "THIS_PREDEFINED_FULL_102D_LINEAR_RIDGE_PROBE_DOES_NOT_FORWARD_TRANSPORT_THE_BROAD_ALIGNMENT_OFFSET_BETTER_THAN_ITS_FIXED_STATE_BINDING_NEGATIVE_CONTROLS_ON_ANY_NATIVE_FLIP_PAIR",
+    "does_not_establish": [
+      "FULL_102D_STATE_HAS_NO_NONLINEAR_OR_HIGHER_ORDER_PREDICTIVE_INFORMATION",
+      "A_RUNTIME_COMPATIBILITY_GATE_IS_VALID",
+      "A_LEARNED_ENGRAM_STYLE_GATE_IS_AUTHORIZED",
+      "TIME_OR_CALENDAR_CAUSALITY",
+      "A_DISCRETE_REGIME",
+      "MEDIUM48_SHOULD_BE_DELETED_OR_REWEIGHTED",
+      "TEACHER_OR_STUDENT_SHOULD_CHANGE",
+      "INDEPENDENT_MARKET_INFORMATION_IS_QUALIFIED"
+    ]
+  },
+  "forbidden_actions": {
+    "alpha_or_model_family_search": true,
+    "feature_subselection_ablation_or_reweighting_search": true,
+    "nonlinear_model_or_interaction_search": true,
+    "post_result_metric_threshold_or_control_change": true,
+    "calendar_or_fold_id_input": true,
+    "realized_future_or_utility_as_input": true,
+    "teacher_change": true,
+    "student_change": true,
+    "canonical_architecture_change": true,
+    "medium_or_account_reweighting_as_architecture": true,
+    "learned_router_or_runtime_gate": true,
+    "handcrafted_time_or_regime_gate": true,
+    "fresh_market_data": true,
+    "final_holdout_opening": true,
+    "r7_evaluation": true,
+    "champion_promotion": true
+  },
+  "next_legal_step": "IMPLEMENT_AND_EXECUTE_THIS_H5_15_BOUNDED_FULL_STATE_LINEAR_FORWARD_TRANSPORT_PROBE_ONLY__NO_ALPHA_FEATURE_MODEL_OR_NONLINEAR_SEARCH__FORMALLY_ADJUDICATE_BEFORE_ANY_RUNTIME_GATE_OR_CANONICAL_CHANGE"
+}
