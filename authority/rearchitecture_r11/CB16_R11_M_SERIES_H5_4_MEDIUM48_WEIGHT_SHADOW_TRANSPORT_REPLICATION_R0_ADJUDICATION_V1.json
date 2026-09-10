@@ -4,11 +4,27 @@
   "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
   "source": {
     "preregistration_commit": "6f61aa82363e0eb891976170738d8cfe72dc7cbb",
+    "gate_blob": "ad4ef534b6f4968de3b751c89534491a27653e2c",
+    "implementation_branch": "ai/m-series-h5-4-medium48-weight-shadow-transport-replication-r0-work",
     "execution_head": "7fe2e38b55d93716a336f3eefbcdf1ed457d9ca0",
     "github_actions_run_id": 34445746778,
     "github_actions_conclusion": "success",
     "artifact_id": 10139663732,
-    "artifact_digest": "sha256:6a688a9c4859c4e3c2e4eabedd36ad883eee2eca89f53a2f5e4934b764060296"
+    "artifact_digest": "sha256:6a688a9c4859c4e3c2e4eabedd36ad883eee2eca89f53a2f5e4934b764060296",
+    "result_schema": "CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_RESULT_V1"
+  },
+  "support": {
+    "classification": "ALREADY_OBSERVED_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": 5,
+    "clock_blocks": 6,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "student_training": false,
+    "student_inference": false,
+    "production_teacher_changed": false,
+    "teacher_hyperparameter_tuning": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
   },
   "adjudication": {
     "overall_pass": false,
@@ -21,29 +37,41 @@
     "all_identity_guards_pass": true,
     "conclusion": "H5_4_MEDIUM48_WEIGHTING_GAIN_DOES_NOT_RESTORE_H5_STYLE_STATE_ALIGNMENT_TRANSPORT__DO_NOT_CHANGE_CANONICAL_TEACHER"
   },
+  "per_fold": [
+    {"fold":1,"shadow_qscore":0.00146559036916713,"frozen_qscore":0.0014662354153126605,"climatology_qscore":0.0016743133616537965,"median_shadow_shuffle_qscore":0.0014620822717490204,"shadow_lt_frozen":true,"shadow_lt_climatology":true,"shadow_lt_median_shuffle":false,"shadow_lt_each_shuffle_count":2},
+    {"fold":2,"shadow_qscore":0.0014825546326149497,"frozen_qscore":0.0014813988816589684,"climatology_qscore":0.0018046556387823962,"median_shadow_shuffle_qscore":0.0014851495795569025,"shadow_lt_frozen":false,"shadow_lt_climatology":true,"shadow_lt_median_shuffle":true,"shadow_lt_each_shuffle_count":3},
+    {"fold":3,"shadow_qscore":0.0015026331034698507,"frozen_qscore":0.0015052804889556922,"climatology_qscore":0.0017916777194630306,"median_shadow_shuffle_qscore":0.0015158726342865182,"shadow_lt_frozen":true,"shadow_lt_climatology":true,"shadow_lt_median_shuffle":true,"shadow_lt_each_shuffle_count":3},
+    {"fold":4,"shadow_qscore":0.0014283604209966896,"frozen_qscore":0.0014301334198175567,"climatology_qscore":0.0016985724774746345,"median_shadow_shuffle_qscore":0.0014029316376514944,"shadow_lt_frozen":true,"shadow_lt_climatology":true,"shadow_lt_median_shuffle":false,"shadow_lt_each_shuffle_count":2},
+    {"fold":5,"shadow_qscore":0.0016645816239046912,"frozen_qscore":0.0016653054149199553,"climatology_qscore":0.0018862735833099949,"median_shadow_shuffle_qscore":0.0016188391027495141,"shadow_lt_frozen":true,"shadow_lt_climatology":true,"shadow_lt_median_shuffle":false,"shadow_lt_each_shuffle_count":0}
+  ],
   "mechanistic_interpretation": {
     "supported": [
-      "THE_H5_3_SHADOW_RULE_IMPROVES_FROZEN_CANONICAL_QSCORE_IN_FOUR_OF_FIVE_FOLDS_AND_BOTH_LATE_FOLDS",
-      "THE_SHADOW_RULE_BEATS_STATE_FREE_CLIMATOLOGY_IN_ALL_FIVE_FOLDS",
-      "THE_SHADOW_RULE_DOES_NOT_RESTORE_ALIGNMENT_SPECIFIC_TRANSPORT_AGAINST_WHOLE_FUTURE_GROUP_ROTATIONS"
+      "THE_H5_3_DROP_MEDIUM48_POST_SELECTION_WEIGHT_RULE_REPRODUCES_ITS_ALIGNED_QSCORE_GAIN",
+      "THE_SHADOW_RULE_IMPROVES_FROZEN_TEACHER_QSCORE_IN_FOUR_OF_FIVE_FOLDS_AND_BOTH_LATE_FOLDS",
+      "THE_SHADOW_RULE_REMAINS_BETTER_THAN_STATE_FREE_CLIMATOLOGY_IN_ALL_FIVE_FOLDS",
+      "THE_ALIGNED_QSCORE_GAIN_DOES_NOT_RESTORE_STATE_ALIGNMENT_SPECIFICITY_AGAINST_WHOLE_FUTURE_GROUP_ROTATIONS"
     ],
     "not_supported": [
-      "MEDIUM48_POST_SELECTION_WEIGHTING_IS_A_SUFFICIENT_CAUSE_OF_H5_STATE_ALIGNMENT_FAILURE",
+      "MEDIUM48_POST_SELECTION_WEIGHTING_IS_THE_SUFFICIENT_CAUSE_OF_H5_TEMPORAL_TRANSPORT_FAILURE",
+      "DROP_MEDIUM48_WEIGHTING_SHOULD_REPLACE_THE_CANONICAL_TEACHER",
+      "ANOTHER_MEDIUM48_WEIGHT_OR_DISTANCE_TEMPERATURE_VARIANT_SHOULD_BE_TUNED",
       "CANONICAL_TEACHER_CHANGE",
       "CANONICAL_STUDENT_CHANGE",
       "MARKET_INFORMATION_QUALIFICATION",
       "R7_EVALUATION",
       "FINAL_OPENING"
-    ]
+    ],
+    "updated_failure_view": "THE_TEACHER_HAS_STRONG_UNCONDITIONAL_DISTRIBUTIONAL_SKILL_AND_SMALL_LOCAL_WEIGHTING_IMPROVEMENTS_BUT_THE_MAIN_UNRESOLVED_FAILURE_IS_STATE_ALIGNMENT_SPECIFIC_TEMPORAL_NONTRANSPORT"
   },
   "authority": {
     "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
     "canonical_change_authorized": false,
     "teacher_change_authorized": false,
     "student_change_authorized": false,
+    "new_direction_loss_authorized": false,
     "promotion_authorized": false,
     "r7_evaluation_authorized": false,
     "final_opening_authorized": false
   },
-  "next_legal_step": "PREREGISTER_ONE_TEACHER_FREE_STATE_TO_COUNTERFACTUAL_UTILITY_GEOMETRY_TEMPORAL_TRANSPORT_AUDIT__DO_NOT_TUNE_ANOTHER_WEIGHT_VARIANT"
+  "next_legal_step": "PREREGISTER_ONE_STUDENT_FREE_DIRECT_STATE_TO_COUNTERFACTUAL_UTILITY_GEOMETRY_TRANSPORT_AUDIT__NO_MORE_MEDIUM48_WEIGHT_TUNING__TEST_WHETHER_THE_STATE_REPRESENTATIONS_THEMSELVES_RETAIN_ALIGNMENT_SPECIFIC_UTILITY_GEOMETRY_ACROSS_TIME"
 }
