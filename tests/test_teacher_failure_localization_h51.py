@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -16,6 +16,7 @@ from cb16_local_opt.teacher_failure_localization_h51 import (
 class FakeParent:
     dependence_group_id: str
     scenario: str
+    decision_time_ms: int
 
 
 @dataclass(frozen=True)
@@ -38,7 +39,7 @@ def _fake_index():
         for si, scenario in enumerate(R41_SCENARIOS):
             pid = f"P:{g}:{scenario}"
             parent_ids.append(pid)
-            parents[pid] = FakeParent(gid, scenario)
+            parents[pid] = FakeParent(gid, scenario, 1_000_000 * g)
             x = np.zeros(102, dtype=np.float64)
             x[:48] = 10.0 + g
             x[48:96] = 20.0 + g
