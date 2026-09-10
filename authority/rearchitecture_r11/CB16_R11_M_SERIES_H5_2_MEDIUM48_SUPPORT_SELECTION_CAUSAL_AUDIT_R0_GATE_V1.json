@@ -1,11 +1,21 @@
 {
   "schema": "CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_GATE_V1",
   "stage": "R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0",
-  "status": "PREREGISTERED",
+  "status": "PREREGISTERED_PRE_EXECUTION_CONTRACT_CLARIFIED",
   "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
   "parent": {
     "h5_1_adjudication_commit": "721473ebacac0f6fb33acc3b0c6a699b3fa1225b",
     "h5_1_conclusion": "H5_1_LOCALIZED__MARKET_STATE_TRANSPORT_FAILURE__TAIL_CALIBRATION_PRIMARY=FALSE__MARKET_SUB=MEDIUM48_PRIMARY"
+  },
+  "pre_execution_clarification": {
+    "outcome_exposure_before_clarification": false,
+    "primary_metric_changed": false,
+    "pass_fail_gate_changed": false,
+    "diagnostic_state_metrics_changed": false,
+    "reason": "FULL102_STRICT_SUPPORT_HASH_IDENTITY_REQUIRES_COMPILING_THE_FROZEN_REFERENCE_TEACHER_EVIDENCE_FOR_IDENTITY_ONLY",
+    "candidate_teacher_output_compilation": false,
+    "frozen_reference_teacher_compilation_for_full102_identity_guard": true,
+    "frozen_reference_outputs_may_not_ENTER_H5_2_PROFILE_SCORING_EXCEPT_AS_SUPPORT_IDENTITY_HASHES": true
   },
   "question": "Does correctly aligned Medium48 harm late Teacher temporal transport specifically by causing the frozen nearest-neighbor support selector to choose historical dependence groups whose realized 9-action counterfactual utility profiles are less relevant to the target future?",
   "scope": {
@@ -16,7 +26,8 @@
     "student_training": false,
     "student_inference": false,
     "teacher_training": false,
-    "teacher_output_compilation": false,
+    "candidate_teacher_output_compilation": false,
+    "frozen_reference_teacher_compilation_for_identity_guard": true,
     "teacher_hyperparameter_tuning": false,
     "teacher_semantics_change": false,
     "production_teacher_change": false,
