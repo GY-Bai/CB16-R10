@@ -42,8 +42,19 @@ jobs:
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION_V1.json)" = "3f0305bea4edd77d091531987a36009038de4e40"
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json)" = "1d1254fb03cc00283423426e07ae240a196c627e"
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
-          test -d "$CB16_R104_ROOT/experience_lake/metadata"
-          test -d "$CB16_R104_ROOT/experience_lake/objects"
+          test -d "$CB16_R104_ROOT"
+
+      - name: Resolve mounted R10.4 Experience Lake root
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t DBS < <(find "$CB16_R104_ROOT" -maxdepth 5 -type f -path '*/metadata/experience_00.sqlite' -print | sort)
+          test "${#DBS[@]}" -eq 1
+          META_DIR=$(dirname "${DBS[0]}")
+          LAKE_ROOT=$(dirname "$META_DIR")
+          test -d "$LAKE_ROOT/objects"
+          printf '%s\n' "$LAKE_ROOT" > "$RUNNER_TEMP/cb16_r6_lake_root.txt"
+          printf 'Resolved R6 TRAIN-only Lake root: %s\n' "$LAKE_ROOT"
 
       - name: Compile provenance probe
         shell: bash
@@ -56,8 +67,9 @@ jobs:
         run: |
           set -euo pipefail
           OUT="$RUNNER_TEMP/CB16_R11_SCIENCE_G0_R6_TRAIN_ONLY_PROVENANCE_PREFLIGHT.json"
+          LAKE_ROOT=$(cat "$RUNNER_TEMP/cb16_r6_lake_root.txt")
           python3 scripts/r11_science_g0_r6_train_only_provenance_preflight.py \
-            --lake-root "$CB16_R104_ROOT/experience_lake" \
+            --lake-root "$LAKE_ROOT" \
             --output "$OUT"
           printf '%s\n' "$OUT" > "$RUNNER_TEMP/cb16_r6_provenance_out.txt"
 
