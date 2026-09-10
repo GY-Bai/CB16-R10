@@ -1,0 +1,103 @@
+name: CB16 R11 Science G0 Independent Support Inventory R5.0
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-independent-support-inventory-r5-0
+    paths:
+      - scripts/r11_science_g0_independent_support_inventory_r5_0.py
+      - .github/workflows/cb16-r11-science-g0-independent-support-inventory-r5-0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  inventory-r50:
+    name: R11 metadata-only independent support inventory R5.0
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify non-outcome inventory authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 38c2e856a163c2a436c0bd7a897f14fd935983d8 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_market.py)" = "f3ea90f99565a36135da123ef0034057534eb40e"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:scripts/run_r104_long_research.py)" = "b5152ccc33c560edeeff9c2f32bd1d56ee4cfcdb"
+          test -f "$CB16_G0_ROOT/authority/CB16_R11_G0_DERIVED_CACHE_LINEAGE.json"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+          test -f "$CB16_R104_ROOT/generations/G66/GENERATION_RESULT.json"
+          test -f "$CB16_R104_ROOT/generations/G66/SNAPSHOT_CONSUMPTION_G66.json"
+
+      - name: Compile metadata-only probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/r11_science_g0_independent_support_inventory_r5_0.py
+
+      - name: Execute metadata-only support inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/CB16_R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0.json"
+          python3 scripts/r11_science_g0_independent_support_inventory_r5_0.py \
+            --g0-root "$CB16_G0_ROOT" --r104-root "$CB16_R104_ROOT" --output "$OUT"
+          printf '%s\n' "$OUT" > "$RUNNER_TEMP/cb16_r5_0_inventory_out.txt"
+
+      - name: Verify no-outcome receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=$(cat "$RUNNER_TEMP/cb16_r5_0_inventory_out.txt")
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='INDEPENDENT_PURGE_GAP_SUPPORT_METADATA_QUALIFIED',x
+          assert x['market_payload_files_opened']==0,x
+          assert x['teacher_outcomes_compiled']==0,x
+          assert x['final_holdout_payload_opened'] is False,x
+          assert x['fresh_market_data_downloaded'] is False,x
+          assert x['scientific_verdict_created'] is False,x
+          assert x['candidate_timestamp']=='2024-12-28T08:00:00Z',x
+          assert x['candidate_future_group_count']==10,x
+          assert len(x['candidate_symbols'])==10,x
+          assert all(r['legacy_train_or_validation_consumed'] is False for r in x['per_symbol']),x
+          assert x['legacy_consumption_proof']['candidate_was_not_legacy_train_or_validation'] is True,x
+          print(json.dumps({
+            'status':x['status'],
+            'candidate_timestamp':x['candidate_timestamp'],
+            'candidate_future_group_count':x['candidate_future_group_count'],
+            'candidate_symbols':x['candidate_symbols'],
+            'market_payload_files_opened':x['market_payload_files_opened'],
+            'teacher_outcomes_compiled':x['teacher_outcomes_compiled'],
+            'next_legal_step':x['next_legal_step'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload R5.0 metadata receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-independent-support-inventory-r5-0-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/CB16_R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0.json
+          if-no-files-found: warn
+          retention-days: 30
