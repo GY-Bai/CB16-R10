@@ -1,0 +1,200 @@
+name: CB16 R11 Science G0 Reduced Teacher Target Information Audit R6
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-reduced-teacher-target-information-audit-r6
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json
+      - cb16_local_opt/reduced_teacher_target_information_audit_r6.py
+      - tests/test_reduced_teacher_target_information_audit_r6.py
+      - scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py
+      - scripts/r11_science_g0_reduced_teacher_target_information_audit_r6_entrypoint.py
+      - .github/workflows/cb16-r11-science-g0-reduced-teacher-target-information-audit-r6.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  reduced-teacher-target-information-r6:
+    name: R11 train-only reduced Teacher target information audit R6
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable R6 preregistration and authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor de46ec7c436151a95a98ce0da1b841fc12daf510 HEAD
+          test "$(git rev-parse de46ec7c436151a95a98ce0da1b841fc12daf510:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json)" = "1d1254fb03cc00283423426e07ae240a196c627e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json)" = "1d1254fb03cc00283423426e07ae240a196c627e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION_V1.json)" = "3f0305bea4edd77d091531987a36009038de4e40"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/training_runtime_r11.py)" = "56c227800d7a5c82ef88c691bb69d7550aee8b39"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_runtime_r11.py)" = "656f1483f2e6a96daae5c98eb96cd75805d3547c"
+          test -f "$CB16_G0_ROOT/bootstrap/R11_G0_INITIAL_CHAMPION.pt"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+          test -d "$CB16_PACKAGE_ROOT"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r6_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r6_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run R6 unit and regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r6_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/reduced_teacher_target_information_audit_r6.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py \
+            scripts/r11_science_g0_reduced_teacher_target_information_audit_r6_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_canonical_state_alignment_falsification_r41.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_training_integration_r11.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_teacher_runtime_r11.py
+
+      - name: Execute preregistered R6 train-only audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r6_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-r6-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r6_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_reduced_teacher_target_information_audit_r6_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --r104-root "$CB16_R104_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_RESULT.json" \
+            --device cuda
+
+      - name: Verify R6 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r6_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_RESULT_V1',x
+          assert x['frozen_scientific_status_before']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          assert x['frozen_scientific_status_after']==x['frozen_scientific_status_before'],x
+          s=x['semantic_guards']
+          assert s['canonical_generation_advanced'] is False,x
+          assert s['champion_promoted'] is False,x
+          assert s['production_cutover'] is False,x
+          assert s['market_information_verdict_reopened'] is False,x
+          assert s['final_holdout_payload_opened'] is False,x
+          assert s['fresh_market_data_downloaded'] is False,x
+          assert s['r5_purge_support_reopened'] is False,x
+          assert s['legacy_validation_rows_used'] is False,x
+          assert s['raw_market_payload_used'] is False,x
+          assert s['frozen_package_unchanged'] is True and s['g0_authority_unchanged'] is True,x
+          if x['status']=='R11_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_SUPPORT_NOT_READY':
+              assert x['support_readiness']['ready'] is False,x
+              assert x['primary_adjudication_performed'] is False,x
+              print(json.dumps({
+                  'status':x['status'],
+                  'reason':x['support_readiness']['reason'],
+                  'next_legal_step':x['next_legal_step'],
+              },indent=2,sort_keys=True))
+          else:
+              assert x['status']=='R11_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_PASS',x
+              assert len(x['fold_results'])==5,x
+              for f in x['fold_results']:
+                  assert f['fold'] in [1,2,3,4,5],f
+                  assert set(f['arms'])=={'ALIGNED','SHUFFLE_1','SHUFFLE_7','SHUFFLE_13','SHUFFLE_23','SHUFFLE_31'},f
+                  assert f['outer_support']['train_to_eval_gap_hours'] >= 72.0,f
+                  assert f['teacher']['eval_outcomes_absent_from_train_teacher_index'] is True,f
+                  assert f['marginal_baseline']['no_state_features'] is True,f
+                  for arm in f['arms'].values():
+                      assert arm['generation_seed']==24680,arm
+                      assert set(arm['gradient_owner_set_last_step']) == {
+                          'Operator Brain Stem','Medium Brain Stem','Account Brain Stem',
+                          'Shared Decision Core','Direction Head','Requested-Risk Head'
+                      },arm
+                      assert all(math.isfinite(float(arm['validation_after'][k])) for k in ('loss','direction_loss','sizing_loss')),arm
+              a=x['audit_summary']
+              assert len(a['all_25_pairwise'])==25,a
+              assert a['conclusion'] in {
+                  'TRAIN_ONLY_CONDITIONAL_INFORMATION_SUPPORTED',
+                  'TRAIN_ONLY_CONDITIONAL_INFORMATION_NOT_SUPPORTED',
+              },a
+              assert a['market_information_verdict'] is False,a
+              assert a['canonical_promotion_authorized'] is False,a
+              print(json.dumps({
+                  'status':x['status'],
+                  'conclusion':a['conclusion'],
+                  'total_lower_than_shuffle_median_fold_count':a['total_lower_than_shuffle_median_fold_count'],
+                  'direction_lower_than_shuffle_median_fold_count':a['direction_lower_than_shuffle_median_fold_count'],
+                  'direction_lower_than_marginal_fold_count':a['direction_lower_than_marginal_fold_count'],
+                  'sizing_lower_than_shuffle_median_fold_count':a['sizing_lower_than_shuffle_median_fold_count'],
+                  'aligned_lower_direction_pair_count_of_25':a['aligned_lower_direction_pair_count_of_25'],
+                  'next_legal_step':x['next_legal_step'],
+              },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload R6 audit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-reduced-teacher-target-information-audit-r6-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r6_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r6_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-r6-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
