@@ -96,7 +96,7 @@ jobs:
           RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-m22-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
           printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_m22_run_root.txt"
-          "$PYTHON" scripts/r11_m_series_m2_2_advantage_mirror_synthetic.py \
+          "$PYTHON" -m scripts.r11_m_series_m2_2_advantage_mirror_synthetic \
             --output "$RUN_ROOT/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_RESULT.json" \
             --device cuda
 
