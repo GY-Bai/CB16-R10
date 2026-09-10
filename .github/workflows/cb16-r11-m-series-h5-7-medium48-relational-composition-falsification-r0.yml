@@ -1,0 +1,188 @@
+name: CB16 R11 M-Series H5.7 Medium48 Relational Composition Falsification R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-7-medium48-relational-composition-falsification-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_GATE_V1.json
+      - cb16_local_opt/medium48_relational_composition_falsification_h57.py
+      - tests/test_medium48_relational_composition_falsification_h57.py
+      - scripts/r11_m_series_h5_7_medium48_relational_composition_falsification_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-7-medium48-relational-composition-falsification-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-7-medium48-relational-composition:
+    name: H5.7 Student-free Teacher-free relational composition falsification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify preregistration authority and frozen scientific inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 995fc53389646900e2033d74c4b4d6c370e92780 d5232fef2ff2fd557bb9527704c30e294f7b4aea
+          git merge-base --is-ancestor d5232fef2ff2fd557bb9527704c30e294f7b4aea HEAD
+          test "$(git rev-parse d5232fef2ff2fd557bb9527704c30e294f7b4aea:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_GATE_V1.json)" = "e1e69586da3c0cce8a2dda8270348bb558d750b3"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_GATE_V1.json)" = "e1e69586da3c0cce8a2dda8270348bb558d750b3"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_6_TIME_LOCAL_VS_FORWARD_STATE_UTILITY_GEOMETRY_CONTRAST_R0_ADJUDICATION_V1.json)" = "de6b2c53ff08b98f2232989dfd368dfe7ffa1998"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/medium48_relational_composition_falsification_h57.py)" = "fb6633f9c80ca2126d4a1663b9468646d5ad7632"
+          test "$(git rev-parse HEAD:tests/test_medium48_relational_composition_falsification_h57.py)" = "eca494719631f43f2c8fddd1dc15fd186a4d3ba0"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_7_medium48_relational_composition_falsification_r0.py)" = "47a41fbfa46213334f6e30623fce0bae4cde9382"
+          test "$(git rev-parse HEAD:cb16_local_opt/time_local_vs_forward_geometry_contrast_h56.py)" = "a264ff21d0447527c4dda06ee8fd63cf20207daf"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55.py)" = "1dd00ea9b40b8da4061c0983fc44fb2307c72587"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55_clarified.py)" = "faa5233170aa421c3bf44f023b1d8e2f7c187568"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h57_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h57_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5.7 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h57_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/medium48_relational_composition_falsification_h57.py \
+            tests/test_medium48_relational_composition_falsification_h57.py \
+            scripts/r11_m_series_h5_7_medium48_relational_composition_falsification_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_medium48_relational_composition_falsification_h57.py \
+            tests/test_time_local_vs_forward_geometry_contrast_h56.py \
+            tests/test_state_utility_geometry_transport_audit_h55.py \
+            tests/test_state_utility_geometry_transport_audit_h55_clarified.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute preregistered H5.7 relational composition falsification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h57_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h57-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h57_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_7_medium48_relational_composition_falsification_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_RESULT.json"
+
+      - name: Verify H5.7 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h57_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_RESULT_V1',x
+          assert x['status']=='H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_COMPLETE',x
+          assert x['repo']['preregistration_commit']=='d5232fef2ff2fd557bb9527704c30e294f7b4aea',x['repo']
+          assert x['repo']['immutable_blobs']['gate']=='e1e69586da3c0cce8a2dda8270348bb558d750b3',x['repo']
+          assert x['repo']['immutable_blobs']['h56_adjudication']=='de6b2c53ff08b98f2232989dfd368dfe7ffa1998',x['repo']
+          assert x['tau_gap_self_check']['positive_affine_reference_scale_identity'] is True,x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          assert len(x['folds'])==5,x
+          for f in x['folds']:
+              assert int(f['local_support_future_groups_min'])>=32,f
+              assert int(f['local_support_future_groups_min'])==int(f['local_support_future_groups_max']),f
+              assert f['all_null_medium_distance_multisets_preserved'] is True,f
+              assert float(f['market_distance_decomposition_max_abs_error']) <= 1e-10,f
+              assert float(f['operator_duplicate_96d_max_abs_error']) <= 1e-10,f
+              assert f['future_group_macro_aggregation'] is True and f['scenario_equal_weight_aggregation'] is True,f
+              assert f['teacher_compilation_used'] is False and f['teacher_kernel_used'] is False and f['teacher_support_selection_used'] is False,f
+              assert f['student_training_used'] is False and f['student_inference_used'] is False,f
+              assert f['synthetic_feature_vectors_created'] is False,f
+              assert math.isfinite(float(f['tau_operator'])) and math.isfinite(float(f['tau_true_market'])),f
+          s=x['h5_7_summary']
+          assert s['classification'] in {
+              'ALIGNED_MEDIUM_BENEFITS_AND_MARKET_BEATS_OPERATOR',
+              'ALIGNED_MEDIUM_BENEFICIAL_BUT_INSUFFICIENT_TO_BEAT_OPERATOR',
+              'ALIGNED_MEDIUM_RELATIONAL_STRUCTURE_SPECIFICALLY_HARMS_COMPOSITE_GEOMETRY',
+              'NO_STABLE_ALIGNMENT_SPECIFIC_EFFECT__GENERIC_AUGMENTATION_COMPATIBLE',
+              'MEDIUM48_RELATIONAL_COMPOSITION_MIXED_UNRESOLVED',
+          },s
+          assert s['all_geometry_identity_guards_pass'] is True,s
+          assert s['null_is_structured_negative_control_not_formal_permutation_test'] is True,s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False,s
+          assert s['teacher_change_authorized'] is False and s['student_change_authorized'] is False and s['organ_change_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['teacher_compiled_for_scientific_score'] is False and g['teacher_kernel_used'] is False and g['teacher_support_selection_used'] is False,g
+          assert g['future_utility_used_to_select_support_or_null_mapping'] is False and g['utility_outcomes_rotated'] is False,g
+          assert g['synthetic_operator_medium_feature_vectors_created'] is False,g
+          assert g['organ_weights_tuned'] is False and g['distance_metric_tuned'] is False,g
+          assert g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({
+              'status':x['status'],
+              'classification':s['classification'],
+              'conclusion':s['conclusion'],
+              'true_market_beats_operator_gate':s['true_market_beats_operator_gate'],
+              'true_market_worse_than_operator_gate':s['true_market_worse_than_operator_gate'],
+              'aligned_medium_beats_null_gate':s['aligned_medium_beats_null_gate'],
+              'aligned_medium_worse_than_null_gate':s['aligned_medium_worse_than_null_gate'],
+              'next_legal_step':x['next_legal_step'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5.7 evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-7-medium48-relational-composition-falsification-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h57_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h57_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h57-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: error
+          retention-days: 30
