@@ -42,7 +42,7 @@ PINNED = {
     ),
     "h57_helper": (
         "cb16_local_opt/medium48_relational_composition_falsification_h57.py",
-        "fb6633f9c80ca2126d4a1663b9468646d5ad7632",
+        "32c7f67960f0ea2a111bd60a19796bb797cf9ac0",
     ),
     "h57_test": (
         "tests/test_medium48_relational_composition_falsification_h57.py",

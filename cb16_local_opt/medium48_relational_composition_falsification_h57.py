@@ -31,6 +31,7 @@ from .time_local_vs_forward_geometry_contrast_h56 import (
 H57_RUNTIME = "CB16_R11_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_V1"
 H57_SHIFTS = tuple(int(x) for x in H5_SHIFTS)
 H57_MARKET_IDENTITY_ATOL = 1e-10
+H57_TAUGAP_BOUNDARY_ATOL = 1e-12
 
 
 def tau_gap_h57(reference_loss: np.ndarray, predicted_distance: np.ndarray) -> tuple[float, dict[str, int]]:
@@ -70,13 +71,23 @@ def tau_gap_h57(reference_loss: np.ndarray, predicted_distance: np.ndarray) -> t
         pcur = float(pred[cur])
         credit = np.where(pprev < pcur, 1.0, np.where(pprev > pcur, 0.0, 0.5))
         prediction_tie_pair_count += int(np.sum((gaps > 0.0) & (pprev == pcur)))
-        q = float(np.dot(gaps, credit) / denom)
-        require(0.0 <= q <= 1.0 and np.isfinite(q), "H57_TAUGAP_FRACTION_RANGE")
+        q_raw = float(np.dot(gaps, credit) / denom)
+        require(np.isfinite(q_raw), "H57_TAUGAP_FRACTION_NONFINITE")
+        require(
+            -H57_TAUGAP_BOUNDARY_ATOL <= q_raw <= 1.0 + H57_TAUGAP_BOUNDARY_ATOL,
+            f"H57_TAUGAP_FRACTION_RANGE:{q_raw}",
+        )
+        q = float(np.clip(q_raw, 0.0, 1.0))
         fractions.append(q)
 
     require(len(fractions) == len(ref) - 1, "H57_TAUGAP_RANK_COUNT")
-    tau = float(2.0 * np.mean(np.asarray(fractions, dtype=np.float64)) - 1.0)
-    require(-1.0 <= tau <= 1.0 and np.isfinite(tau), "H57_TAUGAP_RANGE")
+    tau_raw = float(2.0 * np.mean(np.asarray(fractions, dtype=np.float64)) - 1.0)
+    require(np.isfinite(tau_raw), "H57_TAUGAP_NONFINITE_RESULT")
+    require(
+        -1.0 - H57_TAUGAP_BOUNDARY_ATOL <= tau_raw <= 1.0 + H57_TAUGAP_BOUNDARY_ATOL,
+        f"H57_TAUGAP_RANGE:{tau_raw}",
+    )
+    tau = float(np.clip(tau_raw, -1.0, 1.0))
     return tau, {
         "degenerate_reference_gap_rank_count": int(degenerate_rank_count),
         "reference_zero_gap_pair_count": int(reference_zero_gap_pair_count),
