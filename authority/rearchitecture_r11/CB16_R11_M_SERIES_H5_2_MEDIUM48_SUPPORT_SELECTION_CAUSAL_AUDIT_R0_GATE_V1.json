@@ -1,0 +1,97 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_1_adjudication_commit": "721473ebacac0f6fb33acc3b0c6a699b3fa1225b",
+    "h5_1_conclusion": "H5_1_LOCALIZED__MARKET_STATE_TRANSPORT_FAILURE__TAIL_CALIBRATION_PRIMARY=FALSE__MARKET_SUB=MEDIUM48_PRIMARY"
+  },
+  "question": "Does correctly aligned Medium48 harm late Teacher temporal transport specifically by causing the frozen nearest-neighbor support selector to choose historical dependence groups whose realized 9-action counterfactual utility profiles are less relevant to the target future?",
+  "scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_R6_TRAIN_ONLY_OUTER_FOLDS",
+    "outer_folds": 5,
+    "primary_late_folds": [4, 5],
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_training": false,
+    "teacher_output_compilation": false,
+    "teacher_hyperparameter_tuning": false,
+    "teacher_semantics_change": false,
+    "production_teacher_change": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "frozen_support_selection_contract": {
+    "eligible_support": "EXACT_OUTER_TRAIN_DEPENDENCE_GROUPS_USED_BY_R6_H5_H5_1",
+    "k_dependence_groups": 64,
+    "within_group_rule": "NEAREST_PARENT_CONTEXT_UNDER_THE_DIAGNOSTIC_STATE_METRIC",
+    "group_rule": "TOP_K_DEPENDENCE_GROUPS_BY_NEAREST_PARENT_DISTANCE_WITH_FROZEN_LEXICOGRAPHIC_TIE_BREAK",
+    "selection_must_not_read_target_future_utility": true,
+    "full102_identity_guard": "FULL102_SELECTION_MUST_BYTE_SEMANTICALLY_REPRODUCE_FROZEN_TEACHER_SUPPORT_HASHES_USING_BATCH_EXACT_GEOMETRY"
+  },
+  "diagnostic_state_metrics": {
+    "FULL102": {
+      "dimensions": "Operator48+Medium48+Account6",
+      "role": "FROZEN_TEACHER_REFERENCE"
+    },
+    "DROP_MEDIUM48": {
+      "dimensions": "Operator48+Account6",
+      "role": "PRIMARY_CAUSAL_INTERVENTION",
+      "normalization": "USE_FROZEN_OUTER_TRAIN_MEAN_STD_ON_RETAINED_DIMENSIONS__MEAN_SQUARED_STANDARDIZED_DISTANCE_OVER_RETAINED_DIMENSION_COUNT"
+    },
+    "DROP_OPERATOR48": {
+      "dimensions": "Medium48+Account6",
+      "role": "MARKET_BLOCK_SPECIFICITY_NEGATIVE_CONTROL",
+      "normalization": "USE_FROZEN_OUTER_TRAIN_MEAN_STD_ON_RETAINED_DIMENSIONS__MEAN_SQUARED_STANDARDIZED_DISTANCE_OVER_RETAINED_DIMENSION_COUNT"
+    }
+  },
+  "post_selection_truth_diagnostics": {
+    "primary_metric": "DEPENDENCE_GROUP_EQUAL_WEIGHTED_TARGET_TO_SELECTED_SUPPORT_9_ACTION_UTILITY_PROFILE_MSE",
+    "definition": "FOR_EACH_EVAL_PARENT_SELECT_TOP_K_SUPPORT_WITH_STATE_FEATURES_ONLY__THEN_COMPUTE_EQUAL_WEIGHT_MEAN_OVER_SELECTED_SUPPORT_PARENTS_OF_MEAN_OVER_9_ACTIONS[(U_eval(a)-U_support(a))^2]__THEN_EQUAL_WEIGHT_PARENT_SCENARIOS_WITHIN_FUTURE_GROUP_AND_EQUAL_WEIGHT_FUTURE_GROUPS",
+    "secondary_metrics": [
+      "9_ACTION_UTILITY_PROFILE_MAE",
+      "BEST_ACTION_AGREEMENT_RATE",
+      "SPEARMAN_ACTION_PROFILE_CORRELATION",
+      "SELECTED_SUPPORT_JACCARD_VS_FULL102",
+      "SELECTED_SUPPORT_AGE_HOURS",
+      "SAME_SYMBOL_FRACTION",
+      "SAME_ACCOUNT_SCENARIO_FRACTION"
+    ],
+    "target_future_utility_role": "POST_SELECTION_DIAGNOSTIC_TRUTH_ONLY__NEVER_SELECTION_INPUT__NEVER_CORRECT_ACTION_LABEL"
+  },
+  "primary_preregistered_gate": {
+    "medium_support_quality_late": "DROP_MEDIUM48_PROFILE_MSE < FULL102_PROFILE_MSE_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "operator_specificity": "DROP_OPERATOR48_PROFILE_MSE < FULL102_PROFILE_MSE_MUST_NOT_HOLD_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "selection_nontriviality": "DROP_MEDIUM48_SELECTED_SUPPORT_JACCARD_VS_FULL102_MEDIAN_GROUP_EQUAL_MEAN < 0.80_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "full102_identity": "PASS_ALL_FOLDS",
+    "overall_support_selection_mechanism_supported": "ALL_FOUR_CONDITIONS_ABOVE"
+  },
+  "interpretation": {
+    "if_pass": "MEDIUM48_SUPPORT_SELECTION_MECHANISM_SUPPORTED_ON_CONSUMED_TRAIN_ONLY_SUPPORT__NEXT_STEP_MAY_PREREGISTER_ONE_SHADOW_TEACHER_SUPPORT_METRIC_INTERVENTION_WITHOUT_CANONICAL_CHANGE",
+    "if_fail": "MEDIUM48_SUPPORT_SELECTION_MECHANISM_NOT_SUPPORTED__DO_NOT_DROP_OR_REWEIGHT_MEDIUM48__REASSESS_KERNEL_WEIGHTING_INTERPOLATION_OR_BROADER_H1_H2_MECHANISMS"
+  },
+  "forbidden": [
+    "TUNING_MEDIUM48_WEIGHT",
+    "CHOOSING_A_DISTANCE_WEIGHT_AFTER_LOOKING_AT_RESULTS",
+    "USING_TARGET_FUTURE_UTILITY_DURING_NEIGHBOR_SELECTION",
+    "MODIFYING_FROZEN_TEACHER_CONFIG",
+    "MODIFYING_STUDENT",
+    "NEW_DIRECTION_LOSS",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
