@@ -3,19 +3,111 @@
   "stage": "R11_M_SERIES_H5_6_TIME_LOCAL_VS_FORWARD_STATE_UTILITY_GEOMETRY_CONTRAST_R0",
   "status": "PREREGISTERED",
   "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
-  "parent": {"h5_5_adjudication_commit":"6dff4460834416d1227794b42ea0f7c623889fd7","h5_5_conclusion":"H5_5_MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT"},
+  "parent": {
+    "h5_5_adjudication_commit": "6dff4460834416d1227794b42ea0f7c623889fd7",
+    "h5_5_conclusion": "H5_5_MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT"
+  },
   "question": "Is H5.5 failure primarily temporal nontransfer of an otherwise meaningful state-to-utility geometry, or are the frozen state representations weakly related to counterfactual utility geometry even within the same local time block?",
-  "scope": {"support":"EXACT_SAME_ALREADY_OBSERVED_R6_H5_H5_5_TRAIN_ONLY_CLOCK_BLOCKS","outer_folds":5,"all_ten_symbols":true,"student_training":false,"student_inference":false,"teacher_compilation":false,"teacher_kernel_used":false,"teacher_support_selection_used":false,"teacher_hyperparameter_tuning":false,"fresh_market_data":false,"final_holdout":"SEALED","r7_candidate":"NOT_EVALUATED"},
-  "state_metrics": {"FULL102":"Operator48+Medium48+Account6","MARKET96":"Operator48+Medium48","OPERATOR48":"Operator48","MEDIUM48":"Medium48","ACCOUNT6":"AccountState6"},
-  "utility_geometry": {"action_grid":9,"primary_profile":"CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE","centering":"SUBTRACT_WITHIN_PARENT_MEAN_UTILITY_ACROSS_9_ACTIONS","distance":"MEAN_SQUARED_DIFFERENCE_BETWEEN_CENTERED_9_ACTION_PROFILES","realized_utility_semantics":"POST_DISTANCE_GEOMETRY_TRUTH_ONLY__NEVER_CORRECT_ACTION_LABEL"},
-  "time_forward_arm": {"definition":"EXACT_H5_5_OUTER_TRAIN_TO_NEXT_EVAL_BLOCK_GEOMETRY","support_unit":"ONE_OUTER_TRAIN_PARENT_WITH_SAME_ACCOUNT_SCENARIO_FROM_EACH_TRAIN_FUTURE_GROUP","normalization":"OUTER_TRAIN_MEAN_STD_ONLY","must_reproduce_h5_5_primary_metric_gates":true},
-  "time_local_arm": {"definition":"FOR_EACH_EVAL_TARGET_COMPARE_TO_ALL_OTHER_FUTURE_GROUPS_IN_THE_SAME_EVAL_CLOCK_BLOCK_WITH_THE_SAME_ACCOUNT_SCENARIO","leave_target_future_group_out":true,"support_parent_selection_uses_future_utility":false,"normalization":"TIME_LOCAL_SUPPORT_STATE_FEATURE_MEAN_STD_ONLY__TARGET_EXCLUDED","std_floor":1e-8,"minimum_local_support_future_groups":32,"same_scenario_required":true},
-  "alignment_control": {"shifts":[1,7,13,23,31],"transform":"EXACT_H5_WHOLE_FUTURE_GROUP_TARGET_FEATURE_ROTATION_WITHIN_THE_EVAL_BLOCK","scenario_identity_preserved":true,"utility_profiles_not_rotated":true,"support_features_not_rotated":true,"target_feature_multiset_preserved":true},
-  "primary_statistic": {"per_target":"SPEARMAN_RANK_CORRELATION_BETWEEN_STATE_DISTANCE_AND_CENTERED_UTILITY_PROFILE_MSE_ACROSS_SUPPORT_FUTURE_GROUPS","desired_sign":"POSITIVE","aggregation":"MEAN_ACROSS_SIX_SCENARIOS_WITHIN_EVAL_FUTURE_GROUP_THEN_EQUAL_WEIGHT_MEAN_ACROSS_EVAL_FUTURE_GROUPS","degenerate_rank_policy":"RHO_ZERO_FOR_ZERO_RANK_INFORMATION_AS_FROZEN_IN_H5_5"},
-  "per_metric_time_local_gate": {"positive_geometry":"LOCAL_ALIGNED_RHO > 0_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5","beats_shuffle_median":"LOCAL_ALIGNED_RHO > MEDIAN_OF_5_LOCAL_ROTATED_RHOS_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5","pairwise_shuffle":"LOCAL_ALIGNED_RHO > EACH_LOCAL_ROTATED_RHO_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS","local_geometry_supported":"ALL_THREE_CONDITIONS_ABOVE"},
-  "contrast_gate": {"local_minus_forward":"LOCAL_ALIGNED_RHO > FORWARD_ALIGNED_RHO_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5","late_effect":"MEAN_LOCAL_MINUS_FORWARD_RHO_ACROSS_FOLD_4_AND_FOLD_5 > 0"},
-  "preregistered_classification": {"TIME_LOCAL_MARKET_GEOMETRY_EXISTS__CROSS_TIME_NONTRANSFER_SUPPORTED":"MARKET96_LOCAL_PASSES_AND_MARKET96_FORWARD_FAILS_AND_LOCAL_MINUS_FORWARD_CONTRAST_PASSES","TIME_LOCAL_OPERATOR_GEOMETRY_EXISTS__MEDIUM48_DEGRADES_CROSS_TIME_COMPOSITION":"OPERATOR48_LOCAL_PASSES_AND_OPERATOR48_FORWARD_FAILS_AND_MARKET96_LOCAL_FAILS","STATE_UTILITY_GEOMETRY_WEAK_EVEN_TIME_LOCAL":"FULL102_LOCAL_FAILS_AND_MARKET96_LOCAL_FAILS_AND_OPERATOR48_LOCAL_FAILS_AND_MEDIUM48_LOCAL_FAILS","LOCAL_VS_FORWARD_GEOMETRY_MIXED_UNRESOLVED":"OTHERWISE"},
-  "interpretation": {"if_local_market_exists":"STRONGLY_SUPPORTS_H1_TEMPORAL_NONTRANSFER_OF_A_REAL_LOCAL_STATE_UTILITY_RELATION__THE_FAILURE_IS_NOT_MERELY_TEACHER_OR_STUDENT_ALGORITHMIC","if_operator_only":"SUPPORTS_A_LOCAL_OPERATOR48_UTILITY_GEOMETRY_WITH_COMPOSITIONAL_DEGRADATION_WHEN_MEDIUM48_IS_ADDED__STILL_NO_CANONICAL_ORGAN_CHANGE","if_local_weak":"THE_FROZEN_REPRESENTATIONS_ARE_WEAKLY_ALIGNED_TO_ECONOMIC_COUNTERFACTUAL_UTILITY_EVEN_CONTEMPORANEOUSLY__SHIFT_ATTENTION_FROM_TEACHER_STUDENT_TO_REPRESENTATION_OBSERVATION_PHILOSOPHY","if_mixed":"DO_NOT_TUNE_FEATURE_WEIGHTS__DESIGN_ONE_PREDECLARED_REPRESENTATION_LEVEL_FALSIFICATION_OR_STOP_M_SERIES"},
-  "forbidden": ["TEACHER_COMPILATION_FOR_SCIENTIFIC_SCORE","TEACHER_KERNEL_OR_SUPPORT_SELECTION","TUNING_ORGAN_WEIGHTS","TUNING_DISTANCE_METRIC_AFTER_RESULTS","USING_UTILITY_TO_SELECT_LOCAL_SUPPORT","ROTATING_UTILITY_WITH_TARGET_FEATURES","MODIFYING_STUDENT","NEW_DIRECTION_LOSS","R7_EVALUATION","FINAL_OPENING","FRESH_MARKET_DATA","PROMOTION_OR_PRODUCTION_CUTOVER"],
-  "authority_effect": {"market_information_verdict_change":false,"canonical_change_authorized":false,"teacher_change_authorized":false,"student_change_authorized":false,"promotion_authorized":false,"r7_evaluation_authorized":false,"final_opening_authorized":false}
+  "scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_R6_H5_H5_5_TRAIN_ONLY_CLOCK_BLOCKS",
+    "outer_folds": 5,
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "teacher_hyperparameter_tuning": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "state_metrics": {
+    "FULL102": "Operator48+Medium48+Account6",
+    "MARKET96": "Operator48+Medium48",
+    "OPERATOR48": "Operator48",
+    "MEDIUM48": "Medium48",
+    "ACCOUNT6": "AccountState6"
+  },
+  "utility_geometry": {
+    "action_grid": 9,
+    "primary_profile": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE",
+    "centering": "SUBTRACT_WITHIN_PARENT_MEAN_UTILITY_ACROSS_9_ACTIONS",
+    "distance": "MEAN_SQUARED_DIFFERENCE_BETWEEN_CENTERED_9_ACTION_PROFILES",
+    "realized_utility_semantics": "POST_DISTANCE_GEOMETRY_TRUTH_ONLY__NEVER_CORRECT_ACTION_LABEL"
+  },
+  "time_forward_arm": {
+    "definition": "EXACT_H5_5_OUTER_TRAIN_TO_NEXT_EVAL_BLOCK_GEOMETRY",
+    "support_unit": "ONE_OUTER_TRAIN_PARENT_WITH_SAME_ACCOUNT_SCENARIO_FROM_EACH_TRAIN_FUTURE_GROUP",
+    "normalization": "OUTER_TRAIN_MEAN_STD_ONLY",
+    "must_reproduce_h5_5_primary_metric_gates": true
+  },
+  "time_local_arm": {
+    "definition": "FOR_EACH_EVAL_TARGET_COMPARE_TO_ALL_OTHER_FUTURE_GROUPS_IN_THE_SAME_EVAL_CLOCK_BLOCK_WITH_THE_SAME_ACCOUNT_SCENARIO",
+    "leave_target_future_group_out": true,
+    "support_parent_selection_uses_future_utility": false,
+    "normalization": "TIME_LOCAL_SUPPORT_STATE_FEATURE_MEAN_STD_ONLY__TARGET_EXCLUDED",
+    "std_floor": 1e-8,
+    "minimum_local_support_future_groups": 32,
+    "same_scenario_required": true
+  },
+  "alignment_control": {
+    "shifts": [1,7,13,23,31],
+    "transform": "EXACT_H5_WHOLE_FUTURE_GROUP_TARGET_FEATURE_ROTATION_WITHIN_THE_EVAL_BLOCK",
+    "scenario_identity_preserved": true,
+    "utility_profiles_not_rotated": true,
+    "support_features_not_rotated": true,
+    "target_feature_multiset_preserved": true
+  },
+  "primary_statistic": {
+    "per_target": "SPEARMAN_RANK_CORRELATION_BETWEEN_STATE_DISTANCE_AND_CENTERED_UTILITY_PROFILE_MSE_ACROSS_SUPPORT_FUTURE_GROUPS",
+    "desired_sign": "POSITIVE",
+    "aggregation": "MEAN_ACROSS_SIX_SCENARIOS_WITHIN_EVAL_FUTURE_GROUP_THEN_EQUAL_WEIGHT_MEAN_ACROSS_EVAL_FUTURE_GROUPS",
+    "degenerate_rank_policy": "RHO_ZERO_FOR_ZERO_RANK_INFORMATION_AS_FROZEN_IN_H5_5"
+  },
+  "per_metric_time_local_gate": {
+    "positive_geometry": "LOCAL_ALIGNED_RHO > 0_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "beats_shuffle_median": "LOCAL_ALIGNED_RHO > MEDIAN_OF_5_LOCAL_ROTATED_RHOS_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "pairwise_shuffle": "LOCAL_ALIGNED_RHO > EACH_LOCAL_ROTATED_RHO_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS",
+    "local_geometry_supported": "ALL_THREE_CONDITIONS_ABOVE"
+  },
+  "contrast_gate": {
+    "local_minus_forward": "LOCAL_ALIGNED_RHO > FORWARD_ALIGNED_RHO_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "late_effect": "MEAN_LOCAL_MINUS_FORWARD_RHO_ACROSS_FOLD_4_AND_FOLD_5 > 0"
+  },
+  "preregistered_classification": {
+    "TIME_LOCAL_MARKET_GEOMETRY_EXISTS__CROSS_TIME_NONTRANSFER_SUPPORTED": "MARKET96_LOCAL_PASSES_AND_MARKET96_FORWARD_FAILS_AND_LOCAL_MINUS_FORWARD_CONTRAST_PASSES",
+    "TIME_LOCAL_OPERATOR_GEOMETRY_EXISTS__MEDIUM48_DEGRADES_CROSS_TIME_COMPOSITION": "OPERATOR48_LOCAL_PASSES_AND_OPERATOR48_FORWARD_FAILS_AND_MARKET96_LOCAL_FAILS",
+    "STATE_UTILITY_GEOMETRY_WEAK_EVEN_TIME_LOCAL": "FULL102_LOCAL_FAILS_AND_MARKET96_LOCAL_FAILS_AND_OPERATOR48_LOCAL_FAILS_AND_MEDIUM48_LOCAL_FAILS",
+    "LOCAL_VS_FORWARD_GEOMETRY_MIXED_UNRESOLVED": "OTHERWISE"
+  },
+  "interpretation": {
+    "if_local_market_exists": "STRONGLY_SUPPORTS_H1_TEMPORAL_NONTRANSFER_OF_A_REAL_LOCAL_STATE_UTILITY_RELATION__THE_FAILURE IS NOT MERELY TEACHER OR STUDENT ALGORITHMIC",
+    "if_operator_only": "SUPPORTS_A_LOCAL_OPERATOR48_UTILITY_GEOMETRY_WITH_COMPOSITIONAL_DEGRADATION_WHEN_MEDIUM48_IS_ADDED__STILL_NO CANONICAL ORGAN CHANGE",
+    "if_local_weak": "THE_FROZEN REPRESENTATIONS ARE WEAKLY ALIGNED TO ECONOMIC COUNTERFACTUAL UTILITY EVEN CONTEMPORANEOUSLY__SHIFT ATTENTION FROM TEACHER/STUDENT TO REPRESENTATION/OBSERVATION PHILOSOPHY",
+    "if_mixed": "DO_NOT TUNE FEATURE WEIGHTS__DESIGN ONE PREDECLARED REPRESENTATION-LEVEL FALSIFICATION OR STOP M-SERIES"
+  },
+  "forbidden": [
+    "TEACHER_COMPILATION_FOR_SCIENTIFIC_SCORE",
+    "TEACHER_KERNEL_OR_SUPPORT_SELECTION",
+    "TUNING_ORGAN_WEIGHTS",
+    "TUNING_DISTANCE_METRIC_AFTER_RESULTS",
+    "USING_UTILITY_TO_SELECT_LOCAL_SUPPORT",
+    "ROTATING_UTILITY_WITH_TARGET_FEATURES",
+    "MODIFYING_STUDENT",
+    "NEW_DIRECTION_LOSS",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
 }
