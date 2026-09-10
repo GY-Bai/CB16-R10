@@ -1,0 +1,105 @@
+name: CB16 R11 Science G0 R6 TRAIN-only Provenance Preflight
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-reduced-teacher-target-information-audit-r6
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json
+      - scripts/r11_science_g0_r6_train_only_provenance_preflight.py
+      - .github/workflows/cb16-r11-science-g0-r6-train-only-provenance-preflight.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  r6-train-only-provenance:
+    name: R11 R6 TRAIN-only provenance preflight
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable R5 adjudication and R6 gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor de46ec7c436151a95a98ce0da1b841fc12daf510 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION_V1.json)" = "3f0305bea4edd77d091531987a36009038de4e40"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json)" = "1d1254fb03cc00283423426e07ae240a196c627e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test -d "$CB16_R104_ROOT/experience_lake/metadata"
+          test -d "$CB16_R104_ROOT/experience_lake/objects"
+
+      - name: Compile provenance probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/r11_science_g0_r6_train_only_provenance_preflight.py
+
+      - name: Execute read-only provenance preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/CB16_R11_SCIENCE_G0_R6_TRAIN_ONLY_PROVENANCE_PREFLIGHT.json"
+          python3 scripts/r11_science_g0_r6_train_only_provenance_preflight.py \
+            --lake-root "$CB16_R104_ROOT/experience_lake" \
+            --output "$OUT"
+          printf '%s\n' "$OUT" > "$RUNNER_TEMP/cb16_r6_provenance_out.txt"
+
+      - name: Verify provenance receipt semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=$(cat "$RUNNER_TEMP/cb16_r6_provenance_out.txt")
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_SCIENCE_G0_R6_TRAIN_ONLY_PROVENANCE_PREFLIGHT_V1',x
+          assert x['generation']==66,x
+          assert x['snapshot']['snapshot_id']=='R102_G66_TRAINING_SNAPSHOT',x
+          assert x['mixed_legacy_parent_branch_gzip_opened'] is False,x
+          assert x['legacy_validation_payload_opened'] is False,x
+          assert x['r5_purge_support_opened'] is False,x
+          assert x['market_payload_opened'] is False,x
+          assert x['final_holdout_payload_opened'] is False,x
+          assert x['fresh_market_data_downloaded'] is False,x
+          assert x['scientific_verdict_created'] is False,x
+          assert x['canonical_generation_advanced'] is False,x
+          assert x['network_reads_by_probe']==0,x
+          assert x['status'] in {
+            'TRAIN_ONLY_NESTED_TEACHER_RAW_TRUTH_NOT_MATERIALIZED',
+            'TRAIN_ONLY_RAW_COUNTERFACTUAL_TRUTH_CANDIDATE_PRESENT_REQUIRES_SCHEMA_AUDIT'
+          },x
+          print(json.dumps({
+            'status':x['status'],
+            'snapshot_object_count':x['snapshot']['object_count'],
+            'snapshot_object_types':x['snapshot']['object_types'],
+            'generation_66_global_object_types':x['generation_66_global_object_types'],
+            'nested_teacher_ready':x['nested_teacher_recompile_from_outer_train_raw_truth_ready'],
+            'next_legal_step':x['next_legal_step'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload R6 provenance receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-r6-train-only-provenance-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/CB16_R11_SCIENCE_G0_R6_TRAIN_ONLY_PROVENANCE_PREFLIGHT.json
+          if-no-files-found: warn
+          retention-days: 30
