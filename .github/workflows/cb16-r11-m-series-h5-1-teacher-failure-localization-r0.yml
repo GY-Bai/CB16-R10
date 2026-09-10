@@ -8,6 +8,7 @@ on:
       - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_GATE_V1.json
       - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_ADJUDICATION_V1.json
       - cb16_local_opt/teacher_failure_localization_h51.py
+      - cb16_local_opt/teacher_failure_localization_h51_batch_geometry.py
       - tests/test_teacher_failure_localization_h51.py
       - scripts/r11_m_series_h5_1_teacher_failure_localization_r0.py
       - .github/workflows/cb16-r11-m-series-h5-1-teacher-failure-localization-r0.yml
@@ -49,6 +50,7 @@ jobs:
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_GATE_V1.json)" = "40303e152f4083c35c991edcec4f41fd5a5acfb2"
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_ADJUDICATION_V1.json)" = "0dc8dc61e3db601f7b3f1d3a363a24597db1ba1d"
           test "$(git rev-parse HEAD:cb16_local_opt/teacher_failure_localization_h51.py)" = "8dba35e5c54c8bc9d8eeb97ea6d3aec373a09ccc"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_failure_localization_h51_batch_geometry.py)" = "9b91ca1d2b8cae05cdf28a7e04ccbdf1698fadf7"
           test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
           test "$(git rev-parse HEAD:cb16_local_opt/teacher_balanced_runtime_r11.py)" = "e834facdbf2d08de25e3cab917f0faf587f3386e"
           test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
@@ -92,6 +94,7 @@ jobs:
           )
           "$PYTHON" -m py_compile \
             cb16_local_opt/teacher_failure_localization_h51.py \
+            cb16_local_opt/teacher_failure_localization_h51_batch_geometry.py \
             tests/test_teacher_failure_localization_h51.py \
             scripts/r11_m_series_h5_1_teacher_failure_localization_r0.py
           "$PYTHON" -m pytest -q \
@@ -129,6 +132,7 @@ jobs:
           assert x['status']=='H5_1_TEACHER_FAILURE_LOCALIZATION_COMPLETE',x
           assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
           assert x['runtime_identity']['teacher_only'] is True and x['runtime_identity']['student_training'] is False and x['runtime_identity']['student_inference'] is False,x
+          assert x['runtime_identity']['support_geometry_reconstruction']=='BATCH_EXACT_FROZEN_TEACHER_SHAPE',x
           p=x['protocol']
           assert p['support_classification']=='CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT',p
           assert p['outer_folds']==5 and p['train_to_eval_gap_hours_each_fold']==256,p
@@ -145,6 +149,8 @@ jobs:
               assert set(f['controls'])==expected,f
               assert set(f['control_medians'])==expected,f
               assert f['support_geometry']['exact_support_reconstruction_guards']=='PASS',f
+              assert f['support_geometry']['teacher_batch_shape_reproduced'] is True,f
+              assert f['support_geometry']['teacher_support_law_changed'] is False,f
               for family in expected:
                   assert set(map(int,f['controls'][family].keys()))=={1,7,13,23,31},(family,f)
                   for arm in f['controls'][family].values():
@@ -167,6 +173,7 @@ jobs:
           assert g['student_trained'] is False and g['student_inference_used'] is False and g['new_direction_loss_created'] is False,g
           assert g['canonical_generation_advanced'] is False and g['champion_promoted'] is False and g['production_cutover'] is False,g
           assert g['market_information_verdict_reopened'] is False and g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          assert g['support_geometry_guard_relaxed'] is False,g
           print(json.dumps({
               'status':x['status'],'conclusion':s['conclusion'],'primary_failure_axis':s['primary_failure_axis'],
               'tail_calibration_primary':s['tail_calibration_primary'],'market_sublocalization':s['market_sublocalization'],
