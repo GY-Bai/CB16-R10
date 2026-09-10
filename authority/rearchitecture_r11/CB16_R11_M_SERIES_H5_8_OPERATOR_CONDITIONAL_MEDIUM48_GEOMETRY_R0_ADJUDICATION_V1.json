@@ -1,0 +1,194 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_8_OPERATOR_CONDITIONAL_MEDIUM48_GEOMETRY_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_8_OPERATOR_CONDITIONAL_MEDIUM48_GEOMETRY_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_7_adjudication_commit": "d6699197758fb408a2c64c0e9260b971b37d2fcc",
+    "parent_h5_7_adjudication_blob": "a999a766b6dd534c51ce088345bfb7c77576b19c",
+    "preregistration_commit": "a043e41921090280062e4a09c7b22e55b3917e5b",
+    "gate_blob": "85142af8fba96b41c8e305b1e5e9cab35fc2593c",
+    "implementation_branch": "ai/m-series-h5-8-operator-conditional-medium-geometry-r0",
+    "execution_head": "3c513017b21e05b0e46194f5110c529901bffe83",
+    "github_actions_run_id": 34492626434,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10158530981,
+    "artifact_digest": "sha256:1a01e5974cd931f631a7e55f1f0ba2a497380a23f0166456254e387dccaacb21",
+    "result_file_sha256": "a06e2f24766ac6b3b4730ab6b0621db1431048fcd32fb2635c7a9f499c00d6f2",
+    "result_schema": "CB16_R11_M_SERIES_H5_8_OPERATOR_CONDITIONAL_MEDIUM48_GEOMETRY_R0_RESULT_V1"
+  },
+  "execution_history": {
+    "initial_engineering_run_id": 34491932892,
+    "initial_execution_head": "62966967a85f592056e3f02311d33aae322c5d4d",
+    "initial_status": "EXECUTION_BLOCKED_BEFORE_SCIENTIFIC_EXECUTION",
+    "initial_failure": "UNIT_TEST_FIXTURE_INCORRECTLY_CONSTRUCTED_THE_PREREGISTERED_FOLD_1_AND_FOLD_3_CONDITIONAL_ANTI_ALIGNMENT_CASE_WHILE_EXPECTING_UNSUPPORTED",
+    "repair_commit": "3c513017b21e05b0e46194f5110c529901bffe83",
+    "repair_scope": "TEST_FIXTURE_ONLY_PLUS_IMMUTABLE_EXECUTOR_AND_WORKFLOW_BLOB_PIN_UPDATES__NO_PREREGISTRATION_STATISTIC_NULL_GATE_OR_CLASSIFICATION_CHANGE",
+    "initial_run_scientific_authority": false,
+    "valid_scientific_execution_run_id": 34492626434
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": 5,
+    "train_dependence_groups": 1619,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "raw_market_payload_used": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "protocol_receipt": {
+    "primary_measure": "OPERATOR_CONDITIONAL_PARTIAL_SPEARMAN__PARTIAL_PEARSON_APPLIED_TO_SPEARMAN_RANKS",
+    "time_local_support": "EXACT_H5_6_H5_7_SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
+    "local_normalization": "EXACT_H5_6_SAME_SCENARIO_LOCAL_SUPPORT_ROWS_TARGET_GROUP_EXCLUDED",
+    "operator_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_OPERATOR48",
+    "medium_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MEDIUM48",
+    "utility_distance": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE_MSE",
+    "medium_null": "CYCLICALLY_ROTATE_ONLY_MEDIUM48_DISTANCE_VECTOR_ACROSS_ALREADY_SELECTED_SUPPORT_FUTURE_GROUP_IDENTITIES",
+    "shifts": [1, 7, 13, 23, 31],
+    "medium_distance_multiset_preserved_per_anchor": true,
+    "synthetic_feature_vectors_created": false,
+    "formal_conditional_independence_test_claim": false,
+    "formal_exchangeability_or_permutation_p_value_claim": false,
+    "zero_information_target_count_all_folds": 0,
+    "all_semantic_and_receipt_guards_pass": true
+  },
+  "adjudication": {
+    "classification": "H5_7_FAILURE_FOLDS_SHOW_MEDIUM_CONDITIONAL_ANTI_ALIGNMENT",
+    "conclusion": "H5_8_H5_7_FAILURE_FOLDS_SHOW_MEDIUM_CONDITIONAL_ANTI_ALIGNMENT",
+    "global_operator_conditional_medium_gate": false,
+    "h5_7_failure_fold_conditional_value_survives": false,
+    "h5_7_failure_fold_conditional_anti_alignment": true,
+    "key_result": "AFTER_PROJECTING_OUT_OPERATOR48_DISTANCE_RANK__MEDIUM48_REMAINS POSITIVELY UTILITY-ALIGNED IN FOLDS_2_4_5 BUT IS NEGATIVELY UTILITY-ALIGNED AND BELOW ITS STRUCTURED_ALIGNMENT NULL IN BOTH H5_7_COMPOSITION_FAILURE_FOLDS_1_AND_3"
+  },
+  "preregistered_gates": {
+    "global_gate": {
+      "passed": false,
+      "positive_fold_count": 3,
+      "positive_both_late_folds": true,
+      "beats_null_median_fold_count": 3,
+      "beats_null_median_both_late_folds": true,
+      "pairwise_null_count_of_25": 15,
+      "per_fold_aligned_partial_rho": {
+        "fold_1": -0.012411348281499165,
+        "fold_2": 0.07585785741564523,
+        "fold_3": -0.06450510517280354,
+        "fold_4": 0.027351639484904336,
+        "fold_5": 0.024765647270181372
+      },
+      "per_fold_aligned_minus_null_median": {
+        "fold_1": -0.03944587763175986,
+        "fold_2": 0.05552671719983376,
+        "fold_3": -0.05418851608670928,
+        "fold_4": 0.020387825855354764,
+        "fold_5": 0.013083660001729253
+      }
+    },
+    "h5_7_failure_fold_gate": {
+      "frozen_folds": [1, 3],
+      "conditional_value_survives": false,
+      "conditional_anti_alignment": true,
+      "fold_1_partial_rho": -0.012411348281499165,
+      "fold_1_null_median": 0.027034529350260694,
+      "fold_3_partial_rho": -0.06450510517280354,
+      "fold_3_null_median": -0.010316589086094265
+    }
+  },
+  "fold_receipts": {
+    "fold_1": {
+      "aligned_partial_rho": -0.012411348281499165,
+      "median_null_partial_rho": 0.027034529350260694,
+      "aligned_minus_null_median": -0.03944587763175986,
+      "rho_medium_utility": -0.009907082922465107,
+      "rho_medium_operator": 0.08624423984464037,
+      "rho_operator_utility": 0.01575141112377431,
+      "zero_information_target_count": 0,
+      "target_row_count": 1740
+    },
+    "fold_2": {
+      "aligned_partial_rho": 0.07585785741564523,
+      "median_null_partial_rho": 0.02033114021581147,
+      "aligned_minus_null_median": 0.05552671719983376,
+      "rho_medium_utility": 0.08019811632895474,
+      "rho_medium_operator": 0.11628660806650643,
+      "rho_operator_utility": 0.03032939047248469,
+      "zero_information_target_count": 0,
+      "target_row_count": 1644
+    },
+    "fold_3": {
+      "aligned_partial_rho": -0.06450510517280354,
+      "median_null_partial_rho": -0.010316589086094265,
+      "aligned_minus_null_median": -0.05418851608670928,
+      "rho_medium_utility": -0.064756017766432,
+      "rho_medium_operator": 0.08748038830291921,
+      "rho_operator_utility": 0.017185161350840326,
+      "zero_information_target_count": 0,
+      "target_row_count": 1680
+    },
+    "fold_4": {
+      "aligned_partial_rho": 0.027351639484904336,
+      "median_null_partial_rho": 0.006963813629549571,
+      "aligned_minus_null_median": 0.020387825855354764,
+      "rho_medium_utility": 0.028641258158713313,
+      "rho_medium_operator": 0.0914007444472335,
+      "rho_operator_utility": 0.022143680710467836,
+      "zero_information_target_count": 0,
+      "target_row_count": 1680
+    },
+    "fold_5": {
+      "aligned_partial_rho": 0.024765647270181372,
+      "median_null_partial_rho": 0.01168198726845212,
+      "aligned_minus_null_median": 0.013083660001729253,
+      "rho_medium_utility": 0.028134126010580605,
+      "rho_medium_operator": 0.11871895242199919,
+      "rho_operator_utility": 0.03289450105485065,
+      "zero_information_target_count": 0,
+      "target_row_count": 1680
+    }
+  },
+  "mechanistic_interpretation": {
+    "supported": [
+      "THE_H5_7_FOLD_1_AND_FOLD_3_MARKET96_BELOW_OPERATOR48_EVENTS_CANNOT_BE_EXPLAINED SOLELY AS A GENERIC 96D ADDITIVE DISTANCE BURDEN__MEDIUM48 ITSELF HAS NEGATIVE OPERATOR-CONDITIONAL RANK GEOMETRY TO UTILITY IN BOTH FOLDS",
+      "THE NEGATIVE CONDITIONAL GEOMETRY IN FOLDS_1_AND_3 IS ALIGNMENT-SPECIFIC AT THE LEVEL OF THE FROZEN STRUCTURED NEGATIVE CONTROL__ALIGNED MEDIUM48 IS BELOW THE NULL MEDIAN IN BOTH FOLDS",
+      "MEDIUM48 UTILITY GEOMETRY IS TIME-DEPENDENT IN SIGN__POSITIVE IN FOLDS_2_4_5 AND NEGATIVE IN FOLDS_1_3 AFTER CONDITIONING ON OPERATOR48 RANK",
+      "H5_7 AND H5_8 TOGETHER SUPPORT A TIME-VARYING COMPOSITION PROBLEM IN WHICH MEDIUM48 CAN CONTAIN TASK-RELEVANT RELATIONAL INFORMATION YET ITS INCREMENTAL MONOTONIC RELATION TO UTILITY IS NOT STABLY SAME-SIGN ACROSS TIME BLOCKS",
+      "THE NEXT SCIENTIFIC FRONTIER IS TO LOCALIZE WHAT CHANGES INSIDE MEDIUM48 OR IN ITS RELATION TO OPERATOR48 ACROSS FOLDS WITHOUT HANDCRAFTED REGIME SWITCHES OR POST-HOC WEIGHT TUNING"
+    ],
+    "not_supported": [
+      "MEDIUM48_IS_GLOBALLY_HARMFUL",
+      "MEDIUM48_IS_USELESS",
+      "MEDIUM48_SHOULD_BE_DELETED",
+      "MEDIUM48_SHOULD_BE_CANONICALLY_DOWNWEIGHTED",
+      "A FIXED NEGATIVE MEDIUM48 WEIGHT IS AUTHORIZED",
+      "PARTIAL_SPEARMAN ESTABLISHES GENERAL CONDITIONAL INDEPENDENCE OR CAUSALITY",
+      "THE STRUCTURED DISTANCE ROTATION NULL IS A FORMAL CONDITIONAL RANDOMIZATION TEST",
+      "MARKET_INFORMATION_IS_QUALIFIED",
+      "CANONICAL_ARCHITECTURE_CHANGE",
+      "TEACHER_CHANGE",
+      "STUDENT_CHANGE",
+      "NEW_DIRECTION_LOSS",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ],
+    "updated_failure_view": "H5_8_LOCALIZES THE H5_7 FAILURE FOLDS TO A SIGN REVERSAL IN OPERATOR-CONDITIONAL MEDIUM48 UTILITY GEOMETRY__THIS WEAKENS A PURE METRIC-CONTAMINATION ACCOUNT AND STRENGTHENS TIME-VARYING REPRESENTATION-RELATION SEMANTICS AS THE CURRENT UPSTREAM BOTTLENECK"
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "organ_weight_tuning_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_8_RESULT__DO_NOT_TUNE_OR_DELETE_MEDIUM48__IF CONTINUING, PREREGISTER A TEACHER-FREE STUDENT-FREE LOCALIZATION OF WHICH MEDIUM48 SUBSTRUCTURES OR RELATIONS DRIVE THE FOLD_1_AND_FOLD_3 SIGN REVERSAL__NO HANDCRAFTED REGIME ACTIVATION OR CANONICAL CHANGE"
+}
