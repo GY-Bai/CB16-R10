@@ -1,0 +1,195 @@
+name: CB16 R11 M-Series H5.5 State Utility Geometry Transport Audit R0 Final
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-5-state-utility-geometry-transport-r0-final
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_ADJUDICATION_V1.json
+      - cb16_local_opt/state_utility_geometry_transport_audit_h55.py
+      - cb16_local_opt/state_utility_geometry_transport_audit_h55_clarified.py
+      - tests/test_state_utility_geometry_transport_audit_h55.py
+      - tests/test_state_utility_geometry_transport_audit_h55_clarified.py
+      - scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0.py
+      - scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0_final.py
+      - .github/workflows/cb16-r11-m-series-h5-5-state-utility-geometry-transport-audit-r0-final.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-5-final-geometry-audit:
+    name: H5.5 clarified Student-free Teacher-free geometry audit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable clarified H5.5 authority and implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor c545b55dd2e0592b51b6b0426d057a1e8762c819 HEAD
+          git merge-base --is-ancestor c873378bdce6e3ca08ab38a3102cf8d7054963b0 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json)" = "54b9492e74d5017711b671837ef402abd604c7c6"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_ADJUDICATION_V1.json)" = "5fd2450fbda34cfb7f2815d2e33107623f36aa8a"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55.py)" = "1dd00ea9b40b8da4061c0983fc44fb2307c72587"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55_clarified.py)" = "faa5233170aa421c3bf44f023b1d8e2f7c187568"
+          test "$(git rev-parse HEAD:tests/test_state_utility_geometry_transport_audit_h55.py)" = "d3236b04e0ba760efd5fd839d6e74cdfa448c9a5"
+          test "$(git rev-parse HEAD:tests/test_state_utility_geometry_transport_audit_h55_clarified.py)" = "8bb156c5ef86971eb800974e9ef3f097fb203cdb"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0.py)" = "fc9f87fb490b42efedd11040407abaa1f357ea5d"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0_final.py)" = "2989afb87a5de6628b79f8126fc9e9e12699a923"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h55_final_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h55_final_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run clarified H5.5 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h55_final_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/state_utility_geometry_transport_audit_h55.py \
+            cb16_local_opt/state_utility_geometry_transport_audit_h55_clarified.py \
+            tests/test_state_utility_geometry_transport_audit_h55.py \
+            tests/test_state_utility_geometry_transport_audit_h55_clarified.py \
+            scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0.py \
+            scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0_final.py
+          "$PYTHON" -m pytest -q \
+            tests/test_state_utility_geometry_transport_audit_h55.py \
+            tests/test_state_utility_geometry_transport_audit_h55_clarified.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute clarified preregistered H5.5 direct geometry audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h55_final_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h55-final-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h55_final_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_5_state_utility_geometry_transport_audit_r0_final \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT.json"
+
+      - name: Verify clarified H5.5 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h55_final_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT_V1',x
+          assert x['status']=='H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_COMPLETE',x
+          assert x['repo']['preregistration_commit']=='c545b55dd2e0592b51b6b0426d057a1e8762c819',x['repo']
+          assert x['repo']['immutable_blobs']['gate']=='54b9492e74d5017711b671837ef402abd604c7c6',x['repo']
+          assert x['repo']['immutable_blobs']['h55_clarified_helper']=='faa5233170aa421c3bf44f023b1d8e2f7c187568',x['repo']
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          r=x['runtime_identity']
+          assert r['student_training'] is False and r['student_inference'] is False,r
+          assert r['teacher_compilation'] is False and r['teacher_kernel_used'] is False and r['teacher_support_selection_used'] is False,r
+          p=x['protocol']
+          assert p['state_metrics']==['FULL102','MARKET96','OPERATOR48','MEDIUM48','ACCOUNT6'],p
+          assert p['shifts']==[1,7,13,23,31] and p['utility_profiles_rotated'] is False,p
+          assert p['final_holdout_opened'] is False and p['r7_candidate_evaluated'] is False,p
+          assert len(x['folds'])==5,x
+          for f in x['folds']:
+              assert f['degenerate_rank_convention']=='ZERO_INFORMATION_RHO_ZERO__STATE_NEAREST_RATIO_ONE',f
+              assert f['teacher_compilation_used'] is False and f['teacher_kernel_used'] is False and f['teacher_support_selection_used'] is False,f
+              for rr in f['rotation_receipts'].values():
+                  assert rr['target_feature_multiset_preserved'] is True and rr['train_features_byte_identical'] is True and rr['scenario_identity_preserved'] is True,rr
+              for name,m in f['state_metrics'].items():
+                  assert math.isfinite(float(m['aligned_centered_profile_spearman_rho'])),(name,m)
+                  assert math.isfinite(float(m['aligned_nearest_decile_centered_mse_ratio'])),(name,m)
+                  for k in ('degenerate_state_rank_row_count','degenerate_centered_utility_rank_row_count','degenerate_raw_utility_rank_row_count','target_row_count'):
+                      assert int(m[k])>=0,(name,k,m)
+                  assert int(m['degenerate_state_rank_row_count'])<=int(m['target_row_count']),m
+                  assert int(m['degenerate_centered_utility_rank_row_count'])<=int(m['target_row_count']),m
+          s=x['h5_5_summary']
+          assert s['classification'] in {
+              'FULL_STATE_GEOMETRY_TRANSPORT_SUPPORTED',
+              'OPERATOR48_TRANSPORT_SURVIVES_MEDIUM48_SUSPECT',
+              'MEDIUM48_TRANSPORT_SURVIVES_OPERATOR48_SUSPECT',
+              'MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT',
+              'MIXED_STATE_UTILITY_GEOMETRY_TRANSPORT_UNRESOLVED',
+          },s
+          assert s['all_rotation_identity_guards_pass'] is True,s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False,s
+          assert s['teacher_change_authorized'] is False and s['student_change_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['teacher_compiled_for_scientific_score'] is False and g['teacher_kernel_used'] is False and g['teacher_support_selection_used'] is False,g
+          assert g['future_utility_used_to_select_support_parent'] is False and g['utility_outcomes_rotated_with_features'] is False,g
+          assert g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({
+              'status':x['status'],'classification':s['classification'],'conclusion':s['conclusion'],
+              'metric_gates':s['metric_gates'],'all_rotation_identity_guards_pass':s['all_rotation_identity_guards_pass'],
+              'degenerate_counts':{str(f['fold']):{m:{k:v for k,v in vals.items() if k.startswith('degenerate_') or k=='target_row_count'} for m,vals in f['state_metrics'].items()} for f in x['folds']},
+              'next_legal_step':x['next_legal_step']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload clarified H5.5 audit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-5-state-utility-geometry-transport-audit-r0-final-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h55_final_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h55_final_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h55-final-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
