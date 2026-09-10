@@ -1,0 +1,131 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_12R_ACCOUNT6_IPF_EFFECTIVE_COMMON_MEASURE_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_12R_ACCOUNT6_IPF_EFFECTIVE_COMMON_MEASURE_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_11_2_adjudication_commit": "54937bedc0dfc19c79ddf3b1fe452bfbd73d5732",
+    "parent_h5_11_2_adjudication_blob": "c19bf407480fbaf783ebe8a98c24d2e0ff59cb78",
+    "preregistration_commit": "ec1b6b3c43813bca7bdfab29178cf3be94563eab",
+    "gate_blob": "e5458dd6c47f5cbe91b923e1180bd800fc5f7a4a",
+    "implementation_branch": "ai/m-series-h5-12r-account6-ipf-effective-common-measure-r0",
+    "execution_head": "9af7e552706f666c5d116a7f9e9a0d4b8538aa68",
+    "workflow_run_id": 34517008415,
+    "workflow_job_id": 103004872716,
+    "artifact_id": 10168293877,
+    "artifact_name": "cb16-r11-m-series-h5-12r-account6-ipf-effective-common-measure-r0-1",
+    "artifact_sha256": "7243ff7480a5e1acf8ef822fef1259cc5a0d7c162962b58d5c0d6c3fa5e89c66",
+    "result_json_sha256": "449a854ce5e6d738372b97d05daa8a45b814ce1d2ede1254eb0d6b2095f09a07"
+  },
+  "execution_receipt": {
+    "workflow_conclusion": "SUCCESS",
+    "regression_tests_passed": 103,
+    "parent_h5_11_2_reproduction_passed": true,
+    "parent_max_aligned_abs_error": 0.0,
+    "parent_max_null_median_abs_error": 0.0,
+    "all_four_pair_designs_common_support_valid": true,
+    "positive_q_cell_count_by_pair": {
+      "1_2": 27,
+      "2_3": 27,
+      "3_4": 27,
+      "4_5": 27
+    },
+    "all_three_axes_span_all_three_bins_in_every_pair": true,
+    "unique_target_decision_clocks_per_positive_cell": {
+      "fold_1": 29,
+      "fold_2": 28,
+      "fold_3": 28,
+      "fold_4": 28,
+      "fold_5": 28
+    },
+    "account_degenerate_target_scenario_count_by_fold": {
+      "1": 580,
+      "2": 548,
+      "3": 560,
+      "4": 560,
+      "5": 560
+    },
+    "account_nondegenerate_target_scenario_count_by_fold": {
+      "1": 1160,
+      "2": 1096,
+      "3": 1120,
+      "4": 1120,
+      "5": 1120
+    },
+    "account_context_eligible_all_folds": true,
+    "global_max_abs_effective_side_vs_q": 9.270362255620057e-14,
+    "global_max_abs_effective_side_to_side": 1.6644324807302269e-13,
+    "max_ipf_iterations": 55,
+    "max_positive_multiplier_max_to_min_ratio": 1.4968202560542625,
+    "utility_used_to_construct_overlap_q": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_payload_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "pair_results": [
+    {
+      "pair": [1, 2],
+      "side_a": {"fold": 1, "aligned_partial_rho": -0.012509684045844762, "null_median_partial_rho": 0.02684489713060975, "orientation": "ANTI_ALIGNMENT"},
+      "side_b": {"fold": 2, "aligned_partial_rho": 0.07730006699262673, "null_median_partial_rho": 0.02109081084215446, "orientation": "POSITIVE_ALIGNMENT"}
+    },
+    {
+      "pair": [2, 3],
+      "side_a": {"fold": 2, "aligned_partial_rho": 0.07715614853227404, "null_median_partial_rho": 0.021104988397598765, "orientation": "POSITIVE_ALIGNMENT"},
+      "side_b": {"fold": 3, "aligned_partial_rho": -0.06489947963947308, "null_median_partial_rho": -0.009878361539897731, "orientation": "ANTI_ALIGNMENT"}
+    },
+    {
+      "pair": [3, 4],
+      "side_a": {"fold": 3, "aligned_partial_rho": -0.06475864398633559, "null_median_partial_rho": -0.010623334822663425, "orientation": "ANTI_ALIGNMENT"},
+      "side_b": {"fold": 4, "aligned_partial_rho": 0.0274523536839416, "null_median_partial_rho": 0.0070842618530431445, "orientation": "POSITIVE_ALIGNMENT"}
+    },
+    {
+      "pair": [4, 5],
+      "side_a": {"fold": 4, "aligned_partial_rho": 0.027368387155182364, "null_median_partial_rho": 0.006870778298632983, "orientation": "POSITIVE_ALIGNMENT"},
+      "side_b": {"fold": 5, "aligned_partial_rho": 0.024395056580269282, "null_median_partial_rho": 0.011875436825137883, "orientation": "POSITIVE_ALIGNMENT"}
+    }
+  ],
+  "classification": "ACCOUNT6_EXACT_EFFECTIVE_MARGIN_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST",
+  "conclusion": "ADDING_FROZEN_ACCOUNT6_RELATIONAL_OCCUPANCY_TO_THE_OPERATOR_MEDIUM_3X3_COMMON_SUPPORT_OBJECT_AND_EXACTLY_MATCHING_THE_RESULTING_3X3X3_EFFECTIVE_MACRO_CELL_MARGINS_DOES_NOT_REMOVE_ANY_OF_THE_THREE_NATIVE_H5_8_ORIENTATION_TRANSITIONS__F4_TO_F5_POSITIVE_CONTROL_REMAINS_STABLE",
+  "scientific_interpretation": {
+    "supported": [
+      "COARSE_OPERATOR_MEDIUM_ACCOUNT6_RELATIONAL_OCCUPANCY_DIFFERENCES_ARE_INSUFFICIENT_TO_EXPLAIN_THE_H5_8_ENVIRONMENT_ORIENTATION_REVERSALS",
+      "ACCOUNT6_IS_NOT_A_SUFFICIENT_OMITTED_CURRENT_STATE_CONTEXT_EXPLANATION_AT_THIS_FROZEN_3X3X3_RELATIONAL_OCCUPANCY_RESOLUTION",
+      "THE_H5_8_ORIENTATION_TRANSITIONS_ARE_ROBUST_TO_EXACT_EFFECTIVE_MACRO_CELL_MARGIN_STANDARDIZATION_OVER_OPERATOR48_MEDIUM48_AND_ACCOUNT6_RELATIONAL_RANK_CONTEXT"
+    ],
+    "not_established": [
+      "ACCOUNT6_HAS_NO_TASK_RELEVANT_INFORMATION",
+      "ACCOUNT6_IS_CAUSALLY_IRRELEVANT",
+      "FULL_102D_JOINT_CURRENT_STATE_DISTRIBUTIONS_ARE_MATCHED_BETWEEN_ENVIRONMENTS",
+      "WITHIN_CELL_CONDITIONAL_COMPOSITION_IS_MATCHED",
+      "P_UTILITY_GIVEN_OPERATOR_MEDIUM_ACCOUNT_IS_TIME_INVARIANT_OR_TIME_VARIANT",
+      "FULL_REPRESENTATION_CONCEPT_DRIFT",
+      "A_RUNTIME_COMPATIBILITY_GATE_IS_VALID",
+      "A_LEARNED_ENGRAM_STYLE_GATE_IS_AUTHORIZED",
+      "A_HANDCRAFTED_TIME_OR_REGIME_GATE_IS_AUTHORIZED",
+      "CALENDAR_OR_FOLD_ID_IS_CAUSAL",
+      "MEDIUM48_SHOULD_BE_DELETED_OR_REWEIGHTED",
+      "INDEPENDENT_MARKET_INFORMATION_IS_QUALIFIED"
+    ]
+  },
+  "authority_effect": {
+    "frozen_market_information_verdict_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "frozen_market_information_verdict_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "market_information_verdict_changed": false,
+    "canonical_architecture_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "account6_reweighting_or_feature_selection_authorized": false,
+    "medium48_deletion_or_reweighting_authorized": false,
+    "fusion_weight_search_authorized": false,
+    "learned_router_or_gate_authorized": false,
+    "runtime_account_gate_authorized": false,
+    "time_or_regime_gate_authorized": false,
+    "calendar_or_fold_runtime_feature_authorized": false,
+    "final_holdout_opening_authorized": false,
+    "r7_evaluation_authorized": false,
+    "champion_promotion_authorized": false
+  },
+  "stale_h5_12_status": "SUPERSEDED__DO_NOT_EXECUTE",
+  "next_legal_step": "FREEZE_H5_12R_RESULT__DO_NOT_AUTOMATICALLY_CREATE_A_RUNTIME_GATE_OR_CHANGE_CANONICAL_ARCHITECTURE__ANY_NEXT_FALSIFICATION_MUST_MOVE_BEYOND_COARSE_OPERATOR_MEDIUM_ACCOUNT6_MARGINAL_OCCUPANCY_AND_SEPARATELY_PREREGISTER_A_RICHER_CURRENT_STATE_OR_WITHIN_CELL_CONDITIONAL_STRUCTURE_TEST_WITHOUT_CALENDAR_OR_FOLD_ID_AS_A_RUNTIME_FEATURE"
+}
