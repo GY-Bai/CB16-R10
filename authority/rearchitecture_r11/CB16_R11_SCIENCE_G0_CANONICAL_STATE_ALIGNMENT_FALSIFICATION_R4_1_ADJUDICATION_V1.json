@@ -1,0 +1,81 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_ADJUDICATION_V1",
+  "stage": "R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "branch": "ai/r11-science-g0-canonical-state-alignment-falsification-r4-1",
+    "passing_head": "8ef11fbf327c203602bbd2ef09b58ac03f2b1e31",
+    "passing_run_id": 34420911774,
+    "artifact_id": 10131079557,
+    "artifact_digest": "sha256:54e922de7bd68bff9d859056f905adb07962860f0f0b6ba227c49e9df67b8e25",
+    "prior_entrypoint_failure_run_id": 34420760228,
+    "prior_failure_class": "ENGINEERING_ENTRYPOINT_IMPORT_ONLY__NO_SCIENTIFIC_CONTROL_EXECUTED"
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "control_integrity": {
+    "r4_aligned_reference_reproduced": true,
+    "whole_independent_future_group_shuffle_only": true,
+    "pre_registered_shifts": [1, 7, 13, 23, 31],
+    "scenario_identity_preserved": true,
+    "target_multiset_exactly_preserved": true,
+    "input_features_byte_identical": true,
+    "group_weights_byte_identical": true,
+    "changed_target_rows_each_arm": 288,
+    "fixed_point_future_groups_each_arm": 0,
+    "same_canonical_seed_optimizer_and_training_rule": true,
+    "original_unshuffled_r4_validation_used_for_all_arms": true,
+    "six_owner_gradient_path_qualified_all_arms": true
+  },
+  "observed": {
+    "champion_validation_total_loss": 1.208237886428833,
+    "aligned_validation_total_loss": 1.0994198322296143,
+    "aligned_relative_improvement_vs_champion": 0.09006343487609904,
+    "shuffled_validation_total_loss": {
+      "shift_1": 1.097920298576355,
+      "shift_7": 1.1003360748291016,
+      "shift_13": 1.1113344430923462,
+      "shift_23": 1.098488450050354,
+      "shift_31": 1.101085901260376
+    },
+    "shuffled_relative_improvement_vs_champion_range": [0.08020228832825511, 0.09130452627879576],
+    "median_shuffled_validation_total_loss": 1.1003360748291016,
+    "median_shuffled_relative_improvement_vs_champion": 0.08930510523772342,
+    "aligned_lower_total_count": 3,
+    "aligned_lower_direction_count": 1,
+    "aligned_lower_sizing_count": 4,
+    "median_aligned_minus_shuffled_total": -0.0009162425994873047,
+    "median_aligned_minus_shuffled_direction": 0.0009043216705322266,
+    "median_aligned_minus_shuffled_sizing": -0.0013148742727935314,
+    "alignment_increment_over_median_shuffle_absolute_loss": 0.0009162425994873047,
+    "alignment_increment_fraction_of_aligned_absolute_improvement": 0.008419950220851154,
+    "descriptive_pattern": "MIXED_ALIGNED_VS_SHUFFLED_TOTAL_ORDERING"
+  },
+  "adjudication": {
+    "r4_1_control_mechanics": "QUALIFIED",
+    "state_target_alignment_information": "NOT_DEMONSTRATED_ON_R4_REUSED_VALIDATION",
+    "direction_state_alignment_signal": "NOT_DEMONSTRATED__ALIGNED_LOWER_ONLY_1_OF_5",
+    "sizing_state_alignment_signal": "WEAK_MIXED_DIAGNOSTIC_ONLY__ALIGNED_LOWER_4_OF_5_BUT_TEACHER_RISK_TARGET_RANGE_IS_NARROW",
+    "r4_teacher_objective_improvement": "LARGELY_REPRODUCIBLE_UNDER_BROKEN_STATE_TARGET_ALIGNMENT",
+    "interpretation": "The approximately 9 percent R4 validation improvement cannot be attributed primarily to correct Market+Account-state to reduced-Teacher-target alignment. Five whole-future-group misaligned controls still improved approximately 8.0 to 9.13 percent versus Champion, two shuffled arms beat aligned on total loss, and four shuffled arms beat aligned on Direction loss. The median alignment-specific total advantage is only about 0.000916 loss, approximately 0.84 percent of the aligned arm's absolute improvement over Champion.",
+    "canonical_r4_challenger_promotion": "BLOCKED",
+    "canonical_generation_advance": "BLOCKED",
+    "production_cutover": "BLOCKED",
+    "market_information_verdict": "NOT_REOPENED",
+    "profitability_or_alpha": "NOT_CLAIMED"
+  },
+  "validation_reuse_policy": {
+    "same_btc_validation_support_already_observed": true,
+    "r4_1_is_post_hoc_diagnostic": true,
+    "r4_1_is_status_driving": false,
+    "no_further_architecture_or_hyperparameter_tuning_on_same_btc_validation": true,
+    "same_support_may_not_authorize_promotion_or_new_market_verdict": true
+  },
+  "next_legal_direction": {
+    "action": "LEAVE_R4_CHALLENGER_UNPROMOTED_AND_MOVE_OFF_THE_OBSERVED_BTC_VALIDATION_SUPPORT",
+    "requirement": "Any further canonical-learning information test must be pre-registered before observing its evaluation support and must use a genuinely separate frozen historical support surface. Do not use R4.1 to tune the current architecture or promotion threshold.",
+    "infra_reopen": false,
+    "final_holdout_open": false,
+    "fresh_market_data": false
+  }
+}
