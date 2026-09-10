@@ -1,0 +1,158 @@
+name: CB16 R11 M-Series M2.2C Balanced Preserve Correction Synthetic
+
+on:
+  push:
+    branches:
+      - ai/m-series-m2-2c-balanced-preserve-correction-synthetic-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2C_BALANCED_PRESERVE_ADV_CORRECTION_SYNTHETIC_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2B_ADVANTAGE_WEIGHTED_SELECTIVE_SYNTHETIC_ADJUDICATION_V1.json
+      - cb16_local_opt/m_series_m2_2c_balanced_preserve_correction_synthetic.py
+      - tests/test_m_series_m2_2c_balanced_preserve_correction_synthetic.py
+      - scripts/r11_m_series_m2_2c_balanced_preserve_correction_synthetic.py
+      - .github/workflows/cb16-r11-m-series-m2-2c-balanced-preserve-correction-synthetic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  m2-2c-synthetic:
+    name: M2.2C balanced preserve-correction synthetic benchmark
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable M2.2C preregistration and M2.2B adjudication
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor c1c6ef90a9e03fccafaf2c98ec167ab41bc54fec HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2C_BALANCED_PRESERVE_ADV_CORRECTION_SYNTHETIC_GATE_V1.json)" = "933f29fe55e384b9b19d61fda3c807987297ac1b"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2B_ADVANTAGE_WEIGHTED_SELECTIVE_SYNTHETIC_ADJUDICATION_V1.json)" = "d16b395435927977e9395240c85cd7981eea8939"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_m22c_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_m22c_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run M2.2C unit and inherited synthetic gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_m22c_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/m_series_m2_2_advantage_mirror_synthetic.py \
+            cb16_local_opt/m_series_m2_2b_advantage_weighted_selective_synthetic.py \
+            cb16_local_opt/m_series_m2_2c_balanced_preserve_correction_synthetic.py \
+            tests/test_m_series_m2_2_advantage_mirror_synthetic.py \
+            tests/test_m_series_m2_2b_advantage_weighted_selective_synthetic.py \
+            tests/test_m_series_m2_2c_balanced_preserve_correction_synthetic.py \
+            scripts/r11_m_series_m2_2c_balanced_preserve_correction_synthetic.py
+          "$PYTHON" -m pytest -q \
+            tests/test_m_series_m2_2_advantage_mirror_synthetic.py \
+            tests/test_m_series_m2_2b_advantage_weighted_selective_synthetic.py \
+            tests/test_m_series_m2_2c_balanced_preserve_correction_synthetic.py
+
+      - name: Execute preregistered 20-cell 480-arm M2.2C benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_m22c_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-m22c-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_m22c_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_m2_2c_balanced_preserve_correction_synthetic \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_M2_2C_BALANCED_PRESERVE_ADV_CORRECTION_SYNTHETIC_RESULT.json" \
+            --device cuda
+
+      - name: Verify M2.2C receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_m22c_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_M2_2C_BALANCED_PRESERVE_ADV_CORRECTION_SYNTHETIC_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_M2_2C_BALANCED_PRESERVE_ADV_CORRECTION_SYNTHETIC_RESULT_V1',x
+          assert x['status']=='M2_2C_BALANCED_PRESERVE_ADV_CORRECTION_SYNTHETIC_COMPLETE',x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          p=x['protocol']
+          assert p['synthetic_only'] is True and p['market_data_read'] is False and p['market_evidence_read'] is False,p
+          assert p['prior_primary_seed_cells_reused'] is False,p
+          assert p['cells']==20 and p['arms_per_cell']==24 and p['total_arms']==480,p
+          assert p['candidate_changes_target_distribution_vs_m22b'] is False,p
+          assert p['candidate_changes_only_component_normalization'] is True,p
+          assert p['component_weights']==[0.5,0.5],p
+          assert len(x['cells'])==20,x
+          for c in x['cells']:
+              assert len(c['arms'])==24,c
+              bal=c['arms']['BALANCED_PRESERVE_ADVANTAGE_CORRECTION_CE__ALIGNED']['objective']
+              assert abs(float(bal['preservation_component_mass'])-0.5)<1e-10,bal
+              assert abs(float(bal['correction_component_mass'])-0.5)<1e-10,bal
+              assert abs(float(bal['overall_multiplier_mean'])-1.0)<1e-10,bal
+              for arm in c['arms'].values():
+                  e=arm['evaluation']
+                  for k in ('true_discrete_champion_relative_gain','true_available_advantage_capture_fraction','true_harmful_cost_mean','true_negative_gain_rate','true_direction_change_rate'):
+                      assert math.isfinite(float(e[k])),(k,e)
+          s=x['m2_2c_summary']
+          assert len(s['per_regime'])==4,s
+          assert s['conclusion'] in {
+              'TWO_TERM_PRESERVATION_PLUS_VALUE_SENSITIVE_CORRECTION_SYNTHETICALLY_QUALIFIED_FOR_CONSUMED_TRAIN_ONLY_SHADOW',
+              'TWO_TERM_DIRECTION_OBJECTIVE_NOT_SYNTHETICALLY_QUALIFIED__DO_NOT_OPEN_MARKET_SHADOW',
+          },s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False and s['m3_sizing_authorized'] is False,s
+          print(json.dumps({'status':x['status'],'conclusion':s['conclusion'],'overall_pass':s['overall_pass'],'per_regime':s['per_regime'],'next_legal_step':x['next_legal_step']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload M2.2C synthetic evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-m2-2c-balanced-preserve-correction-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_m22c_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_m22c_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-m22c-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
