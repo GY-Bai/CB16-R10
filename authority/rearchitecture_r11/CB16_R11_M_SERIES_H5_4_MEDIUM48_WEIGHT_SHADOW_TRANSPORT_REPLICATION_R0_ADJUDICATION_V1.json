@@ -1,0 +1,49 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "6f61aa82363e0eb891976170738d8cfe72dc7cbb",
+    "execution_head": "7fe2e38b55d93716a336f3eefbcdf1ed457d9ca0",
+    "github_actions_run_id": 34445746778,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10139663732,
+    "artifact_digest": "sha256:6a688a9c4859c4e3c2e4eabedd36ad883eee2eca89f53a2f5e4934b764060296"
+  },
+  "adjudication": {
+    "overall_pass": false,
+    "shadow_lt_frozen_fold_count": 4,
+    "shadow_lt_frozen_both_late_folds": true,
+    "shadow_lt_climatology_fold_count": 5,
+    "shadow_lt_median_shuffle_fold_count": 2,
+    "shadow_lt_each_shuffle_pair_count_of_25": 10,
+    "folds_4_and_5_both_pass_climatology_and_shuffle": false,
+    "all_identity_guards_pass": true,
+    "conclusion": "H5_4_MEDIUM48_WEIGHTING_GAIN_DOES_NOT_RESTORE_H5_STYLE_STATE_ALIGNMENT_TRANSPORT__DO_NOT_CHANGE_CANONICAL_TEACHER"
+  },
+  "mechanistic_interpretation": {
+    "supported": [
+      "THE_H5_3_SHADOW_RULE_IMPROVES_FROZEN_CANONICAL_QSCORE_IN_FOUR_OF_FIVE_FOLDS_AND_BOTH_LATE_FOLDS",
+      "THE_SHADOW_RULE_BEATS_STATE_FREE_CLIMATOLOGY_IN_ALL_FIVE_FOLDS",
+      "THE_SHADOW_RULE_DOES_NOT_RESTORE_ALIGNMENT_SPECIFIC_TRANSPORT_AGAINST_WHOLE_FUTURE_GROUP_ROTATIONS"
+    ],
+    "not_supported": [
+      "MEDIUM48_POST_SELECTION_WEIGHTING_IS_A_SUFFICIENT_CAUSE_OF_H5_STATE_ALIGNMENT_FAILURE",
+      "CANONICAL_TEACHER_CHANGE",
+      "CANONICAL_STUDENT_CHANGE",
+      "MARKET_INFORMATION_QUALIFICATION",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ]
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "PREREGISTER_ONE_TEACHER_FREE_STATE_TO_COUNTERFACTUAL_UTILITY_GEOMETRY_TEMPORAL_TRANSPORT_AUDIT__DO_NOT_TUNE_ANOTHER_WEIGHT_VARIANT"
+}
