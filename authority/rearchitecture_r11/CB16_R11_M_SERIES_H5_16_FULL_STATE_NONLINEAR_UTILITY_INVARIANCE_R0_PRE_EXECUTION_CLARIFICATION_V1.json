@@ -1,0 +1,34 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0_PRE_EXECUTION_CLARIFICATION_V1",
+  "status": "PRE_EXECUTION_CLARIFICATION__NO_SCIENTIFIC_RESULT_OBSERVED",
+  "gate_blob_unchanged": "b4847abda958f0c3e00b6fb23ccd4463c4e41084",
+  "clarification_scope": "SECONDARY_SUPPORT_SEPARABILITY_RECEIPT_ONLY",
+  "reason": "THE_PREREGISTERED_GATE REQUIRED A FIXED_RANDOM_FOREST_CLASSIFIER_E_FROM_FULL102_AS_A_SECONDARY_NO_THRESHOLD_RECEIPT_BUT_DID_NOT ENUMERATE ITS CONSTRUCTOR PARAMETERS",
+  "scientific_result_observed_before_clarification": false,
+  "primary_metrics_changed": false,
+  "negative_controls_changed": false,
+  "classification_changed": false,
+  "thresholds_changed": false,
+  "secondary_classifier": {
+    "implementation": "sklearn.ensemble.RandomForestClassifier",
+    "n_estimators": 100,
+    "criterion": "gini",
+    "max_features": 10,
+    "max_depth": null,
+    "min_samples_split": 2,
+    "min_samples_leaf": 5,
+    "bootstrap": true,
+    "max_samples": null,
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "random_state": 51616,
+    "n_jobs": 1,
+    "probability_receipt": "PREDICT_PROBA_FOR_CLASSES_0_AND_1__REPORT_CLOCK_EQUAL_WEIGHTED_ACCURACY_AND_NEGATIVE_LOG_CORRECT_CLASS_PROBABILITY_WITH_PROBABILITY_CLIPPED_TO_MACHINE_EPSILON_ONLY_FOR_LOG_EVALUATION",
+    "classification_or_gate_use": false
+  },
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "runtime_environment_feature_authorized": false
+  }
+}
