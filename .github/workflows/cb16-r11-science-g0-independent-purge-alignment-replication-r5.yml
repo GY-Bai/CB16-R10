@@ -1,0 +1,191 @@
+name: CB16 R11 Science G0 Independent Purge Alignment Replication R5
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-independent-purge-alignment-replication-r5
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0_ADJUDICATION_V1.json
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_GATE_V1.json
+      - cb16_local_opt/independent_purge_alignment_replication_r5.py
+      - tests/test_independent_purge_alignment_replication_r5.py
+      - scripts/r11_science_g0_independent_purge_alignment_replication_r5.py
+      - scripts/r11_science_g0_independent_purge_alignment_replication_r5_entrypoint.py
+      - .github/workflows/cb16-r11-science-g0-independent-purge-alignment-replication-r5.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  independent-purge-alignment-r5:
+    name: R11 independent purge alignment replication R5
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 240
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable preregistration and authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 12de52ec29e3224df27558e8e157ad9ccd1d170c HEAD
+          test "$(git rev-parse 12de52ec29e3224df27558e8e157ad9ccd1d170c:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0_ADJUDICATION_V1.json)" = "41506938c433e34514834bb07888c37e5a304c99"
+          test "$(git rev-parse 12de52ec29e3224df27558e8e157ad9ccd1d170c:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_GATE_V1.json)" = "75b77a0184263abc6f808fb5a7fc77b8cc1dd74e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_SUPPORT_INVENTORY_R5_0_ADJUDICATION_V1.json)" = "41506938c433e34514834bb07888c37e5a304c99"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_GATE_V1.json)" = "75b77a0184263abc6f808fb5a7fc77b8cc1dd74e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/training_runtime_r11.py)" = "56c227800d7a5c82ef88c691bb69d7550aee8b39"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_runtime_r11.py)" = "656f1483f2e6a96daae5c98eb96cd75805d3547c"
+          test -f "$CB16_G0_ROOT/bootstrap/R11_G0_INITIAL_CHAMPION.pt"
+          test -d "$CB16_G0_ROOT/market_cache"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+          test -d "$CB16_PACKAGE_ROOT"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r5_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r5_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run R5 unit and regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r5_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/independent_purge_alignment_replication_r5.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            scripts/r11_science_g0_independent_purge_alignment_replication_r5.py \
+            scripts/r11_science_g0_independent_purge_alignment_replication_r5_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_canonical_state_alignment_falsification_r41.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_training_integration_r11.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_teacher_runtime_r11.py
+
+      - name: Execute preregistered R5 real-history replication
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r5_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-independent-purge-r5-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r5_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_independent_purge_alignment_replication_r5_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --r104-root "$CB16_R104_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_RESULT.json" \
+            --device cuda
+
+      - name: Verify R5 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r5_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_RESULT_V1',x
+          assert x['frozen_scientific_status_before']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          assert x['frozen_scientific_status_after']==x['frozen_scientific_status_before'],x
+          s=x['semantic_guards']
+          assert s['canonical_generation_advanced'] is False,x
+          assert s['champion_promoted'] is False,x
+          assert s['production_cutover'] is False,x
+          assert s['scientific_verdict_created'] is False if 'scientific_verdict_created' in s else s['scientific_market_information_verdict_reopened'] is False,x
+          assert s['final_holdout_payload_opened'] is False,x
+          assert s['fresh_market_data_downloaded'] is False,x
+          assert s['frozen_package_unchanged'] is True and s['g0_authority_unchanged'] is True,x
+          if x['status']=='R11_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_SUPPORT_NOT_READY':
+              assert x['support_readiness']['ready'] is False,x
+              assert x['alignment_adjudication_performed'] is False,x
+              print(json.dumps({'status':x['status'],'reason':x['support_readiness']['reason'],'next_legal_step':x['next_legal_step']},indent=2,sort_keys=True))
+          else:
+              assert x['status']=='R11_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_PASS',x
+              p=x['protocol']; c=x['candidate_support']; t=x['candidate_teacher']; a=x['alignment_adjudication']
+              assert p['preregistered_before_candidate_outcome_open'] is True,x
+              assert p['candidate_timestamp']=='2024-12-28T08:00:00Z',x
+              assert p['pre_registered_shifts']==[1,7,13,23,31],x
+              assert p['candidate_support_used_in_training'] is False,x
+              assert c['nominal_future_groups']==10 and c['macro_clock_blocks']==1,x
+              assert c['parent_contexts']==60 and c['branch_samples']==540,x
+              assert t['target_count']==60 and t['admitted_target_count']==60,x
+              assert t['execution']['execution_pruning_only'] is True,x
+              assert t['realized_future_is_not_direct_student_label'] is True,x
+              assert set(x['arm_results'])=={'G0_CHAMPION','ALIGNED','SHUFFLE_1','SHUFFLE_7','SHUFFLE_13','SHUFFLE_23','SHUFFLE_31'},x
+              assert a['canonical_promotion_authorized'] is False and a['canonical_generation_advance_authorized'] is False,x
+              assert a['market_information_verdict_reopened'] is False,x
+              for arm in x['arm_results'].values():
+                  m=arm['candidate']
+                  assert all(math.isfinite(float(m[k])) for k in ('loss','direction_loss','sizing_loss')),arm
+                  assert len(arm['per_symbol'])==10,arm
+              print(json.dumps({
+                  'status':x['status'],
+                  'conclusion':a['conclusion'],
+                  'champion_candidate_loss':x['arm_results']['G0_CHAMPION']['candidate']['loss'],
+                  'aligned_candidate_loss':x['arm_results']['ALIGNED']['candidate']['loss'],
+                  'aligned_lower_total_count_vs_shuffles':a['aligned_lower_total_count_vs_shuffles'],
+                  'aligned_lower_direction_count_vs_shuffles':a['aligned_lower_direction_count_vs_shuffles'],
+                  'next_legal_step':x['next_legal_step'],
+              },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload R5 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-independent-purge-alignment-r5-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r5_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r5_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-independent-purge-r5-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
