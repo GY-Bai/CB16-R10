@@ -1,0 +1,23 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_12_PREEXECUTION_HOLD_V1",
+  "stage": "R11_M_SERIES_H5_12_PREEXECUTION_HOLD",
+  "status": "HELD_BEFORE_IMPLEMENTATION_OR_SCIENTIFIC_EXECUTION",
+  "preregistration_commit": "b041e3db110c1cc675cdbc9d71c6a5fd5c2b9c96",
+  "reason": "H5_11_REUSE_REVEALED_A_MEASURE_SEMANTICS_MISMATCH__THE_H5_11_RECEIPT_MATCHES_NORMALIZE_P_TIMES_CELL_MULTIPLIER_TO_Q_BUT_THE_PRIMARY_STATISTIC_LOCALLY_RENORMALIZES_CANDIDATE_WEIGHTS_INSIDE_EACH_TARGET_FUTURE_GROUP_X_SCENARIO_BEFORE_MACRO_AVERAGING__THEREFORE_THE_STRONG_INTERPRETATION_THAT_THE_ACTUAL_EFFECTIVE_EMPIRICAL_MEASURE_IS_EXACTLY_Q_REQUIRES_SEPARATE_AUDIT",
+  "scientific_result_seen_for_h5_12": false,
+  "account6_27_cell_result_seen": false,
+  "h5_12_implementation_started": false,
+  "h5_12_workflow_created": false,
+  "h5_12_scientific_execution_started": false,
+  "h5_12_preregistration_mutated": false,
+  "authority_effect": {
+    "h5_12_execution_authorized": false,
+    "h5_12_preregistration_deleted": false,
+    "h5_12_preregistration_result_authority": false,
+    "canonical_change_authorized": false,
+    "learned_gate_authorized": false,
+    "time_or_regime_gate_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "AUDIT_H5_11_EFFECTIVE_MEASURE_CLOSURE_OUTCOME_BLIND__DO_NOT_EXECUTE_H5_12_UNTIL_THE_H5_11_MEASURE_SEMANTICS_ARE_ADJUDICATED"
+}
