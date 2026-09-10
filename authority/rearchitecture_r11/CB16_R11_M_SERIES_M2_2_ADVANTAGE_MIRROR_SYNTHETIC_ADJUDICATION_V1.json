@@ -1,0 +1,120 @@
+{
+  "schema": "CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "9b48115c080e221efd70df0896347dbb224c4ada",
+    "gate_path": "authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_GATE_V1.json",
+    "gate_blob": "4a75dcd18eb78fbef4b24a94ccad0bf444e4e2b0",
+    "implementation_branch": "ai/m-series-m2-2-adv-mirror-synthetic-r0",
+    "execution_head": "d3ec6c2b759f5f15f0ca0c403c12829023511fbd",
+    "github_actions_run_id": 34436050649,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10136233264,
+    "artifact_digest": "sha256:266425df8f5ec2e300d2f4af4d9aefb77b18a3e9783b03b4a8ce67d438a86eab",
+    "result_schema": "CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_RESULT_V1"
+  },
+  "engineering_adjudication": {
+    "status": "PASS",
+    "repo_guard": "PASS",
+    "immutable_gate_and_ancestry": "PASS",
+    "verified_python_and_docker": "PASS",
+    "unit_gates": "PASS",
+    "twenty_cells_completed": true,
+    "eighteen_arms_per_cell_completed": true,
+    "total_arms_completed": 360,
+    "receipt_and_semantic_guards": "PASS",
+    "market_data_read": false,
+    "market_evidence_read": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false,
+    "pre_science_engineering_failures": [
+      "RUN_34434815624_SIBLING_TEST_PATH_REFERENCE__NO_SYNTHETIC_ARM_EXECUTED",
+      "RUN_34435641697_EXACT_CHAMPION_IDENTITY_NUMERICAL_IMPLEMENTATION_ASSERTION__NO_SYNTHETIC_ARM_EXECUTED",
+      "RUN_34435888082_SCRIPT_IMPORT_ROOT_ENTRYPOINT_FAILURE__NO_SYNTHETIC_ARM_EXECUTED"
+    ],
+    "optional_stopping_or_result_peeking_before_successful_science_run": false
+  },
+  "candidate": {
+    "name": "POSITIVE_ADVANTAGE_MIRROR_CE",
+    "teacher_positive_advantage": "A_PLUS(a)=MAX(MU_TEACHER(a)-MU_TEACHER(a_G0),0)",
+    "target": "Q(a) PROPORTIONAL_TO P_G0(a)*EXP(A_PLUS(a)/0.002)",
+    "exact_no_positive_advantage_contract": "Q=P_G0",
+    "temperature": 0.002,
+    "new_teacher_information_added": false,
+    "sizing_in_scope": false
+  },
+  "preregistered_regime_adjudication": [
+    {
+      "regime": "CLEAN_CONDITIONAL",
+      "alignment_specific_gain_win_count": 5,
+      "harm_vs_abs_win_count": 4,
+      "capture_vs_selective_win_count": 0,
+      "required": {"alignment": 4, "harm": 4, "capture": 3},
+      "pass": false,
+      "failure_axis": "AVAILABLE_ADVANTAGE_CAPTURE_VS_BINARY_SELECTIVE"
+    },
+    {
+      "regime": "NOISY_TEACHER",
+      "alignment_specific_gain_win_count": 5,
+      "harm_vs_abs_win_count": 4,
+      "capture_vs_selective_win_count": 3,
+      "required": {"alignment": 4, "harm": 4, "capture": 3},
+      "pass": true
+    },
+    {
+      "regime": "WEAK_CONDITIONAL_STRONG_MARGINAL",
+      "alignment_specific_gain_win_count": 2,
+      "harm_vs_abs_win_count": 4,
+      "capture_vs_selective_win_count": 0,
+      "required": {"alignment": 4, "harm": 4, "capture": 3},
+      "pass": false,
+      "failure_axis": "ALIGNMENT_SPECIFIC_GAIN_AND_AVAILABLE_ADVANTAGE_CAPTURE"
+    },
+    {
+      "regime": "NEAR_OPTIMAL_CHAMPION",
+      "alignment_specific_gain_win_count": 5,
+      "harm_vs_abs_win_count": 5,
+      "capture_vs_selective_win_count": 0,
+      "required": {"alignment": 4, "harm": 4, "capture": 3},
+      "pass": false,
+      "failure_axis": "AVAILABLE_ADVANTAGE_CAPTURE_VS_BINARY_SELECTIVE"
+    }
+  ],
+  "scientific_adjudication": {
+    "overall_pass": false,
+    "conclusion": "POSITIVE_ADVANTAGE_MIRROR_OBJECTIVE_NOT_SYNTHETICALLY_QUALIFIED",
+    "m2_3_consumed_market_shadow_authorized": false,
+    "canonical_change_authorized": false,
+    "m3_sizing_authorized": false,
+    "market_information_verdict": false
+  },
+  "mechanistic_interpretation": {
+    "established": [
+      "The positive-advantage mirror target can retain alignment-specific true Champion-relative gain while reducing true harmful cost in several synthetic regimes.",
+      "The candidate passed all preregistered criteria only in the NOISY_TEACHER regime.",
+      "Champion anchoring is strongly protective against harmful Direction movement, including five of five seeds in the NEAR_OPTIMAL_CHAMPION regime."
+    ],
+    "not_established": [
+      "The candidate does not reliably capture more available true advantage than the binary selective objective; capture wins were zero of five in CLEAN_CONDITIONAL, WEAK_CONDITIONAL_STRONG_MARGINAL, and NEAR_OPTIMAL_CHAMPION.",
+      "The candidate does not reliably separate aligned from shuffled Teacher surfaces under weak conditional signal with strong marginal structure; alignment wins were only two of five there.",
+      "Positive-advantage weighting multiplied by the full Champion probability prior is therefore not qualified as the next market-shadow objective."
+    ],
+    "design_implication": "The next Direction-objective study should separate Champion preservation on no-improvement states from the strength of correction on positive-advantage states. It should test whether the full P_G0 multiplicative prior over-anchors the correction target, while retaining null-alignment controls and known-ground-truth synthetic evaluation. Do not tune the M2.2 temperature or reuse market support to rescue this formulation."
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "semantic_guards": {
+    "canonical_generation_advanced": false,
+    "champion_promoted": false,
+    "production_cutover": false,
+    "market_information_verdict_reopened": false,
+    "profitability_or_alpha_claimed": false,
+    "r7_candidate_evaluated": false,
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false,
+    "m2_3_opened": false,
+    "m3_sizing_opened": false
+  },
+  "next_legal_step": "RETURN_TO_DIRECTION_OBJECTIVE_FAMILY_IN_SYNTHETIC_SPACE__PREREGISTER_A_NEW_PRESERVE_WHEN_NO_ADVANTAGE__CORRECT_WITHOUT_FULL_CHAMPION_PRIOR_FORMULATION_BEFORE_ANY_MARKET_SHADOW"
+}

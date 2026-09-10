@@ -1,0 +1,125 @@
+{
+  "schema": "CB16_R11_M_SERIES_M2_2B_ADVANTAGE_WEIGHTED_SELECTIVE_SYNTHETIC_GATE_V1",
+  "stage": "R11_M_SERIES_M2_2B_ADVANTAGE_WEIGHTED_SELECTIVE_SYNTHETIC_BENCHMARK",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "m2_2_adjudication_commit": "98cc07995c725ead1c05fad449196e70b69e50fd",
+    "m2_2_adjudication_path": "authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_ADJUDICATION_V1.json",
+    "m2_2_conclusion": "POSITIVE_ADVANTAGE_MIRROR_OBJECTIVE_NOT_SYNTHETICALLY_QUALIFIED",
+    "m2_1_mechanism": "SELECTIVE_POSITIVE_GAIN_PRIMARILY_PRESERVATION_HARM_SUPPRESSION_NOT_SUPERIOR_DISAGREEMENT_CORRECTION_SELECTION"
+  },
+  "question": "If the binary selective target is retained exactly, can Teacher-implied advantage be used only as a normalized state-weighting signal to prioritize valuable Champion disagreements, improving true correction value without the over-anchoring observed in the M2.2 multiplicative Champion-prior target?",
+  "hypothesis": "The missing mechanism is selection of valuable disagreement states rather than the shape of the correction target. Reweighting disagreement rows by Teacher-implied advantage while keeping the binary selective target unchanged should increase capture and true Champion-relative gain under aligned state-Teacher pairing, collapse under whole-group shuffles, and retain harm suppression relative to absolute CE.",
+  "support": {
+    "synthetic_only": true,
+    "market_data_allowed": false,
+    "market_evidence_allowed": false,
+    "r6_consumed_support_allowed": false,
+    "legacy_validation_allowed": false,
+    "r5_purge_allowed": false,
+    "final_holdout_allowed": false,
+    "r7_candidate_evaluation_allowed": false,
+    "new_seed_registry": true,
+    "previous_m2_2_seed_cells_reused_for_primary_gate": false
+  },
+  "synthetic_world_contract": {
+    "same_generator_family_as_m2_2": true,
+    "tau": 0.002,
+    "train_groups": 384,
+    "eval_groups": 192,
+    "scenarios_per_group": 6,
+    "latent_dim": 8,
+    "feature_dim": 256,
+    "directions": 3,
+    "regimes": [
+      {"name":"CLEAN_CONDITIONAL","seeds":[2101,2102,2103,2104,2105],"conditional_signal_scale":0.004,"global_action_bias_scale":0.001,"teacher_noise_std":0.0005,"champion_truth_correlation":0.55},
+      {"name":"NOISY_TEACHER","seeds":[2201,2202,2203,2204,2205],"conditional_signal_scale":0.004,"global_action_bias_scale":0.001,"teacher_noise_std":0.002,"champion_truth_correlation":0.55},
+      {"name":"WEAK_CONDITIONAL_STRONG_MARGINAL","seeds":[2301,2302,2303,2304,2305],"conditional_signal_scale":0.0015,"global_action_bias_scale":0.0025,"teacher_noise_std":0.001,"champion_truth_correlation":0.55},
+      {"name":"NEAR_OPTIMAL_CHAMPION","seeds":[2401,2402,2403,2404,2405],"conditional_signal_scale":0.004,"global_action_bias_scale":0.001,"teacher_noise_std":0.001,"champion_truth_correlation":0.90}
+    ],
+    "ground_truth": "MU_TRUE_IS_HIDDEN_FROM_TRAINING_AND_USED_ONLY_FOR_INDEPENDENT_SYNTHETIC_EVAL",
+    "teacher_train_surface": "MU_TEACHER=MU_TRUE+PREREGISTERED_GAUSSIAN_NOISE",
+    "champion": "IMPERFECT_CORRELATED_PROXY_FIXED_BEFORE_RESIDUAL_TRAINING"
+  },
+  "frozen_residual_and_training": {
+    "architecture": "Linear(256,64)->SiLU->Linear(64,3)",
+    "parameter_count": 16643,
+    "zero_output_initialization": true,
+    "epochs": 12,
+    "batch_size": 512,
+    "optimizer": "AdamW",
+    "lr": 0.0003,
+    "weight_decay": 0.0001,
+    "gradient_clip_max_norm": 10.0,
+    "base_seed": 24680,
+    "same_minibatch_permutations_across_matched_arms": true,
+    "hyperparameter_tuning": false
+  },
+  "objectives": {
+    "ABS_CE": {
+      "target": "TEACHER_SOFTMAX_PROBS",
+      "row_multiplier": 1.0
+    },
+    "SELECTIVE_CHAMPION_PRESERVE_CE": {
+      "target": "IF TEACHER_BEST==G0_BEST THEN P_G0 ELSE P_TEACHER",
+      "row_multiplier": 1.0
+    },
+    "ADVANTAGE_WEIGHTED_SELECTIVE_CE": {
+      "target": "IDENTICAL_TO_SELECTIVE_CHAMPION_PRESERVE_CE",
+      "teacher_advantage": "A_I=MU_TEACHER(TEACHER_BEST)-MU_TEACHER(G0_BEST)",
+      "row_multiplier": "IF TEACHER_BEST==G0_BEST THEN 1.0 ELSE A_I/MEAN_DISAGREEMENT(A_I)",
+      "normalization": "MEAN_DISAGREEMENT_MULTIPLIER_EXACTLY_1_WITHIN_EACH_TRAIN_CELL_AND_CONTROL_ARM",
+      "thresholds": "NONE",
+      "temperature_or_scale_parameter": "NONE",
+      "purpose": "Change only which disagreement states dominate the gradient; do not change the per-state correction target."
+    }
+  },
+  "controls": {
+    "shifts": [1,7,13,23,31],
+    "unit": "WHOLE_SYNTHETIC_FUTURE_GROUP",
+    "teacher_means_and_probs_rotate_together": true,
+    "champion_features_logits_and_true_eval_surface_not_rotated": true,
+    "scenario_identity_preserved": true,
+    "arms_per_cell": 18,
+    "total_cells": 20,
+    "total_arms": 360,
+    "optional_stopping": false,
+    "all_arms_all_cells_required": true
+  },
+  "evaluation": {
+    "true_discrete_champion_relative_gain": "MEAN[MU_TRUE(NEW_DIRECTION)-MU_TRUE(G0_DIRECTION)]",
+    "true_available_advantage_capture_fraction": "SUM(MAX(MU_TRUE(NEW)-MU_TRUE(G0),0))/SUM(MAX(MU_TRUE(BEST)-MU_TRUE(G0),0))",
+    "true_harmful_cost_mean": "MEAN[MAX(MU_TRUE(G0)-MU_TRUE(NEW),0)]",
+    "true_negative_gain_rate": "P(MU_TRUE(NEW)<MU_TRUE(G0))"
+  },
+  "primary_adjudication": {
+    "unit": "SEED_SIGN_COUNT_WITHIN_EACH_PREREGISTERED_REGIME__NO_ROW_POOLING",
+    "alignment_rule": "ADV_WEIGHTED_SELECTIVE_ALIGNED_TRUE_GAIN_GT_MEDIAN_OF_FIVE_ADV_WEIGHTED_SELECTIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_SEEDS_PER_REGIME",
+    "capture_rule": "ADV_WEIGHTED_SELECTIVE_ALIGNED_TRUE_CAPTURE_GT_BINARY_SELECTIVE_ALIGNED_TRUE_CAPTURE_IN_AT_LEAST_3_OF_5_SEEDS_PER_REGIME",
+    "gain_vs_selective_rule": "ADV_WEIGHTED_SELECTIVE_ALIGNED_TRUE_GAIN_GT_BINARY_SELECTIVE_ALIGNED_TRUE_GAIN_IN_AT_LEAST_3_OF_5_SEEDS_PER_REGIME",
+    "harm_rule": "ADV_WEIGHTED_SELECTIVE_ALIGNED_TRUE_HARM_LT_ABS_CE_ALIGNED_TRUE_HARM_IN_AT_LEAST_4_OF_5_SEEDS_PER_REGIME",
+    "regime_pass": "ALL_FOUR_RULES_PASS",
+    "overall_pass": "ALL_FOUR_REGIMES_PASS",
+    "qualification_if_pass": "ADVANTAGE_WEIGHTED_STATE_SELECTION_SYNTHETICALLY_QUALIFIED_FOR_A_SEPARATELY_PREREGISTERED_CONSUMED_TRAIN_ONLY_SHADOW_SCREEN",
+    "failure": "ADVANTAGE_WEIGHTED_STATE_SELECTION_NOT_SYNTHETICALLY_QUALIFIED__DO_NOT_OPEN_MARKET_SHADOW"
+  },
+  "anti_overfit_guards": {
+    "m2_2_primary_seed_cells_not_reused": true,
+    "m2_2_temperature_not_tuned": true,
+    "new_candidate_has_no_tunable_temperature_or_threshold": true,
+    "same_world_family_and_regime_parameters_retained_to_ISOLATE_OBJECTIVE_CHANGE": true,
+    "no_post_result_rule_change": true
+  },
+  "legal_conclusions": {
+    "market_information_verdict": false,
+    "canonical_change_authorized": false,
+    "m3_sizing_authorized": false,
+    "final_opening_authorized": false,
+    "r7_evaluation_authorized": false
+  },
+  "next_step_policy": {
+    "if_overall_pass": "ADJUDICATE_M2_2B_THEN_PREREGISTER_CONSUMED_R6_TRAIN_ONLY_DIRECTION_SHADOW_WITH_EXACT_FROZEN_OBJECTIVE",
+    "if_overall_fail": "ADJUDICATE_FAILURE_AND_REASSESS_PAIRWISE_LISTWISE_OR_DECISION_REGRET_DIRECTION_OBJECTIVE_FAMILIES_IN_SYNTHETIC_SPACE"
+  }
+}
