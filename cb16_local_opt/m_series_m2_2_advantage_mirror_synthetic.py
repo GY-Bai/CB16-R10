@@ -126,7 +126,6 @@ def rotate_teacher_surface_m22(mu_teacher:np.ndarray,shift:int)->np.ndarray:
     require(x.shape==(TRAIN_GROUPS*SCENARIOS,DIRECTIONS),"M22_TEACHER_SURFACE_SHAPE")
     cube=x.reshape(TRAIN_GROUPS,SCENARIOS,DIRECTIONS)
     out=np.roll(cube,shift=-int(shift),axis=0).reshape(x.shape)
-    # exact scenario-wise multiset preservation
     for s in range(SCENARIOS):
         before=np.sort(cube[:,s,:],axis=0)
         after=np.sort(out.reshape(TRAIN_GROUPS,SCENARIOS,DIRECTIONS)[:,s,:],axis=0)
@@ -164,7 +163,14 @@ def objective_target_m22(*,objective:str,mu_teacher:np.ndarray,base_probs:np.nda
         aplus=np.maximum(mu-mu[rows,g0][:,None],0.0)
         logq=np.log(np.clip(p0,np.finfo(np.float64).tiny,1.0))+aplus/TAU
         q=_softmax_np(logq)
-        require(np.max(np.abs(q[preserve]-p0[preserve]))<=2e-15,"M22_ADV_MIRROR_EXACT_PRESERVE_DRIFT")
+        no_positive=np.max(aplus,axis=1)<=0.0
+        # The preregistered contract requires an exact Champion identity when
+        # Teacher supplies no positive Direction advantage.  Copy the represented
+        # FP32 Champion probabilities instead of re-normalizing softmax(log(p0)).
+        q[no_positive]=p0[no_positive]
+        if np.any(no_positive):
+            require(np.array_equal(q[no_positive],p0[no_positive]),"M22_ADV_MIRROR_EXACT_PRESERVE_DRIFT")
+        require(np.array_equal(no_positive,preserve),"M22_ADV_MIRROR_PRESERVE_SET_DRIFT")
     return q.astype(np.float32),{
         "objective":objective,"rows":int(len(q)),"teacher_g0_agreement_rows":int(np.sum(preserve)),
         "exact_preservation_rows":int(np.sum(np.max(np.abs(q-p0),axis=1)<=2e-15)),
@@ -243,7 +249,7 @@ def adjudicate_m22(cells:Sequence[Mapping[str,Any]])->dict[str,Any]:
             adv_sh=[arms[f"POSITIVE_ADVANTAGE_MIRROR_CE__SHUFFLE_{s}"]["evaluation"] for s in SHIFTS]
             abs_=arms["ABS_CE__ALIGNED"]["evaluation"]; sel=arms["SELECTIVE_CHAMPION_PRESERVE_CE__ALIGNED"]["evaluation"]
             med_gain=float(statistics.median(float(x["true_discrete_champion_relative_gain"]) for x in adv_sh))
-            a= float(adv["true_discrete_champion_relative_gain"]); h=float(adv["true_harmful_cost_mean"]); cap=float(adv["true_available_advantage_capture_fraction"])
+            a=float(adv["true_discrete_champion_relative_gain"]); h=float(adv["true_harmful_cost_mean"]); cap=float(adv["true_available_advantage_capture_fraction"])
             wa=a>med_gain; wh=h<float(abs_["true_harmful_cost_mean"]); wc=cap>float(sel["true_available_advantage_capture_fraction"])
             align_wins+=int(wa); harm_wins+=int(wh); capture_wins+=int(wc)
             per_seed.append({"seed":int(c["seed"]),"adv_aligned_gain":a,"median_adv_shuffle_gain":med_gain,"adv_harm":h,"abs_harm":float(abs_["true_harmful_cost_mean"]),"adv_capture":cap,"selective_capture":float(sel["true_available_advantage_capture_fraction"]),"alignment_win":wa,"harm_win":wh,"capture_win":wc})
