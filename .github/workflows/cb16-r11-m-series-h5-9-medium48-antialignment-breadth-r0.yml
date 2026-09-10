@@ -1,0 +1,194 @@
+name: CB16 R11 M-Series H5.9 Medium48 Anti-Alignment Breadth R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-9-medium48-antialignment-breadth-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_GATE_V1.json
+      - cb16_local_opt/medium48_antialignment_breadth_h59.py
+      - tests/test_medium48_antialignment_breadth_h59.py
+      - scripts/r11_m_series_h5_9_medium48_antialignment_breadth_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-9-medium48-antialignment-breadth-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-9-medium48-antialignment-breadth:
+    name: H5.9 Student-free Teacher-free Medium48 anti-alignment breadth
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify preregistration authority and frozen scientific inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 67168af364aeadb6b28e78371a4d92daa2962ab4 ea234bd381ffded3149704d3df46bc7fc704a102
+          git merge-base --is-ancestor ea234bd381ffded3149704d3df46bc7fc704a102 HEAD
+          test "$(git rev-parse ea234bd381ffded3149704d3df46bc7fc704a102:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_GATE_V1.json)" = "91902d36806c70108de8eca2472e717acb5f3a20"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_GATE_V1.json)" = "91902d36806c70108de8eca2472e717acb5f3a20"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_8_OPERATOR_CONDITIONAL_MEDIUM48_GEOMETRY_R0_ADJUDICATION_V1.json)" = "f2c8a075b9fd67afccc66198a9efc64ec0b1ceed"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/medium48_antialignment_breadth_h59.py)" = "f85fcd609a7e34b4f42cfa5873ba0a752927b58c"
+          test "$(git rev-parse HEAD:tests/test_medium48_antialignment_breadth_h59.py)" = "e8f5fbf6834a5c822495c7cae431ee0df9dcff6d"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_9_medium48_antialignment_breadth_r0.py)" = "763aed213b27350607cde464dd1c33b58478d9cd"
+          test "$(git rev-parse HEAD:cb16_local_opt/operator_conditional_medium_geometry_h58.py)" = "aaddbad059c7262a8137db87bee25d38c07afd83"
+          test "$(git rev-parse HEAD:cb16_local_opt/time_local_vs_forward_geometry_contrast_h56.py)" = "a264ff21d0447527c4dda06ee8fd63cf20207daf"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55.py)" = "1dd00ea9b40b8da4061c0983fc44fb2307c72587"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55_clarified.py)" = "faa5233170aa421c3bf44f023b1d8e2f7c187568"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h59_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h59_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5.9 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h59_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/medium48_antialignment_breadth_h59.py \
+            tests/test_medium48_antialignment_breadth_h59.py \
+            scripts/r11_m_series_h5_9_medium48_antialignment_breadth_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_medium48_antialignment_breadth_h59.py \
+            tests/test_operator_conditional_medium_geometry_h58.py \
+            tests/test_medium48_relational_composition_falsification_h57.py \
+            tests/test_time_local_vs_forward_geometry_contrast_h56.py \
+            tests/test_state_utility_geometry_transport_audit_h55.py \
+            tests/test_state_utility_geometry_transport_audit_h55_clarified.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute preregistered H5.9 anti-alignment breadth audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h59_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h59-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h59_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_9_medium48_antialignment_breadth_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_RESULT.json"
+
+      - name: Verify H5.9 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h59_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_R0_RESULT_V1',x
+          assert x['status']=='H5_9_MEDIUM48_ANTIALIGNMENT_BREADTH_COMPLETE',x
+          assert x['repo']['preregistration_commit']=='ea234bd381ffded3149704d3df46bc7fc704a102',x['repo']
+          assert x['repo']['immutable_blobs']['gate']=='91902d36806c70108de8eca2472e717acb5f3a20',x['repo']
+          assert x['repo']['immutable_blobs']['h58_adjudication']=='f2c8a075b9fd67afccc66198a9efc64ec0b1ceed',x['repo']
+          assert x['parent_h5_8']['failure_folds']==[1,3],x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          assert [int(f['fold']) for f in x['folds']]==[1,3],x['folds']
+          for f in x['folds']:
+              assert int(f['local_support_future_groups_min'])>=32,f
+              assert int(f['local_support_future_groups_min'])==int(f['local_support_future_groups_max']),f
+              assert f['all_null_medium_distance_multisets_preserved'] is True,f
+              assert f['omission_changes_support_or_normalization'] is False,f
+              assert f['omission_changes_null_mapping'] is False,f
+              assert f['teacher_compilation_used'] is False and f['teacher_kernel_used'] is False and f['teacher_support_selection_used'] is False,f
+              assert f['student_training_used'] is False and f['student_inference_used'] is False,f
+              assert f['new_representation_used'] is False and f['medium_dimensions_subselected'] is False,f
+              assert f['fusion_weights_searched'] is False and f['distance_metric_tuned'] is False,f
+              assert len(f['symbol_leave_one_out'])==10,f
+              assert len(f['scenario_leave_one_out'])==6,f
+              assert math.isfinite(float(f['baseline']['aligned_partial_rho'])) and math.isfinite(float(f['baseline']['null_median_partial_rho'])),f
+          s=x['h5_9_summary']
+          assert s['classification'] in {
+              'MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_BROAD_ACROSS_SYMBOLS_AND_SCENARIOS',
+              'MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_SYMBOL_SENSITIVE__SCENARIO_ROBUST',
+              'MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_SYMBOL_ROBUST__SCENARIO_SENSITIVE',
+              'MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_SYMBOL_AND_SCENARIO_SENSITIVE_OR_MIXED',
+              'H5_9_BASELINE_REPRODUCTION_FAILED',
+          },s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False,s
+          assert s['teacher_change_authorized'] is False and s['student_change_authorized'] is False and s['organ_change_authorized'] is False,s
+          assert s['handcrafted_regime_activation_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['teacher_compiled_for_scientific_score'] is False and g['teacher_kernel_used'] is False and g['teacher_support_selection_used'] is False,g
+          assert g['future_utility_used_to_select_omissions'] is False,g
+          assert g['support_recomputed_after_omission'] is False and g['normalization_recomputed_after_omission'] is False and g['null_mapping_recomputed_after_omission'] is False,g
+          assert g['medium_dimensions_split_post_hoc'] is False and g['timesfm_1280d_pre_adapter_latent_accessed'] is False,g
+          assert g['fusion_weights_searched'] is False and g['organ_weights_tuned'] is False and g['distance_metric_tuned'] is False,g
+          assert g['handcrafted_regime_or_cycle_activation_created'] is False,g
+          assert g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({
+              'status':x['status'],
+              'classification':s['classification'],
+              'conclusion':s['conclusion'],
+              'baseline_reproduction_passed':s['baseline_reproduction_passed'],
+              'symbol_loo_robust_both_failure_folds':s['symbol_loo_robust_both_failure_folds'],
+              'scenario_loo_robust_both_failure_folds':s['scenario_loo_robust_both_failure_folds'],
+              'per_fold':s['per_fold'],
+              'next_legal_step':x['next_legal_step'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5.9 evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-9-medium48-antialignment-breadth-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h59_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h59_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h59-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: error
+          retention-days: 30
