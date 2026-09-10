@@ -1,0 +1,41 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0_EXECUTION_BLOCKED_H55_PIN_TYPO_RECEIPT_V1",
+  "stage": "R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0",
+  "status": "EXECUTION_BLOCKED__WORKFLOW_H5_5_GATE_BLOB_TYPO_BEFORE_SCIENTIFIC_PAYLOAD_LOAD",
+  "run": {
+    "workflow_run_id": 34537433105,
+    "job_id": 103072243275,
+    "head_sha": "75b44e3686415c8887111ffa3c074039e00a94fb",
+    "repo_guard_conclusion": "success",
+    "authority_verification": "FAIL",
+    "docker_preflight": "NOT_RUN",
+    "canonical_python_resolution": "NOT_RUN",
+    "pre_science_tests": "NOT_RUN",
+    "scientific_execution": "NOT_RUN"
+  },
+  "failure": {
+    "step": "Verify preregistration authority and immutable scientific inputs",
+    "wrong_expected_h5_5_gate_blob": "54b9492e74d5011b671837ef402abd604c7c6",
+    "correct_frozen_h5_5_gate_blob": "54b9492e74d5017711b671837ef402abd604c7c6",
+    "cause": "WORKFLOW_TEXT_TRANSCRIPTION_DROPPED_ONE_HEXADECIMAL_CHARACTER_FROM_THE_ALREADY_FROZEN_H5_5_GATE_BLOB",
+    "scientific_payload_loaded": false,
+    "centered_utility9_target_constructed": false,
+    "random_forest_fit_started": false,
+    "h5_16_outcome_observed": false,
+    "scientific_authority": "NONE"
+  },
+  "repair_authority": {
+    "allowed_change": "WORKFLOW_ONLY__RESTORE_THE_EXACT_FROZEN_H5_5_GATE_BLOB_STRING",
+    "gate_change_allowed": false,
+    "clarification_change_allowed": false,
+    "helper_change_allowed": false,
+    "test_change_allowed": false,
+    "executor_change_allowed": false,
+    "rf_hyperparameter_or_seed_change_allowed": false,
+    "clock_split_change_allowed": false,
+    "negative_control_change_allowed": false,
+    "classification_change_allowed": false,
+    "module_mode_import_repair_must_be_preserved": true
+  },
+  "next_legal_step": "REPLAY_THE_SAME_FROZEN_H5_16_AFTER_CORRECTING_ONLY_THE_H5_5_GATE_BLOB_TEXT_PIN__DO_NOT_USE_THIS_BLOCKED_RUN_AS_SCIENTIFIC_EVIDENCE"
+}
