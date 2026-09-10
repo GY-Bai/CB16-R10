@@ -1,0 +1,55 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "c545b55dd2e0592b51b6b0426d057a1e8762c819",
+    "gate_blob": "54b9492e74d5017711b671837ef402abd604c7c6",
+    "implementation_branch": "ai/m-series-h5-5-state-utility-geometry-transport-r0-final",
+    "execution_head": "25c141d18dc338ba65fb43273c85680dc9159e5d",
+    "github_actions_run_id": 34447255164,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10140223055,
+    "artifact_digest": "sha256:6f7e1de43d55103976a965f16746f5ee6eff5c44ccace9f71a956fbda4618e0c",
+    "result_schema": "CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT_V1"
+  },
+  "support": {
+    "classification": "ALREADY_OBSERVED_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": 5,
+    "clock_blocks": 6,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "teacher_hyperparameter_tuning": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "adjudication": {
+    "classification": "MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT",
+    "conclusion": "H5_5_MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT",
+    "all_rotation_identity_guards_pass": true,
+    "full102_transport_supported": false,
+    "market96_transport_supported": false,
+    "operator48_transport_supported": false,
+    "medium48_transport_supported": false,
+    "account6_transport_supported": false
+  },
+  "primary_metric_gates": {
+    "FULL102": {"positive_fold_count":2,"positive_both_late_folds":false,"beats_shuffle_median_fold_count":1,"beats_shuffle_median_both_late_folds":false,"pairwise_shuffle_count_of_25":10,"metric_transport_supported":false,"late_fold_rho":{"fold_4":-0.011774655386992927,"fold_5":-0.00728852178408134}},
+    "MARKET96": {"positive_fold_count":2,"positive_both_late_folds":false,"beats_shuffle_median_fold_count":2,"beats_shuffle_median_both_late_folds":false,"pairwise_shuffle_count_of_25":12,"metric_transport_supported":false,"late_fold_rho":{"fold_4":-0.012022082868843589,"fold_5":-0.007268120263636446}},
+    "OPERATOR48": {"positive_fold_count":5,"positive_both_late_folds":true,"beats_shuffle_median_fold_count":3,"beats_shuffle_median_both_late_folds":true,"pairwise_shuffle_count_of_25":15,"metric_transport_supported":false,"late_fold_rho":{"fold_4":0.010207108724354777,"fold_5":0.006370480873666708},"note":"PARTIAL_LATE_TRANSPORT_SIGNAL__FAILED_PREREGISTERED_4_OF_5_AND_20_OF_25_GATE__NOT_A_PASS"},
+    "MEDIUM48": {"positive_fold_count":1,"positive_both_late_folds":false,"beats_shuffle_median_fold_count":2,"beats_shuffle_median_both_late_folds":false,"pairwise_shuffle_count_of_25":12,"metric_transport_supported":false,"late_fold_rho":{"fold_4":-0.024400462835092437,"fold_5":-0.016666779671461355}},
+    "ACCOUNT6": {"positive_fold_count":4,"positive_both_late_folds":false,"beats_shuffle_median_fold_count":0,"beats_shuffle_median_both_late_folds":false,"pairwise_shuffle_count_of_25":6,"metric_transport_supported":false,"note":"ACCOUNT6_CONTAINS_DEGENERATE_STATE_DISTANCE_ROWS__ZERO_INFORMATION_CONVENTION_APPLIED_AS_PREREGISTERED"}
+  },
+  "mechanistic_interpretation": {
+    "supported": ["THE_H5_H5_4_STATE_ALIGNMENT_FAILURE_PERSISTS_WITH_TEACHER_AND_STUDENT_REMOVED","FULL102_AND_MARKET96_STATE_DISTANCE_DO_NOT_SHOW_STABLE_TIME_FORWARD_ALIGNMENT_SPECIFIC_GEOMETRY_WITH_CENTERED_9_ACTION_COUNTERFACTUAL_UTILITY_PROFILES","MEDIUM48_ALONE_SHOWS_STRONG_LATE_NEGATIVE_GEOMETRY","OPERATOR48_RETAINS_A_PARTIAL_POSITIVE_LATE_SIGNAL_BUT_FAILS_THE_PREREGISTERED_GLOBAL_TRANSPORT_GATE","THE_PRIMARY_UNRESOLVED_FAILURE_IS_NOW_UPSTREAM_OF_TEACHER_KERNEL_AND_STUDENT_OBJECTIVE"],
+    "not_supported": ["STATE_REPRESENTATIONS_HAVE_NO_UTILITY_GEOMETRY_IN_ANY_TIME_LOCAL_SETTING","OPERATOR48_IS_FULLY_TRANSPORT_QUALIFIED","MEDIUM48_SHOULD_BE_REMOVED_CANONICALLY","TEACHER_KERNEL_TUNING_SHOULD_CONTINUE","NEW_DIRECTION_LOSS_SHOULD_BE_OPENED","CANONICAL_TEACHER_CHANGE","CANONICAL_STUDENT_CHANGE","MARKET_INFORMATION_QUALIFICATION","R7_EVALUATION","FINAL_OPENING"],
+    "updated_failure_view": "H1_TEMPORAL_NONTRANSFER_WEIGHT_MATERIALLY_INCREASED__NEXT_DISTINGUISH_TIME_LOCAL_GEOMETRY_EXISTENCE_FROM_CROSS_TIME_GEOMETRY_FAILURE_BEFORE_ANY_ARCHITECTURAL_CHANGE"
+  },
+  "authority": {"market_information_verdict":"DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE","canonical_change_authorized":false,"teacher_change_authorized":false,"student_change_authorized":false,"new_direction_loss_authorized":false,"promotion_authorized":false,"r7_evaluation_authorized":false,"final_opening_authorized":false},
+  "next_legal_step": "PREREGISTER_ONE_TEACHER_FREE_TIME_LOCAL_VS_TIME_FORWARD_STATE_UTILITY_GEOMETRY_CONTRAST_AUDIT__NO_ORGAN_WEIGHT_OR_TEACHER_KERNEL_TUNING"
+}
