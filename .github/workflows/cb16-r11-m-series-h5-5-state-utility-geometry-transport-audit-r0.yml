@@ -1,0 +1,131 @@
+name: CB16 R11 M-Series H5.5 State Utility Geometry Transport Audit R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-5-state-utility-geometry-transport-audit-r0-clean
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_ADJUDICATION_V1.json
+      - cb16_local_opt/state_utility_geometry_transport_h55.py
+      - tests/test_state_utility_geometry_transport_h55.py
+      - scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-5-state-utility-geometry-transport-audit-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-5-geometry-audit:
+    name: H5.5 Teacher-free state utility geometry audit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable H5.5 preregistration and parent authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor e4a3b661869cd51b3a234fc9e027d15cf2e7289e HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json)" = "c31821757f0b2ae058846e4243eaac116a7ce5fa"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_ADJUDICATION_V1.json)" = "5fd2450fbda34cfb7f2815d2e33107623f36aa8a"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_h55.py)" = "81cc2ef059a55c971e68dbd1bf9f0ba402b485c0"
+          test "$(git rev-parse HEAD:tests/test_state_utility_geometry_transport_h55.py)" = "17fbca4532b425d9179e3204e2b384739000cb45"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0.py)" = "9501c2916d7ceb378c0d725bc7d356a9f9ac2dde"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h55_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h55_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5.5 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h55_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile cb16_local_opt/state_utility_geometry_transport_h55.py tests/test_state_utility_geometry_transport_h55.py scripts/r11_m_series_h5_5_state_utility_geometry_transport_audit_r0.py
+          "$PYTHON" -m pytest -q tests/test_state_utility_geometry_transport_h55.py tests/test_teacher_temporal_transport_audit_h5.py tests/test_reduced_teacher_target_information_audit_r6.py tests/test_independent_purge_alignment_replication_r5.py
+
+      - name: Execute preregistered H5.5 Teacher-free geometry audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h55_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h55-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h55_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_5_state_utility_geometry_transport_audit_r0 --r104-root "$CB16_R104_ROOT" --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT.json"
+
+      - name: Verify H5.5 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h55_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_COMPLETE',x
+          assert len(x['folds'])==5,x
+          assert x['runtime_identity']['teacher_compilation'] is False,x
+          assert x['runtime_identity']['teacher_kernel_used'] is False,x
+          assert x['runtime_identity']['teacher_support_selection_used'] is False,x
+          assert x['h5_5_summary']['all_rotation_identity_guards_pass'] is True,x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          g=x['semantic_guards']
+          assert not any([g['teacher_compilation_used'],g['teacher_kernel_used'],g['teacher_support_selection_used'],g['student_trained'],g['student_inference_used'],g['new_direction_loss_created'],g['canonical_change_authorized'],g['fresh_market_data_downloaded'],g['final_holdout_payload_opened'],g['r7_candidate_evaluated']]),g
+          PY
+
+      - name: Upload H5.5 geometry evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: cb16-r11-m-series-h5-5-state-utility-geometry-transport-audit-r0-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/cb16-r11-m-series-h55-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
