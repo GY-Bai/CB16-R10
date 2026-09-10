@@ -1,0 +1,104 @@
+{
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "next_step_after_pass": "R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_ADJUDICATION__NO_PROMOTION_AUTHORIZED",
+  "pass_meaning": "Control mechanics PASS only. PASS is independent of whether aligned beats shuffled. The ordering is descriptive post-R4 diagnostic evidence and cannot change the frozen market-information verdict or authorize promotion.",
+  "pre_registered_protocol": {
+    "account_scenarios": [
+      "CLEAN_FLAT_FULL",
+      "CLEAN_FLAT_LOW_ENVELOPE",
+      "PRIOR_LONG_R025",
+      "PRIOR_LONG_R075",
+      "PRIOR_SHORT_R025",
+      "PRIOR_SHORT_R075"
+    ],
+    "amp": false,
+    "arms": {
+      "aligned": 1,
+      "whole_future_group_target_rotations": [1, 7, 13, 23, 31]
+    },
+    "batch_size": 512,
+    "dtype": "FP32",
+    "epochs": 12,
+    "generation_seed": 24680,
+    "learning_rate": 0.0003,
+    "max_grad_norm": 10.0,
+    "optimizer": "AdamW",
+    "optional_stopping": false,
+    "post_result_hyperparameter_changes": false,
+    "shuffle_changes_only": ["direction_target_probs", "requested_risk_target"],
+    "shuffle_preserves": [
+      "Operator48",
+      "Medium48",
+      "Account6",
+      "parent IDs",
+      "dependence-group IDs",
+      "group weights",
+      "six scenario identities",
+      "exact target row multiset"
+    ],
+    "student_architecture": "TIER_1_189052_PARAMS",
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "trainable_owners": [
+      "Operator Brain Stem",
+      "Medium Brain Stem",
+      "Account Brain Stem",
+      "Shared Decision Core",
+      "Direction Head",
+      "Requested-Risk Head"
+    ],
+    "validation_dependence_groups": 12,
+    "validation_for_all_arms": "ORIGINAL_UNSHUFFLED_FROZEN_R4_VALIDATION_TEACHER_OBJECTIVE",
+    "weight_decay": 0.0001
+  },
+  "prerequisite": {
+    "r4_adjudication_blob": "42efaa9723c66de1f7d0936e2e4526eb312347f9",
+    "r4_mechanics_qualified": true,
+    "r4_passing_head": "d6619d75787d204c72db4f85be5ccb91a695604c",
+    "r4_state_specific_information": "UNRESOLVED",
+    "same_validation_support_already_observed": true
+  },
+  "prohibited": [
+    "Final holdout opening",
+    "Fresh market data",
+    "Production G0 mutation",
+    "Canonical G1 creation",
+    "Champion promotion",
+    "New market-information verdict",
+    "Changing canonical optimizer or Student architecture",
+    "Row-wise shuffle within a future group",
+    "Changing target marginals",
+    "Validation-target shuffling",
+    "Post-result shift selection",
+    "Optional stopping"
+  ],
+  "purpose": "Post-R4 matched diagnostic that falsifies state-target alignment by rotating only reduced Teacher targets across whole independent future groups while preserving the exact target multiset, six AccountState scenario identities, canonical Student architecture, initialization, optimizer, seed, and original frozen validation objective.",
+  "r4_reproduction_gate": {
+    "absolute_tolerance": 1e-07,
+    "aligned_challenger_validation_total_loss": 1.0994198322296143,
+    "champion_validation_total_loss": 1.208237886428833
+  },
+  "required_receipts": [
+    "aligned arm starts from exact G0 Champion",
+    "every shuffled arm starts from byte-identical G0 Champion",
+    "same canonical seed/permutation/optimizer rule for every arm",
+    "all six canonical gradient owners nonzero and finite for every arm",
+    "whole-future-group mapping has zero fixed points",
+    "scenario identity preserved inside every moved future block",
+    "input tensors and group weights byte-identical",
+    "target multiset exactly preserved",
+    "aligned arm reproduces R4 reference metrics within pre-registered tolerance",
+    "all arms evaluated only on original unshuffled validation evidence",
+    "production G0/Teacher/Physics/Supervisor unchanged",
+    "FINAL closed and fresh data absent"
+  ],
+  "schema": "CB16_R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_GATEWORK_V1",
+  "scientific_role": {
+    "may_advance_canonical_generation": false,
+    "may_authorize_promotion": false,
+    "may_create_market_information_verdict": false,
+    "post_r4_diagnostic": true,
+    "status_driving": false
+  },
+  "stage": "R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1"
+}

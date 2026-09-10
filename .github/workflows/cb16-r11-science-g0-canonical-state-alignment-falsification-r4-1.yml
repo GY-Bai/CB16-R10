@@ -1,0 +1,183 @@
+name: CB16 R11 Science G0 Canonical State Alignment Falsification R4.1
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-canonical-state-alignment-falsification-r4-1
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_ADJUDICATION_V1.json
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_GATEWORK_V1.json
+      - cb16_local_opt/canonical_state_alignment_falsification_r41.py
+      - tests/test_canonical_state_alignment_falsification_r41.py
+      - scripts/r11_science_g0_canonical_state_alignment_falsification_r4_1.py
+      - scripts/r11_science_g0_canonical_state_alignment_falsification_r4_1_entrypoint.py
+      - .github/workflows/cb16-r11-science-g0-canonical-state-alignment-falsification-r4-1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  canonical-state-alignment-r41:
+    name: R11 canonical state-alignment falsification R4.1
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_science_g0_r41_docker_preflight.json"
+
+      - name: Verify R4 adjudication and immutable authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor d6619d75787d204c72db4f85be5ccb91a695604c HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_ADJUDICATION_V1.json)" = "42efaa9723c66de1f7d0936e2e4526eb312347f9"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/typed_central_brain_r10.py)" = "899065a9b9c015fd5a0e24fc919a79ff7d3a67ff"
+          test "$(git rev-parse HEAD:cb16_local_opt/training_runtime_r11.py)" = "56c227800d7a5c82ef88c691bb69d7550aee8b39"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_canonical_historical_learning_baseline_r4.py)" = "40454165a6d818a11242351b74af8d9cb4b26f77"
+          test -f /cb16/g0/bootstrap/R11_G0_INITIAL_CHAMPION.pt
+          test -d /cb16/g0/market_cache
+          test -d /cb16/package
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_science_g0_r41_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          assert p['observed']['python_series'] == [3,10], p
+          PY
+
+      - name: Compile and run R4.1 unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r41_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/canonical_state_alignment_falsification_r41.py \
+            tests/test_canonical_state_alignment_falsification_r41.py \
+            scripts/r11_science_g0_canonical_state_alignment_falsification_r4_1.py \
+            scripts/r11_science_g0_canonical_state_alignment_falsification_r4_1_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_canonical_state_alignment_falsification_r41.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_training_integration_r11.py \
+            tests/test_science_feedback_diagnostics_r11.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_teacher_runtime_r11.py
+
+      - name: Execute R4.1 matched real-history control
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_science_g0_r41_python.json" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-science-g0-canonical-state-alignment-r41-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_science_g0_r41_run_root.txt"
+          "$PYTHON" scripts/r11_science_g0_canonical_state_alignment_falsification_r4_1_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --work-root "$RUN_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_RESULT.json" \
+            --device cuda --symbol BTCUSDT --train-groups 48 --validation-groups 12 \
+            --candidate-factor 2 --sensory-batch-size 8 --teacher-workers 4 --teacher-block-targets 32
+
+      - name: Verify R4.1 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_science_g0_r41_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_RESULT.json" <<'PY'
+          import json, math, sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema'] == 'CB16_R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_RESULT_V1', x
+          assert x['status'] == 'R11_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1_PASS', x
+          p=x['protocol']; s=x['semantic_guards']; c=x['control_summary']
+          assert p['role'] == 'POST_R4_DIAGNOSTIC_NOT_STATUS_DRIVING' and p['status_driving'] is False, x
+          assert p['pre_registered_shifts'] == [1,7,13,23,31], x
+          assert x['aligned_arm']['r4_reference_reproduced'] is True, x
+          assert len(x['shuffled_arms']) == 5, x
+          for shift in ['1','7','13','23','31']:
+              arm=x['shuffled_arms'][shift]
+              sh=arm['shuffle_receipt']; tr=arm['training_receipt']
+              assert sh['whole_independent_future_group_shuffle'] is True, arm
+              assert sh['scenario_identity_preserved'] is True, arm
+              assert sh['target_multiset_exactly_preserved'] is True, arm
+              assert sh['input_features_byte_identical'] is True, arm
+              assert sh['group_weights_byte_identical'] is True, arm
+              assert sh['fixed_point_future_groups'] == 0, arm
+              assert tr['generation_seed'] == 24680 and tr['optimizer_steps'] > 0, arm
+              assert set(tr['gradient_owner_set_last_step']) == {
+                  'Operator Brain Stem','Medium Brain Stem','Account Brain Stem',
+                  'Shared Decision Core','Direction Head','Requested-Risk Head'
+              }, arm
+              assert all(math.isfinite(v) and v > 0.0 for v in tr['gradient_group_norms_last_step'].values()), arm
+          assert c['post_r4_diagnostic_not_status_driving'] is True, x
+          assert c['scientific_market_information_verdict'] is False, x
+          assert c['canonical_promotion_authorized'] is False, x
+          assert s['canonical_generation_advanced'] is False and s['champion_promoted'] is False, x
+          assert s['scientific_verdict_created'] is False, x
+          assert s['final_holdout_payload_opened'] is False and s['fresh_market_data_downloaded'] is False, x
+          print(json.dumps({
+              'status': x['status'],
+              'aligned_validation_loss': x['aligned_arm']['training_receipt']['validation_after']['loss'],
+              'aligned_lower_total_count': c['aligned_lower_total_count'],
+              'aligned_lower_direction_count': c['aligned_lower_direction_count'],
+              'aligned_lower_sizing_count': c['aligned_lower_sizing_count'],
+              'median_aligned_minus_shuffled_total': c['median_aligned_minus_shuffled_total'],
+              'descriptive_pattern': c['descriptive_pattern'],
+              'next_legal_step': x['next_legal_step'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload R4.1 diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-science-g0-canonical-state-alignment-r4-1-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_science_g0_r41_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_science_g0_r41_python.json
+            ${{ runner.temp }}/cb16-r11-science-g0-canonical-state-alignment-r41-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30

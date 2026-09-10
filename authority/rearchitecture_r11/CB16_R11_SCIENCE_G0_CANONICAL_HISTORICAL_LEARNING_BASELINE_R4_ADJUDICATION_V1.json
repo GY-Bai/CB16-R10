@@ -1,0 +1,74 @@
+{
+  "adjudication": {
+    "canonical_generation_advance_authorized": false,
+    "canonical_promotion_authorized": false,
+    "canonical_six_owner_learning_mechanics": "QUALIFIED",
+    "fixed_teacher_objective_shadow_ranking": "CHALLENGER_LOWER_LOSS",
+    "legacy_r10_promotion_threshold_authority": false,
+    "market_information_qualification": "NOT_REOPENED",
+    "production_cutover_authorized": false,
+    "profitability_or_alpha": "NOT_CLAIMED",
+    "reason": "R4 establishes legal canonical six-owner learning and lower fixed validation Teacher-target loss, but it did not falsify the possibility that improvement is driven mainly by reduced-target marginal structure or global bias rather than correct Market+Account-state to Teacher-target alignment. Large behavior migration reinforces the need for an alignment control before any promotion discussion.",
+    "state_specific_information": "UNRESOLVED"
+  },
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "next_legal_step": {
+    "production_promotion_after_result": false,
+    "question": "Does the R4 canonical Student improvement depend on the correct alignment between Market+Account state and reduced Teacher targets, versus the same target multiset assigned to different independent future groups?",
+    "required_control": "Matched whole-independent-future-group target shuffle preserving all six scenario identities and exact target marginals.",
+    "role": "POST_R4_DIAGNOSTIC_NOT_STATUS_DRIVING",
+    "stage": "R11_SCIENCE_G0_CANONICAL_STATE_ALIGNMENT_FALSIFICATION_R4_1"
+  },
+  "r4_result": {
+    "account_contexts_per_future_group": 6,
+    "challenger_validation_behavior": {
+      "flat_rate": 0.3333333333333333,
+      "long_rate": 0.0,
+      "short_rate": 0.6666666666666666
+    },
+    "challenger_validation_total_loss": 1.0994198322296143,
+    "direction_loss_delta_challenger_minus_champion": -0.034285783767700195,
+    "discrete_direction_change_rate": 0.6527777777777778,
+    "gradient_owners": [
+      "Operator Brain Stem",
+      "Medium Brain Stem",
+      "Account Brain Stem",
+      "Shared Decision Core",
+      "Direction Head",
+      "Requested-Risk Head"
+    ],
+    "mean_direction_probability_l1": 0.2542180996388197,
+    "mean_requested_risk_abs_delta": 0.09219506983127859,
+    "parameter_l2_delta": 0.7754744004525967,
+    "relative_validation_improvement": 0.09006343487609904,
+    "shadow_winner": "CHALLENGER",
+    "sizing_loss_delta_challenger_minus_champion": -0.07453209487721324,
+    "status": "R11_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_PASS",
+    "student_parameters": 189052,
+    "symbol": "BTCUSDT",
+    "train_dependence_groups": 48,
+    "validation_dependence_groups": 12,
+    "champion_validation_total_loss": 1.208237886428833
+  },
+  "schema": "CB16_R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_ADJUDICATION_V1",
+  "source": {
+    "prior_failure_class": "ENGINEERING_RECEIPT_SERIALIZATION_ONLY__TRAINING_ALREADY_COMPLETED",
+    "prior_receipt_serialization_failure_run_id": 34418436703,
+    "r4_branch": "ai/r11-science-g0-canonical-historical-learning-baseline-r4",
+    "r4_passing_artifact_digest": "sha256:1ab87291fe2550dab18f8f4723f5471ea76f4b3d1c5004da0ba81fba52451c0e",
+    "r4_passing_artifact_id": 10130499562,
+    "r4_passing_head": "d6619d75787d204c72db4f85be5ccb91a695604c",
+    "r4_passing_run_id": 34419262348,
+    "training_numeric_reproduction_across_runs": true
+  },
+  "stage": "R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_ADJUDICATION",
+  "validation_reuse_policy": {
+    "any_followup_using_same_validation_support_is_post_hoc_diagnostic": true,
+    "r4_validation_has_been_observed": true,
+    "same_validation_followup_may_authorize_promotion": false,
+    "same_validation_followup_may_create_market_verdict": false,
+    "same_validation_followup_status_driving": false
+  }
+}
