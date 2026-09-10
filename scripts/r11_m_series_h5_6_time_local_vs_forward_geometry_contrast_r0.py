@@ -34,7 +34,7 @@ PINNED = {
     ),
     "h56_test": (
         "tests/test_time_local_vs_forward_geometry_contrast_h56.py",
-        "fe66adf84801f5e3de7a2cc1f39d6bb8f1036e56",
+        "dec7653d1495dc30f60cc9aa5aabff9495bc0845",
     ),
     "h55_helper": (
         "cb16_local_opt/state_utility_geometry_transport_audit_h55.py",
