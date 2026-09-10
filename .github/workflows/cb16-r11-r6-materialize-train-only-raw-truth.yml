@@ -1,0 +1,113 @@
+name: CB16 R11 R6 TRAIN-only Raw Truth Materialization
+
+on:
+  push:
+    branches:
+      - ai/r11-science-g0-reduced-teacher-target-information-audit-r6
+    paths:
+      - scripts/r11_r6_materialize_train_only_raw_truth.py
+      - .github/workflows/cb16-r11-r6-materialize-train-only-raw-truth.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_R6_TRAIN_ONLY_ROOT: /cb16/worker/r6_train_only_r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  materialize-r6-train-only:
+    name: R6 deterministic TRAIN-only raw truth materialization
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable science gate and legacy cache identity surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor de46ec7c436151a95a98ce0da1b841fc12daf510 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json)" = "1d1254fb03cc00283423426e07ae240a196c627e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_INDEPENDENT_PURGE_ALIGNMENT_REPLICATION_R5_ADJUDICATION_V1.json)" = "3f0305bea4edd77d091531987a36009038de4e40"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+          test -d "$CB16_R104_ROOT/evidence_cache"
+          test -d /cb16/worker
+          test -w /cb16/worker
+
+      - name: Compile support-lane materializer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/r11_r6_materialize_train_only_raw_truth.py
+
+      - name: Materialize immutable TRAIN-only raw truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/r11_r6_materialize_train_only_raw_truth.py \
+            --r104-root "$CB16_R104_ROOT" \
+            --output-root "$CB16_R6_TRAIN_ONLY_ROOT"
+
+      - name: Verify materialization receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          R="$CB16_R6_TRAIN_ONLY_ROOT/TRAIN_ONLY_MATERIALIZATION_R6.json"
+          python3 - "$R" "$CB16_R6_TRAIN_ONLY_ROOT" <<'PY'
+          import hashlib,json,sys
+          from pathlib import Path
+          r=json.load(open(sys.argv[1])); root=Path(sys.argv[2])
+          assert r['schema']=='CB16_R11_R6_TRAIN_ONLY_RAW_TRUTH_MATERIALIZATION_V1',r
+          assert r['status']=='R6_TRAIN_ONLY_RAW_TRUTH_MATERIALIZATION_PASS',r
+          s=r['split_contract']; t=r['train_only_integrity']; g=r['semantic_guards']
+          assert s['selector']=='EXACT_FROZEN_PARENT_CONTEXT_FIELD_split_EQUALS_TRAIN',r
+          assert s['validation_rows_scanned_only_for_mechanical_routing'] is True,r
+          assert s['validation_rows_written']==0,r
+          assert s['no_numeric_outcome_or_target_used_to_select_rows'] is True,r
+          assert t['parent_contexts']==9714 and t['counterfactual_branch_samples']==87426,r
+          assert t['dependence_groups']==1619 and t['branches_per_parent']==9,r
+          assert len(t['symbols'])==10,r
+          assert t['all_output_parents_split_train'] is True,r
+          assert t['all_output_branch_parent_ids_in_train_set'] is True,r
+          for key in ('parents','branches'):
+              p=root/r['outputs'][f'{key}_file']
+              h=hashlib.sha256(p.read_bytes()).hexdigest()
+              assert h==r['outputs'][f'{key}_sha256'],(key,h,r)
+          assert g['teacher_compiled'] is False and g['student_executed'] is False,r
+          assert g['loss_computed'] is False and g['folds_constructed'] is False,r
+          assert g['scientific_verdict_created'] is False,r
+          assert g['r5_purge_support_opened'] is False and g['raw_market_payload_opened'] is False,r
+          assert g['final_holdout_payload_opened'] is False and g['fresh_market_data_downloaded'] is False,r
+          print(json.dumps({
+            'status':r['status'],
+            'parent_contexts':t['parent_contexts'],
+            'branch_samples':t['counterfactual_branch_samples'],
+            'dependence_groups':t['dependence_groups'],
+            'validation_parent_rows_scanned':s['validation_parent_rows_scanned'],
+            'validation_branch_rows_scanned':s['validation_branch_rows_scanned'],
+            'validation_rows_written':s['validation_rows_written'],
+            'next_legal_step':r['next_legal_step'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload materialization receipt only
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-r6-train-only-materialization-${{ github.run_attempt }}
+          path: ${{ env.CB16_R6_TRAIN_ONLY_ROOT }}/TRAIN_ONLY_MATERIALIZATION_R6.json
+          if-no-files-found: warn
+          retention-days: 30
