@@ -10,7 +10,8 @@ import subprocess
 from typing import Any
 
 from cb16_local_opt.reduced_teacher_target_information_audit_r6 import build_outer_folds_r6
-from cb16_local_opt.teacher_failure_localization_h51 import adjudicate_h51, run_fold_h51
+from cb16_local_opt.teacher_failure_localization_h51 import adjudicate_h51
+from cb16_local_opt.teacher_failure_localization_h51_batch_geometry import run_fold_h51_batch_geometry
 from scripts.r11_science_g0_reduced_teacher_target_information_audit_r6 import load_train_only_support
 
 SCHEMA = "CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_RESULT_V1"
@@ -31,6 +32,10 @@ PINNED = {
     "h51_helper": (
         "cb16_local_opt/teacher_failure_localization_h51.py",
         "8dba35e5c54c8bc9d8eeb97ea6d3aec373a09ccc",
+    ),
+    "h51_batch_geometry": (
+        "cb16_local_opt/teacher_failure_localization_h51_batch_geometry.py",
+        "9b91ca1d2b8cae05cdf28a7e04ccbdf1698fadf7",
     ),
     "h5_helper": (
         "cb16_local_opt/teacher_temporal_transport_audit_h5.py",
@@ -114,7 +119,7 @@ def main() -> int:
     folds = build_outer_folds_r6(parents)
     require(len(folds) == 5, "H51_OUTER_FOLD_COUNT_DRIFT")
     results = [
-        run_fold_h51(
+        run_fold_h51_batch_geometry(
             fold_spec=spec,
             all_train_parents=parents,
             all_train_samples=samples,
@@ -132,6 +137,7 @@ def main() -> int:
             "teacher_only": True,
             "student_training": False,
             "student_inference": False,
+            "support_geometry_reconstruction": "BATCH_EXACT_FROZEN_TEACHER_SHAPE",
         },
         "frozen_scientific_status_before": FROZEN_STATUS,
         "frozen_scientific_status_after": FROZEN_STATUS,
@@ -172,6 +178,7 @@ def main() -> int:
             "r5_purge_support_reopened": False,
             "final_holdout_payload_opened": False,
             "r7_candidate_evaluated": False,
+            "support_geometry_guard_relaxed": False,
         },
         "next_legal_step": (
             "ADJUDICATE_H5_1_THEN_DESIGN_ONE_MINIMAL_FALSIFICATION_OF_THE_LOCALIZED_TEACHER_MECHANISM__NO_TEACHER_CHANGE_YET"
