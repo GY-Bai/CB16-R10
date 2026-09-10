@@ -1,0 +1,81 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_FAKE_ENV_CLOCK_MARGINAL_REPAIR_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_16_FAKE_ENV_CLOCK_MARGINAL_REPAIR_R0",
+  "status": "PREREGISTERED_EXECUTION_REPAIR__NO_NEW_SCIENTIFIC_QUESTION",
+  "parent_h5_16": {
+    "preregistration_commit": "68f2f7ea43c333983297a67a7253f963db19eb7f",
+    "gate_blob": "b4847abda958f0c3e00b6fb23ccd4463c4e41084",
+    "clarification_commit": "1fe97c634f0d7850dc638b51f8e068e5c5957e84",
+    "clarification_blob": "c92f8dcbed19175e4781a6095105bd1bd49d20ed",
+    "frozen_helper_blob": "bfa28be3ad6676f26676404bb170a73b474b6192",
+    "frozen_test_blob": "7937c23facc6305b960c0ec19ae976ebb53df3ae",
+    "frozen_executor_blob": "f7351e08f6a4c22c009843fc4da60661685f80d5"
+  },
+  "blocked_execution": {
+    "workflow_run_id": 34537787598,
+    "job_id": 103073339814,
+    "execution_head": "442f26ba7f04ae6665484e5db390aeab7815b95b",
+    "artifact_id": 10176143955,
+    "artifact_sha256": "5a08f7df4041e6c05d77c35d1b29a63cd69c02c97ed95450a320a32166402bf8",
+    "result_json_sha256": "bd4306459549e07175f7525b23bd80b6854ec60aa34c504320a57a4a0527a282",
+    "classification": "EXECUTION_BLOCKED__NEGATIVE_CONTROL_IDENTITY",
+    "execution_error": "H516_FAKE_ENV_MARGINAL_DRIFT",
+    "result_contract_validation": "PASS",
+    "artifact_upload": "PASS",
+    "partial_local_or_forward_outputs_have_scientific_authority": false,
+    "partial_outputs_must_not_be_used_to_change_any_gate_model_split_control_or_threshold": true
+  },
+  "preregistered_semantic_interpretation": {
+    "defined_sequence": "FULL_POOLED_PAIR_SORTED_UNIQUE_DECISION_CLOCK_SEQUENCE",
+    "fake_environment_operation": "CYCLICALLY_SHIFT_THE_PER_CLOCK_BINARY_ENVIRONMENT_LABEL_VECTOR_AND_ASSIGN_SHIFTED_CLOCK_LABEL_TO_ALL_FUTURE_GROUPS_AND_SCENARIOS_OF_THAT_CLOCK",
+    "marginal_environment_label_counts_preserved_means": "COUNTS_OF_ZERO_AND_ONE_LABELS_ON_THE_DEFINED_UNIQUE_DECISION_CLOCK_SEQUENCE_ARE_PRESERVED_BY_THE_CYCLIC_PERMUTATION",
+    "row_level_future_group_label_counts_are_not_REQUIRED_TO_BE_PRESERVED": true,
+    "reason": "DIFFERENT_DECISION_CLOCKS_CAN_CONTAIN_DIFFERENT_NUMBERS_OF_FUTURE_GROUPS__CLOCK_LEVEL_PERMUTATION_IS_THE_FROZEN_CONTROL_UNIT_AND_DEPENDENCE_UNIT"
+  },
+  "observed_implementation_mismatch": {
+    "frozen_helper_function": "_shift_clock_environment_h516",
+    "correct_existing_steps": [
+      "SORT_UNIQUE_DECISION_CLOCKS",
+      "BUILD_ONE_BINARY_LABEL_PER_CLOCK",
+      "VERIFY_ONE_ENVIRONMENT_PER_CLOCK",
+      "CYCLICALLY_SHIFT_CLOCK_LABEL_VECTOR",
+      "REJECT_SHIFT_INDEX_IDENTITY",
+      "REJECT_LABEL_VECTOR_IDENTITY",
+      "MAP_SHIFTED_CLOCK_LABEL_BACK_TO_ALL_ROWS_OF_EACH_CLOCK"
+    ],
+    "incorrect_guard": "require(int(np.sum(out)) == int(np.sum(e)), H516_FAKE_ENV_MARGINAL_DRIFT)",
+    "why_incorrect": "OUT_AND_E_ARE_FUTURE_GROUP_LEVEL_VECTORS__THE_FROZEN_CONTROL_PRESERVES_MARGINALS_ON_THE_UNIQUE_CLOCK_LABEL_VECTOR_NOT_ON_A_ROW_VECTOR_WITH_UNEQUAL_MULTIPLICITIES"
+  },
+  "single_allowed_change": {
+    "implementation_strategy": "DO_NOT_MODIFY_FROZEN_H5_16_HELPER_OR_EXECUTOR__USE_A_REPLAY_WRAPPER_THAT_MONKEY_PATCHES_ONLY_THE_FAKE_ENVIRONMENT_SHIFT_FUNCTION_BEFORE_CALLING_THE_BYTE_IDENTICAL_FROZEN_EXECUTOR_MAIN",
+    "replacement_guard": "AFTER_CYCLIC_SHIFT_REQUIRE_SUM_SHIFTED_CLOCK_LABEL_VECTOR_EQUALS_SUM_ORIGINAL_CLOCK_LABEL_VECTOR__THEN_MAP_TO_ROWS_WITH_NO_ROW_LEVEL_MARGINAL_EQUALITY_REQUIREMENT",
+    "all_other_fake_environment_shift_logic_byte_semantics_unchanged": true,
+    "h5_16_gate_change": false,
+    "h5_16_target_change": false,
+    "rf_change": false,
+    "split_change": false,
+    "state_shift_control_change": false,
+    "environment_shift_values_change": false,
+    "environment_pair_pass_change": false,
+    "classification_rule_change": false,
+    "local_or_forward_arm_change": false
+  },
+  "required_repair_tests": {
+    "unequal_future_group_counts_per_clock_case": "CLOCK_LABEL_MARGINAL_MUST_BE_PRESERVED_WHILE_ROW_LEVEL_LABEL_COUNT_IS_ALLOWED_TO_CHANGE_WITHOUT_ERROR",
+    "same_clock_rows_receive_identical_shifted_label": true,
+    "shift_equal_to_number_of_unique_clocks_must_still_raise_identity": true,
+    "original_h5_16_synthetic_and_inherited_tests_must_still_pass": true
+  },
+  "authority_limits": {
+    "blocked_partial_results_reused_as_scientific_evidence": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "canonical_change_authorized": false,
+    "runtime_environment_or_regime_gate_authorized": false,
+    "final_opening_authorized": false,
+    "r7_evaluation_authorized": false,
+    "promotion_authorized": false,
+    "market_information_verdict_change_authorized": false
+  },
+  "next_legal_step": "IMPLEMENT_ONLY_THE_CLOCK_MARGINAL_GUARD_REPAIR_IN_A_WRAPPER__RUN_REPAIR_SPECIFIC_TEST_PLUS_ALL_FROZEN_H5_16_TESTS__REPLAY_THE_COMPLETE_H5_16_FROM_SCRATCH__FORMALLY_ADJUDICATE_THE_FIRST_VALID_NONBLOCKED_RESULT"
+}
