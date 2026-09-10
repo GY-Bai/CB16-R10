@@ -1,0 +1,141 @@
+{
+  "schema": "CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_ADJUDICATION_V1",
+  "stage": "R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "branch": "ai/r11-science-g0-reduced-teacher-target-information-audit-r6",
+    "passing_head": "f3db5e8fbc54fb32ea6f2da3f91b8f20ac5aeccb",
+    "passing_run_id": 34425020692,
+    "artifact_id": 10132397193,
+    "artifact_digest": "sha256:ac7ad85d0d1a2c31a5214ab45a53bac95df3436011e8f1a02687ce8182fb606b",
+    "preregistration_commit": "de46ec7c436151a95a98ce0da1b841fc12daf510",
+    "preregistered_gate_blob": "1d1254fb03cc00283423426e07ae240a196c627e"
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "protocol_integrity": {
+    "all_ten_symbols_train_only": true,
+    "outer_clock_partition": "NP_ARRAY_SPLIT_INTO_6_CONTIGUOUS_CLOCK_BLOCKS__FOLDS_1_TO_5_EVAL",
+    "all_symbols_at_same_clock_kept_together": true,
+    "outer_train_is_strictly_earlier_than_eval": true,
+    "train_to_eval_gap_hours_each_fold": 256.0,
+    "train_teacher": "R2.4_R11_TRAIN_BLOCKED_CROSSFIT__OUTER_TRAIN_ONLY",
+    "eval_teacher": "R2.4_R11_VALIDATION_PREQUENTIAL__OUTER_TRAIN_SUPPORT_ONLY",
+    "eval_outcomes_absent_from_train_teacher_index": true,
+    "canonical_student_unchanged": true,
+    "canonical_training_rule_unchanged": true,
+    "g0_initialization_for_every_arm_and_fold": true,
+    "whole_future_group_shifts": [1, 7, 13, 23, 31],
+    "target_multiset_preserved": true,
+    "scenario_identity_preserved": true,
+    "analytic_global_marginal_has_no_state_features": true,
+    "legacy_validation_rows_used": false,
+    "r5_purge_support_reopened": false,
+    "raw_market_payload_used": false,
+    "final_holdout_opened": false,
+    "fresh_market_data_downloaded": false
+  },
+  "support": {
+    "source_train_parent_contexts": 9714,
+    "source_train_branch_samples": 87426,
+    "source_train_dependence_groups": 1619,
+    "fold_train_dependence_groups": [215, 505, 779, 1059, 1339],
+    "fold_eval_dependence_groups": [290, 274, 280, 280, 280],
+    "fold_train_clock_counts": [29, 58, 86, 114, 142],
+    "fold_eval_clock_counts": [29, 28, 28, 28, 28]
+  },
+  "primary_result": {
+    "preregistered_rule": "ALIGNED_TOTAL_LOWER_THAN_MEDIAN_OF_FIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS__AND_ALIGNED_DIRECTION_LOWER_THAN_MEDIAN_OF_FIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS__AND_ALIGNED_DIRECTION_LOWER_THAN_ANALYTIC_MARGINAL_BASELINE_IN_AT_LEAST_4_OF_5_FOLDS",
+    "conclusion": "TRAIN_ONLY_CONDITIONAL_INFORMATION_SUPPORTED",
+    "total_lower_than_shuffle_median_fold_count": 5,
+    "direction_lower_than_shuffle_median_fold_count": 5,
+    "direction_lower_than_marginal_fold_count": 5,
+    "sizing_lower_than_shuffle_median_fold_count": 5,
+    "sizing_lower_than_marginal_fold_count": 5,
+    "aligned_lower_total_pair_count_of_25": 25,
+    "aligned_lower_direction_pair_count_of_25": 25,
+    "aligned_lower_sizing_pair_count_of_25": 25
+  },
+  "fold_metrics": [
+    {
+      "fold": 1,
+      "g0": {"loss": 1.4093995094299316, "direction_loss": 1.1312004327774048, "sizing_loss": 0.27819910645484924},
+      "aligned": {"loss": 1.082339882850647, "direction_loss": 0.918185830116272, "sizing_loss": 0.16415412724018097},
+      "marginal": {"loss": 1.2322894999069067, "direction_loss": 0.9740937501659649, "sizing_loss": 0.2581957497409417},
+      "median_shuffle": {"loss": 1.297587513923645, "direction_loss": 1.044960618019104, "sizing_loss": 0.2573506534099579}
+    },
+    {
+      "fold": 2,
+      "g0": {"loss": 1.3053381443023682, "direction_loss": 1.1100038290023804, "sizing_loss": 0.1953342705965042},
+      "aligned": {"loss": 1.2173532247543335, "direction_loss": 1.0563373565673828, "sizing_loss": 0.1610158234834671},
+      "marginal": {"loss": 1.315603140843453, "direction_loss": 1.0960636914373199, "sizing_loss": 0.21953944940613304},
+      "median_shuffle": {"loss": 1.3121569156646729, "direction_loss": 1.1147043704986572, "sizing_loss": 0.19745254516601562}
+    },
+    {
+      "fold": 3,
+      "g0": {"loss": 1.254477620124817, "direction_loss": 1.0890902280807495, "sizing_loss": 0.16538739204406738},
+      "aligned": {"loss": 1.203639030456543, "direction_loss": 1.0622090101242065, "sizing_loss": 0.14143000543117523},
+      "marginal": {"loss": 1.3207737628534297, "direction_loss": 1.0966750958977007, "sizing_loss": 0.22409866695572903},
+      "median_shuffle": {"loss": 1.3172883987426758, "direction_loss": 1.1080175638198853, "sizing_loss": 0.20637595653533936}
+    },
+    {
+      "fold": 4,
+      "g0": {"loss": 1.1660101413726807, "direction_loss": 1.0386278629302979, "sizing_loss": 0.127382293343544},
+      "aligned": {"loss": 1.150591492652893, "direction_loss": 1.0317440032958984, "sizing_loss": 0.11884760111570358},
+      "marginal": {"loss": 1.3184484324918537, "direction_loss": 1.0846232866044745, "sizing_loss": 0.23382514588737918},
+      "median_shuffle": {"loss": 1.3161194324493408, "direction_loss": 1.1024751663208008, "sizing_loss": 0.21870887279510498}
+    },
+    {
+      "fold": 5,
+      "g0": {"loss": 1.1469155550003052, "direction_loss": 1.0442699193954468, "sizing_loss": 0.10264559090137482},
+      "aligned": {"loss": 1.1324816942214966, "direction_loss": 1.043397068977356, "sizing_loss": 0.08908464014530182},
+      "marginal": {"loss": 1.3000743498533511, "direction_loss": 1.0987798056081184, "sizing_loss": 0.20129454424523277},
+      "median_shuffle": {"loss": 1.2615039348602295, "direction_loss": 1.1029725074768066, "sizing_loss": 0.15733951330184937}
+    }
+  ],
+  "secondary_observations": {
+    "aligned_total_lower_than_g0_all_five_folds": true,
+    "aligned_direction_lower_than_g0_all_five_folds": true,
+    "aligned_sizing_lower_than_g0_all_five_folds": true,
+    "aligned_total_minus_g0_by_fold": [-0.32705962657928467, -0.08798491954803467, -0.050838589668273926, -0.015418648719787598, -0.014433860778808594],
+    "aligned_direction_minus_g0_by_fold": [-0.2130146026611328, -0.05366647243499756, -0.02688121795654297, -0.006883859634399414, -0.0008728504180908203],
+    "interpretation": "The reduced Teacher targets contain stable conditional Market+Account-state information under the unchanged canonical Student and canonical optimizer on nested TRAIN-only history. The signal is not explained by target marginals or whole-future target permutations. However the incremental advantage over G0 contracts materially as outer-train support expands, and R5 already showed that the BTC-48-group R4 update failed independent purge replication. R6 therefore establishes a mechanistic information property of the reduced Teacher target surface, not an out-of-sample market-information qualification or a promotion claim."
+  },
+  "adjudication": {
+    "r6_mechanics": "QUALIFIED",
+    "reduced_teacher_target_conditional_information": "SUPPORTED_ON_PREREGISTERED_TRAIN_ONLY_NESTED_AUDIT",
+    "r4_1_negative_diagnostic_overturned": false,
+    "r5_negative_independent_replication_overturned": false,
+    "market_information_verdict": "NOT_REOPENED",
+    "canonical_promotion": "NOT_AUTHORIZED",
+    "canonical_generation_advance": "NOT_AUTHORIZED",
+    "production_cutover": "NOT_AUTHORIZED",
+    "profitability_or_alpha": "NOT_CLAIMED",
+    "final_holdout": "CLOSED"
+  },
+  "support_reuse_policy": {
+    "r6_outer_eval_folds_now_observed": true,
+    "r6_outer_eval_folds_may_not_be_used_for_architecture_or_hyperparameter_tuning": true,
+    "r6_outer_eval_folds_may_not_set_promotion_thresholds": true,
+    "r5_purge_support_remains_closed_for_tuning": true,
+    "legacy_validation_remains_previously_observed_non_status_driving_support": true,
+    "final_holdout_remains_closed": true
+  },
+  "next_legal_direction": {
+    "action": "R11_SCIENCE_G0_FULL_TRAIN_MULTI_ASSET_CANONICAL_CANDIDATE_MATERIALIZATION_R7_SHADOW_ONLY",
+    "purpose": "Materialize one frozen canonical Challenger from the immutable G0 Champion using all 10 symbols and the complete already-authorized TRAIN split under the unchanged R2.4 reduced-Teacher and canonical 12-epoch AdamW recipe. Do not evaluate it on R5 purge support, legacy validation, or FINAL. The result is a frozen unevaluated candidate for a future genuinely independent support decision, not a promotion.",
+    "constraints": [
+      "ALL_10_SYMBOLS_COMPLETE_TRAIN_ONLY",
+      "R2_4_TRAIN_BLOCKED_CROSSFIT_REDUCED_TEACHER_TARGETS",
+      "CANONICAL_189052_PARAMETER_STUDENT",
+      "CANONICAL_12_EPOCH_ADAMW_FP32_SEED_24680",
+      "NO_ARCHITECTURE_OR_HYPERPARAMETER_CHANGE",
+      "NO_R6_EVAL_BASED_TUNING",
+      "NO_R5_PURGE_EVALUATION",
+      "NO_LEGACY_VALIDATION_EVALUATION",
+      "NO_FINAL_HOLDOUT",
+      "NO_FRESH_DATA",
+      "NO_PROMOTION_OR_GENERATION_ADVANCE"
+    ]
+  }
+}
