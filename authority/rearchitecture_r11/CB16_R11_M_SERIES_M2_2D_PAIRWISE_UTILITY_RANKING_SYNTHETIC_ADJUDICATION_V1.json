@@ -1,0 +1,129 @@
+{
+  "schema": "CB16_R11_M_SERIES_M2_2D_PAIRWISE_UTILITY_RANKING_SYNTHETIC_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_M2_2D_PAIRWISE_UTILITY_RANKING_SYNTHETIC_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "32632987b176d11f6afb055375a4b2b96c99599d",
+    "gate_path": "authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2D_PAIRWISE_UTILITY_RANKING_SYNTHETIC_GATE_V1.json",
+    "gate_blob": "5ded467bf80ad7071a57cddd37315599fd7ce701",
+    "implementation_branch": "ai/m-series-m2-2d-pairwise-utility-ranking-synthetic-r0",
+    "execution_head": "ffa8873c0c00a1984853a917c7c709375d1a3ecf",
+    "github_actions_run_id": 34437800853,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10136854039,
+    "artifact_digest": "sha256:39f9be4fd4a085d4dffd8782b2624fbe2534153eea0d1b7fd2ff69559095f8b4",
+    "result_schema": "CB16_R11_M_SERIES_M2_2D_PAIRWISE_UTILITY_RANKING_SYNTHETIC_RESULT_V1"
+  },
+  "engineering_adjudication": {
+    "status": "PASS",
+    "repo_guard": "PASS",
+    "immutable_gate_and_m2_2c_adjudication": "PASS",
+    "verified_python_and_docker": "PASS",
+    "inherited_and_m2_2d_unit_gates": "PASS__17_TESTS",
+    "twenty_new_seed_cells_completed": true,
+    "twenty_four_arms_per_cell_completed": true,
+    "total_arms_completed": 480,
+    "receipt_and_semantic_guards": "PASS",
+    "market_data_read": false,
+    "market_evidence_read": false,
+    "prior_primary_seed_cells_reused": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "candidate": {
+    "name": "PAIRWISE_GAP_WEIGHTED_UTILITY_RANKING",
+    "direction_pairs": [[0,1],[0,2],[1,2]],
+    "teacher_gap": "DELTA_AB=MU_TEACHER(A)-MU_TEACHER(B)",
+    "pair_target": "SIGN(DELTA_AB)",
+    "pair_weight": "ABS(DELTA_AB)/MEAN_OVER_ALL_ROWS_AND_THREE_PAIRS[ABS(DELTA)]",
+    "student_margin": "LOGIT_THETA(A)-LOGIT_THETA(B)",
+    "loss": "MEAN[PAIR_WEIGHT*SOFTPLUS(-SIGN(DELTA_AB)*STUDENT_MARGIN)]",
+    "probability_target": false,
+    "champion_probability_prior_in_loss": false,
+    "new_temperature_threshold_or_margin_hyperparameter": false,
+    "new_trainable_parameters": 0
+  },
+  "preregistered_regime_adjudication": [
+    {
+      "regime": "CLEAN_CONDITIONAL",
+      "alignment_specific_gain_win_count": 5,
+      "capture_vs_selective_win_count": 2,
+      "gain_vs_selective_win_count": 2,
+      "harm_vs_abs_win_count": 5,
+      "harm_vs_aws_win_count": 3,
+      "required": {"alignment":4,"capture":3,"gain":3,"harm_vs_abs":4,"harm_vs_aws":3},
+      "pass": false,
+      "failure_axis": "CAPTURE_AND_GAIN_VS_BINARY_SELECTIVE"
+    },
+    {
+      "regime": "NOISY_TEACHER",
+      "alignment_specific_gain_win_count": 5,
+      "capture_vs_selective_win_count": 5,
+      "gain_vs_selective_win_count": 5,
+      "harm_vs_abs_win_count": 4,
+      "harm_vs_aws_win_count": 2,
+      "required": {"alignment":4,"capture":3,"gain":3,"harm_vs_abs":4,"harm_vs_aws":3},
+      "pass": false,
+      "failure_axis": "HARM_VS_ADVANTAGE_WEIGHTED_SELECTIVE"
+    },
+    {
+      "regime": "WEAK_CONDITIONAL_STRONG_MARGINAL",
+      "alignment_specific_gain_win_count": 5,
+      "capture_vs_selective_win_count": 2,
+      "gain_vs_selective_win_count": 2,
+      "harm_vs_abs_win_count": 5,
+      "harm_vs_aws_win_count": 3,
+      "required": {"alignment":4,"capture":3,"gain":3,"harm_vs_abs":4,"harm_vs_aws":3},
+      "pass": false,
+      "failure_axis": "CAPTURE_AND_GAIN_VS_BINARY_SELECTIVE"
+    },
+    {
+      "regime": "NEAR_OPTIMAL_CHAMPION",
+      "alignment_specific_gain_win_count": 5,
+      "capture_vs_selective_win_count": 5,
+      "gain_vs_selective_win_count": 5,
+      "harm_vs_abs_win_count": 4,
+      "harm_vs_aws_win_count": 3,
+      "required": {"alignment":4,"capture":3,"gain":3,"harm_vs_abs":4,"harm_vs_aws":3},
+      "pass": true
+    }
+  ],
+  "scientific_adjudication": {
+    "overall_pass": false,
+    "conclusion": "PAIRWISE_UTILITY_RANKING_NOT_SYNTHETICALLY_QUALIFIED__DO_NOT_OPEN_MARKET_SHADOW",
+    "consumed_r6_train_shadow_authorized": false,
+    "canonical_change_authorized": false,
+    "m3_sizing_authorized": false,
+    "market_information_verdict": false
+  },
+  "mechanistic_interpretation": {
+    "established": [
+      "All-pairs Teacher utility ranking is strongly state-alignment sensitive: aligned true Champion-relative gain beat the median of five whole-group Teacher shuffles in five of five seeds in all four regimes.",
+      "The pairwise surrogate suppresses harmful movement relative to absolute CE robustly: harm-vs-ABS wins were 5/5, 4/5, 5/5, and 4/5 across the four regimes.",
+      "In NOISY_TEACHER and NEAR_OPTIMAL_CHAMPION, pairwise ranking beat binary selective on both true capture and true Champion-relative gain in all five seeds.",
+      "NEAR_OPTIMAL_CHAMPION passed every preregistered rule, showing the surrogate can work under at least one difficult Champion-relative regime."
+    ],
+    "not_established": [
+      "Correct state-conditioned pairwise Direction ordering is not sufficient for universal Champion-relative decision improvement: CLEAN_CONDITIONAL and WEAK_CONDITIONAL_STRONG_MARGINAL achieved only 2/5 capture and gain wins versus binary selective.",
+      "Under NOISY_TEACHER, pairwise ranking did not suppress harm versus advantage-weighted selective often enough, with only 2/5 wins.",
+      "The pairwise surrogate therefore does not qualify for consumed TRAIN-only market shadow or canonical replacement."
+    ],
+    "cross_experiment_localization": "M2.2 through M2.2D consistently show that aligned Teacher information is learnable and that null-alignment sensitivity can be made strong. The remaining failure is not absence of state-conditioned signal. It is the conversion from Teacher utility evidence into a policy change that simultaneously captures available Champion-relative advantage and controls harmful corrections across heterogeneous regimes. Pairwise ordering improves relational geometry but still optimizes ordering rather than the actual Champion-relative decision value of the resulting action.",
+    "next_design_implication": "Test a direct Teacher Champion-relative decision-regret surrogate in fresh synthetic seeds. The next objective should use existing Teacher mean utilities directly as a differentiable decision-value signal, make no Teacher probability target, introduce no CE reweighting, temperature, threshold, margin sweep, or new model capacity, and retain whole-group shuffle controls."
+  },
+  "frozen_scientific_status_before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "frozen_scientific_status_after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+  "semantic_guards": {
+    "canonical_generation_advanced": false,
+    "champion_promoted": false,
+    "production_cutover": false,
+    "market_information_verdict_reopened": false,
+    "profitability_or_alpha_claimed": false,
+    "r7_candidate_evaluated": false,
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false,
+    "consumed_r6_shadow_opened": false,
+    "m3_sizing_opened": false
+  },
+  "next_legal_step": "PREREGISTER_DIRECT_TEACHER_CHAMPION_RELATIVE_DECISION_REGRET_SURROGATE_ON_NEW_SYNTHETIC_SEEDS__NO_MARKET_SHADOW"
+}
