@@ -1,0 +1,153 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_11_2_IPF_EFFECTIVE_COMMON_MEASURE_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_11_2_IPF_EFFECTIVE_COMMON_MEASURE_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_11_1_adjudication_commit": "dca61e693858d90af785dfb7697d399df4eb65c3",
+    "parent_h5_11_1_adjudication_blob": "d4be3239da97e89b99f9992068ce13490d86cabf",
+    "preregistration_commit": "7446e07238e8d2575194b50cf9e8890d08d59607",
+    "gate_blob": "92bb7001070e31669f6765dfb05e598926683452",
+    "implementation_branch": "ai/m-series-h5-11-2-ipf-effective-common-measure-r0",
+    "execution_head": "35daef36b1cb320dc5e8799a02d96a224d3a8be2",
+    "workflow_run_id": 34515666356,
+    "workflow_job_id": 103000374755,
+    "workflow_conclusion": "success",
+    "artifact_id": 10167710323,
+    "artifact_name": "cb16-r11-m-series-h5-11-2-ipf-effective-common-measure-r0-1",
+    "artifact_size_bytes": 14024,
+    "artifact_sha256": "3ac889071020888e96968063d718e8f48d172447ad8a7845788ca02784b20a4b",
+    "github_artifact_digest": "sha256:3ac889071020888e96968063d718e8f48d172447ad8a7845788ca02784b20a4b",
+    "independent_artifact_sha256_verified": true,
+    "result_json_sha256": "f433ac0a190b32d57b84ee64ddf6248525040f69366d3a6b0f404767fa386f90",
+    "result_schema": "CB16_R11_M_SERIES_H5_11_2_IPF_EFFECTIVE_COMMON_MEASURE_R0_RESULT_V1",
+    "regression_tests": {"passed": 99, "failed": 0}
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_MECHANISM_FALSIFICATION__NOT_NEW_INDEPENDENT_MARKET_SUPPORT",
+    "same_future_group_is_dependence_unit": true,
+    "teacher_compilation_used": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "student_training_used": false,
+    "student_inference_used": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_payload_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "protocol_receipt": {
+    "single_manipulated_variable": "H5_11_CELL_MULTIPLIER_ESTIMATION_ONLY__ONE_STEP_Q_DIVIDED_BY_P_REPLACED_BY_IPF_EFFECTIVE_MARGIN_CALIBRATION",
+    "h5_11_sibling_evaluator_reproduction_passed": true,
+    "max_sibling_aligned_abs_error": 0.0,
+    "max_sibling_null_median_abs_error": 0.0,
+    "pairwise_q_unchanged_from_h5_11": true,
+    "grid_unchanged": true,
+    "support_unchanged": true,
+    "normalization_unchanged": true,
+    "operator_distance_unchanged": true,
+    "medium_distance_unchanged": true,
+    "utility_distance_unchanged": true,
+    "primary_weighted_partial_rank_statistic_unchanged": true,
+    "structured_medium_null_unchanged": true,
+    "same_calibrated_aligned_candidate_weights_used_for_all_nulls": true,
+    "q_recomputed_for_null": false,
+    "ipf_uses_utility_or_outcomes": false,
+    "ipf_damping_used": false,
+    "ipf_regularization_used": false,
+    "ipf_multiplier_clipping_used": false,
+    "formal_single_side_effective_margin_tolerance": 1e-12,
+    "formal_side_to_side_effective_margin_tolerance": 2e-12
+  },
+  "result": {
+    "classification": "EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST",
+    "conclusion": "H5_11_2_EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST",
+    "native_flip_persistence_count_of_3": 3,
+    "native_flip_clean_removal_count_of_3": 0,
+    "positive_control_pair_stable": true,
+    "global_max_abs_effective_side_vs_q": 8.99419427824455e-14,
+    "global_max_abs_effective_side_to_side": 1.0430545316353346e-13,
+    "max_ipf_iterations": 5,
+    "max_multiplier_max_to_min_ratio": 1.053653725827239,
+    "pair_receipts": {
+      "fold_1_to_fold_2": {
+        "fold_1": {"aligned_partial_rho": -0.012200623654244555, "null_median_partial_rho": 0.027107534250674508, "aligned_minus_null_median": -0.03930815790491907, "orientation": "ANTI_ALIGNMENT", "effective_max_abs_error_vs_q": 1.7430501486614958e-14, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.034603742833326},
+        "fold_2": {"aligned_partial_rho": 0.07579191494949918, "null_median_partial_rho": 0.020381053047209698, "aligned_minus_null_median": 0.05541086190228948, "orientation": "POSITIVE_ALIGNMENT", "effective_max_abs_error_vs_q": 8.99419427824455e-14, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.0348067350689618},
+        "effective_side_to_side_max_abs": 1.0430545316353346e-13
+      },
+      "fold_2_to_fold_3": {
+        "fold_2": {"aligned_partial_rho": 0.07559382499329706, "null_median_partial_rho": 0.02046863436195882, "aligned_minus_null_median": 0.055125190631338236, "orientation": "POSITIVE_ALIGNMENT", "effective_max_abs_error_vs_q": 1.5265566588595902e-15, "ipf_iterations": 5, "multiplier_max_to_min_ratio": 1.046711815105443},
+        "fold_3": {"aligned_partial_rho": -0.0642281690170995, "null_median_partial_rho": -0.010307312346143531, "aligned_minus_null_median": -0.053920856670955974, "orientation": "ANTI_ALIGNMENT", "effective_max_abs_error_vs_q": 5.007105841059456e-14, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.0472783853901193},
+        "effective_side_to_side_max_abs": 5.08759701034478e-14
+      },
+      "fold_3_to_fold_4": {
+        "fold_3": {"aligned_partial_rho": -0.06472645274453272, "null_median_partial_rho": -0.010432101635003055, "aligned_minus_null_median": -0.05429435110952966, "orientation": "ANTI_ALIGNMENT", "effective_max_abs_error_vs_q": 1.9789725413943415e-14, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.052933842469978},
+        "fold_4": {"aligned_partial_rho": 0.027361442512976064, "null_median_partial_rho": 0.006912051815387939, "aligned_minus_null_median": 0.020449390697588124, "orientation": "POSITIVE_ALIGNMENT", "effective_max_abs_error_vs_q": 4.496403249731884e-15, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.053653725827239},
+        "effective_side_to_side_max_abs": 2.42861286636753e-14
+      },
+      "fold_4_to_fold_5": {
+        "fold_4": {"aligned_partial_rho": 0.02730323532514099, "null_median_partial_rho": 0.006815192186243408, "aligned_minus_null_median": 0.020488043138897582, "orientation": "POSITIVE_ALIGNMENT", "effective_max_abs_error_vs_q": 2.2537527399890678e-14, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.0507441731896492},
+        "fold_5": {"aligned_partial_rho": 0.0247553057406921, "null_median_partial_rho": 0.01184621005532433, "aligned_minus_null_median": 0.01290909568536777, "orientation": "POSITIVE_ALIGNMENT", "effective_max_abs_error_vs_q": 5.0431880893597736e-14, "ipf_iterations": 4, "multiplier_max_to_min_ratio": 1.0507014356166848},
+        "effective_side_to_side_max_abs": 6.475375791126226e-14
+      }
+    }
+  },
+  "adjudication": {
+    "classification": "EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST",
+    "conclusion": "H5_11_2_EXACT_MACRO_CELL_OCCUPANCY_STANDARDIZATION__NATIVE_TRANSITIONS_PERSIST",
+    "key_result": "AFTER_CORRECTLY_CALIBRATING_EACH_ADJACENT_ENVIRONMENT_SIDE_TO_THE_SAME_FROZEN_H5_11_3X3_OPERATOR_MEDIUM_EFFECTIVE_MACRO_CANDIDATE_CELL_MARGIN_Q_UNDER_THE_ACTUAL_LOCAL_WEIGHT_NORMALIZATION__ALL_THREE_NATIVE_H5_8_ORIENTATION_TRANSITIONS_PERSIST_AND_THE_F4_TO_F5_POSITIVE_CONTROL_REMAINS_POSITIVE_TO_POSITIVE",
+    "supported": [
+      "THE_H5_11_1_EFFECTIVE_MEASURE_LOOPHOLE_IS_CLOSED_AT_THE_FROZEN_3X3_OPERATOR_MEDIUM_MACRO_CELL_MARGIN_LEVEL",
+      "DIFFERENCES_IN_THE_ADJACENT_ENVIRONMENTS_FROZEN_3X3_OPERATOR_MEDIUM_EFFECTIVE_MACRO_CANDIDATE_CELL_MARGINS_ARE_INSUFFICIENT_TO_REMOVE_THE_H5_8_ORIENTATION_TRANSITIONS",
+      "THE_TRANSITIONS_ARE_ROBUST_TO_EXACT_OUTCOME_BLIND_MARGIN_CALIBRATION_UNDER_THE_FROZEN_H5_8_LOCAL_STATISTIC",
+      "THE_REQUIRED_CALIBRATION_IS_NUMERICALLY_MILD__MAX_MULTIPLIER_RATIO_IS_ABOUT_1_054__SO_THE_PERSISTENCE_IS_NOT_AN_ARTIFACT_OF_EXTREME_IPF_WEIGHTS",
+      "THE_F4_TO_F5_POSITIVE_CONTROL_REMAINS_STABLE_UNDER_THE_SAME_CALIBRATION_PROCEDURE"
+    ],
+    "not_established": [
+      "THE_FULL_JOINT_DISTRIBUTION_OF_TARGET_FUTURE_GROUP_X_SCENARIO_ROWS_AND_CANDIDATE_CELLS_IS_IDENTICAL_BETWEEN_ENVIRONMENTS",
+      "WITHIN_TARGET_SCENARIO_CELL_COMPOSITION_IS_IDENTICAL_BETWEEN_ENVIRONMENTS",
+      "FINE_GRAINED_WITHIN_CELL_OPERATOR_MEDIUM_GEOMETRY_IS_IDENTICAL_BETWEEN_ENVIRONMENTS",
+      "FULL_96D_MARKET_STATE_CONDITIONAL_DISTRIBUTION_IS_IDENTICAL_OR_DIFFERENT",
+      "ACCOUNT6_IS_THE_MISSING_CONTEXT",
+      "ACCOUNT6_IS_NOT_THE_MISSING_CONTEXT",
+      "A_LEARNED_ENGRAM_STYLE_OR_RUNTIME_COMPATIBILITY_GATE_IS_AUTHORIZED",
+      "TIME_OR_CALENDAR_IS_CAUSAL",
+      "MEDIUM48_SHOULD_BE_DELETED_OR_REWEIGHTED",
+      "INDEPENDENT_MARKET_INFORMATION_IS_QUALIFIED"
+    ],
+    "limitations": [
+      "THE_CALIBRATION_MATCHES_THE_NINE_EFFECTIVE_MACRO_CELL_MARGINS__IT_DOES_NOT_MATCH_THE_COMPLETE_MACRO_ROW_BY_CELL_JOINT_MEASURE",
+      "THE_3X3_GRID_IS_A_PREREGISTERED_COARSENING_OF_CONTINUOUS_OPERATOR_AND_MEDIUM_DISTANCE_RANK_GEOMETRY__FINER_WITHIN_CELL_DISTRIBUTIONAL_DIFFERENCES_REMAIN_POSSIBLE",
+      "THE_TEST_REUSES_CONSUMED_TRAIN_ONLY_SUPPORT_AND_DOES_NOT CREATE_NEW_INDEPENDENT_ECONOMIC_EVIDENCE",
+      "PERSISTENT_ORIENTATION_IS_A_MECHANISM_RESULT__NOT_A_PRODUCTION_OR_TRADING_QUALIFICATION"
+    ]
+  },
+  "updated_failure_view": "H5_8_ORIENTATION_TRANSITIONS_CANNOT_BE_REDUCED_TO_ADJACENT_ENVIRONMENT_DIFFERENCES_IN_THE_FROZEN_COARSE_3X3_OPERATOR_MEDIUM_EFFECTIVE_MACRO_CELL_MARGINS__THE_REMAINING_FRONTIER_IS_CONDITIONAL_OR_FINER_GRAINED_CONTEXT_GEOMETRY_OR_COMPOSITION__NOT_YET_A_LICENSE_FOR_A_RUNTIME_GATE",
+  "frozen_scientific_status": {
+    "before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "authority": {
+    "h5_11_1_adjudication_deleted_or_rewritten": false,
+    "h5_11_2_supersedes_h5_11_1_only_for_the_corrected_3x3_effective_margin_standardization_question": true,
+    "market_information_verdict_changed": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "medium48_deletion_or_reweighting_authorized": false,
+    "fusion_weight_search_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "learned_gate_or_router_authorized": false,
+    "engram_style_compatibility_gate_authorized": false,
+    "time_or_regime_gate_authorized": false,
+    "calendar_or_fold_id_runtime_feature_authorized": false,
+    "old_h5_12_preregistration_execution_authorized": false,
+    "account6_followup_may_be_separately_preregistered_from_this_adjudication": true,
+    "champion_promotion_authorized": false,
+    "production_cutover_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false,
+    "fresh_market_data_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_11_2_RESULT__DO_NOT_EXECUTE_THE_PRE_H5_11_1_H5_12_PREREGISTRATION__IF_CONTINUING_CREATE_A_NEW_SEPARATELY_PREREGISTERED_ACCOUNT6_OR_OTHER_SINGLE_CONTEXT_FALSIFICATION_DESCENDED_FROM_THIS_H5_11_2_ADJUDICATION__IT_MUST_PRESERVE_EXACT_EFFECTIVE_MARGIN_CLOSURE_UNDER_THE_ACTUAL_LOCAL_MACRO_FUNCTIONAL__NO_RUNTIME_GATE_OR_CANONICAL_CHANGE"
+}
