@@ -1,0 +1,72 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "a01f1c3ceadff3926b9cdc58b675606dce48fc4f",
+    "gate_blob": "91943883d4a2f4511613d81861922536464b8b11",
+    "implementation_branch": "ai/m-series-h5-3-fixed-support-weighting-interpolation-r0-exec",
+    "execution_head": "6ad9a525ea915f355018980c082e17bea75daa2b",
+    "github_actions_run_id": 34443467393,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10138828514,
+    "artifact_digest": "sha256:1b87579476c99b01a8b68cf86604f09bffb1b039029a1965cb0b2c819dd597bd",
+    "result_schema": "CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_RESULT_V1"
+  },
+  "support": {
+    "classification": "ALREADY_OBSERVED_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": 5,
+    "primary_late_folds": [4, 5],
+    "student_training": false,
+    "student_inference": false,
+    "support_reselection_in_shadow_arms": false,
+    "selected_parent_identity_fixed_across_all_arms": true,
+    "teacher_hyperparameter_tuning": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "adjudication": {
+    "classification": "MEDIUM48_WEIGHTING_PRIMARY",
+    "drop_medium48_weight_beats_full102_both_late_folds": true,
+    "drop_operator48_weight_beats_full102_both_late_folds": false,
+    "uniform_weight_beats_full102_both_late_folds": false,
+    "all_identity_guards_pass": true,
+    "conclusion": "H5_3_MEDIUM48_WEIGHTING_PRIMARY"
+  },
+  "per_fold": [
+    {"fold":1,"full102_qscore":0.0014662354153126605,"drop_medium48_weight_qscore":0.00146559036916713,"drop_operator48_weight_qscore":0.0014668957972652258,"uniform_weight_qscore":0.001465925293870858,"drop_medium48_weight_tv_vs_full102":0.015256159558127499},
+    {"fold":2,"full102_qscore":0.0014813988816589684,"drop_medium48_weight_qscore":0.0014825546326149497,"drop_operator48_weight_qscore":0.0014804350143780057,"uniform_weight_qscore":0.0014825780665786766,"drop_medium48_weight_tv_vs_full102":0.012546285790164185},
+    {"fold":3,"full102_qscore":0.0015052804889556922,"drop_medium48_weight_qscore":0.0015026331034698507,"drop_operator48_weight_qscore":0.0015081058220873227,"uniform_weight_qscore":0.0015050062798771825,"drop_medium48_weight_tv_vs_full102":0.011993465180753032},
+    {"fold":4,"full102_qscore":0.0014301334198175567,"drop_medium48_weight_qscore":0.0014283604209966896,"drop_operator48_weight_qscore":0.0014323186546619138,"uniform_weight_qscore":0.001430688169045885,"drop_medium48_weight_tv_vs_full102":0.010980641598338435},
+    {"fold":5,"full102_qscore":0.0016653054149199553,"drop_medium48_weight_qscore":0.0016645816239046912,"drop_operator48_weight_qscore":0.0016659782685424296,"uniform_weight_qscore":0.0016644581650362515,"drop_medium48_weight_tv_vs_full102":0.01078884226250205}
+  ],
+  "mechanistic_interpretation": {
+    "supported": [
+      "WITH_CANONICAL_SUPPORT_MEMBERSHIP_AND_NEAREST_PARENT_IDENTITIES_FIXED_DROP_MEDIUM48_WEIGHTING_IMPROVES_PROPER_DISTRIBUTIONAL_SCORE_IN_BOTH_LATE_FOLDS",
+      "THE_SAME_LATE_REPLICATION_DOES_NOT_HOLD_FOR_DROP_OPERATOR48_WEIGHTING",
+      "UNIFORM_WEIGHTING_DOES_NOT_BEAT_CANONICAL_IN_BOTH_LATE_FOLDS",
+      "THE_LOCALIZED_EFFECT_OCCURS_IN_POST_SELECTION_DISTANCE_WEIGHTING_INTERPOLATION_NOT_SUPPORT_MEMBERSHIP"
+    ],
+    "not_supported": [
+      "MEDIUM48_SHOULD_BE_REMOVED_FROM_THE_TEACHER",
+      "DISTANCE_TEMPERATURE_SHOULD_BE_TUNED",
+      "CANONICAL_TEACHER_CHANGE",
+      "CANONICAL_STUDENT_CHANGE",
+      "MARKET_INFORMATION_QUALIFICATION",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ]
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "new_direction_loss_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "PREREGISTER_ONE_SHADOW_TEACHER_WITH_FULL102_SUPPORT_SELECTION_AND_DROP_MEDIUM48_POST_SELECTION_WEIGHTING__REPEAT_H5_ALIGNMENT_TRANSPORT_CONTROLS__NO_CANONICAL_CHANGE"
+}

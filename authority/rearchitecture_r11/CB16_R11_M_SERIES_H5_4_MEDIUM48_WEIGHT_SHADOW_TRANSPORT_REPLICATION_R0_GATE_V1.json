@@ -1,0 +1,86 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_4_MEDIUM48_WEIGHT_SHADOW_TRANSPORT_REPLICATION_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_3_adjudication_commit": "c4284b66d3876066a031dfbb8c6c075ea66f9696",
+    "h5_3_conclusion": "H5_3_MEDIUM48_WEIGHTING_PRIMARY",
+    "h5_original_conclusion": "H5_TEACHER_TEMPORAL_TRANSPORT_NOT_MECHANISTICALLY_SUPPORTED_ON_CONSUMED_TRAIN__PRIORITIZE_TEACHER_SUPPORT_CALIBRATION_TRANSPORT_DIAGNOSTICS__DO_NOT_OPEN_NEW_DIRECTION_LOSS"
+  },
+  "question": "Does the single H5.3-localized shadow rule restore the original H5 state-alignment temporal-transport controls on the same consumed TRAIN-only folds?",
+  "support_and_scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_R6_H5_TRAIN_ONLY_OUTER_FOLDS",
+    "outer_folds": 5,
+    "clock_blocks": 6,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "all_ten_symbols": true,
+    "support_classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "adaptive_method_selection_acknowledged": true,
+    "independent_qualification": false,
+    "student_training": false,
+    "student_inference": false,
+    "production_teacher_change": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "shadow_teacher_rule": {
+    "support_selection_dimensions": "FULL102_OPERATOR48_PLUS_MEDIUM48_PLUS_ACCOUNT6",
+    "within_group_nearest_parent": "FULL102_CANONICAL",
+    "top_k_dependence_groups": 64,
+    "post_selection_weight_distance_dimensions": "OPERATOR48_PLUS_ACCOUNT6_ONLY",
+    "post_selection_weight_distance_dimension_count": 54,
+    "weight_formula": "EXP(-0.5*(DISTANCE/FROZEN_DISTANCE_TEMPERATURE)^2)+1E-12_THEN_NORMALIZE",
+    "distance_temperature": "EXACT_FROZEN_R11_VALIDATION_TEACHER_VALUE",
+    "means_stds_quantiles": "EXACT_FROZEN_ALGORITHMS",
+    "quantile_levels": [0.05,0.10,0.25,0.50,0.75,0.90,0.95],
+    "no_tunable_parameter": true
+  },
+  "arms": {
+    "SHADOW_ALIGNED": "CORRECT_EVAL_STATE_TO_FUTURE_ALIGNMENT_USING_THE_FIXED_SHADOW_RULE",
+    "FROZEN_CANONICAL_ALIGNED": "EXACT_FROZEN_FULL102_TEACHER_REFERENCE",
+    "CLIMATOLOGY": "ACTION_RISK_SPECIFIC_EQUAL_WEIGHT_OUTER_TRAIN_CLIMATOLOGY_IDENTICAL_TO_H5",
+    "SHADOW_FULL_STATE_SHUFFLE_1_7_13_23_31": "WHOLE_FUTURE_GROUP_TARGET_FEATURE_ROTATIONS_IDENTICAL_TO_H5__SCENARIO_IDENTITY_PRESERVED__SHADOW_RULE_APPLIED_AFTER_ROTATION"
+  },
+  "identity_guards": {
+    "shadow_aligned_qscore_must_match_h5_3_drop_medium48_weight_qscore_each_fold": true,
+    "frozen_canonical_qscore_must_match_h5_each_fold": true,
+    "full_state_shuffle_feature_transform_must_be_exact_h5_transform": true,
+    "train_features_unchanged_by_shuffle": true,
+    "target_feature_multiset_preserved_by_shuffle": true,
+    "teacher_config_unchanged": true
+  },
+  "primary_preregistered_gate": {
+    "shadow_improves_frozen_teacher": "SHADOW_ALIGNED_QSCORE < FROZEN_CANONICAL_ALIGNED_QSCORE_IN_AT_LEAST_4_OF_5_FOLDS_AND_IN_BOTH_FOLD_4_AND_FOLD_5",
+    "beats_climatology": "SHADOW_ALIGNED_QSCORE < CLIMATOLOGY_QSCORE_IN_AT_LEAST_4_OF_5_FOLDS",
+    "beats_shuffle_median": "SHADOW_ALIGNED_QSCORE < MEDIAN_OF_5_SHADOW_FULL_STATE_SHUFFLE_QSCORES_IN_AT_LEAST_4_OF_5_FOLDS",
+    "late_transport": "FOLD_4_AND_FOLD_5_EACH_BEAT_BOTH_CLIMATOLOGY_AND_SHUFFLE_MEDIAN",
+    "pairwise_shuffle": "SHADOW_ALIGNED_QSCORE < EACH_SHADOW_SHUFFLE_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS",
+    "overall_pass": "ALL_FIVE_CONDITIONS_ABOVE_AND_ALL_IDENTITY_GUARDS_PASS"
+  },
+  "interpretation": {
+    "if_pass": "THE_SINGLE_H5_3_WEIGHTING_INTERVENTION_MECHANISTICALLY_RESTORES_H5_STYLE_STATE_ALIGNMENT_TRANSPORT_ON_CONSUMED_TRAIN_ONLY_SUPPORT__MAY_JUSTIFY_A_SEPARATELY_PREREGISTERED_CANONICAL_TEACHER_CANDIDATE_QUALIFICATION_PLAN_BUT_NOT_A_CANONICAL_CHANGE",
+    "if_fail": "THE_H5_3_ALIGNED_QSCORE_GAIN_DOES_NOT_RESTORE_STATE_ALIGNMENT_TRANSPORT__DO_NOT_CHANGE_CANONICAL_TEACHER__REASSESS_BROADER_TEACHER_TRANSPORT_OR_H1_H2"
+  },
+  "forbidden": [
+    "TUNING_ANY_WEIGHT_OR_TEMPERATURE",
+    "ALTERING_SUPPORT_SELECTION_RULE",
+    "ADDING_ANOTHER_ORGAN_WEIGHT_VARIANT_AFTER_RESULTS",
+    "MODIFYING_STUDENT",
+    "NEW_DIRECTION_LOSS",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
