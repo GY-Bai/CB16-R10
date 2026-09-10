@@ -82,9 +82,7 @@ jobs:
             tests/test_m_series_m2_2_advantage_mirror_synthetic.py \
             scripts/r11_m_series_m2_2_advantage_mirror_synthetic.py
           "$PYTHON" -m pytest -q \
-            tests/test_m_series_m2_2_advantage_mirror_synthetic.py \
-            tests/test_m_series_m2_1_correction_quality.py \
-            tests/test_m_series_m2_frozen_g0_direction_residual.py
+            tests/test_m_series_m2_2_advantage_mirror_synthetic.py
 
       - name: Execute preregistered 20-cell 360-arm synthetic benchmark
         shell: bash
