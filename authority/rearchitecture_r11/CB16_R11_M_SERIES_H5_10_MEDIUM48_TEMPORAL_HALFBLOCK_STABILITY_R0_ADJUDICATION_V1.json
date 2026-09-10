@@ -1,0 +1,223 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_10_MEDIUM48_TEMPORAL_HALFBLOCK_STABILITY_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_10_MEDIUM48_TEMPORAL_HALFBLOCK_STABILITY_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_9_adjudication_commit": "2585cfde44a71c5400d1881382983deaacf495d1",
+    "parent_h5_9_adjudication_blob": "99ca12bdfa3edf458a82820f76dbfeb3ab9a2444",
+    "preregistration_commit": "1de6d3d10b6698f4fe2b8800c02f2d18f05ffaab",
+    "gate_blob": "8ec00977ffa0068429b9e7c480451dc2ac2696cc",
+    "implementation_branch": "ai/m-series-h5-10-medium48-temporal-halfblock-stability-r0",
+    "execution_head": "709ec51fe50fff7b46a48da43972fdb6ba12357b",
+    "workflow_run_id": 34495672338,
+    "workflow_conclusion": "success",
+    "artifact_id": 10159799379,
+    "artifact_name": "cb16-r11-m-series-h5-10-medium48-temporal-halfblock-stability-r0-1",
+    "artifact_size_bytes": 6997,
+    "artifact_sha256": "763ac89fdea8fbd0261f7448a71efe465fb235a496c113168f5fd5e7fb6547ba",
+    "result_json_sha256": "1039e41f832545b8810b56ca0f0187c093eb632aa94e79e1f8591d26a3c9b4dd",
+    "independent_artifact_sha256_verified": true,
+    "regression_tests": {
+      "passed": 71,
+      "failed": 0
+    }
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "train_dependence_groups": 1619,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "raw_market_payload_used": false,
+    "legacy_validation_rows_used": false,
+    "final_holdout_payload_opened": false
+  },
+  "protocol": {
+    "scientific_folds": [1, 2, 3, 4, 5],
+    "outer_clock_partition": "EXACT_R6_SIX_EQUAL_ORDERED_CLOCK_BLOCKS",
+    "half_partition": "EXISTING_CHRONOLOGICAL_EVAL_FUTURE_GROUP_ORDER_SPLIT_BY_NUMPY_ARRAY_SPLIT_INTO_TWO_CONTIGUOUS_NEAR_EQUAL_COUNT_HALVES",
+    "primary_measure": "EXACT_H5_8_OPERATOR_CONDITIONAL_PARTIAL_SPEARMAN",
+    "full_fold_h5_8_baseline_reproduction_tolerance": 1e-12,
+    "baseline_reproduction_passed": true,
+    "partition_boundary_uses_utility_or_features": false,
+    "support_normalization_distance_or_null_recomputed_after_partition": false,
+    "teacher_compilation_used": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "student_training_used": false,
+    "student_inference_used": false,
+    "new_representation_used": false,
+    "medium_dimensions_subselected": false,
+    "fusion_weights_searched": false,
+    "distance_metric_tuned": false,
+    "change_point_search_used": false,
+    "time_gating_or_regime_classifier_created": false
+  },
+  "result": {
+    "classification": "FAILURE_FOLDS_STABLE__POSITIVE_FOLDS_INTERNALLY_MIXED",
+    "conclusion": "H5_10_FAILURE_FOLDS_STABLE__POSITIVE_FOLDS_INTERNALLY_MIXED",
+    "failure_fold_persistence_4_of_4": true,
+    "positive_fold_persistence_6_of_6": false,
+    "all_fold_orientation_stability": false,
+    "chronological_half_sequence": [
+      {
+        "fold": 1,
+        "half": 1,
+        "future_group_count": 145,
+        "first_timestamp_ms": 1605427200000,
+        "last_timestamp_ms": 1618329600000,
+        "aligned_partial_rho": -0.020652607272139065,
+        "null_median_partial_rho": 0.020604243306881813,
+        "aligned_minus_null_median": -0.04125685057902088,
+        "orientation": "ANTI_ALIGNMENT"
+      },
+      {
+        "fold": 1,
+        "half": 2,
+        "future_group_count": 145,
+        "first_timestamp_ms": 1618329600000,
+        "last_timestamp_ms": 1631232000000,
+        "aligned_partial_rho": -0.004170089290859266,
+        "null_median_partial_rho": 0.033464815393639574,
+        "aligned_minus_null_median": -0.03763490468449884,
+        "orientation": "ANTI_ALIGNMENT"
+      },
+      {
+        "fold": 2,
+        "half": 1,
+        "future_group_count": 137,
+        "first_timestamp_ms": 1632153600000,
+        "last_timestamp_ms": 1644134400000,
+        "aligned_partial_rho": 0.08590980976706408,
+        "null_median_partial_rho": 0.03797054650248119,
+        "aligned_minus_null_median": 0.04793926326458289,
+        "orientation": "POSITIVE_ALIGNMENT"
+      },
+      {
+        "fold": 2,
+        "half": 2,
+        "future_group_count": 137,
+        "first_timestamp_ms": 1644134400000,
+        "last_timestamp_ms": 1657036800000,
+        "aligned_partial_rho": 0.06580590506422634,
+        "null_median_partial_rho": 0.008462531029215003,
+        "aligned_minus_null_median": 0.057343374035011344,
+        "orientation": "POSITIVE_ALIGNMENT"
+      },
+      {
+        "fold": 3,
+        "half": 1,
+        "future_group_count": 140,
+        "first_timestamp_ms": 1657958400000,
+        "last_timestamp_ms": 1669939200000,
+        "aligned_partial_rho": -0.06198794260720866,
+        "null_median_partial_rho": -0.012936044408683003,
+        "aligned_minus_null_median": -0.04905189819852566,
+        "orientation": "ANTI_ALIGNMENT"
+      },
+      {
+        "fold": 3,
+        "half": 2,
+        "future_group_count": 140,
+        "first_timestamp_ms": 1670860800000,
+        "last_timestamp_ms": 1682841600000,
+        "aligned_partial_rho": -0.06702226773839841,
+        "null_median_partial_rho": -0.00890666834252978,
+        "aligned_minus_null_median": -0.058115599395868626,
+        "orientation": "ANTI_ALIGNMENT"
+      },
+      {
+        "fold": 4,
+        "half": 1,
+        "future_group_count": 140,
+        "first_timestamp_ms": 1683763200000,
+        "last_timestamp_ms": 1695744000000,
+        "aligned_partial_rho": 0.02155936529785404,
+        "null_median_partial_rho": 0.004330964570538403,
+        "aligned_minus_null_median": 0.017228400727315636,
+        "orientation": "POSITIVE_ALIGNMENT"
+      },
+      {
+        "fold": 4,
+        "half": 2,
+        "future_group_count": 140,
+        "first_timestamp_ms": 1696665600000,
+        "last_timestamp_ms": 1708646400000,
+        "aligned_partial_rho": 0.033143913671954635,
+        "null_median_partial_rho": 0.009596662688560737,
+        "aligned_minus_null_median": 0.0235472509833939,
+        "orientation": "POSITIVE_ALIGNMENT"
+      },
+      {
+        "fold": 5,
+        "half": 1,
+        "future_group_count": 140,
+        "first_timestamp_ms": 1709568000000,
+        "last_timestamp_ms": 1721548800000,
+        "aligned_partial_rho": 0.015197297268514237,
+        "null_median_partial_rho": 0.023356861852499983,
+        "aligned_minus_null_median": -0.008159564583985746,
+        "orientation": "MIXED"
+      },
+      {
+        "fold": 5,
+        "half": 2,
+        "future_group_count": 140,
+        "first_timestamp_ms": 1722470400000,
+        "last_timestamp_ms": 1734451200000,
+        "aligned_partial_rho": 0.03433399727184851,
+        "null_median_partial_rho": -0.000100876320437328,
+        "aligned_minus_null_median": 0.034434873592285836,
+        "orientation": "POSITIVE_ALIGNMENT"
+      }
+    ]
+  },
+  "adjudication": {
+    "classification": "FAILURE_FOLDS_STABLE__POSITIVE_FOLDS_INTERNALLY_MIXED",
+    "conclusion": "H5_10_FAILURE_FOLDS_STABLE__POSITIVE_FOLDS_INTERNALLY_MIXED",
+    "supported": [
+      "H5_8_FOLD_1_AND_FOLD_3_CONDITIONAL_ANTI_ALIGNMENT_IS_NOT_ONLY_A_FULL_FOLD_AVERAGING_ARTIFACT__BOTH_PREREGISTERED_CHRONOLOGICAL_GROUP_ORDER_HALVES_RETAIN_ANTI_ALIGNMENT",
+      "THE_FAILURE_FOLD_RELATION_IS_TEMPORALLY_BROAD_WITHIN_THE_PREREGISTERED_HALF_BLOCK_RESOLUTION",
+      "H5_9_SYMBOL_AND_SCENARIO_BREADTH_PLUS_H5_10_HALF_BLOCK_PERSISTENCE_STRENGTHENS_A_TEMPORALLY_STRUCTURED_MEDIUM48_TO_UTILITY_RELATION_INSTABILITY_INTERPRETATION"
+    ],
+    "not_supported": [
+      "ALL_POSITIVE_FOLDS_ARE_INTERNALLY_STABLE",
+      "A_SINGLE_FIXED_POSITIVE_OR_NEGATIVE_REGIME_PARTITION_HAS_BEEN_IDENTIFIED",
+      "FOLD_OR_HALF_ID_IS_A_VALID_RUNTIME_STATE_OR_PERMISSION_SIGNAL",
+      "A_HANDCRAFTED_TIME_GATE_OR_REGIME_CLASSIFIER_IS_JUSTIFIED",
+      "MEDIUM48_SHOULD_BE_DELETED_OR_REWEIGHTED",
+      "A_CANONICAL_ARCHITECTURE_TEACHER_STUDENT_OR_ORGAN_CHANGE_IS_JUSTIFIED",
+      "INDEPENDENT_MARKET_INFORMATION_HAS_BEEN_QUALIFIED"
+    ],
+    "limitations": [
+      "THIS_IS_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT_AND_REUSES_THE_SAME_HISTORICAL EVIDENCE FAMILY; IT IS NOT NEW INDEPENDENT MARKET SUPPORT",
+      "THE PREREGISTERED HALF PARTITION IS BY ORDERED FUTURE GROUP COUNT, NOT BY UNIQUE DECISION CLOCK. WHEN A SPLIT FALLS INSIDE A CLOCK, DIFFERENT SYMBOL FUTURE GROUPS AT THE SAME TIMESTAMP CAN APPEAR ON OPPOSITE HALVES; THEREFORE THE HALVES ARE CHRONOLOGICALLY ORDERED GROUP-ORDER PARTITIONS BUT NOT ALWAYS STRICTLY NONOVERLAPPING CLOCK WINDOWS",
+      "H5_10 DOES NOT IDENTIFY THE LATENT CAUSE OF SIGN REVERSAL AND DOES NOT DISTINGUISH REPRESENTATION DRIFT FROM CHANGING TASK-RELEVANT MAPPING OR OTHER TEMPORALLY STRUCTURED MECHANISMS",
+      "FOLD_5_HALF_1_IS MIXED, SO POSITIVE ORIENTATION CANNOT BE DESCRIBED AS UNIVERSALLY STABLE"
+    ]
+  },
+  "frozen_scientific_status": {
+    "before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "authority": {
+    "market_information_verdict_changed": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "medium48_deletion_authorized": false,
+    "medium48_reweighting_authorized": false,
+    "fusion_weight_search_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "time_gating_authorized": false,
+    "handcrafted_regime_activation_authorized": false,
+    "chronological_belief_expiry_authorized": false,
+    "champion_promotion_authorized": false,
+    "production_cutover_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false,
+    "fresh_market_data_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_10_RESULT__DO_NOT_AUTOMATICALLY_CREATE_TIME_GATING_OR_HANDCRAFTED_REGIME_ACTIVATION__ANY_NEXT_MECHANISTIC_FALSIFICATION_MUST_BE_SEPARATELY_PREREGISTERED_FROM_THIS_ADJUDICATED_BOUNDARY"
+}
