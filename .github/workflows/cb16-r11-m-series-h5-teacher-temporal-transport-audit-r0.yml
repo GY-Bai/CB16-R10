@@ -1,0 +1,180 @@
+name: CB16 R11 M-Series H5 Teacher Temporal Transport Audit R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-teacher-temporal-transport-audit-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2E_DIRECT_CHAMPION_RELATIVE_REGRET_SYNTHETIC_ADJUDICATION_V1.json
+      - authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_ADJUDICATION_V1.json
+      - cb16_local_opt/teacher_temporal_transport_audit_h5.py
+      - tests/test_teacher_temporal_transport_audit_h5.py
+      - scripts/r11_m_series_h5_teacher_temporal_transport_audit_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-teacher-temporal-transport-audit-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-teacher-transport:
+    name: H5 Student-free Teacher temporal transport audit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable H5 preregistration and consumed R6 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor ee1ff7962f816ebdf9034813de5ddd521cf4a654 HEAD
+          git merge-base --is-ancestor 932e7bd73e31fbff0417223ed9a3371cb9a69d2d HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_GATE_V1.json)" = "e0e0c6422bef5e5731044952a01eb465b85482cd"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2E_DIRECT_CHAMPION_RELATIVE_REGRET_SYNTHETIC_ADJUDICATION_V1.json)" = "73bcda067d7576b5a26063073cde7790dd550662"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_ADJUDICATION_V1.json)" = "5a38e4d33e20c049507f3935b4de6b10c0a12912"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_REDUCED_TEACHER_TARGET_INFORMATION_AUDIT_R6_GATE_V1.json)" = "1d1254fb03cc00283423426e07ae240a196c627e"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_balanced_runtime_r11.py)" = "e834facdbf2d08de25e3cab917f0faf587f3386e"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r11_teacher_authority_candidate.py)" = "6e77e8f989a6d4358a7feac99c269db7b7d6549e"
+          test "$(git rev-parse HEAD:cb16_local_opt/independent_purge_alignment_replication_r5.py)" = "96560a80c9793dec8b527b800758547a69ced55a"
+          test "$(git rev-parse HEAD:cb16_local_opt/probabilistic_teacher_r6.py)" = "3de3092d244c3fd315950c9f8b0bf4d78c50ee2b"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h5_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h5_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5 unit and frozen Teacher regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h5_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/teacher_temporal_transport_audit_h5.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            scripts/r11_m_series_h5_teacher_temporal_transport_audit_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute preregistered Student-free H5 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h5_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h5-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h5_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_teacher_temporal_transport_audit_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_RESULT.json"
+
+      - name: Verify H5 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h5_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_R0_RESULT_V1',x
+          assert x['status']=='H5_TEACHER_TEMPORAL_TRANSPORT_AUDIT_COMPLETE',x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          assert x['runtime_identity']['teacher_only'] is True and x['runtime_identity']['student_training'] is False and x['runtime_identity']['student_inference'] is False,x
+          p=x['protocol']
+          assert p['support_classification']=='CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT',p
+          assert p['outer_folds']==5 and p['clock_blocks']==6 and p['train_to_eval_gap_hours_each_fold']==256,p
+          assert p['student_training'] is False and p['student_inference'] is False and p['teacher_config_tuning'] is False,p
+          assert p['raw_market_payload_read'] is False and p['legacy_validation_rows_used'] is False and p['r5_purge_support_used'] is False,p
+          assert p['fresh_market_data_downloaded'] is False and p['final_holdout_opened'] is False and p['r7_candidate_evaluated'] is False,p
+          assert len(x['folds'])==5,x
+          for f in x['folds']:
+              assert f['fold'] in [1,2,3,4,5],f
+              assert f['train_to_eval_gap_hours']==256.0,f
+              assert f['exact_r6_aligned_teacher_identity_guard']=='PASS',f
+              assert f['aligned']['all_evidence_admitted'] is True,f
+              assert set(map(int,f['shuffles'].keys()))=={1,7,13,23,31},f
+              for arm in [f['aligned'],f['climatology'],*f['shuffles'].values()]:
+                  for k in ('qscore','mean_utility_mse','coverage_10_90','coverage_05_95'):
+                      assert math.isfinite(float(arm[k])),(k,arm)
+                  assert float(arm['qscore'])>=0.0,arm
+              for r in f['shuffle_receipts'].values():
+                  assert r['scenario_identity_preserved'] is True and r['target_feature_multiset_preserved'] is True,r
+                  assert r['train_features_byte_identical'] is True and r['fixed_points']==0,r
+          s=x['h5_summary']
+          assert s['conclusion'] in {
+              'H5_TEACHER_TEMPORAL_TRANSPORT_MECHANISTICALLY_SUPPORTED_ON_CONSUMED_TRAIN__H5_PRIMARY_BOTTLENECK_WEAKENED__OPEN_H2_STUDENT_UPDATE_INTERFERENCE_AUDIT',
+              'H5_TEACHER_TEMPORAL_TRANSPORT_NOT_MECHANISTICALLY_SUPPORTED_ON_CONSUMED_TRAIN__PRIORITIZE_TEACHER_SUPPORT_CALIBRATION_TRANSPORT_DIAGNOSTICS__DO_NOT_OPEN_NEW_DIRECTION_LOSS',
+          },s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False and s['promotion_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['student_trained'] is False and g['student_inference_used'] is False and g['new_direction_loss_created'] is False,g
+          assert g['canonical_generation_advanced'] is False and g['champion_promoted'] is False and g['production_cutover'] is False,g
+          assert g['market_information_verdict_reopened'] is False and g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({'status':x['status'],'conclusion':s['conclusion'],'overall_pass':s['overall_pass'],
+                            'aligned_lt_climatology_fold_count':s['aligned_lt_climatology_fold_count'],
+                            'aligned_lt_median_shuffle_fold_count':s['aligned_lt_median_shuffle_fold_count'],
+                            'aligned_lt_each_shuffle_pair_count_of_25':s['aligned_lt_each_shuffle_pair_count_of_25'],
+                            'late_transport':s['folds_4_and_5_both_pass_climatology_and_shuffle'],
+                            'per_fold':s['per_fold'],'next_legal_step':x['next_legal_step']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5 audit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-teacher-temporal-transport-audit-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h5_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h5_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h5-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
