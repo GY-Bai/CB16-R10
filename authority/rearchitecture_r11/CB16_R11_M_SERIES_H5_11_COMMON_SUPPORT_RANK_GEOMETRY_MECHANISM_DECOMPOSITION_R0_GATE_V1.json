@@ -1,0 +1,148 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_11_COMMON_SUPPORT_RANK_GEOMETRY_MECHANISM_DECOMPOSITION_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_11_COMMON_SUPPORT_RANK_GEOMETRY_MECHANISM_DECOMPOSITION_R0",
+  "status": "PREREGISTERED__UNEVALUATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_10_1_adjudication_commit": "336f2617219c7783c6de4599cc86972355df5e0e",
+    "h5_10_1_adjudication_blob": "b6b0b0af59a899df15438c93550795e799269c65",
+    "required_parent_classification": "STRICT_CLOCK_FAILURE_FOLDS_STABLE__POSITIVE_FOLDS_INTERNALLY_MIXED",
+    "frozen_market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "question": "CAN_THE_H5_8_THROUGH_H5_10_1_MEDIUM48_OPERATOR_CONDITIONAL_UTILITY_ORIENTATION_REVERSALS_BE_EXPLAINED_SOLELY_BY_DIFFERENT_HISTORICAL_OCCUPANCY_OVER_THE_FROZEN_H5_8_OPERATOR_MEDIUM_RELATIONAL_RANK_GEOMETRY",
+  "single_manipulated_variable": "EMPIRICAL_MEASURE_OVER_FROZEN_H5_8_ALIGNED_OPERATOR_RANK_PERCENTILE_X_MEDIUM_RANK_PERCENTILE_CELLS__NATIVE_ENVIRONMENT_MEASURE_REPLACED_BY_A_PAIRWISE_SYMMETRIC_OUTCOME_BLIND_OVERLAP_MEASURE",
+  "scientific_scope": {
+    "support_classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": [1, 2, 3, 4, 5],
+    "adjacent_environment_pairs": [[1, 2], [2, 3], [3, 4], [4, 5]],
+    "native_full_fold_orientations": {
+      "fold_1": "ANTI_ALIGNMENT",
+      "fold_2": "POSITIVE_ALIGNMENT",
+      "fold_3": "ANTI_ALIGNMENT",
+      "fold_4": "POSITIVE_ALIGNMENT",
+      "fold_5": "POSITIVE_ALIGNMENT"
+    },
+    "native_flip_pairs": [[1, 2], [2, 3], [3, 4]],
+    "native_positive_control_pair": [4, 5],
+    "h5_8_full_fold_baseline_reproduction_tolerance": 1e-12,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "frozen_h5_8_geometry": {
+    "time_local_support": "EXACT_H5_8_SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
+    "local_normalization": "EXACT_H5_6_H5_8_SAME_SCENARIO_LOCAL_SUPPORT_ROWS_TARGET_GROUP_EXCLUDED",
+    "operator_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_OPERATOR48",
+    "medium_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MEDIUM48",
+    "utility_distance": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE_MSE",
+    "candidate_rank_method": "AVERAGE_TIE_SPEARMAN_RANK_WITHIN_EACH_TARGET_FUTURE_GROUP_X_SCENARIO_SUPPORT_VECTOR",
+    "primary_rank_statistic_family": "H5_8_PARTIAL_PEARSON_APPLIED_TO_SPEARMAN_RANKS__MEDIUM_AND_UTILITY_CONDITIONED_ON_OPERATOR_RANK",
+    "structured_medium_null": "EXACT_H5_8_CYCLIC_ROTATION_OF_ONLY_MEDIUM48_DISTANCE_VECTOR_ACROSS_ALREADY_SELECTED_SUPPORT_FUTURE_GROUP_IDENTITIES",
+    "structured_null_shifts": [1, 7, 13, 23, 31],
+    "utility_rotated": false,
+    "support_reselected": false,
+    "distance_metric_changed": false
+  },
+  "base_empirical_measure": {
+    "authority_unit": "TARGET_FUTURE_GROUP_MACRO",
+    "scenario_weighting": "SIX_H5_SCENARIOS_EQUAL_WEIGHT_WITHIN_EACH_TARGET_FUTURE_GROUP",
+    "candidate_weighting": "ALL_SUPPORT_CANDIDATES_EQUAL_WEIGHT_WITHIN_EACH_TARGET_FUTURE_GROUP_X_SCENARIO",
+    "formal_mass": "FOR_ENVIRONMENT_E__EACH_TARGET_GROUP_HAS_MASS_1_OVER_N_GROUPS__EACH_SCENARIO_MASS_1_OVER_6__EACH_SUPPORT_CANDIDATE_MASS_1_OVER_N_SUPPORT_FOR_THAT_ANCHOR_SCENARIO",
+    "pair_count_interpretation": "GEOMETRY_RESOLUTION_ONLY__NOT_STATISTICAL_SAMPLE_SIZE_OR_INDEPENDENCE_AUTHORITY",
+    "same_future_group_is_dependence_unit": true
+  },
+  "outcome_blind_overlap_design": {
+    "cell_assignment_inputs": ["OPERATOR_DISTANCE_RANK_PERCENTILE", "MEDIUM_DISTANCE_RANK_PERCENTILE"],
+    "utility_access_allowed_during_overlap_measure_construction": false,
+    "rank_percentile_definition": "PCT_EQUALS_AVERAGE_TIE_RANK_MINUS_1_DIVIDED_BY_SUPPORT_COUNT_MINUS_1",
+    "grid": {
+      "operator_bins": ["[0,1/3)", "[1/3,2/3)", "[2/3,1]"],
+      "medium_bins": ["[0,1/3)", "[1/3,2/3)", "[2/3,1]"],
+      "cell_count": 9,
+      "resolution_frozen": true,
+      "no_2x2_or_other_resolution_rescue_in_this_experiment": true
+    },
+    "environment_cell_mass": "P_E_C_EQUALS_SUM_OF_BASE_EMPIRICAL_MASS_OF_ALIGNED_CANDIDATES_IN_CELL_C",
+    "raw_overlap_mass": "R_C_EQUALS_P_A_C_TIMES_P_B_C_DIVIDED_BY_P_A_C_PLUS_P_B_C__ZERO_IF_EITHER_SIDE_IS_ZERO",
+    "overlap_target": "Q_AB_C_EQUALS_R_C_DIVIDED_BY_SUM_C_R_C",
+    "environment_multiplier": "M_E_C_EQUALS_Q_AB_C_DIVIDED_BY_P_E_C_FOR_POSITIVE_Q_C__ZERO_OTHERWISE",
+    "design_interpretation": "DISCRETE_COARSENED_SYMMETRIC_OVERLAP_TARGET__NOT_PROPENSITY_MODEL_FIT",
+    "q_computed_once_from_aligned_operator_medium_geometry": true,
+    "same_q_and_same_candidate_weights_reused_for_aligned_and_all_structured_nulls": true,
+    "q_recomputed_for_null": false,
+    "outcome_adaptive_cell_selection": false
+  },
+  "common_support_fail_closed_gate": {
+    "for_every_cell_with_positive_q_each_environment_unique_target_decision_clocks_min": 3,
+    "positive_q_cells_must_span_at_least_two_operator_bins": true,
+    "positive_q_cells_must_span_at_least_two_medium_bins": true,
+    "if_failed": "EXECUTION_BLOCKED__INSUFFICIENT_COMMON_SUPPORT",
+    "no_post_result_coarsening_or_trimming_rescue": true
+  },
+  "overlap_standardized_statistic": {
+    "name": "OVERLAP_STANDARDIZED_H5_8_RANK_PARTIAL_CORRELATION",
+    "not_claimed_name": "STANDARD_WEIGHTED_SPEARMAN",
+    "candidate_rank_values": "UNCHANGED_CONTINUOUS_H5_8_SPEARMAN_RANK_ORDER__THE_3X3_GRID_ONLY_DEFINES_WEIGHTS",
+    "weighted_correlation": "WEIGHTED_PEARSON_CORRELATION_OF_THE_FROZEN_RANK_VALUES_UNDER_FIXED_ALIGNED_OVERLAP_CANDIDATE_WEIGHTS",
+    "partial_formula": "RHO_MU_DOT_O_EQUALS_RHO_MU_MINUS_RHO_MO_TIMES_RHO_OU_DIVIDED_BY_SQRT_OF_ONE_MINUS_RHO_MO_SQUARED_TIMES_ONE_MINUS_RHO_OU_SQUARED",
+    "zero_information_convention": "IF_WEIGHTED_VARIANCE_OR_PARTIAL_RESIDUAL_INFORMATION_IS_DEGENERATE_WITHIN_NUMERICAL_EPSILON__TARGET_SCENARIO_CONTRIBUTES_ZERO_AND_IS_COUNTED",
+    "scenario_aggregation": "EQUAL_WEIGHT_MEAN_OF_SIX_SCENARIO_STATISTICS_TO_TARGET_FUTURE_GROUP",
+    "environment_aggregation": "EQUAL_WEIGHT_MEAN_OVER_TARGET_FUTURE_GROUPS",
+    "structured_null_weights": "IDENTICAL_CANDIDATE_WEIGHTS_DERIVED_FROM_ALIGNED_GEOMETRY__MEDIUM_DISTANCE_RANK_IS_ROTATED_BUT_WEIGHTS_ARE_NOT_REASSIGNED",
+    "null_interpretation": "STRUCTURED_NEGATIVE_CONTROL__NOT_FORMAL_PERMUTATION_OR_RANDOMIZATION_P_VALUE"
+  },
+  "orientation_rule": {
+    "POSITIVE_ALIGNMENT": "ALIGNED_RHO_GT_0_AND_ALIGNED_RHO_GT_MEDIAN_STRUCTURED_NULL_RHO",
+    "ANTI_ALIGNMENT": "ALIGNED_RHO_LT_0_AND_ALIGNED_RHO_LT_MEDIAN_STRUCTURED_NULL_RHO",
+    "MIXED": "OTHERWISE",
+    "identical_to_h5_10_orientation_semantics": true
+  },
+  "preregistered_classification": {
+    "EXECUTION_BLOCKED__H5_8_BASELINE_REPRODUCTION_FAILED": "ANY_NATIVE_FULL_FOLD_ALIGNED_OR_NULL_MEDIAN_VALUE_FAILS_1E_MINUS_12_REPRODUCTION",
+    "EXECUTION_BLOCKED__INSUFFICIENT_COMMON_SUPPORT": "ANY_ADJACENT_PAIR_FAILS_THE_OUTCOME_BLIND_COMMON_SUPPORT_GATE",
+    "COARSENED_COMMON_SUPPORT_CONDITIONAL_MAPPING_INSTABILITY_SUPPORTED": "ALL_THREE_NATIVE_FLIP_PAIRS_RETAIN_THEIR_NATIVE_SIDE_SPECIFIC_ORIENTATIONS_AFTER_PAIRWISE_OVERLAP_STANDARDIZATION_AND_THE_F4_F5_POSITIVE_CONTROL_REMAINS_POSITIVE_ALIGNMENT_TO_POSITIVE_ALIGNMENT",
+    "COARSENED_OCCUPANCY_STANDARDIZATION_REMOVES_NATIVE_ORIENTATION_TRANSITIONS": "ALL_THREE_NATIVE_FLIP_PAIRS_BECOME_CLEAN_SAME_ORIENTATION_PAIRS_WITH_NEITHER_SIDE_MIXED_AND_THE_F4_F5_POSITIVE_CONTROL_REMAINS_POSITIVE_ALIGNMENT_TO_POSITIVE_ALIGNMENT",
+    "MIXED_OCCUPANCY_AND_CONDITIONAL_MAPPING_EVIDENCE": "VALID_EXECUTION_NOT_SATISFYING_EITHER_STRONG_CLASS"
+  },
+  "required_receipts": {
+    "native_h5_8_baseline_all_five_folds_reproduced": true,
+    "per_pair_p_a_p_b_q_and_overlap_multipliers_recorded": true,
+    "per_pair_common_support_clock_counts_recorded": true,
+    "post_weight_global_coarsened_cell_mass_matches_q_each_side_tolerance": 1e-12,
+    "per_pair_per_side_aligned_rho_null_rhos_null_median_orientation_recorded": true,
+    "zero_information_counts_recorded": true,
+    "overlap_measure_constructed_without_utility": true,
+    "same_aligned_candidate_weights_used_for_all_nulls": true
+  },
+  "interpretation_limits": {
+    "strong_positive_result_supports": "COARSENED_OPERATOR_MEDIUM_RANK_OCCUPANCY_SHIFT_ALONE_IS_INSUFFICIENT_TO_EXPLAIN_THE_NATIVE_H5_8_ORIENTATION_REVERSALS__MEDIUM_OPERATOR_CONDITIONAL_UTILITY_RANK_GEOMETRY_REMAINS_ENVIRONMENT_DEPENDENT_ON_THE_OVERLAP_POPULATION",
+    "strong_occupancy_result_supports": "THE_NATIVE_H5_8_ORIENTATION_REVERSALS_ARE_REMOVED_AFTER_STANDARDIZING_COARSENED_OPERATOR_MEDIUM_RELATIONAL_OCCUPANCY__CONSISTENT_WITH_CURRENT_CONTEXT_MIXTURE_AS_AN_EXPLANATION",
+    "does_not_establish": [
+      "FULL_96D_P_U_GIVEN_OPERATOR_MEDIUM_CONCEPT_DRIFT",
+      "CAUSALITY",
+      "TIME_OR_CALENDAR_AS_A_CAUSAL_VARIABLE",
+      "A_VALID_RUNTIME_REGIME_LABEL",
+      "A_VALID_RUNTIME_PERMISSION_OR_GATING_RULE",
+      "A_LEARNED_ENGRAM_STYLE_GATE_IS_AUTHORIZED",
+      "MEDIUM48_IS_GLOBALLY_GOOD_OR_BAD",
+      "INDEPENDENT_MARKET_INFORMATION_IS_QUALIFIED"
+    ]
+  },
+  "forbidden_actions": {
+    "teacher_change": true,
+    "student_change": true,
+    "canonical_architecture_change": true,
+    "organ_change": true,
+    "medium48_deletion_or_reweighting": true,
+    "fusion_weight_search": true,
+    "distance_metric_tuning": true,
+    "learned_router_or_gate": true,
+    "handcrafted_time_or_regime_gate": true,
+    "calendar_or_fold_id_as_runtime_feature": true,
+    "change_point_search": true,
+    "fresh_market_data": true,
+    "final_holdout_opening": true,
+    "r7_evaluation": true,
+    "champion_promotion": true
+  },
+  "next_legal_step": "IMPLEMENT_AND_EXECUTE_THIS_PREREGISTERED_H5_11_ONLY__NO_RESULT_ADAPTIVE_GRID_SUPPORT_TRIMMING_STATISTIC_NULL_OR_GATE_CHANGES__ADJUDICATE_BEFORE_ANY_FURTHER_EXPERIMENT"
+}
