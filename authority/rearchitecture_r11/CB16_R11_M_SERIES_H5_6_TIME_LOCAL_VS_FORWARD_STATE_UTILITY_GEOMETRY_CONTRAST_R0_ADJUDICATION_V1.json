@@ -1,0 +1,151 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_6_TIME_LOCAL_VS_FORWARD_STATE_UTILITY_GEOMETRY_CONTRAST_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_6_TIME_LOCAL_VS_FORWARD_STATE_UTILITY_GEOMETRY_CONTRAST_R0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "8dc374cae5dc08d3e879779fcabb86e0b390eff6",
+    "gate_blob": "922de652a2218f295d49f5dba6d030cec965152e",
+    "implementation_branch": "ai/m-series-h5-6-authority-repair-replay-r0",
+    "execution_head": "506a8a20ac9fbd5cc15f1365af969a440d8a4aa0",
+    "github_actions_run_id": 34452912093,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10142522125,
+    "artifact_digest": "sha256:336c038d5b119d299e2cae96f3f64f33251df850c68e87f4d844d14cf8abb663",
+    "result_file_sha256": "69eba10c068c78ad02829c345896ebe1038fb5c27e174b42daa089876716bb94",
+    "result_schema": "CB16_R11_M_SERIES_H5_6_TIME_LOCAL_VS_FORWARD_STATE_UTILITY_GEOMETRY_CONTRAST_R0_RESULT_V1"
+  },
+  "authority_repair_record": {
+    "status": "REPLAYED_AGAINST_EXACT_ORIGINAL_PREREGISTRATION_AUTHORITY",
+    "previous_execution_head": "a5115ec6a554b2a803d80c856dd79118ea0fa7f0",
+    "previous_github_actions_run_id": 34451330858,
+    "previous_artifact_id": 10141903815,
+    "previous_artifact_digest": "sha256:8ebce8c0c5257ffc5c45157e63427d5957d09d5526646c250378aa33737071a2",
+    "previous_materialized_gate_blob": "a85c3e1c2a60cb80f8c396c4259557a914166416",
+    "exact_original_gate_blob": "922de652a2218f295d49f5dba6d030cec965152e",
+    "previous_execution_scientific_authority": false,
+    "reason": "PREVIOUS_EXECUTION_DID_NOT_CONSUME_THE_EXACT_ORIGINAL_PREREGISTRATION_GATE_BLOB__ENGINEERING_SUCCESS_RETAINED_AS_HISTORY_BUT_NOT_USED_FOR_H5_6_SCIENTIFIC_ADJUDICATION"
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": 5,
+    "train_dependence_groups": 1619,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "adjudication": {
+    "classification": "TIME_LOCAL_OPERATOR_GEOMETRY_EXISTS__MEDIUM48_DEGRADES_CROSS_TIME_COMPOSITION",
+    "conclusion": "H5_6_TIME_LOCAL_OPERATOR_GEOMETRY_EXISTS__MEDIUM48_DEGRADES_CROSS_TIME_COMPOSITION",
+    "forward_h5_5_authority_reproduction": "PASS",
+    "all_rotation_identity_guards_pass": true,
+    "operator48_local_geometry_supported": true,
+    "operator48_local_vs_forward_contrast_supported": true,
+    "market96_local_geometry_supported": false,
+    "full102_local_geometry_supported": false,
+    "medium48_local_geometry_supported": false,
+    "account6_local_geometry_supported": false
+  },
+  "time_local_metric_gates": {
+    "FULL102": {
+      "positive_fold_count": 3,
+      "positive_both_late_folds": true,
+      "beats_shuffle_median_fold_count": 5,
+      "beats_shuffle_median_both_late_folds": true,
+      "pairwise_shuffle_count_of_25": 25,
+      "local_geometry_supported": false,
+      "late_fold_rho": {"fold_4": 0.03510647538585326, "fold_5": 0.03851112724040648},
+      "note": "ALIGNMENT_CONTROL_IS_STRONG_BUT_PREREGISTERED_DESIRED_SIGN_FAILS_IN_FOLDS_1_AND_3__NOT_A_LOCAL_GEOMETRY_PASS"
+    },
+    "MARKET96": {
+      "positive_fold_count": 3,
+      "positive_both_late_folds": true,
+      "beats_shuffle_median_fold_count": 5,
+      "beats_shuffle_median_both_late_folds": true,
+      "pairwise_shuffle_count_of_25": 25,
+      "local_geometry_supported": false,
+      "late_fold_rho": {"fold_4": 0.03523866193417879, "fold_5": 0.0381170734906479},
+      "note": "ALIGNMENT_CONTROL_IS_STRONG_BUT_PREREGISTERED_DESIRED_SIGN_FAILS_IN_FOLDS_1_AND_3__NOT_A_LOCAL_GEOMETRY_PASS"
+    },
+    "OPERATOR48": {
+      "positive_fold_count": 5,
+      "positive_both_late_folds": true,
+      "beats_shuffle_median_fold_count": 5,
+      "beats_shuffle_median_both_late_folds": true,
+      "pairwise_shuffle_count_of_25": 24,
+      "local_geometry_supported": true,
+      "per_fold_local_rho": {"fold_1": 0.01575141112377431, "fold_2": 0.03032939047248469, "fold_3": 0.017185161350840326, "fold_4": 0.022143680710467833, "fold_5": 0.03289450105485065},
+      "per_fold_nearest_decile_ratio": {"fold_1": 0.9025342811149379, "fold_2": 0.9445065150687505, "fold_3": 0.9343515402311614, "fold_4": 0.9983940387279233, "fold_5": 0.9760080990642689}
+    },
+    "MEDIUM48": {
+      "positive_fold_count": 3,
+      "positive_both_late_folds": true,
+      "beats_shuffle_median_fold_count": 5,
+      "beats_shuffle_median_both_late_folds": true,
+      "pairwise_shuffle_count_of_25": 24,
+      "local_geometry_supported": false,
+      "late_fold_rho": {"fold_4": 0.028641258158713313, "fold_5": 0.028134126010580605},
+      "note": "ALIGNMENT_SPECIFIC_SIGNAL_EXISTS_RELATIVE_TO_ROTATIONS_BUT_DESIRED_POSITIVE_GEOMETRY_SIGN_FAILS_IN_FOLDS_1_AND_3"
+    },
+    "ACCOUNT6": {
+      "positive_fold_count": 5,
+      "positive_both_late_folds": true,
+      "beats_shuffle_median_fold_count": 4,
+      "beats_shuffle_median_both_late_folds": true,
+      "pairwise_shuffle_count_of_25": 19,
+      "local_geometry_supported": false,
+      "note": "MISSES_PREREGISTERED_20_OF_25_PAIRWISE_ROTATION_GATE"
+    }
+  },
+  "local_vs_forward_contrast": {
+    "FULL102": {"local_gt_forward_fold_count": 3, "local_gt_forward_both_late_folds": true, "late_mean_local_minus_forward_rho": 0.046340389898667, "contrast_supported": false},
+    "MARKET96": {"local_gt_forward_fold_count": 3, "local_gt_forward_both_late_folds": true, "late_mean_local_minus_forward_rho": 0.04632296927865336, "contrast_supported": false},
+    "OPERATOR48": {"local_gt_forward_fold_count": 5, "local_gt_forward_both_late_folds": true, "late_mean_local_minus_forward_rho": 0.0192302960836485, "contrast_supported": true},
+    "MEDIUM48": {"local_gt_forward_fold_count": 3, "local_gt_forward_both_late_folds": true, "late_mean_local_minus_forward_rho": 0.04892131333792385, "contrast_supported": false},
+    "ACCOUNT6": {"local_gt_forward_fold_count": 3, "local_gt_forward_both_late_folds": true, "late_mean_local_minus_forward_rho": 0.008846516683056234, "contrast_supported": false}
+  },
+  "mechanistic_interpretation": {
+    "supported": [
+      "OPERATOR48_HAS_PREREGISTERED_TIME_LOCAL_ALIGNMENT_SPECIFIC_GEOMETRY_TO_CENTERED_9_ACTION_COUNTERFACTUAL_UTILITY_PROFILES",
+      "OPERATOR48_LOCAL_GEOMETRY_EXCEEDS_ITS_TIME_FORWARD_GEOMETRY_IN_ALL_5_FOLDS_AND_BOTH_LATE_FOLDS",
+      "THE_H5_5_FORWARD_NONTRANSPORT_CLASSIFICATION_IS_EXACTLY_REPRODUCED",
+      "MARKET96_AND_FULL102_FAIL_THE_PREREGISTERED_TIME_LOCAL_POSITIVE_GEOMETRY_GATE_EVEN_THOUGH_THEIR_ALIGNED_GEOMETRY_BEATS_ROTATIONS_STRONGLY",
+      "ADDING_MEDIUM48_TO_OPERATOR48_DEGRADES_THE_COMPOSITE_MARKET_GEOMETRY_ENOUGH_TO_FAIL_THE_PREREGISTERED_MARKET96_LOCAL_GATE",
+      "AN_UPSTREAM_TIME_DEPENDENT_REPRESENTATION_COMPOSITION_OR_TRANSPORT_FAILURE_EXISTS_BEFORE_TEACHER_KERNEL_AND_STUDENT_OPTIMIZATION"
+    ],
+    "not_supported": [
+      "ALL_FROZEN_STATE_REPRESENTATIONS_ARE_WEAK_EVEN_TIME_LOCAL",
+      "MARKET96_TIME_LOCAL_GEOMETRY_IS_QUALIFIED",
+      "OPERATOR48_TIME_FORWARD_TRANSPORT_IS_QUALIFIED",
+      "MEDIUM48_SHOULD_BE_DROPPED_OR_REWEIGHTED_CANONICALLY",
+      "POST_HOC_ORGAN_WEIGHT_OR_DISTANCE_METRIC_TUNING",
+      "TEACHER_KERNEL_TUNING",
+      "NEW_DIRECTION_LOSS",
+      "CANONICAL_TEACHER_CHANGE",
+      "CANONICAL_STUDENT_CHANGE",
+      "MARKET_INFORMATION_QUALIFICATION",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ],
+    "updated_failure_view": "H1_TEMPORAL_NONTRANSFER_IS_NOW_DIRECTLY_SUPPORTED_FOR_A_REAL_TIME_LOCAL_OPERATOR48_UTILITY_GEOMETRY__MARKET96_COMPOSITION_IS_NOT_STABLY_GEOMETRIC_EVEN_TIME_LOCAL__H2_STUDENT_DAMAGE_MAY_STILL_EXIST_DOWNSTREAM_BUT_CANNOT_EXPLAIN_THIS_UPSTREAM_FAILURE"
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "new_direction_loss_authorized": false,
+    "organ_weight_tuning_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_6_RESULT__DO_NOT_AUTOMATICALLY_OPEN_H5_7_OR_CHANGE_CANONICAL_ARCHITECTURE__ANY_NEXT_REPRESENTATION_LEVEL_FALSIFICATION_MUST_BE_SEPARATELY_PREREGISTERED_FROM_THIS_FROZEN_RESULT"
+}
