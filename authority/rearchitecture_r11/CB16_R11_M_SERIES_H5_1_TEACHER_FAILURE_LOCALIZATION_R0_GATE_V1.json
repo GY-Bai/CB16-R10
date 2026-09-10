@@ -1,0 +1,154 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_adjudication_commit": "fb804d0dcf6a1f64e7fb64cde093c8f089e7b5b2",
+    "h5_adjudication_blob": "0dc8dc61e3db601f7b3f1d3a363a24597db1ba1d",
+    "h5_conclusion": "H5_TEACHER_TEMPORAL_TRANSPORT_NOT_MECHANISTICALLY_SUPPORTED_ON_CONSUMED_TRAIN__PRIORITIZE_TEACHER_SUPPORT_CALIBRATION_TRANSPORT_DIAGNOSTICS__DO_NOT_OPEN_NEW_DIRECTION_LOSS",
+    "h5_key_pattern": "ALIGNED_BEATS_STATE_FREE_CLIMATOLOGY_5_OF_5_BUT_BEATS_FULL_STATE_SHUFFLE_MEDIAN_ONLY_2_OF_5_AND_ZERO_OF_FIVE_SHUFFLES_IN_FOLD_5"
+  },
+  "question": "Which frozen Teacher mechanism explains the H5 pattern in which local conditional laws outperform state-free climatology while exact state-to-future alignment fails to transport, especially in late chronological TRAIN folds?",
+  "scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_R6_TRAIN_ONLY_OUTER_FOLDS",
+    "all_ten_symbols": true,
+    "source_parent_contexts": 9714,
+    "source_branch_samples": 87426,
+    "source_dependence_groups": 1619,
+    "outer_folds": 5,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "student_training_allowed": false,
+    "student_inference_allowed": false,
+    "teacher_parameter_change_allowed": false,
+    "teacher_hyperparameter_tuning_allowed": false,
+    "teacher_authority_change_allowed": false,
+    "raw_market_payload_allowed": false,
+    "legacy_validation_allowed": false,
+    "r5_purge_allowed": false,
+    "final_holdout_allowed": false,
+    "fresh_market_data_allowed": false,
+    "r7_candidate_evaluation_allowed": false,
+    "new_direction_loss_allowed": false
+  },
+  "frozen_teacher_identity": {
+    "teacher_protocol_hash": "9169f85e921d380ff13588027f65485e7b65679ca60743ebad7c724e5d90f080",
+    "teacher_engine": "CB16_R11_COLUMNAR_DEPENDENCE_BALANCED_TEACHER_V2",
+    "teacher_geometry": "EQUAL_DEPENDENCE_GROUP_MASS__UNIQUE_STUDENT_CONTEXT_WITHIN_GROUP_V1",
+    "k_dependence_groups": 64,
+    "distance_temperature": 2.0,
+    "quantile_levels": [0.05,0.10,0.25,0.50,0.75,0.90,0.95],
+    "feature_layout": {
+      "operator48": [0,48],
+      "medium48": [48,96],
+      "account6": [96,102]
+    },
+    "primary_law_unchanged": true
+  },
+  "diagnostic_controls": {
+    "principle": "ALL_CONTROLS_ARE_TARGET_FEATURE_INTERVENTIONS_FOR_MECHANISTIC_LOCALIZATION_ONLY__TRAIN_SUPPORT_UTILITIES_ACTION_GRID_TEACHER_CONFIG_AND_EVAL_OUTCOMES_REMAIN_IDENTICAL",
+    "whole_state": {
+      "blocks": ["OPERATOR48","MEDIUM48","ACCOUNT6"],
+      "shifts": [1,7,13,23,31],
+      "expected_identity": "EXACT_H5_FULL_STATE_CONTROL"
+    },
+    "market96_only": {
+      "blocks": ["OPERATOR48","MEDIUM48"],
+      "destination_account6_preserved": true,
+      "shifts": [1,7,13,23,31]
+    },
+    "operator48_only": {
+      "blocks": ["OPERATOR48"],
+      "destination_medium48_account6_preserved": true,
+      "shifts": [1,7,13,23,31]
+    },
+    "medium48_only": {
+      "blocks": ["MEDIUM48"],
+      "destination_operator48_account6_preserved": true,
+      "shifts": [1,7,13,23,31]
+    },
+    "account6_only": {
+      "blocks": ["ACCOUNT6"],
+      "destination_market96_preserved": true,
+      "shifts": [1,7,13,23,31]
+    },
+    "shuffle_invariants": {
+      "whole_future_dependence_group_rotation": true,
+      "scenario_identity_preserved": true,
+      "selected_block_multiset_preserved": true,
+      "unshuffled_blocks_byte_identical": true,
+      "train_features_byte_identical": true,
+      "eval_realized_utilities_byte_identical": true,
+      "fixed_points_forbidden": true
+    }
+  },
+  "scores": {
+    "primary_distributional_score": "EXACT_H5_DEPENDENCE_GROUP_EQUAL_WEIGHTED_MEAN_QUANTILE_PINBALL_SCORE",
+    "quantile_decomposition": {
+      "central_levels": [0.25,0.50,0.75],
+      "tail_levels": [0.05,0.10,0.90,0.95],
+      "report_each_level": true
+    },
+    "non_gating_decomposition": {
+      "by_direction_and_requested_risk": true,
+      "by_account_scenario": true,
+      "mean_utility_mse": true,
+      "coverage_10_90": true,
+      "coverage_05_95": true
+    }
+  },
+  "support_geometry_diagnostics": {
+    "no_teacher_decision_change": true,
+    "reconstruct_exact_selected_top_k_dependence_groups": true,
+    "unit_guard": "RECONSTRUCTED_SUPPORT_HASH_NEAREST_DISTANCE_MAX_DISTANCE_EFFECTIVE_N_MUST_MATCH_FROZEN_ACTION_LAWS",
+    "per_target_metrics": [
+      "aligned_nearest_distance",
+      "median_shuffle_nearest_distance",
+      "aligned_selected_support_same_symbol_fraction",
+      "aligned_selected_support_same_account_scenario_fraction",
+      "aligned_selected_support_age_hours_median",
+      "aligned_vs_shuffle_selected_support_jaccard",
+      "operator48_standardized_distance_mass_fraction",
+      "medium48_standardized_distance_mass_fraction",
+      "account6_standardized_distance_mass_fraction"
+    ],
+    "aggregation": "DEPENDENCE_GROUP_EQUAL_WEIGHTED_MEDIANS_OR_MEANS_AS_APPROPRIATE__DESCRIPTIVE_ONLY"
+  },
+  "preregistered_localization_rules": {
+    "late_folds": [4,5],
+    "family_comparison": "ALIGNED_QSCORE_LT_MEDIAN_OF_FIVE_BLOCK_SHUFFLE_QSCORES_MEANS_THAT_BLOCK_ALIGNMENT_IS_HELPFUL__ALIGNED_QSCORE_GT_MEDIAN_MEANS_THAT_BLOCK_ALIGNMENT_IS_HARMFUL",
+    "tail_calibration_primary": "IN_BOTH_LATE_FOLDS_ALIGNED_CENTRAL_QSCORE_LT_FULL_STATE_SHUFFLE_MEDIAN_CENTRAL_QSCORE_AND_ALIGNED_TAIL_QSCORE_GT_FULL_STATE_SHUFFLE_MEDIAN_TAIL_QSCORE",
+    "market_state_transport_failure": "IN_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_MARKET96_ONLY_SHUFFLE_MEDIAN_AND_ALIGNED_QSCORE_LE_ACCOUNT6_ONLY_SHUFFLE_MEDIAN",
+    "account_state_transport_failure": "IN_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_ACCOUNT6_ONLY_SHUFFLE_MEDIAN_AND_ALIGNED_QSCORE_LE_MARKET96_ONLY_SHUFFLE_MEDIAN",
+    "broad_state_geometry_failure": "IN_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_MARKET96_ONLY_SHUFFLE_MEDIAN_AND_ALIGNED_QSCORE_GT_ACCOUNT6_ONLY_SHUFFLE_MEDIAN",
+    "joint_market_account_interaction_failure": "IN_BOTH_LATE_FOLDS_ALIGNED_QSCORE_LE_MARKET96_ONLY_SHUFFLE_MEDIAN_AND_ALIGNED_QSCORE_LE_ACCOUNT6_ONLY_SHUFFLE_MEDIAN_BUT_ALIGNED_QSCORE_GT_FULL_STATE_SHUFFLE_MEDIAN",
+    "market_sublocalization": {
+      "operator_primary": "MARKET_STATE_TRANSPORT_FAILURE_OR_BROAD_STATE_GEOMETRY_FAILURE_AND_IN_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_OPERATOR48_ONLY_SHUFFLE_MEDIAN_AND_NOT_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_MEDIUM48_ONLY_SHUFFLE_MEDIAN",
+      "medium_primary": "MARKET_STATE_TRANSPORT_FAILURE_OR_BROAD_STATE_GEOMETRY_FAILURE_AND_IN_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_MEDIUM48_ONLY_SHUFFLE_MEDIAN_AND_NOT_BOTH_LATE_FOLDS_ALIGNED_QSCORE_GT_OPERATOR48_ONLY_SHUFFLE_MEDIAN",
+      "operator_medium_joint": "MARKET_STATE_TRANSPORT_FAILURE_OR_BROAD_STATE_GEOMETRY_FAILURE_AND_BOTH_OPERATOR48_ONLY_AND_MEDIUM48_ONLY_SHUFFLE_MEDIANS_BEAT_ALIGNED_IN_BOTH_LATE_FOLDS"
+    },
+    "unresolved": "IF_NONE_OF_THE_ABOVE_MUTUALLY_INTERPRETABLE_PATTERNS_HOLD__REPORT_H5_1_FAILURE_MODE_UNRESOLVED_WITHOUT_CHANGING_THRESHOLDS"
+  },
+  "interpretation_guards": {
+    "block_shuffle_is_not_candidate_teacher": true,
+    "best_block_control_may_not_be_selected_for_production": true,
+    "no_teacher_parameter_or_feature_weight_may_be_changed_from_this_result": true,
+    "same_consumed_folds_may_not_create_market_information_claim": true,
+    "no_h2_student_audit_until_h5_1_adjudicated": true,
+    "no_new_direction_loss": true
+  },
+  "legal_conclusions": {
+    "market_information_verdict": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "promotion_authorized": false,
+    "generation_advance_authorized": false,
+    "final_opening_authorized": false,
+    "r7_evaluation_authorized": false
+  },
+  "next_step_policy": {
+    "if_specific_failure_axis_localized": "ADJUDICATE_H5_1_THEN_DESIGN_ONE_MINIMAL_SYNTHETIC_OR_CONSUMED_TRAIN_ONLY_FALSIFICATION_OF_THAT_MECHANISM_BEFORE_ANY_TEACHER_CHANGE",
+    "if_unresolved": "ADJUDICATE_H5_1_THEN_REASSESS_H1_H2_WITHOUT_TUNING_TEACHER_OR_STUDENT"
+  }
+}
