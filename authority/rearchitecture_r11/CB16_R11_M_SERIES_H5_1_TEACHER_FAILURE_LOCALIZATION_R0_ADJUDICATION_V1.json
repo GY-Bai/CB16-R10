@@ -1,0 +1,92 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_ADJUDICATION",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "preregistration_commit": "64b78f2a54477ae0bfbe3a7bd95a7f410b7581b9",
+    "gate_blob": "40303e152f4083c35c991edcec4f41fd5a5acfb2",
+    "implementation_branch": "ai/m-series-h5-1-teacher-failure-localization-r0",
+    "execution_head": "f2f545f15fb49a7569ad946baa0f7f37e5ad50cb",
+    "github_actions_run_id": 34440825393,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10138272842,
+    "artifact_digest": "sha256:10f6c604e22718b944f5275dbd4fde31c5763b9b0d432b28ba7c53a6627f7dcf",
+    "result_schema": "CB16_R11_M_SERIES_H5_1_TEACHER_FAILURE_LOCALIZATION_R0_RESULT_V1"
+  },
+  "support": {
+    "classification": "ALREADY_OBSERVED_CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "all_ten_symbols": true,
+    "outer_folds": 5,
+    "train_to_eval_gap_hours_each_fold": 256,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_config_tuning": false,
+    "teacher_semantics_changed": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "adjudication": {
+    "primary_failure_axis": "MARKET_STATE_TRANSPORT_FAILURE",
+    "market_sublocalization": "MEDIUM48_PRIMARY",
+    "tail_calibration_primary": false,
+    "late_full_state_shuffle_beats_aligned_both_folds": true,
+    "late_market96_shuffle_beats_aligned_both_folds": true,
+    "late_account6_shuffle_beats_aligned_both_folds": false,
+    "late_operator48_shuffle_beats_aligned_both_folds": false,
+    "late_medium48_shuffle_beats_aligned_both_folds": true,
+    "specific_failure_axis_localized": true,
+    "conclusion": "H5_1_LOCALIZED__MARKET_STATE_TRANSPORT_FAILURE__TAIL_CALIBRATION_PRIMARY=FALSE__MARKET_SUB=MEDIUM48_PRIMARY"
+  },
+  "late_fold_primary_scores": {
+    "fold_4": {
+      "aligned_qscore": 0.001430133419817557,
+      "full_state_shuffle_median_qscore": 0.0014004462356334675,
+      "market96_shuffle_median_qscore": 0.001402313856085136,
+      "medium48_shuffle_median_qscore": 0.0014035538530623149,
+      "operator48_shuffle_median_qscore": 0.0014573902964540185,
+      "account6_shuffle_median_qscore": 0.0014276566760748545
+    },
+    "fold_5": {
+      "aligned_qscore": 0.0016653054149199553,
+      "full_state_shuffle_median_qscore": 0.0016188920999175864,
+      "market96_shuffle_median_qscore": 0.001616828522366103,
+      "medium48_shuffle_median_qscore": 0.0016111036722091991,
+      "operator48_shuffle_median_qscore": 0.001650889982524438,
+      "account6_shuffle_median_qscore": 0.0016686551365685436
+    }
+  },
+  "support_geometry_observations": {
+    "exact_support_reconstruction_guards": "PASS_ALL_FOLDS",
+    "teacher_batch_shape_reproduced": true,
+    "teacher_support_law_changed": false,
+    "account6_standardized_distance_mass_fraction_range": [0.0022050436255418603, 0.004193835942442497],
+    "medium48_standardized_distance_mass_fraction_range": [0.3745716431010449, 0.4177263481744257],
+    "operator48_standardized_distance_mass_fraction_range": [0.5800686082000325, 0.6228443424932144],
+    "aligned_vs_shuffle_selected_support_jaccard_median_group_equal_mean_fold_4": 0.05436884704463049,
+    "aligned_vs_shuffle_selected_support_jaccard_median_group_equal_mean_fold_5": 0.04741978742461786
+  },
+  "scientific_interpretation_boundary": {
+    "supported": "ON_CONSUMED_TRAIN_ONLY_SUPPORT_THE_H5_LATE_TRANSPORT_FAILURE_LOCALIZES_TO_MARKET_STATE_AND_MORE_SPECIFICALLY_MEDIUM48_ALIGNMENT_UNDER_THE_PREREGISTERED_BLOCK_ROTATION_DIAGNOSTIC",
+    "not_supported": [
+      "MEDIUM48_ORGAN_IS_INTRINSICALLY_BAD",
+      "REMOVING_MEDIUM48_WILL_IMPROVE_AN_INDEPENDENT_POLICY",
+      "TEACHER_HYPERPARAMETER_CHANGE_IS_AUTHORIZED",
+      "STUDENT_CHANGE_IS_AUTHORIZED",
+      "MARKET_INFORMATION_QUALIFICATION",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ]
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "new_direction_loss_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "PREREGISTER_ONE_MINIMAL_STUDENT_FREE_FALSIFICATION_OF_WHETHER_MEDIUM48_HARMS_TEMPORAL_TRANSPORT_THROUGH_FROZEN_TEACHER_SUPPORT_SELECTION__NO_PRODUCTION_TEACHER_CHANGE"
+}
