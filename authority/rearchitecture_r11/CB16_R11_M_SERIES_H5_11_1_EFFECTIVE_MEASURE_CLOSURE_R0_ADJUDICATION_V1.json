@@ -1,0 +1,160 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_11_1_EFFECTIVE_MEASURE_CLOSURE_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_11_1_EFFECTIVE_MEASURE_CLOSURE_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_11_adjudication_commit": "ffa3c1c1c9277e6ed50c66dc66aff0079a0cf8ee",
+    "parent_h5_11_adjudication_blob": "58f9c604cab90f61853bf6bb8594371485b21caf",
+    "preregistration_commit": "0eaa3f705308f0a8247aaa60eb87e4c3f7be9f56",
+    "gate_blob": "734bee34eeecdbcaf649d3b07a6db05470f11579",
+    "implementation_branch": "ai/m-series-h5-11-1-effective-measure-closure-r0",
+    "execution_head": "81e5165443a50954770f7526ab96104b12a16b3a",
+    "workflow_run_id": 34513528966,
+    "workflow_job_id": 102993318441,
+    "workflow_conclusion": "success",
+    "artifact_id": 10166820556,
+    "artifact_name": "cb16-r11-m-series-h5-11-1-effective-measure-closure-r0-1",
+    "artifact_size_bytes": 9077,
+    "artifact_sha256": "7b790adc4b40f302ea9d396bc2ccc97ad2cac5bc0a308abb5c5bcb3b6c08da78",
+    "github_artifact_digest": "sha256:7b790adc4b40f302ea9d396bc2ccc97ad2cac5bc0a308abb5c5bcb3b6c08da78",
+    "independent_artifact_sha256_verified": true,
+    "result_json_sha256": "33196e7ff5ff7e316b38f0c8e6bbc6300a5829e3783c4e4db303880f1c1197c1",
+    "result_schema": "CB16_R11_M_SERIES_H5_11_1_EFFECTIVE_MEASURE_CLOSURE_R0_RESULT_V1",
+    "regression_tests": {"passed": 95, "failed": 0}
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_AUTHORITY_CLOSURE_AUDIT__NOT_NEW_INDEPENDENT_MARKET_SUPPORT",
+    "audit_computation_references_utility_values": false,
+    "historical_support_records_may_contain_existing_utility_fields": true,
+    "teacher_compilation_used": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "student_training_used": false,
+    "student_inference_used": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_payload_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "protocol_receipt": {
+    "audited_object": "THE_EFFECTIVE_CANDIDATE_CELL_WEIGHT_MASS_ACTUALLY_INDUCED_BY_H5_11_AFTER_PER_TARGET_FUTURE_GROUP_X_SCENARIO_LOCAL_WEIGHT_NORMALIZATION_AND_EQUAL_MACRO_AGGREGATION",
+    "nominal_h5_11_receipt": "NORMALIZE_OVER_C_OF_P_E_C_TIMES_M_E_C_EQUALS_Q_C",
+    "actual_h5_11_local_weight_usage": "WITHIN_EACH_TARGET_FUTURE_GROUP_X_SCENARIO__CANDIDATE_WEIGHT_EQUALS_M_E_CELL_AND_IS_NORMALIZED_TO_SUM_ONE_INSIDE_THE_WEIGHTED_CORRELATION",
+    "actual_h5_11_macro_usage": "SCENARIO_STATISTICS_EQUAL_WEIGHTED_WITHIN_TARGET_FUTURE_GROUP__TARGET_FUTURE_GROUP_STATISTICS_EQUAL_WEIGHTED_WITHIN_FOLD",
+    "effective_macro_candidate_mass_definition": "EQUAL_MACRO_AVERAGE_OF_LOCALLY_NORMALIZED_CANDIDATE_WEIGHTS_BY_CELL",
+    "frozen_h5_11_q_reproduced": true,
+    "exact_closure_tolerance": 1e-12,
+    "approximate_pass_threshold_defined": false,
+    "utility_values_used_by_audit_computation": false,
+    "h5_11_grid_changed": false,
+    "h5_11_q_changed_or_tuned": false,
+    "h5_11_support_changed": false,
+    "h5_11_distance_metric_changed": false,
+    "h5_11_orientation_statistic_reexecuted_for_new_scientific_claim": false
+  },
+  "result": {
+    "classification": "H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_FALSE__SHARED_CELL_MULTIPLIER_ROBUSTNESS_ONLY",
+    "conclusion": "H5_11_1_H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_FALSE__SHARED_CELL_MULTIPLIER_ROBUSTNESS_ONLY",
+    "exact_closure_all_pairs": false,
+    "global_max_abs_effective_side_vs_q": 0.000021528926482883293,
+    "global_max_abs_effective_side_to_side": 0.00003910109127999717,
+    "global_max_total_variation_effective_side_vs_q": 0.00004217635603742664,
+    "global_max_total_variation_effective_side_to_side": 0.00007806771635496951,
+    "pair_receipts": {
+      "fold_1_to_fold_2": {
+        "fold_1_max_abs_vs_q": 0.000011979129274641842,
+        "fold_2_max_abs_vs_q": 0.000014823782089751214,
+        "side_to_side_max_abs": 0.000026802911364393056,
+        "fold_1_total_variation_vs_q": 0.000025812057908039532,
+        "fold_2_total_variation_vs_q": 0.000034174924945978846,
+        "side_to_side_total_variation": 0.00005998698285401838
+      },
+      "fold_2_to_fold_3": {
+        "fold_2_max_abs_vs_q": 0.000021528926482883293,
+        "fold_3_max_abs_vs_q": 0.000017572164797113876,
+        "side_to_side_max_abs": 0.00003910109127999717,
+        "fold_2_total_variation_vs_q": 0.00004217635603742664,
+        "fold_3_total_variation_vs_q": 0.00003594362919173005,
+        "side_to_side_total_variation": 0.00007806771635496951
+      },
+      "fold_3_to_fold_4": {
+        "fold_3_max_abs_vs_q": 0.00001544373435424795,
+        "fold_4_max_abs_vs_q": 0.000013656963475078276,
+        "side_to_side_max_abs": 0.000029100697829326228,
+        "fold_3_total_variation_vs_q": 0.000030380894068725295,
+        "fold_4_total_variation_vs_q": 0.000027999062110539708,
+        "side_to_side_total_variation": 0.000058379956179265
+      },
+      "fold_4_to_fold_5": {
+        "fold_4_max_abs_vs_q": 0.000017502410480402242,
+        "fold_5_max_abs_vs_q": 0.000017494965669453966,
+        "side_to_side_max_abs": 0.00003486313840311839,
+        "fold_4_total_variation_vs_q": 0.00003581947462234086,
+        "fold_5_total_variation_vs_q": 0.000039585504043246345,
+        "side_to_side_total_variation": 0.00007540497866558721
+      }
+    }
+  },
+  "adjudication": {
+    "classification": "H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_FALSE__SHARED_CELL_MULTIPLIER_ROBUSTNESS_ONLY",
+    "conclusion": "H5_11_1_H5_11_EXACT_EFFECTIVE_COMMON_MEASURE_CLAIM_FALSE__SHARED_CELL_MULTIPLIER_ROBUSTNESS_ONLY",
+    "h5_11_orientation_numbers_remain_valid": true,
+    "h5_11_three_of_three_flip_persistence_observation_remains_valid": true,
+    "h5_11_f4_f5_positive_control_observation_remains_valid": true,
+    "h5_11_exact_common_effective_measure_interpretation_withdrawn": true,
+    "h5_11_coarse_occupancy_only_explanation_ruled_out": false,
+    "key_result": "H5_11_APPLIED_PAIR_SPECIFIC_OUTCOME_BLIND_CELL_MULTIPLIERS_CONSISTENTLY_AND_THE_SIGN_TRANSITIONS_SURVIVED__BUT_LOCAL_NORMALIZATION_INSIDE_EACH_TARGET_SCENARIO_MEANS_THE_EFFECTIVE_MACRO_CANDIDATE_CELL_MASS_ON_THE_TWO_ENVIRONMENT_SIDES_IS_NOT_EXACTLY_Q_AND_IS_NOT_EXACTLY_IDENTICAL_BETWEEN_SIDES",
+    "supported": [
+      "H5_11_IS_VALID_AS_A_ROBUSTNESS_TEST_TO_A_SHARED_OUTCOME_BLIND_RELATIVE_CELL_WEIGHTING_RULE",
+      "THE_H5_11_ORIENTATION_RESULTS_AND_THREE_OF_THREE_SIGN_TRANSITION_PERSISTENCE_ARE_NOT_INVALIDATED_BY_THIS_AUTHORITY_AUDIT",
+      "THE_H5_11_NOMINAL_NORMALIZE_P_TIMES_MULTIPLIER_RECEIPT_IS_ALGEBRAICALLY_CORRECT_FOR_THE_POOLED_BASE_CELL_MASS",
+      "THE_ACTUAL_H5_11_STATISTIC_INTRODUCES_AN_ADDITIONAL_PER_TARGET_SCENARIO_NORMALIZATION_BEFORE_EQUAL_MACRO_AVERAGING",
+      "THAT_LOCAL_NORMALIZATION_PRODUCES_SMALL_BUT_NONZERO_EFFECTIVE_CELL_MASS_DIFFERENCES_RELATIVE_TO_Q_AND_BETWEEN_ADJACENT_ENVIRONMENT_SIDES"
+    ],
+    "withdrawn_or_not_supported": [
+      "H5_11_REPLACED_THE_ACTUAL_EFFECTIVE_EMPIRICAL_MEASURE_ON_BOTH_ENVIRONMENT_SIDES_BY_EXACTLY_THE_SAME_Q",
+      "H5_11_BY_ITSELF_STRICTLY_RULES_OUT_ALL_COARSENED_3X3_OPERATOR_MEDIUM_OCCUPANCY_ONLY_EXPLANATIONS",
+      "THE_SMALL_NUMERICAL_SIZE_OF_THE_MEASURE_MISMATCH_PROVES_IT_CANNOT_EXPLAIN_THE_SIGN_TRANSITIONS",
+      "FULL_96D_OR_102D_CONCEPT_DRIFT_HAS_BEEN_PROVEN",
+      "A_RUNTIME_COMPATIBILITY_GATE_IS_AUTHORIZED",
+      "ACCOUNT6_IS_THE_MISSING_CONTEXT",
+      "TIME_OR_CALENDAR_IS_CAUSAL",
+      "INDEPENDENT_MARKET_INFORMATION_IS_QUALIFIED"
+    ],
+    "limitations": [
+      "THE_EFFECTIVE_CANDIDATE_CELL_MASS_IS_A_WEIGHT_MASS_DIAGNOSTIC__THE_H5_11_FINAL_STATISTIC_IS_AN_EQUAL_MACRO_AVERAGE_OF_NONLINEAR_PARTIAL_CORRELATIONS_AND_IS_NOT_IDENTICAL_TO_ONE_POOLED_CORRELATION_UNDER_THIS_MASS",
+      "THE_OBSERVED_MISMATCH_IS_NUMERICALLY_SMALL_BUT_NO_APPROXIMATE_EQUIVALENCE_THRESHOLD_WAS_PREREGISTERED__THEREFORE_EXACT_CLOSURE_FAILS",
+      "WHETHER_A_CORRECTLY_STANDARDIZED_COMMON_MEASURE_WOULD_PRESERVE_OR_REMOVE_THE_SIGN_TRANSITIONS_REMAINS_UNTESTED",
+      "THIS_AUDIT_USES_EXISTING_CONSUMED_TRAIN_ONLY_SUPPORT_AND_CREATES_NO_NEW_INDEPENDENT_ECONOMIC_EVIDENCE"
+    ]
+  },
+  "updated_failure_view": "H5_11_PROVIDES_STRONG_SHARED_CELL_MULTIPLIER_ROBUSTNESS_EVIDENCE_BUT_NOT_A_CLOSED_COMMON_MEASURE_STANDARDIZATION_TEST__THE_OCCUPANCY_VS_CONDITIONAL_MAPPING_QUESTION_REMAINS_OPEN_UNTIL_A_CORRECTED_OUTCOME_BLIND_STANDARDIZATION_RESPECTS_THE_PER_TARGET_SCENARIO_MACRO_FUNCTIONAL",
+  "frozen_scientific_status": {
+    "before": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "after": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "authority": {
+    "h5_11_original_adjudication_deleted_or_rewritten": false,
+    "h5_11_exact_common_measure_claim_superseded_by_this_adjudication": true,
+    "h5_11_orientation_numbers_invalidated": false,
+    "market_information_verdict_changed": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "medium48_deletion_or_reweighting_authorized": false,
+    "fusion_weight_search_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "learned_gate_or_router_authorized": false,
+    "engram_style_compatibility_gate_authorized": false,
+    "time_or_regime_gate_authorized": false,
+    "account6_extension_execution_authorized": false,
+    "h5_12_execution_authorized": false,
+    "champion_promotion_authorized": false,
+    "production_cutover_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false,
+    "fresh_market_data_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_11_1_RESULT__KEEP_H5_12_PREEXECUTION_HOLD__DO_NOT_TREAT_H5_11_AS_EXACT_COMMON_MEASURE_STANDARDIZATION__IF_CONTINUING_PREREGISTER_A_CORRECTED_OUTCOME_BLIND_STANDARDIZATION_TEST_THAT_EXPLICITLY_RESPECTS_LOCAL_WEIGHT_NORMALIZATION_AND_EQUAL_TARGET_SCENARIO_MACRO_AGGREGATION__NO_ACCOUNT6_EXTENSION_UNTIL_THAT_CORRECTED_TEST_IS_ADJUDICATED"
+}
