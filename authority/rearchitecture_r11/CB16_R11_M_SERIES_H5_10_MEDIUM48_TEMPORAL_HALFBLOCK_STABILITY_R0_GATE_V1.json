@@ -1,0 +1,127 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_10_MEDIUM48_TEMPORAL_HALFBLOCK_STABILITY_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_10_MEDIUM48_TEMPORAL_HALFBLOCK_STABILITY_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_9_adjudication_commit": "2585cfde44a71c5400d1881382983deaacf495d1",
+    "h5_9_adjudication_blob": "99ca12bdfa3edf458a82820f76dbfeb3ab9a2444",
+    "h5_9_conclusion": "H5_9_MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_BROAD_ACROSS_SYMBOLS_AND_SCENARIOS",
+    "h5_8_full_fold_orientation": {
+      "1": "ANTI_ALIGNMENT",
+      "2": "POSITIVE_ALIGNMENT",
+      "3": "ANTI_ALIGNMENT",
+      "4": "POSITIVE_ALIGNMENT",
+      "5": "POSITIVE_ALIGNMENT"
+    }
+  },
+  "question": "Is the H5.8 Operator-conditional Medium48 relation internally stable within each already-frozen R6 outer evaluation clock block, or are the full-fold signs produced by mixtures of opposite sub-block behavior?",
+  "scope": {
+    "scientific_folds": [1, 2, 3, 4, 5],
+    "outer_clock_partition": "EXACT_R6_SIX_EQUAL_ORDERED_CLOCK_BLOCKS__FOLD_K_EVALUATES_RAW_BLOCK_K_PLUS_1",
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "new_representation": false,
+    "medium_dimension_subselection": false,
+    "fusion_weight_search": false,
+    "distance_metric_tuning": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "frozen_measure": {
+    "primary": "EXACT_H5_8_OPERATOR_CONDITIONAL_PARTIAL_SPEARMAN",
+    "operator_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_OPERATOR48",
+    "medium_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MEDIUM48",
+    "utility_distance": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE_MSE",
+    "alignment_control_shifts": [1, 7, 13, 23, 31],
+    "alignment_control": "EXACT_H5_8_MEDIUM_DISTANCE_VECTOR_CYCLIC_ROTATION_ACROSS_ALREADY_SELECTED_SUPPORT_IDENTITIES",
+    "aggregation": "MEAN_ACROSS_SIX_SCENARIOS_WITHIN_FUTURE_GROUP_THEN_EQUAL_WEIGHT_MEAN_ACROSS_INCLUDED_TARGET_FUTURE_GROUPS",
+    "positive_alignment_condition": "ALIGNED_PARTIAL_RHO_GT_0_AND_ALIGNED_PARTIAL_RHO_GT_MEDIAN_OF_FIVE_STRUCTURED_NULL_PARTIAL_RHOS",
+    "anti_alignment_condition": "ALIGNED_PARTIAL_RHO_LT_0_AND_ALIGNED_PARTIAL_RHO_LT_MEDIAN_OF_FIVE_STRUCTURED_NULL_PARTIAL_RHOS",
+    "mixed_condition": "NEITHER_POSITIVE_ALIGNMENT_NOR_ANTI_ALIGNMENT",
+    "interpretation_limit": "TEMPORAL_STABILITY_LOCALIZATION_ONLY__NOT_A_GENERAL_CONDITIONAL_INDEPENDENCE_CAUSALITY_OR_REGIME_TEST"
+  },
+  "baseline_reproduction_gate": {
+    "require_exact_h5_8_fold_values_with_absolute_tolerance": 1e-12,
+    "expected": {
+      "1": {"aligned_partial_rho": -0.012411348281499165, "null_median": 0.027034529350260694},
+      "2": {"aligned_partial_rho": 0.07585785741564523, "null_median": 0.02033114021581147},
+      "3": {"aligned_partial_rho": -0.06450510517280354, "null_median": -0.010316589086094265},
+      "4": {"aligned_partial_rho": 0.027351639484904336, "null_median": 0.006963813629549571},
+      "5": {"aligned_partial_rho": 0.024765647270181372, "null_median": 0.01168198726845212}
+    }
+  },
+  "half_block_partition": {
+    "procedure": "WITHIN_EACH_FOLD_USE_THE_EXISTING_EVAL_FUTURE_GROUP_ORDER_SORTED_BY_DECISION_TIME_THEN_GROUP_ID__SPLIT THAT ORDER INTO EXACTLY TWO CONTIGUOUS NEAR_EQUAL_COUNT HALVES USING NUMPY_ARRAY_SPLIT_SEMANTICS",
+    "boundary_uses_utility": false,
+    "boundary_uses_operator_or_medium_features": false,
+    "boundary_uses_market_outcomes": false,
+    "support_recomputed_after_partition": false,
+    "normalization_recomputed_after_partition": false,
+    "distances_recomputed_after_partition": false,
+    "null_mapping_recomputed_after_partition": false,
+    "partition_changes_only_final_target_aggregation": true,
+    "minimum_future_groups_per_half": 32
+  },
+  "preregistered_gates": {
+    "failure_fold_persistence": "BOTH_HALVES_OF_FOLD_1_AND_BOTH_HALVES_OF_FOLD_3_SATISFY_ANTI_ALIGNMENT__4_OF_4",
+    "positive_fold_persistence": "BOTH_HALVES_OF_EACH_FOLD_2_FOLD_4_FOLD_5_SATISFY_POSITIVE_ALIGNMENT__6_OF_6",
+    "all_fold_orientation_stability": "FAILURE_FOLD_PERSISTENCE_AND_POSITIVE_FOLD_PERSISTENCE"
+  },
+  "preregistered_classification": {
+    "WITHIN_FOLD_RELATION_STABLE__CROSS_FOLD_SIGN_REVERSAL": "BASELINE_REPRODUCES_AND_FAILURE_FOLD_PERSISTENCE_AND_POSITIVE_FOLD_PERSISTENCE",
+    "FAILURE_FOLDS_STABLE__POSITIVE_FOLDS_INTERNALLY_MIXED": "BASELINE_REPRODUCES_AND_FAILURE_FOLD_PERSISTENCE_AND_NOT_POSITIVE_FOLD_PERSISTENCE",
+    "FAILURE_FOLDS_INTERNALLY_MIXED__POSITIVE_FOLDS_STABLE": "BASELINE_REPRODUCES_AND_NOT_FAILURE_FOLD_PERSISTENCE_AND_POSITIVE_FOLD_PERSISTENCE",
+    "TEMPORAL_RELATION_MIXED_WITHIN_AND_ACROSS_FOLDS": "BASELINE_REPRODUCES_AND_NOT_FAILURE_FOLD_PERSISTENCE_AND_NOT_POSITIVE_FOLD_PERSISTENCE",
+    "H5_10_BASELINE_REPRODUCTION_FAILED": "ANY_H5_8_FULL_FOLD_BASELINE_VALUE_DOES_NOT_REPRODUCE_WITHIN_TOLERANCE"
+  },
+  "secondary_descriptive_only": {
+    "half_receipt": "FOR_EACH_FOLD_AND_HALF_REPORT_TIME_RANGE_GROUP_COUNT_ALIGNED_PARTIAL_RHO_NULL_MEDIAN_MARGIN_AND_ORIENTATION",
+    "adjacent_half_transitions": "REPORT_ORIENTATION_SEQUENCE_ACROSS_THE_TEN_CHRONOLOGIC_HALVES_WITHOUT_CREATING_A_CHANGEPOINT_P_VALUE_OR_NEW_GATE",
+    "full_fold_context": "REPORT_FROZEN_H5_8_FULL_FOLD_ORIENTATION_ONLY"
+  },
+  "interpretation": {
+    "if_all_stable": "THE H5_8 SIGN PATTERN IS NOT AN AVERAGING ARTIFACT WITHIN THE PREDEFINED OUTER BLOCKS__THE OPERATOR_CONDITIONAL MEDIUM48 RELATION IS INTERNALLY SAME-ORIENTATION AT HALF-BLOCK RESOLUTION YET CHANGES ORIENTATION ACROSS SOME PREDEFINED OUTER BLOCKS",
+    "if_failure_folds_mixed": "THE NEGATIVE FULL-FOLD RESULTS CONTAIN MATERIAL WITHIN-BLOCK TEMPORAL HETEROGENEITY__DO_NOT DESCRIBE FOLD_1_OR_FOLD_3 AS UNIFORMLY ANTI_ALIGNED",
+    "if_positive_folds_mixed": "THE POSITIVE FULL-FOLD RESULTS CONTAIN MATERIAL WITHIN-BLOCK TEMPORAL HETEROGENEITY__DO_NOT DESCRIBE POSITIVE FOLDS AS UNIFORMLY ALIGNED",
+    "always": "THIS AUDIT DOES_NOT DEFINE_A_REAL_TIME_REGIME_CLASSIFIER_OR_AUTHORIZE_TIME_BASED_MEDIUM_GATING"
+  },
+  "forbidden": [
+    "SELECTING_TEMPORAL_BOUNDARIES_FROM_UTILITY_OR_RESULTS",
+    "CHANGEPOINT_SEARCH_OR_POST_HOC_BOUNDARY_TUNING",
+    "HANDCRAFTED_REGIME_OR_CYCLE_ACTIVATION",
+    "USING_FOLD_OR_HALF_ID_AS_A_DECISION_FEATURE_OR_PERMISSION_RULE",
+    "CHRONOLOGICAL_BELIEF_EXPIRY_OR_RECENCY_OVERWRITE",
+    "SPLITTING_MEDIUM48_DIMENSIONS_POST_HOC",
+    "ACCESSING_TIMESFM_1280D_PRE_ADAPTER_LATENT_AS_A_NEW_REPRESENTATION",
+    "TEACHER_COMPILATION_FOR_SCIENTIFIC_SCORE",
+    "TEACHER_KERNEL_OR_SUPPORT_SELECTION",
+    "STUDENT_TRAINING_OR_INFERENCE",
+    "FUSION_WEIGHT_SEARCH_OR_INTERPOLATION",
+    "TUNING_ORGAN_WEIGHTS",
+    "TUNING_DISTANCE_METRIC_AFTER_RESULTS",
+    "RECOMPUTING_SUPPORT_NORMALIZATION_DISTANCE_OR_NULL_MAPPING_AFTER_HALF_PARTITION",
+    "NEW_DIRECTION_LOSS",
+    "CANONICAL_TEACHER_OR_STUDENT_CHANGE",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "time_gating_authorized": false,
+    "handcrafted_regime_activation_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
