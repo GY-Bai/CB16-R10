@@ -15,7 +15,7 @@ from scripts.r11_science_g0_reduced_teacher_target_information_audit_r6 import l
 
 SCHEMA = "CB16_R11_M_SERIES_H5_10_MEDIUM48_TEMPORAL_HALFBLOCK_STABILITY_R0_RESULT_V1"
 PREREG_COMMIT = "1de6d3d10b6698f4fe2b8800c02f2d18f05ffaab"
-GATE_BLOB = "PLACEHOLDER_GATE"
+GATE_BLOB = "8ec00977ffa0068429b9e7c480451dc2ac2696cc"
 H59_ADJ_COMMIT = "2585cfde44a71c5400d1881382983deaacf495d1"
 H59_ADJ_BLOB = "99ca12bdfa3edf458a82820f76dbfeb3ab9a2444"
 FROZEN_STATUS = "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
@@ -111,7 +111,8 @@ def verify_repo() -> dict[str, Any]:
 def load_h59_authority() -> dict[str, Any]:
     x = json.loads(Path(PINNED["h59_adjudication"][0]).read_text(encoding="utf-8"))
     require(x["adjudication"]["classification"] == "MEDIUM48_CONDITIONAL_ANTI_ALIGNMENT_BROAD_ACROSS_SYMBOLS_AND_SCENARIOS", "H510_H59_CLASS_DRIFT")
-    require(x["authority"]["time_gating_authorized"] is False if "time_gating_authorized" in x["authority"] else True, "H510_H59_TIME_GATING_AUTHORITY_DRIFT")
+    if "time_gating_authorized" in x["authority"]:
+        require(x["authority"]["time_gating_authorized"] is False, "H510_H59_TIME_GATING_AUTHORITY_DRIFT")
     require(x["authority"]["handcrafted_regime_activation_authorized"] is False, "H510_H59_REGIME_AUTHORITY_DRIFT")
     require(x["authority"]["canonical_change_authorized"] is False, "H510_H59_CANONICAL_AUTHORITY_DRIFT")
     require(x["authority"]["final_opening_authorized"] is False, "H510_H59_FINAL_AUTHORITY_DRIFT")
