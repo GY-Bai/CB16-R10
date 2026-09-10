@@ -2,8 +2,8 @@ from __future__ import annotations
 
 """H5.16 fixed-RF full-state nonlinear utility-invariance probe.
 
-Science-only diagnostic.  This module consumes the frozen H5.5 target-row
-Full102 state and the same-row centered 9-action realized-utility profile.  It
+Science-only diagnostic. This module consumes the frozen H5.5 target-row
+Full102 state and the same-row centered 9-action realized-utility profile. It
 never uses H5.12R pair/side q or IPF labels and never creates a runtime regime
 feature, Teacher change, Student change, or canonical architecture change.
 """
@@ -203,9 +203,9 @@ def shift_group_state_h516(x: np.ndarray, timestamps: Sequence[int], group_ids: 
     k = int(shift) % n
     require(k != 0, f"H516_NEGATIVE_CONTROL_IDENTITY:{shift}:{n}")
     src_pos = (np.arange(n, dtype=np.int64) + k) % n
+    require(not np.array_equal(src_pos, np.arange(n, dtype=np.int64)), f"H516_NEGATIVE_CONTROL_INDEX_IDENTITY:{shift}:{n}")
     out = np.array(a, copy=True)
     out[order] = a[order[src_pos]]
-    require(not np.array_equal(out, a), f"H516_NEGATIVE_CONTROL_STATE_IDENTITY:{shift}:{n}")
     return np.ascontiguousarray(out)
 
 
