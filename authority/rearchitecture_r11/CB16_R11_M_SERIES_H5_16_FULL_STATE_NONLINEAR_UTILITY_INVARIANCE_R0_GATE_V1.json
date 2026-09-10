@@ -1,0 +1,216 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0",
+  "status": "PREREGISTERED__UNEVALUATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "post_h5_15_reassessment_commit": "efd6427a861c836185919d8192f6f74c66cb440e",
+    "h5_15_adjudication_commit": "1d5c68706cbc227a014951e8df12eada6440e084",
+    "h5_15_adjudication_blob": "22fd3a62b9695e3246eb95b457bfb36ad0b4ce29",
+    "required_h5_15_classification": "FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_NOT_SUPPORTED",
+    "h5_5_gate_blob": "54b9492e74d5017711b671837ef402abd604c7c6",
+    "h5_5_adjudication_blob": "c336e2789ba41e2131679abcd1e6d51c1b545a1c",
+    "required_h5_5_classification": "MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT",
+    "frozen_market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE"
+  },
+  "question": "UNDER_ONE_PREDEFINED_NONLINEAR_FUNCTION_CLASS_AND_ONE_ENVIRONMENT_INVARIANT_UTILITY_TARGET_DEFINITION__IS_THE_FROZEN_FULL102_CURRENT_STATE_TO_CENTERED_9_ACTION_REALIZED_UTILITY_MAPPING_LEARNABLE_WITHIN_LOCAL_ENVIRONMENTS__DOES_IT_TRANSPORT_FORWARD_ACROSS_THE_THREE_H5_12R_NATIVE_TRANSITIONS__AND_DOES_AN_EXPLICIT_SCIENCE_ONLY_ENVIRONMENT_INDEX_ADD_OUT_OF_CLOCK_PREDICTIVE_VALUE_AFTER_FULL102",
+  "scientific_purpose": "DISTINGUISH_H5_15_LINEAR_FUNCTION_CLASS_UNDERFIT_FROM_A_BROADER_TIME_LOCAL_BUT_FORWARD_NONTRANSPORTING_STATE_TO_UTILITY_RELATION_WITHOUT_TUNING_A_RUNTIME_GATE_OR_REUSING_SIDE_SPECIFIC_H5_12R_MEASUREMENT_OPERATORS",
+  "rejected_unexecuted_design": {
+    "design": "INVARIANT_ENVIRONMENT_OR_TARGET_PREDICTION_USING_H5_12R_OR_H5_15_ROW_LEVEL_WEIGHTED_PARTIAL_RHO_AS_Y",
+    "reason": "H5_12R_ROW_TARGETS_USE_PAIR_SPECIFIC_Q27_AND_SIDE_SPECIFIC_IPF_MULTIPLIERS__THEREFORE_Y_ITSELF_CAN_CARRY_PAIR_OR_SIDE_MEASUREMENT_OPERATOR_FINGERPRINTS",
+    "scientific_result_was_observed_before_rejection": false,
+    "replacement": "USE_THE_H5_5_ENVIRONMENT_INVARIANT_CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE_WITH_NO_PAIR_SIDE_Q_IPF_OR_TARGET_NORMALIZATION"
+  },
+  "scope": {
+    "support": "EXACT_SAME_ALREADY_OBSERVED_H5_5_TRAIN_ONLY_OUTER_FOLD_EVAL_ROWS",
+    "outer_folds": 5,
+    "adjacent_environment_pairs": [[1,2],[2,3],[3,4],[4,5]],
+    "native_transition_pairs": [[1,2],[2,3],[3,4]],
+    "stability_receipt_pair": [4,5],
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "row_and_dependence_semantics": {
+    "row_unit": "TARGET_FUTURE_GROUP_X_ACCOUNT_SCENARIO",
+    "future_dependence_group_is_not_iid_row": true,
+    "decision_clock_is_crossfit_blocking_unit": true,
+    "all_future_groups_with_same_decision_timestamp_must_remain_on_same_crossfit_side": true,
+    "all_six_account_scenarios_of_a_future_group_must_remain_together": true,
+    "six_frozen_scenarios_required_per_future_group": true,
+    "evaluation_loss_aggregation": "MEAN_SIX_SCENARIOS_WITHIN_FUTURE_GROUP__MEAN_FUTURE_GROUP_LOSSES_WITHIN_DECISION_CLOCK__EQUAL_WEIGHT_MEAN_ACROSS_DECISION_CLOCKS",
+    "training_sample_weight": "EACH_DECISION_CLOCK_HAS_EQUAL_TOTAL_WEIGHT__WITHIN_CLOCK_EACH_FUTURE_GROUP_EQUAL__WITHIN_FUTURE_GROUP_EACH_OF_SIX_SCENARIOS_EQUAL"
+  },
+  "input_state": {
+    "dimension": 102,
+    "layout": "OPERATOR48_PLUS_MEDIUM48_PLUS_ACCOUNT6",
+    "source": "EXACT_FROZEN_TARGET_ROW_FEATURE_VECTOR_FROM_H5_5_COLUMNAR_INDEX",
+    "must_be_finite": true,
+    "normalization": "NONE_FOR_TREE_MODEL",
+    "feature_subselection": false,
+    "feature_reweighting": false,
+    "calendar_feature": false,
+    "fold_id_feature": false,
+    "future_utility_as_input": false,
+    "teacher_output_as_input": false,
+    "student_output_as_input": false
+  },
+  "utility_target": {
+    "dimension": 9,
+    "source": "EXACT_H5_5_INDEX_UTILITIES_FOR_THE_SAME_TARGET_ROW",
+    "definition": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE",
+    "centering": "FOR_EACH_ROW_SUBTRACT_THE_MEAN_OF_ITS_OWN_NINE_REALIZED_ACTION_UTILITIES",
+    "target_normalization": "NONE",
+    "pair_side_specific_q_or_ipf": false,
+    "same_numeric_semantics_all_folds_and_environments": true,
+    "realized_utility_semantics": "COUNTERFACTUAL_PHYSICS_OUTCOME_SAMPLE_USED_AS_OFFLINE_REGRESSION_TARGET_ONLY__NEVER_A_CORRECT_ACTION_LABEL"
+  },
+  "fixed_nonlinear_model": {
+    "implementation": "sklearn.ensemble.RandomForestRegressor",
+    "canonical_runtime_requirement": "scikit-learn>=1.5_FROM_REQUIREMENTS_SHANXI_PASCAL",
+    "observed_sklearn_version_must_be_recorded": true,
+    "n_estimators": 100,
+    "criterion": "squared_error",
+    "max_features": 10,
+    "max_depth": null,
+    "min_samples_split": 2,
+    "min_samples_leaf": 5,
+    "bootstrap": true,
+    "max_samples": null,
+    "ccp_alpha": 0.0,
+    "random_state": 51616,
+    "n_jobs": 1,
+    "multi_output": "DIRECT_NATIVE_9D_REGRESSION",
+    "hyperparameter_search": false,
+    "feature_search": false,
+    "seed_search": false,
+    "reason_for_max_features_10": "FIXED_INTEGER_CAPACITY_MATCH__FLOOR_SQRT_102_EQUALS_FLOOR_SQRT_103_EQUALS_10__SO_ADDING_ONE_ENVIRONMENT_COORDINATE_DOES_NOT_CHANGE_MTRY"
+  },
+  "clock_crossfit": {
+    "folds": 5,
+    "construction": "SORT_UNIQUE_DECISION_TIMESTAMPS_ASCENDING__PARTITION_INTO_FIVE_CONTIGUOUS_NONEMPTY_BLOCKS_USING_QUOTIENT_REMAINDER__FIRST_R_BLOCKS_HAVE_Q_PLUS_ONE_CLOCKS_AND_REMAINING_BLOCKS_HAVE_Q_CLOCKS",
+    "per_block_fit": "TRAIN_ON_OTHER_FOUR_CLOCK_BLOCKS_ONLY__EVALUATE_ON_HELD_OUT_CLOCK_BLOCK",
+    "no_random_row_split": true,
+    "no_future_group_or_scenario_split_across_blocks": true,
+    "minimum_unique_decision_clocks": 5,
+    "clock_ties_are_legal_and_must_stay_TOGETHER": true
+  },
+  "arm_1_local_learnability": {
+    "unit": "EACH_OF_FIVE_OUTER_FOLD_EVAL_ENVIRONMENTS_SEPARATELY",
+    "true_binding_model": "FIVE_CLOCK_BLOCK_CROSSFIT_RF_FULL102_TO_CENTERED_UTILITY9",
+    "constant_baseline": "FOR_EACH_CROSSFIT_BLOCK_USE_THE_CLOCK_EQUAL_WEIGHTED_MEAN_UTILITY9_VECTOR_FROM_ITS_FOUR_TRAINING_BLOCKS",
+    "primary_loss": "CLOCK_EQUAL_WEIGHTED_CENTERED_PROFILE_MSE",
+    "true_binding_gain": "CONSTANT_BASELINE_LOSS_MINUS_TRUE_BINDING_RF_LOSS",
+    "negative_controls": {
+      "training_state_future_group_bundle_shifts": [1,7,13,23,31],
+      "definition": "AFTER_HELDOUT_CLOCKS_ARE_EXCLUDED__ORDER_THE_REMAINING_TRAINING_FUTURE_GROUPS_BY_TIMESTAMP_THEN_FUTURE_GROUP_ID__CYCLICALLY_SHIFT_THE_ENTIRE_SIX_SCENARIO_FULL102_STATE_BUNDLE_BY_THE_FIXED_GROUP_SHIFT__KEEP_UTILITY_TARGET_BUNDLES_AND_TRAIN_SAMPLE_WEIGHTS_AT_ORIGINAL_TARGET_GROUPS__HELDOUT_X_AND_Y_UNSHIFTED",
+      "shift_must_not_BE_IDENTITY": true,
+      "same_rf_capacity": true
+    },
+    "per_outer_fold_conditions": {
+      "positive_gain": "TRUE_BINDING_GAIN_GT_0",
+      "beats_shift_median": "TRUE_BINDING_GAIN_GT_MEDIAN_OF_FIVE_SHIFT_CONTROL_GAINS"
+    },
+    "local_map_supported": "POSITIVE_GAIN_IN_AT_LEAST_4_OF_5_OUTER_FOLDS_AND_IN_BOTH_FOLD4_AND_FOLD5__AND_BEATS_SHIFT_MEDIAN_IN_AT_LEAST_4_OF_5_AND_IN_BOTH_FOLD4_AND_FOLD5__AND_TRUE_BINDING_GAIN_GT_EACH_SHIFT_GAIN_IN_AT_LEAST_20_OF_25_OUTER_FOLD_X_SHIFT_COMPARISONS"
+  },
+  "arm_2_forward_transport": {
+    "pairs": [[1,2],[2,3],[3,4],[4,5]],
+    "fit": "TRAIN_FIXED_RF_ON_ALL_SIDE_A_ROWS_USING_CLOCK_EQUAL_SAMPLE_WEIGHTS__EVALUATE_SIDE_B_ONLY",
+    "constant_baseline": "CLOCK_EQUAL_WEIGHTED_MEAN_UTILITY9_VECTOR_FROM_SIDE_A",
+    "primary_loss": "SIDE_B_CLOCK_EQUAL_WEIGHTED_CENTERED_PROFILE_MSE",
+    "true_binding_gain": "CONSTANT_BASELINE_LOSS_MINUS_TRUE_BINDING_RF_LOSS",
+    "negative_controls": {
+      "training_state_future_group_bundle_shifts": [1,7,13,23,31],
+      "definition": "EXACT_H5_15_STYLE_SIDE_A_CHRONOLOGICAL_FUTURE_GROUP_SIX_SCENARIO_FULL102_BUNDLE_SHIFT__SIDE_B_UNSHIFTED",
+      "same_rf_capacity": true
+    },
+    "pair_pass": "TRUE_BINDING_GAIN_GT_0_AND_TRUE_BINDING_GAIN_GT_MEDIAN_OF_FIVE_SHIFT_CONTROL_GAINS",
+    "pairwise_shift_win_count_is_secondary": true
+  },
+  "arm_3_pooled_environment_increment": {
+    "purpose": "TEST_FOR_AN_ENVIRONMENT_INDEX_INCREMENT_WITHOUT_A_TO_B_TARGET_EXTRAPOLATION__NOT_A_UNIVERSAL_CONDITIONAL_INDEPENDENCE_TEST",
+    "pairs": [[1,2],[2,3],[3,4],[4,5]],
+    "pooled_rows": "POOL_SIDE_A_AND_SIDE_B_TARGET_ROWS_FOR_THE_PAIR_WITH_ORIGINAL_FULL102_AND_COMMON_UTILITY9_TARGET",
+    "environment_index": "BINARY_SIDE_ID_0_FOR_A_1_FOR_B__SCIENCE_ONLY__NEVER_RUNTIME_OR_CANONICAL_FEATURE",
+    "clock_integrity": "EACH_DECISION_CLOCK_MUST_MAP_TO_EXACTLY_ONE_ENVIRONMENT_WITHIN_A_PAIR_OR_EXECUTION_BLOCKED",
+    "crossfit": "SAME_FIVE_CONTIGUOUS_CLOCK_BLOCK_RULE_ON_POOLED_SORTED_UNIQUE_DECISION_CLOCKS",
+    "x_only_model": "RF_ON_FULL102",
+    "x_plus_environment_model": "SAME_RF_ON_FULL102_PLUS_ONE_BINARY_ENVIRONMENT_COORDINATE__MAX_FEATURES_REMAINS_FIXED_AT_10",
+    "primary_loss": "CLOCK_EQUAL_WEIGHTED_OUT_OF_FOLD_CENTERED_PROFILE_MSE",
+    "environment_increment": "OOF_LOSS_X_ONLY_MINUS_OOF_LOSS_X_PLUS_TRUE_ENVIRONMENT",
+    "fake_environment_controls": {
+      "clock_label_shifts": [1,7,13,23,31],
+      "definition": "OVER_THE_FULL_POOLED_PAIR_SORTED_UNIQUE_DECISION_CLOCK_SEQUENCE__CYCLICALLY_SHIFT_THE_PER_CLOCK_BINARY_ENVIRONMENT_LABEL_VECTOR__ASSIGN_THE_SHIFTED_LABEL_TO_ALL_FUTURE_GROUPS_AND_SCENARIOS_OF_THAT_CLOCK__X_AND_UTILITY_TARGETS_UNCHANGED__THEN_APPLY_THE_SAME_FIVE_CLOCK_BLOCK_CROSSFIT",
+      "marginal_environment_label_counts_preserved": true,
+      "each_shift_must_not_BE_IDENTITY": true,
+      "same_rf_capacity": true
+    },
+    "pair_pass": "TRUE_ENVIRONMENT_INCREMENT_GT_0_AND_TRUE_ENVIRONMENT_INCREMENT_GT_MEDIAN_OF_FIVE_FAKE_ENVIRONMENT_INCREMENTS",
+    "pairwise_fake_environment_win_count_is_secondary": true,
+    "support_separability_secondary_receipt": "WITH_THE_SAME_CLOCK_CROSSFIT_AND_CLOCK_EQUAL_WEIGHTS__FIT_A_FIXED_RANDOM_FOREST_CLASSIFIER_E_FROM_FULL102_AND_REPORT_OOF_ACCURACY_AND_LOG_LOSS__NO_THRESHOLD_AND_NO_CLASSIFICATION_GATE"
+  },
+  "preregistered_classification": {
+    "FULL102_NONLINEAR_LOCAL_MAP_AND_NATIVE_FORWARD_TRANSPORT_SUPPORTED__NO_ENVIRONMENT_INCREMENT": "VALID_EXECUTION_AND_LOCAL_MAP_SUPPORTED_AND_ALL_THREE_NATIVE_FORWARD_PAIRS_PASS_AND_ZERO_OF_THREE_NATIVE_ENVIRONMENT_INCREMENT_PAIRS_PASS",
+    "FULL102_NONLINEAR_LOCAL_MAP_EXISTS__FORWARD_NONTRANSPORT__ENVIRONMENT_INDEX_INCREMENT_WITHIN_FIXED_RF": "VALID_EXECUTION_AND_LOCAL_MAP_SUPPORTED_AND_ZERO_OF_THREE_NATIVE_FORWARD_PAIRS_PASS_AND_ALL_THREE_NATIVE_ENVIRONMENT_INCREMENT_PAIRS_PASS",
+    "FULL102_NONLINEAR_UTILITY_MAP_WEAK_EVEN_LOCAL": "VALID_EXECUTION_AND_LOCAL_MAP_SUPPORTED_IS_FALSE",
+    "FULL102_NONLINEAR_LOCAL_FORWARD_OR_ENVIRONMENT_INCREMENT_MIXED": "VALID_EXECUTION_NOT_SATISFYING_ANY_STRONG_CLASS_ABOVE",
+    "EXECUTION_BLOCKED__PARENT_AUTHORITY_DRIFT": "ANY_REQUIRED_PARENT_BLOB_OR_CLASSIFICATION_DOES_NOT_MATCH",
+    "EXECUTION_BLOCKED__STATE_UTILITY_OR_ACTION_GRID_DRIFT": "ANY_REQUIRED_ROW_LACKS_EXACTLY_102_FINITE_STATE_VALUES_OR_EXACTLY_9_FINITE_UTILITY_VALUES",
+    "EXECUTION_BLOCKED__DEPENDENCE_CLOCK_OR_SCENARIO_DRIFT": "ANY_REQUIRED_FUTURE_GROUP_DOES_NOT_HAVE_EXACTLY_SIX_SCENARIOS__ANY_CROSSFIT_SPLITS_A_DECISION_CLOCK__OR_ANY_POOLED_PAIR_DECISION_CLOCK_MAPS_TO_MULTIPLE_ENVIRONMENTS",
+    "EXECUTION_BLOCKED__NONLINEAR_RUNTIME_OR_NUMERICAL_FAILURE": "CANONICAL_SKLEARN_RF_IS_UNAVAILABLE__ANY_REQUIRED_FIT_OR_PREDICTION_FAILS__OR_ANY_PRIMARY_LOSS_IS_NONFINITE",
+    "EXECUTION_BLOCKED__NEGATIVE_CONTROL_IDENTITY": "ANY_PREREGISTERED_STATE_OR_ENVIRONMENT_CYCLIC_SHIFT_IS_IDENTITY_ON_ITS_DEFINED_SEQUENCE"
+  },
+  "interpretation_limits": {
+    "stable_nonlinear_class_would_establish": "WITHIN_THIS_SINGLE_PREDEFINED_RF_FUNCTION_CLASS_AND_COMMON_UTILITY_TARGET__FULL102_HAS_LOCAL_AND_FORWARD_PREDICTIVE_UTILITY_MAP_VALUE_ON_ALL_THREE_NATIVE_PAIRS_WHILE_EXPLICIT_ENVIRONMENT_INDEX_DOES_NOT_ADD_VALUE_UNDER_THE_PREREGISTERED_GATE__THIS_INCREASES_WEIGHT_ON_H5_15_LINEAR_UNDERFIT",
+    "nontransport_environment_increment_class_would_establish": "WITHIN_THIS_SINGLE_PREDEFINED_RF_FUNCTION_CLASS_AND_COMMON_UTILITY_TARGET__FULL102_IS_LOCALLY_PREDICTIVE_BUT_DOES_NOT_FORWARD_TRANSPORT_ON_ANY_NATIVE_PAIR__AND_TRUE_ENVIRONMENT_INDEX_ADDS_POOLED_OOF_VALUE_BEYOND_FULL102_ON_ALL_THREE_NATIVE_PAIRS_RELATIVE_TO_FIXED_FAKE_ENVIRONMENT_CONTROLS",
+    "nontransport_environment_increment_class_does_not_establish": [
+      "UNIVERSAL_OR_MODEL_FREE_CONDITIONAL_DEPENDENCE",
+      "TRUE_CAUSAL_CONCEPT_DRIFT",
+      "COMMON_SUPPORT_OR_POSITIVITY_BETWEEN_ADJACENT_ENVIRONMENTS",
+      "SEPARATION_OF_TRUE_CONDITIONAL_RELATION_CHANGE_FROM_COVARIATE_SUPPORT_SHIFT_OR_FINITE_FUNCTION_CLASS_ALIASING",
+      "A_DISCRETE_MARKET_REGIME",
+      "CALENDAR_OR_TIME_IS_A_VALID_RUNTIME_FEATURE"
+    ],
+    "weak_local_class_would_establish": "THIS_FIXED_RF_DOES_NOT_SHOW_PREREGISTERED_LOCAL_FULL102_TO_UTILITY9_PREDICTIVE_VALUE__IT_DOES_NOT_PROVE_NO_OTHER_NONLINEAR_INFORMATION_EXISTS",
+    "all_results_preserve": "THE_FROZEN_MARKET_INFORMATION_VERDICT_AND_ALL_CANONICAL_TEACHER_STUDENT_PERMISSION_ARCHITECTURE"
+  },
+  "methodological_basis": {
+    "nonlinear_invariant_prediction": "HEINZE_DEML_PETERS_MEINSHAUSEN_2018__NONLINEAR_INVARIANT_CAUSAL_PREDICTION__USES_OUT_OF_SAMPLE_NONLINEAR_PREDICTION_AND_ENVIRONMENT_OR_TARGET_INCREMENT_AS_BOUNDED_INVARIANCE_DIAGNOSTICS",
+    "conditional_test_hardness": "SHAH_PETERS_2020__NO_UNIFORMLY_POWERFUL_MODEL_FREE_CONDITIONAL_INDEPENDENCE_TEST_FOR_GENERAL_CONTINUOUS_CONDITIONERS",
+    "conditional_distribution_overlap_limit": "CONDITIONAL_TWO_SAMPLE_AND_COVARIATE_SHIFT_LITERATURE_REQUIRES_OR_EXPLICITLY_DISCUSS_COMMON_SUPPORT_OR_DENSITY_RATIO_REGULARITY__THEREFORE_H5_16_ENVIRONMENT_INCREMENT_IS_NOT_LABELED_A_MODEL_FREE_DRIFT_PROOF"
+  },
+  "forbidden_actions": {
+    "rf_hyperparameter_or_seed_search": true,
+    "feature_subselection_ablation_or_reweighting_search": true,
+    "target_redefinition_after_results": true,
+    "using_h5_12r_side_specific_weighted_row_rho_as_h5_16_target": true,
+    "post_result_metric_threshold_or_control_change": true,
+    "environment_index_as_runtime_feature": true,
+    "calendar_or_fold_id_as_runtime_feature": true,
+    "learned_runtime_router_or_regime_gate": true,
+    "teacher_change": true,
+    "student_change": true,
+    "canonical_architecture_change": true,
+    "medium_or_account_reweighting_as_architecture": true,
+    "fresh_market_data": true,
+    "final_holdout_opening": true,
+    "r7_evaluation": true,
+    "champion_promotion": true
+  },
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "runtime_environment_gate_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "LOCK_THIS_GATE_BLOB__IMPLEMENT_EXACT_H5_16_THREE_ARM_FIXED_RF_PROBE__RUN_SYNTHETIC_AND_INHERITED_REGRESSION_GATES__EXECUTE_ON_FROZEN_TRAIN_ONLY_SUPPORT__FORMALLY_ADJUDICATE_BEFORE_ANY_H5_17_OR_CANONICAL_CHANGE"
+}
