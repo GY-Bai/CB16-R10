@@ -121,8 +121,15 @@ def test_adjudication_can_identify_failure_fold_conditional_anti_alignment():
 
 
 def test_adjudication_can_leave_operator_conditional_geometry_unsupported():
-    rows = [_row(i, -0.01 if i in (1, 2, 3) else 0.01, 0.0) for i in range(1, 6)]
+    rows = [
+        _row(1, -0.01, 0.0),
+        _row(2, -0.01, 0.0),
+        _row(3, 0.01, 0.0),
+        _row(4, 0.01, 0.0),
+        _row(5, 0.01, 0.0),
+    ]
     out = adjudicate_h58(rows)
     assert out["global_gate"]["passed"] is False
+    assert out["h5_7_failure_fold_gate"]["conditional_value_survives"] is False
     assert out["h5_7_failure_fold_gate"]["conditional_anti_alignment"] is False
     assert out["classification"] == "OPERATOR_CONDITIONAL_MEDIUM_GEOMETRY_NOT_SUPPORTED"

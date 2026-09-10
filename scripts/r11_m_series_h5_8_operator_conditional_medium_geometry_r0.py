@@ -39,7 +39,7 @@ PINNED = {
     ),
     "h58_test": (
         "tests/test_operator_conditional_medium_geometry_h58.py",
-        "cd07c25a28519d045973b9754409c462f4b0f7d3",
+        "aa08db14057f5ffc523d8db9ddecd0541f5ac4a8",
     ),
     "h56_helper": (
         "cb16_local_opt/time_local_vs_forward_geometry_contrast_h56.py",
