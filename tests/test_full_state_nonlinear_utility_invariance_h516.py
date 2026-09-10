@@ -99,7 +99,7 @@ def test_group_state_shift_respects_timestamp_then_gid_order():
     gids = ["z", "b", "a", "x"]
     shifted = shift_group_state_h516(x, ts, gids, 1)
     order = [2, 1, 0, 3]  # (10,a),(10,b),(20,z),(30,x)
-    expected_source = [1, 0, 3, 2]  # destination row -> source row for +1 source-position shift
+    expected_source = [3, 0, 1, 2]  # destination original row -> source original row
     assert shifted[:, 0, 0].tolist() == [float(i) for i in expected_source]
     assert order == sorted(range(4), key=lambda i: (int(ts[i]), gids[i]))
 
