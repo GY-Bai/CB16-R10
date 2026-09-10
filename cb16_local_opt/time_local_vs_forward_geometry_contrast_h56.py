@@ -2,13 +2,13 @@ from __future__ import annotations
 
 """H5.6 Teacher-free time-local versus time-forward state/utility geometry contrast.
 
-The TIME_FORWARD arm is the clarified H5.5 computation.  TIME_LOCAL compares every
+The TIME_FORWARD arm is the clarified H5.5 computation. TIME_LOCAL compares every
 eval target only against other future groups in the same eval block and same account
-scenario.  The target future group is excluded from both local normalization and local
-support.  Utilities are read only after state distances are constructed.
+scenario. The target future group is excluded from local support. Local mean/std are
+computed from exactly those same-scenario support rows. Utilities are read only after
+state distances are constructed.
 """
 
-import math
 import statistics
 from typing import Any, Mapping, Sequence
 
@@ -34,28 +34,30 @@ H56_RUNTIME = "CB16_R11_H5_6_TIME_LOCAL_VS_FORWARD_STATE_UTILITY_GEOMETRY_CONTRA
 H56_METRICS = h55.H55_METRICS
 
 
-def _leave_group_out_normalization_h56(*, index, eval_order: Sequence[str], eval_rows_map: Mapping[str, Mapping[str, int]]):
-    all_rows = np.asarray(
-        [eval_rows_map[g][s] for g in eval_order for s in H5_SCENARIOS], dtype=np.int32
-    )
-    x = np.asarray(index.features[all_rows], dtype=np.float64)
-    total_sum = np.sum(x, axis=0)
-    total_sumsq = np.sum(x * x, axis=0)
-    total_n = int(len(all_rows))
-    require(total_n >= 6 * 33, "H56_LOCAL_BLOCK_TOO_SMALL")
-    out: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-    for gid in eval_order:
-        excluded = np.asarray([eval_rows_map[gid][s] for s in H5_SCENARIOS], dtype=np.int32)
-        ex = np.asarray(index.features[excluded], dtype=np.float64)
-        n = total_n - len(excluded)
-        require(n > 0, "H56_LOCAL_NORMALIZATION_EMPTY")
-        mean = (total_sum - np.sum(ex, axis=0)) / float(n)
-        second = (total_sumsq - np.sum(ex * ex, axis=0)) / float(n)
-        var = np.maximum(second - mean * mean, 0.0)
-        std = np.sqrt(var)
-        std = np.where(std < 1e-8, 1.0, std)
-        require(np.isfinite(mean).all() and np.isfinite(std).all(), "H56_LOCAL_NORMALIZATION_NONFINITE")
-        out[str(gid)] = (np.ascontiguousarray(mean), np.ascontiguousarray(std))
+def _same_scenario_leave_group_out_normalization_h56(
+    *, index, eval_order: Sequence[str], eval_rows_map: Mapping[str, Mapping[str, int]]
+) -> dict[tuple[str, str], tuple[np.ndarray, np.ndarray]]:
+    """Mean/std from exactly the local same-scenario support; destination group excluded."""
+    require(len(eval_order) >= 33, "H56_LOCAL_BLOCK_TOO_SMALL")
+    out: dict[tuple[str, str], tuple[np.ndarray, np.ndarray]] = {}
+    for scenario in H5_SCENARIOS:
+        scenario_rows = np.asarray([eval_rows_map[g][scenario] for g in eval_order], dtype=np.int32)
+        x = np.asarray(index.features[scenario_rows], dtype=np.float64)
+        total_sum = np.sum(x, axis=0)
+        total_sumsq = np.sum(x * x, axis=0)
+        total_n = int(len(scenario_rows))
+        for i, gid in enumerate(eval_order):
+            excluded = np.asarray(index.features[int(scenario_rows[i])], dtype=np.float64)
+            n = total_n - 1
+            require(n >= 32, "H56_LOCAL_NORMALIZATION_SUPPORT_TOO_SMALL")
+            mean = (total_sum - excluded) / float(n)
+            second = (total_sumsq - excluded * excluded) / float(n)
+            var = np.maximum(second - mean * mean, 0.0)
+            std = np.sqrt(var)
+            std = np.where(std < 1e-8, 1.0, std)
+            require(np.isfinite(mean).all() and np.isfinite(std).all(), "H56_LOCAL_NORMALIZATION_NONFINITE")
+            out[(str(gid), str(scenario))] = (np.ascontiguousarray(mean), np.ascontiguousarray(std))
+    require(len(out) == len(eval_order) * len(H5_SCENARIOS), "H56_LOCAL_NORMALIZER_COUNT_DRIFT")
     return out
 
 
@@ -75,7 +77,7 @@ def _local_metric_h56(
     index,
     eval_order: Sequence[str],
     eval_rows_map: Mapping[str, Mapping[str, int]],
-    normalizers: Mapping[str, tuple[np.ndarray, np.ndarray]],
+    normalizers: Mapping[tuple[str, str], tuple[np.ndarray, np.ndarray]],
     metric: str,
 ) -> dict[str, Any]:
     active = h55.active_dimensions_h55(metric, int(index.feature_dim))
@@ -93,10 +95,10 @@ def _local_metric_h56(
         require(np.all(src != np.arange(n_groups, dtype=np.int32)), f"H56_LOCAL_ROTATION_FIXED_POINT:{shift}")
 
     for i, gid in enumerate(eval_order):
-        mean, std = normalizers[str(gid)]
         support_groups = [g for j, g in enumerate(eval_order) if j != i]
         support_sizes.append(len(support_groups))
         for scenario in H5_SCENARIOS:
+            mean, std = normalizers[(str(gid), str(scenario))]
             target_row = int(eval_rows_map[gid][scenario])
             support_rows = np.asarray([eval_rows_map[g][scenario] for g in support_groups], dtype=np.int32)
             target_feature = np.asarray(index.features[target_row], dtype=np.float64).reshape(1, -1)
@@ -154,6 +156,7 @@ def _local_metric_h56(
         "local_support_future_groups_min": int(min(support_sizes)),
         "local_support_future_groups_max": int(max(support_sizes)),
         "target_future_group_excluded": True,
+        "normalization_rows_equal_same_scenario_support_rows": True,
         "utility_used_to_select_support": False,
     }
 
@@ -177,7 +180,9 @@ def run_fold_h56(
         index=index, eval_parents=eval_parents, eval_parent_ids=eval_parent_ids
     )
     require(len(eval_order) >= 33, "H56_TOO_FEW_LOCAL_GROUPS")
-    normalizers = _leave_group_out_normalization_h56(index=index, eval_order=eval_order, eval_rows_map=eval_rows_map)
+    normalizers = _same_scenario_leave_group_out_normalization_h56(
+        index=index, eval_order=eval_order, eval_rows_map=eval_rows_map
+    )
 
     rotation_receipts = {}
     for shift in H5_SHIFTS:
@@ -215,7 +220,7 @@ def run_fold_h56(
         "teacher_kernel_used": False,
         "teacher_support_selection_used": False,
         "local_support_rule": "SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
-        "local_normalization_rule": "ALL_OTHER_EVAL_PARENT_ROWS_TARGET_FUTURE_GROUP_SIX_ROWS_EXCLUDED",
+        "local_normalization_rule": "EXACT_SAME_SCENARIO_LOCAL_SUPPORT_ROWS_TARGET_GROUP_EXCLUDED",
         "utility_read_after_state_distance_only": True,
     }
 
@@ -225,8 +230,8 @@ def _local_gate_h56(rows: Sequence[Mapping[str, Any]], metric: str) -> dict[str,
     positive = sum(bool(x["aligned_positive"]) for x in vals)
     shuffle = sum(bool(x["aligned_gt_shuffle_median"]) for x in vals)
     pairs = sum(int(x["aligned_gt_each_shuffle_count"]) for x in vals)
-    positive_late = all(bool(vals[f-1]["aligned_positive"]) for f in (4,5))
-    shuffle_late = all(bool(vals[f-1]["aligned_gt_shuffle_median"]) for f in (4,5))
+    positive_late = all(bool(vals[f - 1]["aligned_positive"]) for f in (4, 5))
+    shuffle_late = all(bool(vals[f - 1]["aligned_gt_shuffle_median"]) for f in (4, 5))
     supported = bool(positive >= 4 and positive_late and shuffle >= 4 and shuffle_late and pairs >= 20)
     return {
         "local_geometry_supported": supported,
@@ -254,7 +259,7 @@ def _local_gate_h56(rows: Sequence[Mapping[str, Any]], metric: str) -> dict[str,
 def _contrast_gate_h56(rows: Sequence[Mapping[str, Any]], metric: str) -> dict[str, Any]:
     local = [float(x["local_state_metrics"][metric]["aligned_centered_profile_spearman_rho"]) for x in rows]
     forward = [float(x["forward"]["state_metrics"][metric]["aligned_centered_profile_spearman_rho"]) for x in rows]
-    delta = [l-f for l,f in zip(local, forward)]
+    delta = [l - f for l, f in zip(local, forward)]
     count = sum(d > 0.0 for d in delta)
     both_late = bool(delta[3] > 0.0 and delta[4] > 0.0)
     late_mean = float(np.mean(np.asarray(delta[3:5], dtype=np.float64)))
@@ -264,31 +269,47 @@ def _contrast_gate_h56(rows: Sequence[Mapping[str, Any]], metric: str) -> dict[s
         "local_gt_forward_both_late_folds": both_late,
         "late_mean_local_minus_forward_rho": late_mean,
         "contrast_supported": passed,
-        "per_fold_local_minus_forward_rho": {str(i+1): float(delta[i]) for i in range(5)},
+        "per_fold_local_minus_forward_rho": {str(i + 1): float(delta[i]) for i in range(5)},
     }
 
 
 def adjudicate_h56(fold_results: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     rows = sorted(fold_results, key=lambda x: int(x["fold"]))
-    require(tuple(int(x["fold"]) for x in rows) == (1,2,3,4,5), "H56_FOLD_SET_DRIFT")
+    require(tuple(int(x["fold"]) for x in rows) == (1, 2, 3, 4, 5), "H56_FOLD_SET_DRIFT")
     forward_summary = h55.adjudicate_h55([x["forward"] for x in rows])
-    require(forward_summary["classification"] == "MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT", "H56_FORWARD_H55_CLASS_DRIFT")
+    require(
+        forward_summary["classification"] == "MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT",
+        "H56_FORWARD_H55_CLASS_DRIFT",
+    )
     local_gates = {m: _local_gate_h56(rows, m) for m in H56_METRICS}
     contrast = {m: _contrast_gate_h56(rows, m) for m in H56_METRICS}
     market_local = bool(local_gates["MARKET96"]["local_geometry_supported"])
     operator_local = bool(local_gates["OPERATOR48"]["local_geometry_supported"])
     full_local = bool(local_gates["FULL102"]["local_geometry_supported"])
     medium_local = bool(local_gates["MEDIUM48"]["local_geometry_supported"])
-    if market_local and not forward_summary["metric_gates"]["MARKET96"]["metric_transport_supported"] and contrast["MARKET96"]["contrast_supported"]:
+    if (
+        market_local
+        and not forward_summary["metric_gates"]["MARKET96"]["metric_transport_supported"]
+        and contrast["MARKET96"]["contrast_supported"]
+    ):
         classification = "TIME_LOCAL_MARKET_GEOMETRY_EXISTS__CROSS_TIME_NONTRANSFER_SUPPORTED"
-    elif operator_local and not forward_summary["metric_gates"]["OPERATOR48"]["metric_transport_supported"] and not market_local:
+    elif (
+        operator_local
+        and not forward_summary["metric_gates"]["OPERATOR48"]["metric_transport_supported"]
+        and not market_local
+    ):
         classification = "TIME_LOCAL_OPERATOR_GEOMETRY_EXISTS__MEDIUM48_DEGRADES_CROSS_TIME_COMPOSITION"
     elif (not full_local) and (not market_local) and (not operator_local) and (not medium_local):
         classification = "STATE_UTILITY_GEOMETRY_WEAK_EVEN_TIME_LOCAL"
     else:
         classification = "LOCAL_VS_FORWARD_GEOMETRY_MIXED_UNRESOLVED"
     identities = all(
-        all(r["target_feature_multiset_preserved"] is True and r["train_features_byte_identical"] is True and r["scenario_identity_preserved"] is True for r in x["rotation_receipts"].values())
+        all(
+            r["target_feature_multiset_preserved"] is True
+            and r["train_features_byte_identical"] is True
+            and r["scenario_identity_preserved"] is True
+            for r in x["rotation_receipts"].values()
+        )
         for x in rows
     )
     return {
