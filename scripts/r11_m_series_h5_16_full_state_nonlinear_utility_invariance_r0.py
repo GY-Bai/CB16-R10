@@ -9,6 +9,8 @@ import platform
 import subprocess
 from typing import Any
 
+import numpy as np
+
 from cb16_local_opt.full_state_nonlinear_utility_invariance_h516 import (
     H516_DIM,
     H516_PAIRS,
@@ -101,7 +103,7 @@ def blocked_classification(exc: RuntimeError) -> str | None:
         return "EXECUTION_BLOCKED__PARENT_AUTHORITY_DRIFT"
     if code.startswith(("H516_FEATURE_DIM", "H516_STATE_ROW_DRIFT", "H516_UTILITY_ROW_DRIFT", "H516_CENTERING_DRIFT", "H516_X_SHAPE", "H516_Y_SHAPE", "H516_DATA_NONFINITE")):
         return "EXECUTION_BLOCKED__STATE_UTILITY_OR_ACTION_GRID_DRIFT"
-    if code.startswith(("H516_GROUP_CLOCK_DRIFT", "H516_SCENARIO_COUNT_DRIFT", "H516_GROUP_ORDER_DRIFT", "H516_TOO_FEW_CLOCKS", "H516_EMPTY_CLOCK_BLOCK", "H516_CLOCK_PARTITION", "H516_LOCAL_EMPTY_SPLIT", "H516_POOLED_CLOCK_MULTI_ENV", "H516_CLOCK_ENV_DRIFT", "H516_SUPPORT_CLASSIFIER_TRAIN_CLASS_DRIFT")):
+    if code.startswith(("H516_GROUP_CLOCK_DRIFT", "H516_SCENARIO_COUNT_DRIFT", "H516_GROUP_ORDER_DRIFT", "H516_DEPENDENCE_FOLD_SET_DRIFT", "H516_TOO_FEW_CLOCKS", "H516_EMPTY_CLOCK_BLOCK", "H516_CLOCK_PARTITION", "H516_LOCAL_EMPTY_SPLIT", "H516_POOLED_CLOCK_MULTI_ENV", "H516_CLOCK_ENV_DRIFT", "H516_SUPPORT_CLASSIFIER_TRAIN_CLASS_DRIFT")):
         return "EXECUTION_BLOCKED__DEPENDENCE_CLOCK_OR_SCENARIO_DRIFT"
     if code.startswith(("H516_NEGATIVE_CONTROL_IDENTITY", "H516_NEGATIVE_CONTROL_INDEX_IDENTITY", "H516_FAKE_ENV_SHIFT_IDENTITY_INDEX", "H516_FAKE_ENV_LABEL_IDENTITY", "H516_FAKE_ENV_MARGINAL_DRIFT")):
         return "EXECUTION_BLOCKED__NEGATIVE_CONTROL_IDENTITY"
@@ -155,13 +157,11 @@ def main() -> int:
                 "utility_dimension": int(d["utility_dimension"]),
                 "first_timestamp_ms": int(d["timestamps_ms"][0]),
                 "last_timestamp_ms": int(d["timestamps_ms"][-1]),
-                "timestamps_nondecreasing": bool(np.all(np.diff(d["timestamps_ms"]) >= 0)) if False else True,
+                "timestamps_nondecreasing": bool(np.all(np.diff(np.asarray(d["timestamps_ms"], dtype=np.int64)) >= 0)),
             }
             for d in datasets
         ]
-        # build_fold_dataset_h516 already validates chronological (timestamp,gid) order.
-        for r in dataset_receipts:
-            r["timestamps_nondecreasing"] = True
+        require(all(r["timestamps_nondecreasing"] for r in dataset_receipts), "H516_GROUP_ORDER_DRIFT:RECEIPT")
 
         local_results = [run_local_arm_h516(d) for d in datasets]
         for a, b in H516_PAIRS:
