@@ -1,0 +1,204 @@
+name: CB16 R11 M-Series H5.15 Full-State Linear Offset Transport R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-15-full-state-linear-offset-transport-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_GATE_V1.json
+      - cb16_local_opt/full_state_linear_offset_transport_h515.py
+      - tests/test_full_state_linear_offset_transport_h515.py
+      - scripts/r11_m_series_h5_15_full_state_linear_offset_transport_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-15-full-state-linear-offset-transport-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-15-full-state-linear:
+    name: H5.15 bounded full-state linear forward transport probe
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify preregistration authority and immutable scientific inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor bfb87e9e1129f533939ba15c8bcba4de52d6d909 99509da77e0e09ac91a15f6940fbcb4e1dc69c4d
+          git merge-base --is-ancestor 99509da77e0e09ac91a15f6940fbcb4e1dc69c4d HEAD
+          test "$(git rev-parse 99509da77e0e09ac91a15f6940fbcb4e1dc69c4d:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_GATE_V1.json)" = "1d73d20b6863629cb11e864bbaa3c09dc524c935"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_GATE_V1.json)" = "1d73d20b6863629cb11e864bbaa3c09dc524c935"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_14_TARGET_OM_CONCORDANCE_OCCUPANCY_R0_ADJUDICATION_V1.json)" = "e02d453de9a898f4f96d3047cb7d22cae8ff7e8f"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_13_WITHIN_CELL_PARTIAL_MAP_TRANSPORT_R0_ADJUDICATION_V1.json)" = "0851985984839fa880e0014e85ab725f52c2b0f4"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_12R_ACCOUNT6_IPF_EFFECTIVE_COMMON_MEASURE_R0_ADJUDICATION_V1.json)" = "4c9887a6649c0009d98507ffcd0f80c1ee0fd017"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/full_state_linear_offset_transport_h515.py)" = "a03cca00fed8e366b27ff52e67189d7c70ab5d36"
+          test "$(git rev-parse HEAD:tests/test_full_state_linear_offset_transport_h515.py)" = "97e5799e886a96149fbc203d842cf8be4ae5028e"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_15_full_state_linear_offset_transport_r0.py)" = "353cd2db99cf03e1538c3444d3cbfcfd3f16451a"
+          test "$(git rev-parse HEAD:cb16_local_opt/account6_ipf_effective_common_measure_h512r.py)" = "a2950648617ad5327658e0fa1379444b5cb51015"
+          test "$(git rev-parse HEAD:cb16_local_opt/ipf_effective_common_measure_h5112.py)" = "e23e939fa43208a948ecf9a3a108fea1831777ce"
+          test "$(git rev-parse HEAD:cb16_local_opt/common_support_rank_geometry_decomposition_h511.py)" = "918f98d499ff5ed2f36e7d6a6bf3268fca37c27c"
+          test "$(git rev-parse HEAD:cb16_local_opt/operator_conditional_medium_geometry_h58.py)" = "aaddbad059c7262a8137db87bee25d38c07afd83"
+          test "$(git rev-parse HEAD:cb16_local_opt/time_local_vs_forward_geometry_contrast_h56.py)" = "a264ff21d0447527c4dda06ee8fd63cf20207daf"
+          test "$(git rev-parse HEAD:cb16_local_opt/state_utility_geometry_transport_audit_h55.py)" = "1dd00ea9b40b8da4061c0983fc44fb2307c72587"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h515_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h515_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5.15 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h515_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/full_state_linear_offset_transport_h515.py \
+            tests/test_full_state_linear_offset_transport_h515.py \
+            scripts/r11_m_series_h5_15_full_state_linear_offset_transport_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_full_state_linear_offset_transport_h515.py \
+            tests/test_target_om_concordance_occupancy_h514.py \
+            tests/test_within_cell_partial_map_transport_h513.py \
+            tests/test_account6_ipf_effective_common_measure_h512r.py \
+            tests/test_ipf_effective_common_measure_h5112.py \
+            tests/test_h511_effective_measure_closure_h5111.py \
+            tests/test_common_support_rank_geometry_decomposition_h511.py \
+            tests/test_medium48_strict_clock_halfblock_replication_h5101.py \
+            tests/test_medium48_temporal_halfblock_stability_h510.py \
+            tests/test_medium48_antialignment_breadth_h59.py \
+            tests/test_operator_conditional_medium_geometry_h58.py \
+            tests/test_medium48_relational_composition_falsification_h57.py \
+            tests/test_time_local_vs_forward_geometry_contrast_h56.py \
+            tests/test_state_utility_geometry_transport_audit_h55.py \
+            tests/test_state_utility_geometry_transport_audit_h55_clarified.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute preregistered H5.15 full-state linear transport probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h515_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h515-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h515_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_15_full_state_linear_offset_transport_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_RESULT.json"
+
+      - name: Verify H5.15 receipt and authority guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h515_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_R0_RESULT_V1',x
+          assert x['status']=='H5_15_FULL_STATE_LINEAR_OFFSET_TRANSPORT_EXECUTION_COMPLETE',x
+          assert x['repo']['preregistration_commit']=='99509da77e0e09ac91a15f6940fbcb4e1dc69c4d',x['repo']
+          assert x['repo']['immutable_blobs']['gate']=='1d73d20b6863629cb11e864bbaa3c09dc524c935',x['repo']
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          allowed={
+            'FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_SUPPORTED',
+            'FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_NOT_SUPPORTED',
+            'FULL_102D_LINEAR_CURRENT_STATE_OFFSET_TRANSPORT_PARTIAL_OR_MIXED',
+            'EXECUTION_BLOCKED__H5_14_H5_13_H5_12R_PARENT_REPRODUCTION_FAILED',
+            'EXECUTION_BLOCKED__FULL_STATE_DIMENSION_OR_LAYOUT_DRIFT',
+            'EXECUTION_BLOCKED__RIDGE_NUMERICAL_FAILURE',
+            'EXECUTION_BLOCKED__DEPENDENCE_OR_SCENARIO_BUNDLE_DRIFT',
+          }
+          assert x['summary']['classification'] in allowed,x['summary']
+          if not x['summary']['classification'].startswith('EXECUTION_BLOCKED__'):
+              assert x['parent_reproduction']['passed'] is True,x['parent_reproduction']
+              assert x['parent_reproduction']['max_aligned_abs_error']<=1e-12,x
+              assert x['parent_reproduction']['max_null_median_abs_error']<=1e-12,x
+              assert x['summary']['dependence_bundle_gate_passed'] is True,x['summary']
+              assert x['summary']['valid_pair_count']==4,x['summary']
+              assert x['summary']['full_state_dimension']==102,x['summary']
+              assert x['summary']['ridge_alpha']==1.0,x['summary']
+              assert x['summary']['negative_control_shifts']==[1,7,13,23,31],x['summary']
+              assert len(x['pair_results'])==4,x
+              assert len(x['dataset_receipts'])==4,x
+              for r in x['dataset_receipts']:
+                  assert r['dimension']==102,r
+                  assert r['side_a_aligned_reproduction_error']<=1e-12,r
+                  assert r['side_b_aligned_reproduction_error']<=1e-12,r
+                  assert r['side_a_null_median_reproduction_error']<=1e-12,r
+                  assert r['side_b_null_median_reproduction_error']<=1e-12,r
+              for p in x['pair_results']:
+                  assert len(p['shift_controls'])==5,p
+                  assert len(p['aligned_model']['predicted_null_mean_by_shift_b'])==5,p
+          g=x['semantic_guards']
+          assert g['alpha_or_model_family_searched'] is False,g
+          assert g['feature_subselection_ablation_or_reweighting_searched'] is False,g
+          assert g['nonlinear_or_interaction_model_used'] is False,g
+          assert g['calendar_or_fold_id_input_used'] is False and g['realized_future_or_utility_input_used'] is False,g
+          assert g['teacher_or_student_output_input_used'] is False,g
+          assert g['structured_null_changed'] is False and g['h5_12r_candidate_measure_changed'] is False,g
+          assert g['teacher_changed'] is False and g['student_changed'] is False and g['canonical_architecture_changed'] is False,g
+          assert g['learned_router_or_gate_created'] is False and g['time_or_regime_gate_created'] is False,g
+          assert g['fresh_market_data_downloaded'] is False and g['final_holdout_payload_opened'] is False,g
+          assert g['r7_candidate_evaluated'] is False and g['champion_promoted'] is False,g
+          print(json.dumps({'classification':x['summary']['classification'],'summary':x['summary'],'next_legal_step':x['next_legal_step']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5.15 evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-15-full-state-linear-offset-transport-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h515_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h515_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h515-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: error
+          retention-days: 30
