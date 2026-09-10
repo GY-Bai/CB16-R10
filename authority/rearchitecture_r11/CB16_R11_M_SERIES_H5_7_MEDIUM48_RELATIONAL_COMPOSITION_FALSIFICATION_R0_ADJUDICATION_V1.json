@@ -1,0 +1,196 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_ADJUDICATION_V1",
+  "stage": "R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_ADJUDICATION",
+  "status": "ADJUDICATED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "source": {
+    "parent_h5_6_adjudication_commit": "995fc53389646900e2033d74c4b4d6c370e92780",
+    "parent_h5_6_adjudication_blob": "de6b2c53ff08b98f2232989dfd368dfe7ffa1998",
+    "preregistration_commit": "d5232fef2ff2fd557bb9527704c30e294f7b4aea",
+    "gate_blob": "e1e69586da3c0cce8a2dda8270348bb558d750b3",
+    "implementation_branch": "ai/m-series-h5-7-medium48-relational-composition-falsification-r0",
+    "execution_head": "36315a6c32748a26f73ffb72ca7a4fce1c5c23f5",
+    "github_actions_run_id": 34488683689,
+    "github_actions_conclusion": "success",
+    "artifact_id": 10157318972,
+    "artifact_digest": "sha256:22d631236023b4b1e54dbc6029415a1fb3ec6ad1b26c2feb5d25226b8af529e0",
+    "result_file_sha256": "9e0aaa895e96712c0f5918bd2ec829e24e3972ca83dc5deb84e125d0c3ed2fce",
+    "result_schema": "CB16_R11_M_SERIES_H5_7_MEDIUM48_RELATIONAL_COMPOSITION_FALSIFICATION_R0_RESULT_V1"
+  },
+  "execution_history": {
+    "initial_engineering_run_id": 34487876764,
+    "initial_execution_head": "531d4038feacadebdbda033193c65bab24c7f686",
+    "initial_status": "EXECUTION_BLOCKED",
+    "initial_failure": "H57_TAUGAP_FRACTION_RANGE",
+    "repair_commit": "36315a6c32748a26f73ffb72ca7a4fce1c5c23f5",
+    "repair_scope": "NUMERICAL_BOUNDARY_TOLERANCE_AND_CLIP_ONLY__NO_PREREGISTRATION_STATISTIC_NULL_GATE_OR_CLASSIFICATION_CHANGE",
+    "initial_run_scientific_authority": false,
+    "valid_scientific_execution_run_id": 34488683689
+  },
+  "support": {
+    "classification": "CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT",
+    "outer_folds": 5,
+    "train_dependence_groups": 1619,
+    "train_parent_contexts": 9714,
+    "train_branch_samples": 87426,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "raw_market_payload_used": false,
+    "fresh_market_data_downloaded": false,
+    "final_holdout_opened": false,
+    "r7_candidate_evaluated": false
+  },
+  "protocol_receipt": {
+    "primary_measure": "TAU_GAP_PER_ANCHOR_THEN_SCENARIO_MEAN_WITHIN_FUTURE_GROUP_THEN_EQUAL_WEIGHT_FUTURE_GROUP_MEAN",
+    "time_local_support": "EXACT_H5_6_SAME_EVAL_BLOCK_OTHER_FUTURE_GROUPS_SAME_SCENARIO_TARGET_GROUP_EXCLUDED",
+    "local_normalization": "EXACT_H5_6_SAME_SCENARIO_LOCAL_SUPPORT_ROWS_TARGET_GROUP_EXCLUDED",
+    "medium_null": "ROTATE_ONLY_MEDIUM48_SQUARED_DISTANCE_CONTRIBUTION_ACROSS_SELECTED_SUPPORT_IDENTITIES",
+    "shifts": [1, 7, 13, 23, 31],
+    "medium_distance_multiset_preserved_per_anchor": true,
+    "synthetic_feature_vectors_created": false,
+    "formal_permutation_p_value_claim": false,
+    "tau_gap_positive_affine_reference_scale_identity": true,
+    "all_geometry_identity_guards_pass": true
+  },
+  "adjudication": {
+    "classification": "MEDIUM48_RELATIONAL_COMPOSITION_MIXED_UNRESOLVED",
+    "conclusion": "H5_7_MEDIUM48_RELATIONAL_COMPOSITION_MIXED_UNRESOLVED",
+    "aligned_medium_beats_structured_null": true,
+    "aligned_medium_worse_than_structured_null": false,
+    "true_market_beats_operator": false,
+    "true_market_worse_than_operator": false,
+    "key_result": "MEDIUM48_CORRECT_RELATIONAL_ALIGNMENT_HAS_ALIGNMENT_SPECIFIC_UTILITY_GEOMETRY_VALUE__BUT_EQUAL_WEIGHT_MARKET96_COMPOSITION_DOES_NOT_STABLY_BEAT_OR_STABLY_TRAIL_OPERATOR48_ACROSS_FOLDS"
+  },
+  "preregistered_gates": {
+    "aligned_medium_beats_null": {
+      "passed": true,
+      "fold_count": 4,
+      "both_late_folds": true,
+      "pairwise_count_of_25": 20,
+      "per_fold_true_minus_null_median": {
+        "fold_1": -0.003293018561314174,
+        "fold_2": 0.014098708681342775,
+        "fold_3": 0.0062657809561825015,
+        "fold_4": 0.013880319287442131,
+        "fold_5": 0.007147664921036859
+      }
+    },
+    "aligned_medium_worse_than_null": {
+      "passed": false,
+      "fold_count": 1,
+      "both_late_folds": false,
+      "pairwise_count_of_25": 5
+    },
+    "true_market_beats_operator": {
+      "passed": false,
+      "fold_count": 3,
+      "both_late_folds": true,
+      "per_fold_true_market_minus_operator": {
+        "fold_1": -0.004376945127618732,
+        "fold_2": 0.015475604091857977,
+        "fold_3": -0.006539332953065559,
+        "fold_4": 0.005129614650288213,
+        "fold_5": 0.005258554082620864
+      }
+    },
+    "true_market_worse_than_operator": {
+      "passed": false,
+      "fold_count": 2,
+      "both_late_folds": false
+    }
+  },
+  "fold_receipts": {
+    "fold_1": {
+      "eval_dependence_groups": 290,
+      "tau_operator": 0.028419794659331466,
+      "tau_true_market": 0.024042849531712734,
+      "tau_null_median": 0.02733586809302691,
+      "true_market_minus_operator": -0.004376945127618732,
+      "true_market_minus_null_median": -0.003293018561314174,
+      "h5_6_spearman_operator": 0.01575141112377431,
+      "h5_6_spearman_true_market": -0.002233124801994658
+    },
+    "fold_2": {
+      "eval_dependence_groups": 274,
+      "tau_operator": 0.035002874276689924,
+      "tau_true_market": 0.0504784783685479,
+      "tau_null_median": 0.036379769687205125,
+      "true_market_minus_operator": 0.015475604091857977,
+      "true_market_minus_null_median": 0.014098708681342775,
+      "h5_6_spearman_operator": 0.03032939047248469,
+      "h5_6_spearman_true_market": 0.07233633324106743
+    },
+    "fold_3": {
+      "eval_dependence_groups": 280,
+      "tau_operator": 0.023751285610212572,
+      "tau_true_market": 0.017211952657147013,
+      "tau_null_median": 0.010946171700964511,
+      "true_market_minus_operator": -0.006539332953065559,
+      "true_market_minus_null_median": 0.0062657809561825015,
+      "h5_6_spearman_operator": 0.017185161350840326,
+      "h5_6_spearman_true_market": -0.04873122206645479
+    },
+    "fold_4": {
+      "eval_dependence_groups": 280,
+      "tau_operator": 0.024585583715390064,
+      "tau_true_market": 0.029715198365678278,
+      "tau_null_median": 0.015834879078236146,
+      "true_market_minus_operator": 0.005129614650288213,
+      "true_market_minus_null_median": 0.013880319287442131,
+      "h5_6_spearman_operator": 0.02214368071046783,
+      "h5_6_spearman_true_market": 0.03523866193417879
+    },
+    "fold_5": {
+      "eval_dependence_groups": 280,
+      "tau_operator": 0.020541138584028267,
+      "tau_true_market": 0.02579969266664913,
+      "tau_null_median": 0.01865202774561227,
+      "true_market_minus_operator": 0.005258554082620864,
+      "true_market_minus_null_median": 0.007147664921036859,
+      "h5_6_spearman_operator": 0.03289450105485066,
+      "h5_6_spearman_true_market": 0.038117073490647906
+    }
+  },
+  "mechanistic_interpretation": {
+    "supported": [
+      "MEDIUM48_CORRECT_RELATIONAL_ALIGNMENT_IS_NOT_EQUIVALENT_TO_GENERIC_48D_NUISANCE_GEOMETRY__TRUE_MARKET96_BEATS_THE_MEDIUM_DISTANCE_MULTISET_NULL_BY_THE_PREREGISTERED_4_OF_5_BOTH_LATE_AND_20_OF_25_GATE",
+      "MEDIUM48_CAN_CONTRIBUTE_REAL_TASK_RELEVANT_NEIGHBOR_ORDERING_INFORMATION_CONDITIONAL_ON_THE_OPERATOR48_COMPOSITE_CONTEXT_AT_THE_LEVEL_TESTED_BY_THIS_STRUCTURED_NEGATIVE_CONTROL",
+      "TRUE_MARKET96_DOES_NOT_STABLY_BEAT_OPERATOR48__THE_SIGN_OF_TRUE_MARKET_MINUS_OPERATOR_IS_NEGATIVE_IN_FOLDS_1_AND_3_AND_POSITIVE_IN_FOLDS_2_4_5",
+      "FOLD_3_IS_THE_CLEANEST_COUNTEREXAMPLE_TO_THE_HYPOTHESIS_THAT_MEDIUM48_IS_SIMPLY_BAD_INFORMATION__TRUE_MARKET96_IS_BELOW_OPERATOR48_YET_ABOVE_ALL_FIVE_MEDIUM_RELATIONAL_NULLS",
+      "H5_6_COMPOSITION_DEGRADATION_CANNOT_BE_REDUCED_TO_DIMENSION_COUNT_ALONE__THE_OPERATOR_DUPLICATE_96D_IDENTITY_IS_EXACT_AND_TRUE_MARKET_DISTANCE_DECOMPOSITION_GUARDS_PASS",
+      "THE_CURRENT_FRONTIER_IS_COMPOSITIONAL_EXTRACTION_OF_INCREMENTAL_MEDIUM48_INFORMATION_WITH_INCUMBENT_OPERATOR48_PRESERVATION__NOT_MEDIUM48_DELETION"
+    ],
+    "not_supported": [
+      "MEDIUM48_RELATIONAL_STRUCTURE_SPECIFICALLY_HARMS_COMPOSITE_GEOMETRY",
+      "MEDIUM48_IS_USELESS",
+      "MEDIUM48_SHOULD_BE_DELETED_OR_CANONICALLY_DOWNWEIGHTED",
+      "TRUE_MARKET96_STABLY_BEATS_OPERATOR48",
+      "TRUE_MARKET96_STABLY_TRAILS_OPERATOR48",
+      "THE_STRUCTURED_DISTANCE_SHIFT_NULL_IS_A_FORMAL_CONDITIONAL_RANDOMIZATION_OR_PERMUTATION_TEST",
+      "MARKET_INFORMATION_IS_QUALIFIED",
+      "CANONICAL_ARCHITECTURE_CHANGE",
+      "TEACHER_CHANGE",
+      "STUDENT_CHANGE",
+      "NEW_DIRECTION_LOSS",
+      "R7_EVALUATION",
+      "FINAL_OPENING"
+    ],
+    "updated_failure_view": "H5_7_REJECTS_THE_SIMPLE_GENERIC_NUISANCE_OR_MEDIUM_IS_BAD_EXPLANATION_AS_A_COMPLETE_ACCOUNT__ALIGNED_MEDIUM48_CONTAINS_REPEATABLE_RELATIONAL_UTILITY_INFORMATION__BUT_NAIVE_EQUAL_WEIGHT_EUCLIDEAN_COMPOSITION_EXTRACTS_THAT_VALUE_UNSTABLY_ACROSS_TIME_BLOCKS"
+  },
+  "authority": {
+    "market_information_verdict": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "organ_weight_tuning_authorized": false,
+    "distance_metric_tuning_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  },
+  "next_legal_step": "FREEZE_H5_7_RESULT__NEXT_EXPERIMENT_IF_AUTHORIZED_SHOULD_TEST_OPERATOR_CONDITIONAL_INCREMENTAL_MEDIUM48_UTILITY_GEOMETRY_WITHOUT_TUNING_FUSION_WEIGHTS__A_SEPARATE_PREREGISTRATION_IS_REQUIRED"
+}
