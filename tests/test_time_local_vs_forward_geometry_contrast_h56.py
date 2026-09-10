@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import inspect
+from types import SimpleNamespace
 
 import numpy as np
 
+from cb16_local_opt.teacher_temporal_transport_audit_h5 import H5_SCENARIOS
 from cb16_local_opt.time_local_vs_forward_geometry_contrast_h56 import (
     H56_METRICS,
     _rho_and_ratio_h56,
+    _same_scenario_leave_group_out_normalization_h56,
     adjudicate_h56,
     run_fold_h56,
 )
@@ -30,6 +33,34 @@ def test_rho_zero_information_convention_matches_h55_clarification():
     assert ratio == 1.0
     assert state_deg is True
     assert util_deg is False
+
+
+def test_local_normalization_uses_only_same_scenario_support_and_excludes_target_group():
+    groups = [f"g{i:02d}" for i in range(33)]
+    rows = {}
+    features = np.zeros((33 * len(H5_SCENARIOS), 102), dtype=np.float64)
+    cursor = 0
+    for gi, gid in enumerate(groups):
+        rows[gid] = {}
+        for si, scenario in enumerate(H5_SCENARIOS):
+            rows[gid][scenario] = cursor
+            # Scenario-specific offset is deliberately enormous; mixing scenarios would fail this test.
+            features[cursor, 0] = 10000.0 * si + float(gi)
+            features[cursor, 1] = 1000.0 * si + 2.0 * float(gi)
+            cursor += 1
+    index = SimpleNamespace(features=features)
+    norm = _same_scenario_leave_group_out_normalization_h56(
+        index=index, eval_order=groups, eval_rows_map=rows
+    )
+    scenario0 = H5_SCENARIOS[0]
+    mean, std = norm[(groups[0], scenario0)]
+    expected = np.arange(1.0, 33.0)
+    assert abs(float(mean[0]) - float(np.mean(expected))) <= 1e-12
+    assert abs(float(std[0]) - float(np.std(expected, ddof=0))) <= 1e-12
+    assert abs(float(mean[1]) - float(np.mean(2.0 * expected))) <= 1e-12
+    scenario1 = H5_SCENARIOS[1]
+    mean1, _ = norm[(groups[0], scenario1)]
+    assert abs(float(mean1[0]) - (10000.0 + float(np.mean(expected)))) <= 1e-12
 
 
 def _metric(local_rho: float, shuf: tuple[float, float, float, float, float]):
@@ -75,7 +106,6 @@ def _row(fold: int, market_local: float, operator_local: float = 0.03):
 
 
 def test_adjudication_can_identify_local_market_geometry_with_forward_failure(monkeypatch):
-    # Freeze the forward H5.5 summary shape; this test isolates H5.6 classification logic.
     import cb16_local_opt.time_local_vs_forward_geometry_contrast_h56 as h56
     monkeypatch.setattr(h56.h55, "adjudicate_h55", lambda rows: {
         "classification":"MARKET_STATE_UTILITY_GEOMETRY_TEMPORAL_NONTRANSPORT",
