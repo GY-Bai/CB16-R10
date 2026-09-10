@@ -123,7 +123,7 @@ jobs:
           PY
 
       - name: Upload H5.5 geometry evidence
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-m-series-h5-5-state-utility-geometry-transport-audit-r0-${{ github.run_attempt }}
           path: ${{ runner.temp }}/cb16-r11-m-series-h55-${{ github.run_id }}-${{ github.run_attempt }}/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_RESULT.json
