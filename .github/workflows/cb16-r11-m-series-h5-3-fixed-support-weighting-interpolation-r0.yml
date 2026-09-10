@@ -1,0 +1,195 @@
+name: CB16 R11 M-Series H5.3 Fixed Support Weighting Interpolation Audit R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-3-fixed-support-weighting-interpolation-r0-exec
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_ADJUDICATION_V1.json
+      - cb16_local_opt/fixed_support_weighting_interpolation_audit_h53.py
+      - tests/test_fixed_support_weighting_interpolation_audit_h53.py
+      - scripts/r11_m_series_h5_3_fixed_support_weighting_interpolation_audit_r0.py
+      - .github/workflows/cb16-r11-m-series-h5-3-fixed-support-weighting-interpolation-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-3-weighting-audit:
+    name: H5.3 Student-free fixed-support weighting audit
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable H5.3 preregistration and parent authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor a01f1c3ceadff3926b9cdc58b675606dce48fc4f HEAD
+          git merge-base --is-ancestor ea3e8a7bbab70ee8efea2db0e06c24e6f6600383 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_GATE_V1.json)" = "91943883d4a2f4511613d81861922536464b8b11"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_2_MEDIUM48_SUPPORT_SELECTION_CAUSAL_AUDIT_R0_ADJUDICATION_V1.json)" = "d77d9aaf54b093d39baf745681118136cff6a45c"
+          test "$(git rev-parse HEAD:cb16_local_opt/fixed_support_weighting_interpolation_audit_h53.py)" = "338a5b29f90685467bc7afd139a0963fe4e51cb1"
+          test "$(git rev-parse HEAD:tests/test_fixed_support_weighting_interpolation_audit_h53.py)" = "00f05f3e16d367616ad5714bcb2159c10e94c3a6"
+          test "$(git rev-parse HEAD:scripts/r11_m_series_h5_3_fixed_support_weighting_interpolation_audit_r0.py)" = "aa7291b98a86909bd0f0b15df32d020d6f077b56"
+          test "$(git rev-parse HEAD:cb16_local_opt/medium48_support_selection_causal_audit_h52.py)" = "eadcfc071a58f5b3825d224a067bac15242d2a58"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_failure_localization_h51_batch_geometry.py)" = "9b91ca1d2b8cae05cdf28a7e04ccbdf1698fadf7"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_failure_localization_h51.py)" = "8dba35e5c54c8bc9d8eeb97ea6d3aec373a09ccc"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_balanced_runtime_r11.py)" = "e834facdbf2d08de25e3cab917f0faf587f3386e"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/r11_teacher_authority_candidate.py)" = "6e77e8f989a6d4358a7feac99c269db7b7d6549e"
+          test "$(git rev-parse HEAD:cb16_local_opt/probabilistic_teacher_r6.py)" = "3de3092d244c3fd315950c9f8b0bf4d78c50ee2b"
+          test "$(git rev-parse HEAD:cb16_local_opt/r102_evidence_cache.py)" = "91fb73565ec60f66bf4232957f9b9b2f88cc3cfe"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h53_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h53_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run H5.3 unit and inherited regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h53_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/fixed_support_weighting_interpolation_audit_h53.py \
+            tests/test_fixed_support_weighting_interpolation_audit_h53.py \
+            scripts/r11_m_series_h5_3_fixed_support_weighting_interpolation_audit_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_fixed_support_weighting_interpolation_audit_h53.py \
+            tests/test_medium48_support_selection_causal_audit_h52.py \
+            tests/test_teacher_failure_localization_h51.py \
+            tests/test_teacher_temporal_transport_audit_h5.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_independent_purge_alignment_replication_r5.py \
+            tests/test_r11_teacher_balanced_binding.py
+
+      - name: Execute preregistered H5.3 weighting audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h53_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-h53-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_h53_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_h5_3_fixed_support_weighting_interpolation_audit_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_RESULT.json"
+
+      - name: Verify H5.3 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_h53_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_R0_RESULT_V1',x
+          assert x['status']=='H5_3_FIXED_SUPPORT_WEIGHTING_INTERPOLATION_AUDIT_COMPLETE',x
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          r=x['runtime_identity']
+          assert r['student_training'] is False and r['student_inference'] is False,r
+          assert r['production_teacher_changed'] is False and r['support_reselection_in_shadow_arms'] is False,r
+          assert r['selected_parent_identity_fixed_across_all_arms'] is True,r
+          assert r['eval_future_utility_used_for_weight_computation'] is False,r
+          p=x['protocol']
+          assert p['support_classification']=='CONSUMED_TRAIN_ONLY_MECHANISTIC_SUPPORT__NOT_INDEPENDENT_MARKET_SUPPORT',p
+          assert p['outer_folds']==5 and p['primary_late_folds']==[4,5] and p['train_to_eval_gap_hours_each_fold']==256,p
+          assert p['selected_support_membership_fixed'] is True and p['selected_nearest_parent_rows_fixed'] is True,p
+          assert p['frozen_distance_temperature_used'] is True and p['teacher_config_tuning'] is False,p
+          assert p['fresh_market_data_downloaded'] is False and p['final_holdout_opened'] is False and p['r7_candidate_evaluated'] is False,p
+          assert len(x['folds'])==5,x
+          expected={'FULL102_CANONICAL','DROP_MEDIUM48_WEIGHT_ONLY','DROP_OPERATOR48_WEIGHT_ONLY','UNIFORM_WEIGHT_FIXED_SUPPORT'}
+          for f in x['folds']:
+              assert f['fold'] in [1,2,3,4,5],f
+              assert set(f['arms'])==expected,f
+              assert f['full102_frozen_teacher_qscore_identity_guard']=='PASS',f
+              assert f['full102_support_hash_identity_guard']=='PASS',f
+              assert f['selected_parent_identity_across_all_arms_guard']=='PASS',f
+              for a in f['arms'].values():
+                  for k in ('qscore','mean_utility_mse','coverage_10_90','coverage_05_95'):
+                      assert math.isfinite(float(a[k])),(k,a)
+                  assert float(a['qscore'])>=0.0,a
+              assert set(f['weight_total_variation_vs_full102'])==expected-{'FULL102_CANONICAL'},f
+              for v in f['weight_total_variation_vs_full102'].values():
+                  assert math.isfinite(float(v)) and float(v)>=0.0,v
+          s=x['h5_3_summary']
+          assert s['classification'] in {'MEDIUM48_WEIGHTING_PRIMARY','BROAD_KERNEL_WEIGHTING_FAILURE','OPERATOR48_WEIGHTING_PRIMARY','H5_3_WEIGHTING_INTERPOLATION_UNRESOLVED'},s
+          assert s['all_identity_guards_pass'] is True,s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False,s
+          assert s['teacher_change_authorized'] is False and s['student_change_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['student_trained'] is False and g['student_inference_used'] is False,g
+          assert g['production_teacher_changed'] is False and g['teacher_hyperparameter_tuned'] is False,g
+          assert g['support_reselected_in_shadow_arms'] is False and g['eval_future_utility_used_to_compute_weights'] is False,g
+          assert g['new_direction_loss_created'] is False and g['canonical_generation_advanced'] is False,g
+          assert g['champion_promoted'] is False and g['production_cutover'] is False,g
+          assert g['market_information_verdict_reopened'] is False and g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({
+              'status':x['status'],'classification':s['classification'],'conclusion':s['conclusion'],
+              'drop_medium48_both_late':s['drop_medium48_weight_beats_full102_both_late_folds'],
+              'drop_operator48_both_late':s['drop_operator48_weight_beats_full102_both_late_folds'],
+              'uniform_both_late':s['uniform_weight_beats_full102_both_late_folds'],
+              'all_identity_guards_pass':s['all_identity_guards_pass'],
+              'per_fold':s['per_fold'],'next_legal_step':x['next_legal_step']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5.3 audit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-3-fixed-support-weighting-interpolation-audit-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h53_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h53_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-h53-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
