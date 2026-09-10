@@ -1,0 +1,111 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_8_OPERATOR_CONDITIONAL_MEDIUM48_GEOMETRY_R0_GATE_V1",
+  "stage": "R11_M_SERIES_H5_8_OPERATOR_CONDITIONAL_MEDIUM48_GEOMETRY_R0",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "h5_7_adjudication_commit": "d6699197758fb408a2c64c0e9260b971b37d2fcc",
+    "h5_7_adjudication_blob": "a999a766b6dd534c51ce088345bfb7c77576b19c",
+    "h5_7_conclusion": "H5_7_MEDIUM48_RELATIONAL_COMPOSITION_MIXED_UNRESOLVED",
+    "h5_7_market_below_operator_folds": [1, 3]
+  },
+  "question": "After conditioning out Operator48 distance ranking, does correctly aligned Medium48 retain incremental monotonic geometry to centered realized 9-action utility-profile distance, especially in the H5.7 folds where naive Market96 composition fell below Operator48?",
+  "scope": {
+    "support": "EXACT_H5_6_H5_7_TIME_LOCAL_EVAL_BLOCKS_AND_SAME_SCENARIO_OTHER_FUTURE_GROUP_SUPPORT__TARGET_GROUP_EXCLUDED",
+    "outer_folds": 5,
+    "all_ten_symbols": true,
+    "student_training": false,
+    "student_inference": false,
+    "teacher_compilation": false,
+    "teacher_kernel_used": false,
+    "teacher_support_selection_used": false,
+    "fusion_weight_search": false,
+    "distance_metric_tuning": false,
+    "fresh_market_data": false,
+    "final_holdout": "SEALED",
+    "r7_candidate": "NOT_EVALUATED"
+  },
+  "frozen_geometry": {
+    "normalization": "EXACT_H5_6_SAME_SCENARIO_LEAVE_TARGET_FUTURE_GROUP_OUT_MEAN_STD__STD_FLOOR_1E_8",
+    "operator_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_OPERATOR48",
+    "medium_distance": "H5_5_STANDARDIZED_RMS_EUCLIDEAN_OVER_MEDIUM48",
+    "utility_distance": "CENTERED_9_ACTION_REALIZED_UTILITY_PROFILE_MSE",
+    "rank_transform": "H5_5_CLARIFIED_AVERAGE_RANKS_CENTERED_AND_UNIT_NORMALIZED",
+    "desired_sign": "POSITIVE"
+  },
+  "primary_statistic": {
+    "name": "OPERATOR_CONDITIONAL_PARTIAL_SPEARMAN",
+    "definition": "FOR_EACH_ANCHOR_AND_SCENARIO_PROJECT_THE_CENTERED_UNIT_RANK_VECTOR_OF_MEDIUM48_DISTANCE_AND_THE_CENTERED_UNIT_RANK_VECTOR_OF_UTILITY_DISTANCE_ORTHOGONALLY_OFF_THE_CENTERED_UNIT_RANK_VECTOR_OF_OPERATOR48_DISTANCE__THEN_TAKE_THE_COSINE_BETWEEN_THE_TWO_RESIDUAL_RANK_VECTORS",
+    "equivalence": "STANDARD_PARTIAL_PEARSON_CORRELATION_APPLIED_TO_SPEARMAN_RANKS",
+    "interpretation_limit": "MEASURES_INCREMENTAL_MONOTONIC_LINEAR_ASSOCIATION_IN_RANK_SPACE__NOT_GENERAL_CONDITIONAL_INDEPENDENCE",
+    "degenerate_policy": "IF_OPERATOR_RANK_IS_DEGENERATE_OR_EITHER_POST_PROJECTION_RESIDUAL_NORM_IS_ZERO_OR_BELOW_1E_12__RETURN_ZERO_INFORMATION_RHO_0",
+    "aggregation": "MEAN_ACROSS_SIX_SCENARIOS_WITHIN_EVAL_FUTURE_GROUP_THEN_EQUAL_WEIGHT_MEAN_ACROSS_EVAL_FUTURE_GROUPS"
+  },
+  "alignment_control": {
+    "shifts": [1, 7, 13, 23, 31],
+    "transform": "FOR_EACH_ANCHOR_AND_SCENARIO_CYCLICALLY_ROTATE_ONLY_THE_MEDIUM48_DISTANCE_VECTOR_ACROSS_THE_ALREADY_SELECTED_SUPPORT_FUTURE_GROUP_IDENTITIES",
+    "operator_distance_unchanged": true,
+    "utility_truth_unchanged": true,
+    "support_identity_set_unchanged": true,
+    "medium_distance_multiset_per_anchor_unchanged": true,
+    "synthetic_feature_vectors_created": false,
+    "formal_exchangeability_or_permutation_p_value_claim": false,
+    "role": "STRUCTURED_ALIGNMENT_NEGATIVE_CONTROL_ONLY"
+  },
+  "global_gate": {
+    "positive_conditional_geometry": "ALIGNED_PARTIAL_RHO_GT_0_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "beats_null_median": "ALIGNED_PARTIAL_RHO_GT_MEDIAN_OF_5_ROTATED_MEDIUM_PARTIAL_RHOS_IN_AT_LEAST_4_OF_5_FOLDS_AND_BOTH_FOLD_4_AND_FOLD_5",
+    "pairwise_null": "ALIGNED_PARTIAL_RHO_GT_EACH_ROTATED_MEDIUM_PARTIAL_RHO_IN_AT_LEAST_20_OF_25_FOLD_X_SHIFT_PAIRS",
+    "operator_conditional_medium_supported": "ALL_THREE_CONDITIONS_ABOVE"
+  },
+  "h5_7_failure_fold_gate": {
+    "frozen_folds": [1, 3],
+    "conditional_value_survives": "ALIGNED_PARTIAL_RHO_GT_0_AND_ALIGNED_PARTIAL_RHO_GT_NULL_MEDIAN_IN_BOTH_FOLD_1_AND_FOLD_3",
+    "conditional_anti_alignment": "ALIGNED_PARTIAL_RHO_LT_0_AND_ALIGNED_PARTIAL_RHO_LT_NULL_MEDIAN_IN_BOTH_FOLD_1_AND_FOLD_3"
+  },
+  "preregistered_classification": {
+    "OPERATOR_CONDITIONAL_MEDIUM_VALUE_SUPPORTED__COMPOSITION_EXTRACTION_BOTTLENECK": "GLOBAL_GATE_PASSES_AND_H5_7_FAILURE_FOLD_CONDITIONAL_VALUE_SURVIVES",
+    "OPERATOR_CONDITIONAL_MEDIUM_VALUE_SUPPORTED__H5_7_FAILURE_FOLDS_MIXED": "GLOBAL_GATE_PASSES_BUT_H5_7_FAILURE_FOLD_CONDITIONAL_VALUE_SURVIVES_FAILS",
+    "H5_7_FAILURE_FOLDS_SHOW_MEDIUM_CONDITIONAL_ANTI_ALIGNMENT": "H5_7_FAILURE_FOLD_CONDITIONAL_ANTI_ALIGNMENT_PASSES",
+    "OPERATOR_CONDITIONAL_MEDIUM_GEOMETRY_NOT_SUPPORTED": "GLOBAL_GATE_FAILS_AND_H5_7_FAILURE_FOLD_CONDITIONAL_ANTI_ALIGNMENT_FAILS",
+    "OPERATOR_CONDITIONAL_MEDIUM_GEOMETRY_MIXED_UNRESOLVED": "OTHERWISE"
+  },
+  "secondary_descriptive_only": {
+    "pairwise_rank_correlations": "REPORT_RHO_MEDIUM_UTILITY_RHO_MEDIUM_OPERATOR_RHO_OPERATOR_UTILITY_BEFORE_PARTIALIZATION",
+    "h5_7_fold_context": "REPORT_FROZEN_TRUE_MARKET_MINUS_OPERATOR_SIGN_FROM_H5_7_FOR_CONTEXT_ONLY__DO_NOT_RECOMPUTE_OR_CHANGE_H5_7",
+    "null_multiset_identity": "REQUIRE_EXACT_MEDIUM_DISTANCE_MULTISET_PRESERVATION_PER_ANCHOR_AND_SHIFT"
+  },
+  "interpretation": {
+    "if_composition_extraction_bottleneck": "MEDIUM48_RETAINS OPERATOR-CONDITIONAL TASK-RELEVANT RANK GEOMETRY EVEN IN BOTH FOLDS WHERE NAIVE MARKET96 UNDERPERFORMED OPERATOR48__THIS SUPPORTS A COMPOSITION/READOUT EXTRACTION BOTTLENECK RATHER THAN MEDIUM48 INFORMATION ABSENCE",
+    "if_failure_fold_anti_alignment": "THE H5_7 HARMFUL COMPOSITION FOLDS ARE CONSISTENT WITH TIME-LOCAL MEDIUM48 CONDITIONAL GEOMETRY REVERSING RELATIVE TO UTILITY__DO_NOT ATTRIBUTE THEM SOLELY TO ADDITIVE METRIC DISTORTION",
+    "if_global_not_supported": "H5_7 TRUE-VS-NULL BENEFIT DOES NOT RESOLVE INTO STABLE OPERATOR-CONDITIONAL MEDIUM48 MONOTONIC GEOMETRY__KEEP THE MECHANISM UNRESOLVED"
+  },
+  "forbidden": [
+    "TEACHER_COMPILATION_FOR_SCIENTIFIC_SCORE",
+    "TEACHER_KERNEL_OR_SUPPORT_SELECTION",
+    "STUDENT_TRAINING_OR_INFERENCE",
+    "FUSION_WEIGHT_SEARCH_OR_INTERPOLATION",
+    "TUNING_ORGAN_WEIGHTS",
+    "TUNING_DISTANCE_METRIC_AFTER_RESULTS",
+    "USING_UTILITY_TO_SELECT_SUPPORT_OR_NULL_MAPPING",
+    "ROTATING_UTILITY_OUTCOMES",
+    "SYNTHETIC_OPERATOR_MEDIUM_FEATURE_CONCATENATION",
+    "CLAIMING_PARTIAL_SPEARMAN_IS_A_GENERAL_CONDITIONAL_INDEPENDENCE_TEST",
+    "NEW_DIRECTION_LOSS",
+    "CANONICAL_TEACHER_OR_STUDENT_CHANGE",
+    "R7_EVALUATION",
+    "FINAL_OPENING",
+    "FRESH_MARKET_DATA",
+    "PROMOTION_OR_PRODUCTION_CUTOVER"
+  ],
+  "authority_effect": {
+    "market_information_verdict_change": false,
+    "canonical_change_authorized": false,
+    "teacher_change_authorized": false,
+    "student_change_authorized": false,
+    "organ_change_authorized": false,
+    "promotion_authorized": false,
+    "r7_evaluation_authorized": false,
+    "final_opening_authorized": false
+  }
+}
