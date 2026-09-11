@@ -2,8 +2,12 @@ name: CB16 R11 Long-Trajectory Archive Experiment R1
 
 on:
   push:
+    # This legacy archive experiment is authority only for the original E1-E3
+    # data-mixture/zipper lanes.  E4+ use their own qualification workflows.
     branches:
-      - 'ai/r11-longtraj-e*'
+      - ai/r11-longtraj-e1-btc-zipper-r0
+      - ai/r11-longtraj-e2-tenasset-natural-r0
+      - ai/r11-longtraj-e3-tenasset-balanced-r0
     paths:
       - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
       - scripts/r11_longtraj_archive_experiment_r1.py
