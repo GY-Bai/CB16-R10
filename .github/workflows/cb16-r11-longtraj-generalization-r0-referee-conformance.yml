@@ -1,0 +1,140 @@
+name: CB16 R11 Generalization R0 Referee Conformance
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-generalization-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R2_FREEZE_RECEIPT_V1.json
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_REFEREE_CONFORMANCE_SPEC_V1.json
+      - scripts/r11_longtraj_generalization_r0_referee_conformance.py
+      - .github/workflows/cb16-r11-longtraj-generalization-r0-referee-conformance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: cb16-r11-longtraj-generalization-r0-referee-conformance
+  cancel-in-progress: true
+
+env:
+  SOURCE_RUN_ID: "34641562617"
+  SOURCE_ARTIFACT_NAME: cb16-r11-longtraj-generalization-r0-evaluation-r2-1
+  SOURCE_RESULT_SHA256: c4eac2cbab1ac8b5dbb78d6f3e30b85792118ddc31e14ec3ecf0a614d0436bcc
+  R2_FREEZE_RECEIPT_BLOB: 5b163674aac61699a04520b4883b16be66f4041e
+  CONFORMANCE_SPEC_BLOB: 5bddf98b6895ca4d7ff2e8ac609e65cc958fef53
+  CONFORMANCE_SCRIPT_BLOB: 6b02582b025676563c4e81ab6751ec7ebfe9e549
+  OUT_DIR: artifacts/r11_longtraj_generalization_r0_referee_conformance
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  referee-conformance:
+    name: Independent frozen-result adjudication and fault injection
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen referee authority pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-generalization-r0"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R2_FREEZE_RECEIPT_V1.json)" = "$R2_FREEZE_RECEIPT_BLOB"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_REFEREE_CONFORMANCE_SPEC_V1.json)" = "$CONFORMANCE_SPEC_BLOB"
+          test "$(git rev-parse HEAD:scripts/r11_longtraj_generalization_r0_referee_conformance.py)" = "$CONFORMANCE_SCRIPT_BLOB"
+          python3 - <<'PY'
+          import json
+          r=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R2_FREEZE_RECEIPT_V1.json'))
+          s=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_REFEREE_CONFORMANCE_SPEC_V1.json'))
+          assert r['status']=='FROZEN_AND_QUALIFIED',r
+          assert r['referee_system_qualification']['status']=='PASS',r
+          assert r['experiment_adjudication']['status']=='SCIENTIFIC_FAIL',r
+          assert r['experiment_adjudication']['G1']['pass'] is True,r
+          assert r['experiment_adjudication']['G2']['pass'] is True,r
+          assert r['experiment_adjudication']['G3']['pass'] is False,r
+          assert s['status']=='FROZEN_BEFORE_CONFORMANCE_EXECUTION',s
+          assert s['classification']=='REFEREE_ONLY_CONFORMANCE_AND_FAULT_INJECTION__NO_NEW_SCIENCE_EVIDENCE__NO_MODEL_EXECUTION',s
+          assert len(s['fault_injection_matrix'])==11,s
+          for forbidden in ('MARKET_DATA_READ','MODEL_LOAD_OR_SCORE','TEACHER_RECOMPILE','R0_POST_RESULT_RESCUE','FINAL_HOLDOUT_ACCESS','FRESH_DATA_ACCESS','CANONICAL_PROMOTION'):
+              assert forbidden in s['forbidden'],s
+          PY
+
+      - name: Compile independent referee checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/r11_longtraj_generalization_r0_referee_conformance.py
+
+      - name: Download frozen R2 result artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.SOURCE_ARTIFACT_NAME }}
+          path: ${{ runner.temp }}/generalization_r2
+          github-token: ${{ github.token }}
+          repository: GY-Bai/CB16-R10
+          run-id: ${{ env.SOURCE_RUN_ID }}
+
+      - name: Verify frozen R2 result identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESULT="$(find "$RUNNER_TEMP/generalization_r2" -type f -name GENERALIZATION_RESULT.json -print -quit)"
+          test -n "$RESULT"
+          test "$(sha256sum "$RESULT" | awk '{print $1}')" = "$SOURCE_RESULT_SHA256"
+          printf 'SOURCE_RESULT=%s\n' "$RESULT" >> "$GITHUB_ENV"
+
+      - name: Run independent referee conformance and fault injection
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. python3 scripts/r11_longtraj_generalization_r0_referee_conformance.py \
+            --result "$SOURCE_RESULT" \
+            --output "$OUT_DIR/REFEREE_CONFORMANCE_RESULT.json"
+
+      - name: Enforce referee conformance result contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('artifacts/r11_longtraj_generalization_r0_referee_conformance/REFEREE_CONFORMANCE_RESULT.json')
+          x=json.load(open(p))
+          assert x['schema']=='CB16_R11_LONGTRAJ_GENERALIZATION_R0_REFEREE_CONFORMANCE_RESULT_V1',x
+          assert x['status']=='PASS',x
+          assert x['classification']=='REFEREE_CONFORMANCE_AND_FAULT_INJECTION_PASS__NO_NEW_SCIENCE_VERDICT',x
+          assert x['fault_injection_cases_passed']==11 and x['fault_injection_cases_total']==11,x
+          assert x['baseline_recomputed']['G1_pass'] is True,x
+          assert x['baseline_recomputed']['G2_pass'] is True,x
+          assert x['baseline_recomputed']['G3_pass'] is False,x
+          assert x['baseline_recomputed']['G3_count_le']==4,x
+          assert x['baseline_recomputed']['classification']=='SCIENTIFIC_FAIL__CHALLENGER_ADVANTAGE_NOT_SPECIFIC_TO_TRUE_STATE_TARGET_CORRESPONDENCE',x
+          assert x['market_data_read'] is False and x['model_loaded_or_scored'] is False and x['teacher_recompiled'] is False,x
+          assert x['scientific_verdict'] is None and x['market_verdict'] is None,x
+          assert x['canonical_promotion_authorized'] is False and x['final_holdout_touched'] is False and x['fresh_market_data_downloaded'] is False,x
+          print('REFEREE_CONFORMANCE_RESULT_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+
+      - name: Upload referee conformance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-generalization-r0-referee-conformance-${{ github.run_attempt }}
+          path: artifacts/r11_longtraj_generalization_r0_referee_conformance/
+          if-no-files-found: error
+          retention-days: 30
