@@ -1,0 +1,25 @@
+{
+  "schema": "CB16_R11_M_SERIES_H5_16_EXECUTION_BLOCKED_IMPORT_PATH_R0_RECEIPT_V1",
+  "run_id": 34532334258,
+  "head_sha": "f0db64f03bdadbdedb8129bc5276c3afba527db0",
+  "classification": "EXECUTION_BLOCKED__IMPORT_PATH_INVOCATION",
+  "failure": "ModuleNotFoundError: No module named cb16_local_opt",
+  "failure_stage": "EXECUTOR_IMPORT_BEFORE_SCIENTIFIC_PAYLOAD_LOAD",
+  "scientific_payload_loaded": false,
+  "utility_target_constructed": false,
+  "rf_fit_started": false,
+  "scientific_result_produced": false,
+  "repair_scope": "WORKFLOW_INVOCATION_ONLY__SCRIPT_PATH_TO_PYTHON_MODULE_MODE",
+  "frozen_scientific_objects_unchanged": [
+    "gate",
+    "pre_execution_clarification",
+    "helper",
+    "tests",
+    "executor",
+    "rf_hyperparameters",
+    "clock_splits",
+    "controls",
+    "classification_rules"
+  ],
+  "scientific_authority": "NONE"
+}
