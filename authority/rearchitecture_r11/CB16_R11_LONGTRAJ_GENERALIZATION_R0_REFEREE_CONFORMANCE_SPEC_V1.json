@@ -1,0 +1,64 @@
+{
+  "authority_canaries": {
+    "canonical_generation_advance_authorized": false,
+    "canonical_promotion_authorized": false,
+    "expected_challenger_checkpoint_sha256": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246",
+    "expected_challenger_policy_hash": "4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297",
+    "expected_champion_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+    "expected_consumed_validation_evidence_hash": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131",
+    "expected_prior_train_evidence_hash": "a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492",
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "required_new_validation_groups": 48,
+    "required_nonidentity_shifts": 47
+  },
+  "classification": "REFEREE_ONLY_CONFORMANCE_AND_FAULT_INJECTION__NO_NEW_SCIENCE_EVIDENCE__NO_MODEL_EXECUTION",
+  "fault_injection_matrix": [
+    {"case": "BASELINE_FROZEN_R2", "expected": "ACCEPT_PAYLOAD_AND_REPRODUCE_G3_SCIENTIFIC_FAIL"},
+    {"case": "G1_POINT_NONNEGATIVE", "expected_classification": "SCIENTIFIC_FAIL__FROZEN_SHADOW_CHALLENGER_DID_NOT_GENERALIZE_VS_G0_CHAMPION"},
+    {"case": "G2_CI_HIGH_NONNEGATIVE", "expected_classification": "SCIENTIFIC_FAIL__CHALLENGER_IMPROVEMENT_DID_NOT_BEAT_PRIOR_NO_STATE_CLIMATOLOGY"},
+    {"case": "G3_IDENTITY_STRICT_BEST", "expected_classification": "GENERALIZATION_TARGET_CORRESPONDENCE_QUALIFIED_FOR_SEPARATE_NEXT_GATE__NO_PROMOTION__NO_MARKET_VERDICT"},
+    {"case": "G3_TIE_WITH_NONIDENTITY", "expected_classification": "SCIENTIFIC_FAIL__CHALLENGER_ADVANTAGE_NOT_SPECIFIC_TO_TRUE_STATE_TARGET_CORRESPONDENCE"},
+    {"case": "TRAIN_EVIDENCE_HASH_DRIFT", "expected": "REJECT_AUTHORITY"},
+    {"case": "CONSUMED_VALIDATION_HASH_DRIFT", "expected": "REJECT_AUTHORITY"},
+    {"case": "CHAMPION_HASH_DRIFT", "expected": "REJECT_AUTHORITY"},
+    {"case": "FINAL_HOLDOUT_TRUE", "expected": "REJECT_FIREWALL"},
+    {"case": "PROMOTION_AUTHORIZED_TRUE", "expected": "REJECT_FIREWALL"},
+    {"case": "NONIDENTITY_SHIFT_COUNT_46", "expected": "REJECT_GATE_GEOMETRY"}
+  ],
+  "forbidden": [
+    "MARKET_DATA_READ",
+    "MODEL_LOAD_OR_SCORE",
+    "TEACHER_RECOMPILE",
+    "HYPERPARAMETER_OR_GATE_CHANGE",
+    "R0_POST_RESULT_RESCUE",
+    "FINAL_HOLDOUT_ACCESS",
+    "FRESH_DATA_ACCESS",
+    "CANONICAL_PROMOTION"
+  ],
+  "independent_recomputation": {
+    "G1_pass": "point < 0 AND ci_high < 0",
+    "G2_pass": "point < 0 AND ci_high < 0",
+    "G3_count_le": "count(nonidentity_shift_delta <= identity_delta)",
+    "G3_exact_p": "(1 + G3_count_le) / 48",
+    "G3_pass": "G3_count_le == 0 AND identity_delta < min(all_47_nonidentity_shift_deltas) AND exact_p == 1/48",
+    "classification_precedence": [
+      "if not G1 -> SCIENTIFIC_FAIL__FROZEN_SHADOW_CHALLENGER_DID_NOT_GENERALIZE_VS_G0_CHAMPION",
+      "elif not G2 -> SCIENTIFIC_FAIL__CHALLENGER_IMPROVEMENT_DID_NOT_BEAT_PRIOR_NO_STATE_CLIMATOLOGY",
+      "elif not G3 -> SCIENTIFIC_FAIL__CHALLENGER_ADVANTAGE_NOT_SPECIFIC_TO_TRUE_STATE_TARGET_CORRESPONDENCE",
+      "else -> GENERALIZATION_TARGET_CORRESPONDENCE_QUALIFIED_FOR_SEPARATE_NEXT_GATE__NO_PROMOTION__NO_MARKET_VERDICT"
+    ]
+  },
+  "market_verdict": null,
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_REFEREE_CONFORMANCE_SPEC_V1",
+  "scientific_verdict": null,
+  "source_r2": {
+    "artifact_digest_sha256": "a8eb4532876cd4af2a217d36b3bbb14495b9e35ddd696e7ce243313c4b84b0b9",
+    "artifact_id": 10280617317,
+    "freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R2_FREEZE_RECEIPT_V1.json",
+    "generalization_result_sha256": "c4eac2cbab1ac8b5dbb78d6f3e30b85792118ddc31e14ec3ecf0a614d0436bcc",
+    "qualified_code_sha": "6d6d74afe3f35c093f244323a8d4dcce8bd0aa46",
+    "workflow_run_id": 34641562617
+  },
+  "status": "FROZEN_BEFORE_CONFORMANCE_EXECUTION"
+}
