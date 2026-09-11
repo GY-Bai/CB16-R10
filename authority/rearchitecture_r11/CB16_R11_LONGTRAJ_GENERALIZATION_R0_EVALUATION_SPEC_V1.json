@@ -1,0 +1,132 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_SPEC_V1",
+  "status": "FROZEN_BEFORE_FIRST_EVALUATION_EXECUTION",
+  "classification": "FROZEN_MODEL_UNCONSUMED_PREFINAL_GENERALIZATION_WITH_NEGATIVE_AND_SHUFFLE_CONTROLS__NO_PROMOTION__NO_MARKET_VERDICT",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "purpose": "Evaluate the already-frozen R11 G0 Champion and already-frozen Campaign-R0 shadow Challenger on the exact model-blind unconsumed pre-FINAL cohort. No model fitting, tuning, cohort replacement, support rescue, promotion, generation advance, or market-information verdict is authorized by this evaluation.",
+  "selection_authority": {
+    "selection_freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_FREEZE_RECEIPT_V1.json",
+    "selection_freeze_receipt_git_blob": "77ec6a52e7e71495cce8a21602b670ca611a9897",
+    "cohort": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_COHORT_V1.json",
+    "cohort_git_blob": "ed94b6eb881408ff3abf0f7514e009e74aed69f0",
+    "cohort_file_sha256": "aa0caaab8d58130efd3f680ff41abe00f6b8656f260d03f9bf0782fcff6e2dd1",
+    "cohort_dependence_groups": 48,
+    "cohort_decision_times_sha256": "e8e7698e5da67ef32f01926c752e9accef1d468e9e95f772a0b3ed62df021cc3",
+    "zero_overlap_with_prior_consumed_tail": true
+  },
+  "frozen_models": {
+    "champion": {
+      "role": "R11_G0_INITIAL_CHAMPION",
+      "policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+      "load_source": "existing frozen G0 authority root"
+    },
+    "shadow_challenger": {
+      "role": "CAMPAIGN_R0_SHADOW_CHALLENGER__NOT_CANONICAL_AUTHORITY",
+      "policy_hash": "4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297",
+      "checkpoint_sha256": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246",
+      "campaign_workflow_run_id": 34630256383,
+      "campaign_artifact_id": 10275947474,
+      "campaign_artifact_zip_sha256": "9800592c77f923baffc0146e87dc862c750f49c0b6bce73cd869bda0d5f89e08",
+      "campaign_artifact_name": "cb16-r11-longtraj-training-campaign-r0-1"
+    },
+    "training_or_tuning_on_generalization_cohort": false,
+    "checkpoint_mutation": false
+  },
+  "teacher_and_support": {
+    "support_source": "EXACT_ORIGINAL_CAMPAIGN_R0_TRAIN_48_DEPENDENCE_GROUPS_ONLY",
+    "expected_support_train_evidence_hash": "a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492",
+    "support_train_dependence_groups": 48,
+    "evaluation_split": "VALIDATION",
+    "evaluation_dependence_groups": 48,
+    "production_train_protocol_hash": "0e29fdfc2002488657e217fd332193cad1692106eeef87a9eb3c7920c378e0a9",
+    "production_validation_protocol_hash": "9169f85e921d380ff13588027f65485e7b65679ca60743ebad7c724e5d90f080",
+    "support_thresholds_may_be_relaxed": false,
+    "evaluation_cohort_may_be_resampled_after_support_result": false,
+    "required_new_validation_admission": "48_OF_48_WITH_ZERO_REJECTIONS",
+    "support_failure_classification": "SCIENTIFIC_FAIL__FROZEN_GENERALIZATION_COHORT_TEACHER_SUPPORT_NOT_QUALIFIED",
+    "outcome_as_label": false
+  },
+  "canonical_loss": {
+    "direction": "SOFT_TARGET_CROSS_ENTROPY",
+    "requested_risk": "SMOOTH_L1_BETA_0.05",
+    "total": "DIRECTION_PLUS_REQUESTED_RISK",
+    "dependence_weighting": "INVERSE_ROWS_PER_DEPENDENCE_GROUP_NORMALIZED_TO_MEAN_ONE",
+    "expected_evaluation_group_weights": "ALL_ONE_BECAUSE_ONE_ROW_PER_DISTINCT_DEPENDENCE_GROUP",
+    "lower_is_better": true
+  },
+  "status_driving_tests": {
+    "G1_frozen_challenger_vs_frozen_champion": {
+      "row_unit": "DEPENDENCE_GROUP",
+      "metric": "MEAN_CANONICAL_TOTAL_LOSS_DELTA__CHALLENGER_MINUS_CHAMPION",
+      "bootstrap": {
+        "replicates": 10000,
+        "seed": 20260911,
+        "method": "PAIRED_DEPENDENCE_GROUP_RESAMPLE_WITH_REPLACEMENT",
+        "interval": "PERCENTILE_95_TWO_SIDED"
+      },
+      "pass": "POINT_DELTA_LT_0_AND_BOOTSTRAP_CI_HIGH_LT_0"
+    },
+    "G2_prior_train_no_state_climatology_negative_control": {
+      "source": "ORIGINAL_CAMPAIGN_R0_TRAIN_48_TEACHER_TARGETS_ONLY__NO_NEW_EVAL_TARGET_FITTING",
+      "direction_constant": "DEPENDENCE_WEIGHTED_MEAN_OF_TRAIN_DIRECTION_TARGET_PROBS",
+      "risk_constant": "EXACT_CONVEX_MINIMIZER_OF_TRAIN_SMOOTH_L1_BETA_0.05_BY_FIXED_100_ITERATION_BISECTION_ON_[0,1]",
+      "metric": "MEAN_CANONICAL_TOTAL_LOSS_DELTA__CHALLENGER_MINUS_PRIOR_TRAIN_CLIMATOLOGY",
+      "bootstrap": {
+        "replicates": 10000,
+        "seed": 20260912,
+        "method": "PAIRED_DEPENDENCE_GROUP_RESAMPLE_WITH_REPLACEMENT",
+        "interval": "PERCENTILE_95_TWO_SIDED"
+      },
+      "pass": "POINT_DELTA_LT_0_AND_BOOTSTRAP_CI_HIGH_LT_0"
+    },
+    "G3_correspondence_shuffle_control": {
+      "models_refit": false,
+      "predictions_recomputed_after_target_permutation": false,
+      "permutation_family": "ALL_47_NONIDENTITY_CYCLIC_SHIFTS_OF_THE_48_FROZEN_VALIDATION_TEACHER_TARGET_ROWS",
+      "permuted_unit": "WHOLE_TARGET_ROW_DIRECTION_PROBS_PLUS_REQUESTED_RISK_TARGET__GROUP_WEIGHT_IS_ONE_AND_UNCHANGED",
+      "state_predictions": "FIXED_IN_ORIGINAL_COHORT_ORDER",
+      "shuffle_metric": "FOR_EACH_SHIFT_MEAN_TOTAL_LOSS_DELTA__CHALLENGER_MINUS_CHAMPION",
+      "identity_metric": "TRUE_ALIGNED_MEAN_TOTAL_LOSS_DELTA__CHALLENGER_MINUS_CHAMPION",
+      "exact_rank_p": "(1 + COUNT_NONIDENTITY_SHIFTS_WITH_DELTA_LE_IDENTITY_DELTA) / 48",
+      "pass": "IDENTITY_DELTA_STRICTLY_LT_EVERY_NONIDENTITY_SHIFT_DELTA__EXACT_ONE_SIDED_RANK_P_EQ_1_OVER_48"
+    }
+  },
+  "execution_negative_canaries": {
+    "independent_champion_reload_outputs_exact": true,
+    "independent_challenger_reload_outputs_exact": true,
+    "champion_policy_hash_exact": true,
+    "challenger_policy_hash_exact": true,
+    "challenger_parent_champion_hash_exact": true,
+    "teacher_targets_detached": true,
+    "future_suffix_mutation_invariance": true,
+    "future_account_poison_invariance": true,
+    "next_bar_isolation": true,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false
+  },
+  "adjudication": {
+    "all_G1_G2_G3_pass": "GENERALIZATION_TARGET_CORRESPONDENCE_QUALIFIED_FOR_SEPARATE_NEXT_GATE__NO_PROMOTION__NO_MARKET_VERDICT",
+    "teacher_support_not_48_of_48": "SCIENTIFIC_FAIL__FROZEN_GENERALIZATION_COHORT_TEACHER_SUPPORT_NOT_QUALIFIED",
+    "G1_fail": "SCIENTIFIC_FAIL__FROZEN_SHADOW_CHALLENGER_DID_NOT_GENERALIZE_VS_G0_CHAMPION",
+    "G1_pass_G2_fail": "SCIENTIFIC_FAIL__CHALLENGER_IMPROVEMENT_DID_NOT_BEAT_PRIOR_NO_STATE_CLIMATOLOGY",
+    "G1_G2_pass_G3_fail": "SCIENTIFIC_FAIL__CHALLENGER_ADVANTAGE_NOT_SPECIFIC_TO_TRUE_STATE_TARGET_CORRESPONDENCE",
+    "execution_or_authority_canary_fail": "EXECUTION_BLOCKED__NO_SCIENTIFIC_VERDICT"
+  },
+  "forbidden": [
+    "OPEN_FINAL_HOLDOUT",
+    "DOWNLOAD_FRESH_MARKET_DATA",
+    "RETRAIN_CHAMPION",
+    "RETRAIN_CHALLENGER",
+    "TUNE_ON_GENERALIZATION_COHORT",
+    "CHANGE_TEACHER_PROTOCOL",
+    "RELAX_TEACHER_SUPPORT",
+    "REPLACE_OR_RESAMPLE_FROZEN_COHORT",
+    "USE_CONSUMED_12_VALIDATION_GROUPS_AS_INDEPENDENT_EVIDENCE",
+    "CANONICAL_PROMOTION",
+    "CANONICAL_GENERATION_ADVANCE",
+    "NEW_MARKET_INFORMATION_VERDICT",
+    "POST_RESULT_HYPERPARAMETER_RESCUE"
+  ],
+  "scientific_verdict": null,
+  "next_gate_if_pass": "SEPARATE_PROMOTION_OR_REPLICATION_DESIGN_PREREGISTRATION_REQUIRED"
+}
