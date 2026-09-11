@@ -1,0 +1,198 @@
+name: CB16 R11 Long-Trajectory Training Admission R0
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-training-admission-r0
+    paths:
+      - scripts/r11_longtraj_training_admission_r0.py
+      - tests/test_longtraj_training_admission_r0.py
+      - .github/workflows/cb16-r11-longtraj-training-admission-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-longtraj-training-admission-r0
+  cancel-in-progress: true
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_PACKAGE_ROOT: /cb16/package
+  OUT_DIR: artifacts/r11_longtraj_training_admission_r0
+  E6_FINAL_HEAD: ae0e44d4a8f4c557d2b13b9689be5d9a81f8e97c
+  E6_QUALIFIED_CODE: 72005b9d7eca06be99a4cebdbdaad48126b9d061
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  training-admission-r0:
+    name: Minute R2 to canonical Teacher Student admission
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen lineage and preregistered admission authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-training-admission-r0"
+          git merge-base --is-ancestor "$E6_FINAL_HEAD" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          spec=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_SPEC_V1.json'))
+          assert spec['schema']=='CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_SPEC_V1',spec
+          assert spec['status']=='FROZEN_BEFORE_FIRST_ADMISSION_EXECUTION',spec
+          assert spec['classification']=='TRAINING_INTERFACE_ADMISSION_ONLY__NO_LONG_GRADIENT_AUTHORITY__NO_SCIENTIFIC_VERDICT',spec
+          assert spec['base_e6_branch_head_sha']=='ae0e44d4a8f4c557d2b13b9689be5d9a81f8e97c',spec
+          assert spec['e6_qualified_code_sha']=='72005b9d7eca06be99a4cebdbdaad48126b9d061',spec
+          assert spec['scope']['train_dependence_groups']==48,spec
+          assert spec['scope']['validation_dependence_groups']==12,spec
+          assert spec['scope']['total_dependence_groups']==60,spec
+          assert spec['scope']['expected_total_counterfactual_branches']==540,spec
+          assert spec['scope']['student_optimizer_steps']==1,spec
+          assert spec['time_binding']['decision_to_execution_minutes']==1,spec
+          assert spec['teacher']['support_thresholds_may_be_relaxed'] is False,spec
+          assert spec['hard_outputs']['long_gradient_training_authorized'] is False,spec
+          assert spec['hard_outputs']['scientific_verdict'] is None,spec
+          receipt=json.load(open(spec['e6_freeze_receipt']))
+          assert receipt['status']=='FROZEN_AND_QUALIFIED',receipt
+          assert receipt['qualified_code_sha']==spec['e6_qualified_code_sha'],receipt
+          assert receipt['qualification']['workflow_run_id']==spec['e6_qualification_run_id'],receipt
+          assert receipt['semantic_limits']['long_gradient_training_authorized'] is False,receipt
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_training_admission_r0_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_training_admission_r0_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f:
+              f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile admission implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile \
+            scripts/r11_longtraj_training_admission_r0.py \
+            tests/test_longtraj_training_admission_r0.py
+
+      - name: Run minute Physics and admission known-answer gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q \
+            tests/test_minute_physics_binding_r2.py \
+            tests/test_longtraj_training_admission_r0.py
+
+      - name: Run real pre-FINAL minute R2 training admission
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_training_admission_r0.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --symbol BTCUSDT \
+            --workers 8 \
+            --device cuda \
+            --output "$OUT_DIR/ADMISSION_RESULT.json"
+
+      - name: Enforce training admission contract and build freeze candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,os,pathlib
+          d=pathlib.Path('artifacts/r11_longtraj_training_admission_r0')
+          result_path=d/'ADMISSION_RESULT.json'
+          x=json.load(open(result_path))
+          assert x['schema']=='CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_RESULT_V1',x
+          assert x['status']=='PASS',x
+          assert x['classification']=='TRAINING_INTERFACE_ADMISSION_QUALIFIED__NO_LONG_GRADIENT_AUTHORITY__NO_SCIENTIFIC_VERDICT',x
+          assert x['execution']['train_groups']==48,x
+          assert x['execution']['validation_groups']==12,x
+          assert x['execution']['total_groups']==60,x
+          assert x['execution']['branches_per_parent']==9,x
+          assert x['execution']['total_branches']==540,x
+          assert x['execution']['horizon_minutes']==4320,x
+          assert x['execution']['physics_workers']==8,x
+          assert x['execution']['recurrent_time_axis_parallelized'] is False,x
+          assert x['teacher']['support_thresholds_relaxed'] is False,x
+          assert x['teacher']['train_summary']['admitted_dependence_groups']>=32,x
+          assert x['teacher']['validation_summary']['admitted']>0,x
+          assert x['student']['optimizer_steps']==1,x
+          assert x['student']['before_policy_hash']!=x['student']['after_policy_hash'],x
+          assert len(x['student']['gradient_owner_set'])==6,x
+          assert x['student']['checkpoint']['exact'] is True,x
+          assert x['student']['dtype']=='torch.float32' and x['student']['amp'] is False,x
+          assert all(x['gates'].values()),x['gates']
+          assert x['outcome_as_label_used'] is False,x
+          assert x['long_gradient_training_authorized'] is False,x
+          assert x['new_scientific_verdict'] is False,x
+          assert x['scientific_verdict'] is None,x
+          assert x['final_holdout_touched'] is False,x
+          assert x['fresh_market_data_downloaded'] is False,x
+          spec=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_SPEC_V1.json')
+          e6=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_RECEIPT_V1.json')
+          receipt={
+            'schema':'CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_FREEZE_CANDIDATE_V1',
+            'classification':'TRAINING_INTERFACE_ADMISSION_ALL_GATES_PASS__FREEZE_CANDIDATE__NO_LONG_GRADIENT_AUTHORITY',
+            'qualified_code_sha':os.environ['GITHUB_SHA'],
+            'spec_sha256':hashlib.sha256(spec.read_bytes()).hexdigest(),
+            'e6_freeze_receipt_sha256':hashlib.sha256(e6.read_bytes()).hexdigest(),
+            'result_sha256':hashlib.sha256(result_path.read_bytes()).hexdigest(),
+            'train_summary':x['teacher']['train_summary'],
+            'validation_summary':x['teacher']['validation_summary'],
+            'student_before_policy_hash':x['student']['before_policy_hash'],
+            'student_after_policy_hash':x['student']['after_policy_hash'],
+            'checkpoint_sha256':x['student']['checkpoint']['checkpoint_sha256'],
+            'gates':x['gates'],
+            'final_holdout_touched':False,
+            'fresh_market_data_downloaded':False,
+            'long_gradient_training_authorized':False,
+            'scientific_verdict':None,
+            'next_gate':'LONGTRAJ_TRAINING_CAMPAIGN_PREREGISTRATION',
+          }
+          (d/'ADMISSION_FREEZE_CANDIDATE_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload training admission evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-training-admission-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_training_admission_r0_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_training_admission_r0_python.json
+            artifacts/r11_longtraj_training_admission_r0/
+          if-no-files-found: warn
+          retention-days: 30
