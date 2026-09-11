@@ -1,0 +1,95 @@
+{
+  "schema": "CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_GATE_V1",
+  "stage": "R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION",
+  "status": "PREREGISTERED",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "parent": {
+    "m2_adjudication_commit": "940e14b83939e99c007689873bc5d06f2dcd6109",
+    "m2_adjudication_path": "authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_FROZEN_G0_DIRECTION_RESIDUAL_ADJUDICATION_V1.json",
+    "m2_adjudication_blob": "e459883f2be01ee5240c0105a930ddf7241fed45",
+    "m2_primary_conclusion": "FROZEN_G0_SELECTIVE_RESIDUAL_ALIGNMENT_SPECIFIC_GAIN_NOT_ESTABLISHED",
+    "m2_preservation_conclusion": "SELECTIVE_CHAMPION_PRESERVE_OBJECTIVE_REDUCES_UNNECESSARY_DIRECTION_DRIFT_VS_ABSOLUTE_CE",
+    "m2_abs_residual_secondary": "FROZEN_G0_REPRESENTATION_EXPOSES_ALIGNMENT_SPECIFIC_DIRECTION_INFORMATION_TO_SMALL_RESIDUAL_UNDER_ABSOLUTE_CE"
+  },
+  "question": "Did M2 selective aligned residuals fail the raw move-to-Teacher gate because they failed to select valuable Teacher corrections, or because raw correction frequency does not distinguish high-advantage corrections from chance/marginal matches and harmful drift?",
+  "epistemic_status": "POST_M2_PREREGISTERED_MECHANISTIC_FOLLOWUP_ON_ALREADY_CONSUMED_SUPPORT__CANNOT_RETROACTIVELY_PASS_M2",
+  "support": {
+    "source": "EXACT_M2_R6_CONSUMED_TRAIN_ONLY_NESTED_FOLDS",
+    "folds": [1,2,3,4,5],
+    "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","LINKUSDT","LTCUSDT","SOLUSDT"],
+    "new_independent_support": false,
+    "legacy_validation_allowed": false,
+    "r5_purge_allowed": false,
+    "final_holdout_allowed": false,
+    "fresh_data_allowed": false,
+    "r7_candidate_evaluation_allowed": false
+  },
+  "frozen_execution": {
+    "reproduce_m2_exact_training": true,
+    "g0_parameters_frozen": 189052,
+    "residual_architecture": "Linear(256,64)->SiLU->Linear(64,3)__16643_PARAMS__ZERO_OUTPUT_INIT",
+    "objectives": ["ABS_CE","SELECTIVE_CHAMPION_PRESERVE_CE"],
+    "controls": ["ALIGNED","SHUFFLE_1","SHUFFLE_7","SHUFFLE_13","SHUFFLE_23","SHUFFLE_31"],
+    "training_rule": "UNCHANGED_M2_FP32_12E_BATCH512_ADAMW_LR3E-4_WD1E-4_CLIP10_SEED24680",
+    "teacher": "UNCHANGED_R2_4_R11_R6_FOLD_TEACHER",
+    "no_hyperparameter_tuning": true,
+    "no_new_trainable_parameters": true,
+    "no_sizing_gradient": true
+  },
+  "row_level_definitions": {
+    "mu_g0": "ALIGNED_EVAL_BEST_BY_DIRECTION_MEAN_UTILITY_AT_G0_DIRECTION",
+    "mu_new": "ALIGNED_EVAL_BEST_BY_DIRECTION_MEAN_UTILITY_AT_NEW_DIRECTION",
+    "mu_best": "MAX_ALIGNED_EVAL_BEST_BY_DIRECTION_MEAN_UTILITY",
+    "available_advantage": "MAX(mu_best-mu_g0,0)",
+    "captured_advantage": "MAX(mu_new-mu_g0,0)",
+    "harmful_cost": "MAX(mu_g0-mu_new,0)",
+    "net_gain": "captured_advantage-harmful_cost",
+    "direct_teacher_correction": "TEACHER_BEST_NE_G0_AND_NEW_DIRECTION_EQ_TEACHER_BEST",
+    "agreement_harmful_drift": "TEACHER_BEST_EQ_G0_AND_NEW_DIRECTION_NE_G0",
+    "third_direction_change": "TEACHER_BEST_NE_G0_AND NEW_DIRECTION_NE_G0_AND NEW_DIRECTION_NE_TEACHER_BEST"
+  },
+  "fold_metrics": {
+    "advantage_weighted_teacher_correction_coverage": "SUM(w*available_advantage*I(direct_teacher_correction))/SUM(w*available_advantage)",
+    "available_advantage_capture_fraction": "SUM(w*captured_advantage)/SUM(w*available_advantage)",
+    "harmful_cost_mean": "SUM(w*harmful_cost)/SUM(w)",
+    "agreement_harmful_cost_mean": "SUM_AGREEMENT(w*harmful_cost)/SUM_AGREEMENT(w)",
+    "beneficial_gain_mean": "SUM(w*captured_advantage)/SUM(w)",
+    "net_gain_mean": "beneficial_gain_mean-harmful_cost_mean",
+    "gain_efficiency": "beneficial_gain_mean/(beneficial_gain_mean+harmful_cost_mean)",
+    "raw_move_to_teacher_rate": "RETAIN_M2_METRIC_FOR_COMPARISON_ONLY"
+  },
+  "primary_adjudication": {
+    "unit": "OUTER_FOLD_SIGN_COUNT__NO_ROW_POOLING_FOR_GATE",
+    "correction_quality_rule": "SELECTIVE_ALIGNED_ADVANTAGE_WEIGHTED_TEACHER_CORRECTION_COVERAGE_GT_MEDIAN_OF_FIVE_SELECTIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS",
+    "harm_suppression_rule": "SELECTIVE_ALIGNED_HARMFUL_COST_MEAN_LT_MEDIAN_OF_FIVE_SELECTIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS",
+    "capture_rule": "SELECTIVE_ALIGNED_AVAILABLE_ADVANTAGE_CAPTURE_FRACTION_GT_MEDIAN_OF_FIVE_SELECTIVE_SHUFFLES_IN_AT_LEAST_4_OF_5_FOLDS",
+    "correction_quality_pass": "SELECTIVE_ALIGNMENT_CONTAINS_ADVANTAGE_WEIGHTED_CORRECTION_QUALITY_NOT_VISIBLE_IN_RAW_FREQUENCY",
+    "correction_quality_fail": "SELECTIVE_ALIGNMENT_DOES_NOT_SHOW_ADVANTAGE_WEIGHTED_CORRECTION_SELECTION_OVER_SHUFFLE",
+    "harm_suppression_pass": "SELECTIVE_ALIGNMENT_SUPPRESSES_TEACHER_IMPLIED_HARM_RELATIVE_TO_SHUFFLE",
+    "harm_suppression_fail": "SELECTIVE_ALIGNMENT_HARM_SUPPRESSION_OVER_SHUFFLE_NOT_ESTABLISHED",
+    "joint_interpretation_if_correction_and_harm_pass": "M2_RAW_MOVE_RATE_FAILURE_LOCALIZED_TO_READOUT_INSUFFICIENCY_ON_CONSUMED_SUPPORT__M2_REMAINS_FAILED",
+    "joint_interpretation_if_only_harm_pass": "M2_SELECTIVE_POSITIVE_GAIN_IS_PRIMARILY_PRESERVATION_HARM_SUPPRESSION_NOT_SUPERIOR_DISAGREEMENT_CORRECTION_SELECTION",
+    "joint_interpretation_if_only_correction_pass": "M2_SELECTIVE_CORRECTION_QUALITY_EXISTS_WITHOUT_RELIABLE_HARM_SUPPRESSION",
+    "joint_interpretation_if_neither": "M2_SELECTIVE_MECHANISM_NOT_SUPPORTED_BY_CORRECTION_QUALITY_DECOMPOSITION"
+  },
+  "mandatory_reproduction": {
+    "before_new_decomposition": "REPRODUCE_M2_ALIGNED_AND_SHUFFLE_FOLD_SUMMARY_TO_NUMERIC_TOLERANCE",
+    "reference": "M2_ADJUDICATION_PER_FOLD_PRIMARY_READOUT",
+    "gain_abs_tolerance": 1e-10,
+    "rate_abs_tolerance": 1e-10,
+    "failure_action": "STOP_AS_ENGINEERING_REPRODUCTION_FAILURE__NO_M2_1_SCIENTIFIC_ADJUDICATION"
+  },
+  "legal_conclusions": {
+    "cannot_retroactively_change_m2": true,
+    "cannot_change_market_information_status": true,
+    "cannot_authorize_m3_automatically": true,
+    "cannot_change_canonical_architecture_or_loss": true,
+    "cannot_open_final": true,
+    "cannot_evaluate_r7": true
+  },
+  "next_step_policy": {
+    "if_only_harm_suppression": "DESIGN_MINIMAL_ADVANTAGE_WEIGHTED_DIRECTION_OBJECTIVE_IN_SYNTHETIC_OR_SHADOW_LANE_BEFORE_ANY_SIZING_WORK",
+    "if_correction_quality_and_harm_suppression": "DESIGN_M2_2_OBJECTIVE_SURROGATE_TEST_THAT_DIRECTLY_OPTIMIZES_CORRECTION_VALUE_WITH_NULL_ALIGNMENT_CONTROLS",
+    "if_neither": "RETURN_TO_TEACHER_TRANSPORT_OR_DIRECTION_OBJECTIVE_ASSUMPTIONS_BEFORE_MODEL_EXPANSION"
+  }
+}

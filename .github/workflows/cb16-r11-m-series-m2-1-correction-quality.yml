@@ -1,0 +1,200 @@
+name: CB16 R11 M-Series M2.1 Correction Quality Attribution
+
+on:
+  push:
+    branches:
+      - ai/m-series-m2-1-correction-quality-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_FROZEN_G0_DIRECTION_RESIDUAL_ADJUDICATION_V1.json
+      - cb16_local_opt/m_series_m2_frozen_g0_direction_residual.py
+      - cb16_local_opt/m_series_m2_1_correction_quality.py
+      - tests/test_m_series_m2_frozen_g0_direction_residual.py
+      - tests/test_m_series_m2_1_correction_quality.py
+      - scripts/r11_m_series_m2_frozen_g0_direction_residual.py
+      - scripts/r11_m_series_m2_1_correction_quality.py
+      - scripts/r11_m_series_m2_1_correction_quality_entrypoint.py
+      - .github/workflows/cb16-r11-m-series-m2-1-correction-quality.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  CB16_PACKAGE_ROOT: /cb16/package
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  m2-1-correction-quality:
+    name: M2.1 consumed-TRAIN correction-quality attribution
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify M2.1 preregistration and merged M2 authority ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 62ad74a0c62ab616dfceaf70c6f7b30f7088c81f HEAD
+          git merge-base --is-ancestor c1a0ae6c98ecab0a5bddb91eca720fa1a19bcb54 HEAD
+          git merge-base --is-ancestor d0d02013a0fcdb95c9b01c9477bccc1f8896a396 HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_GATE_V1.json)" = "9c9488e83e19dfbeaa7264b291c561f2aa87d79b"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_FROZEN_G0_DIRECTION_RESIDUAL_ADJUDICATION_V1.json)" = "e459883f2be01ee5240c0105a930ddf7241fed45"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_FROZEN_G0_DIRECTION_RESIDUAL_GATE_V1.json)" = "8c80273998f33821514c75c774e21649e08dfd43"
+          test "$(git rev-parse HEAD:cb16_local_opt/m_series_m2_frozen_g0_direction_residual.py)" = "3c73b9487f1ea3f70b029b8e8636ea6e68dc23d8"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:cb16_local_opt/training_runtime_r11.py)" = "56c227800d7a5c82ef88c691bb69d7550aee8b39"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_runtime_r11.py)" = "656f1483f2e6a96daae5c98eb96cd75805d3547c"
+          test -f "$CB16_G0_ROOT/bootstrap/R11_G0_INITIAL_CHAMPION.pt"
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+          test -d "$CB16_PACKAGE_ROOT"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_m21_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_m21_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run M2.1 unit and regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_m21_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/m_series_m2_1_correction_quality.py \
+            tests/test_m_series_m2_1_correction_quality.py \
+            scripts/r11_m_series_m2_1_correction_quality.py \
+            scripts/r11_m_series_m2_1_correction_quality_entrypoint.py
+          "$PYTHON" -m pytest -q \
+            tests/test_m_series_m2_1_correction_quality.py \
+            tests/test_m_series_m2_frozen_g0_direction_residual.py \
+            tests/test_m_series_m1_direction_relative_sufficiency.py \
+            tests/test_m_series_m0_policy_drift_attribution.py \
+            tests/test_reduced_teacher_target_information_audit_r6.py \
+            tests/test_canonical_state_alignment_falsification_r41.py \
+            tests/test_training_runtime_r11.py \
+            tests/test_r11_teacher_balanced_binding.py \
+            tests/test_teacher_runtime_r11.py
+
+      - name: Execute preregistered M2.1 correction-quality attribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_m21_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-m21-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_m21_run_root.txt"
+          "$PYTHON" scripts/r11_m_series_m2_1_correction_quality_entrypoint.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_RESULT.json" \
+            --device cuda
+
+      - name: Verify M2.1 reproduction, receipt, and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_m21_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_RESULT_V1',x
+          assert x['status']=='M2_1_CORRECTION_QUALITY_ATTRIBUTION_COMPLETE',x
+          assert x['frozen_scientific_status_after']==x['frozen_scientific_status_before']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          assert x['m2_reproduction']['status']=='PASS',x
+          assert len(x['m2_reproduction']['per_fold'])==5,x
+          assert all(r['pass'] and r['max_abs_error']<=1e-10 for r in x['m2_reproduction']['per_fold']),x
+          m2=x['reproduced_m2_summary']
+          assert m2['selective_alignment_pass'] is False,m2
+          assert m2['preservation_pass'] is True,m2
+          assert m2['absolute_residual_alignment_secondary_pass'] is True,m2
+          assert len(x['fold_results'])==5,x
+          for f in x['fold_results']:
+              for arm in f['arms'].values():
+                  q=arm['quality']
+                  for k in ('advantage_weighted_teacher_correction_coverage','available_advantage_capture_fraction','beneficial_gain_mean','harmful_cost_mean','net_gain_mean','gain_efficiency','raw_move_to_teacher_rate','negative_gain_rate'):
+                      assert q[k] is not None and math.isfinite(float(q[k])),(k,q)
+                  assert 0.0 <= q['advantage_weighted_teacher_correction_coverage'] <= 1.0,q
+                  assert 0.0 <= q['available_advantage_capture_fraction'] <= 1.0+1e-9,q
+                  assert q['harmful_cost_mean'] >= 0.0,q
+          s=x['m2_1_summary']
+          assert s['correction_quality_conclusion'] in {
+              'SELECTIVE_ALIGNMENT_CONTAINS_ADVANTAGE_WEIGHTED_CORRECTION_QUALITY_NOT_VISIBLE_IN_RAW_FREQUENCY',
+              'SELECTIVE_ALIGNMENT_DOES_NOT_SHOW_ADVANTAGE_WEIGHTED_CORRECTION_SELECTION_OVER_SHUFFLE',
+          },s
+          assert s['harm_suppression_conclusion'] in {
+              'SELECTIVE_ALIGNMENT_SUPPRESSES_TEACHER_IMPLIED_HARM_RELATIVE_TO_SHUFFLE',
+              'SELECTIVE_ALIGNMENT_HARM_SUPPRESSION_OVER_SHUFFLE_NOT_ESTABLISHED',
+          },s
+          assert s['m2_retroactive_status_change'] is False,s
+          assert s['market_information_verdict'] is False,s
+          assert s['canonical_change_authorized'] is False,s
+          assert s['m3_automatic_authorization'] is False,s
+          g=x['semantic_guards']
+          for k in ('canonical_generation_advanced','champion_promoted','production_cutover','market_information_verdict_reopened','profitability_or_alpha_claimed','m2_retroactively_changed','r7_candidate_evaluated','final_holdout_payload_opened','fresh_market_data_downloaded','r5_purge_support_reopened','legacy_validation_rows_used','raw_market_payload_used'):
+              assert g[k] is False,(k,g)
+          assert g['frozen_package_unchanged'] is True and g['g0_authority_unchanged'] is True,g
+          print(json.dumps({
+              'status':x['status'],
+              'correction_quality_conclusion':s['correction_quality_conclusion'],
+              'harm_suppression_conclusion':s['harm_suppression_conclusion'],
+              'joint_interpretation':s['joint_interpretation'],
+              'correction_quality_gt_shuffle_median_fold_count':s['correction_quality_gt_shuffle_median_fold_count'],
+              'capture_fraction_gt_shuffle_median_fold_count':s['capture_fraction_gt_shuffle_median_fold_count'],
+              'harmful_cost_lt_shuffle_median_fold_count':s['harmful_cost_lt_shuffle_median_fold_count'],
+              'selective_harmful_cost_lt_abs_ce_aligned_fold_count':s['selective_harmful_cost_lt_abs_ce_aligned_fold_count'],
+              'per_fold':s['per_fold'],
+              'next_legal_step':x['next_legal_step'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload M2.1 mechanistic evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-m2-1-correction-quality-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_m21_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_m21_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-m21-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
