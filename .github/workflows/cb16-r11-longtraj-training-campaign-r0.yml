@@ -1,0 +1,229 @@
+name: CB16 R11 Long-Trajectory Training Campaign R0
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-training-campaign-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_SPEC_V1.json
+      - scripts/r11_longtraj_training_campaign_r0.py
+      - tests/test_longtraj_training_campaign_r0.py
+      - .github/workflows/cb16-r11-longtraj-training-campaign-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-longtraj-training-campaign-r0
+  cancel-in-progress: true
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_G0_ROOT: /cb16/g0
+  OUT_DIR: artifacts/r11_longtraj_training_campaign_r0
+  CAMPAIGN_BASE: 9075f628c3880d09ae98811f9d4dd40186f269e1
+  ADMISSION_QUALIFIED_CODE: d9b0f3213c51ff78748619eb78434f63d3b58db9
+  E6_QUALIFIED_CODE: 72005b9d7eca06be99a4cebdbdaad48126b9d061
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  training-campaign-r0:
+    name: One bounded generation-0 minute shadow campaign
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen lineage and preregistered campaign authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-training-campaign-r0"
+          git merge-base --is-ancestor "$CAMPAIGN_BASE" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_FREEZE_RECEIPT_V1.json)" = "0c190b8df2a8e6a6b62ce0ad5f87f547562b1730"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_RECEIPT_V1.json)" = "264960e8f37d797256e6e5383029a830c4a60faf"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_GATEWORK_V1.json)" = "c355dae5dc02f28844291c3d1d6439c1db14577e"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_SCIENCE_G0_CANONICAL_HISTORICAL_LEARNING_BASELINE_R4_ADJUDICATION_V1.json)" = "42efaa9723c66de1f7d0936e2e4526eb312347f9"
+          python3 - <<'PY'
+          import json
+          s=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_SPEC_V1.json'))
+          assert s['schema']=='CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_SPEC_V1',s
+          assert s['status']=='FROZEN_BEFORE_FIRST_CAMPAIGN_EXECUTION',s
+          assert s['classification']=='ONE_BOUNDED_GENERATION0_SHADOW_CAMPAIGN__NO_CANONICAL_PROMOTION__NO_SCIENTIFIC_MARKET_VERDICT',s
+          assert s['branch_base']['base_sha']=='9075f628c3880d09ae98811f9d4dd40186f269e1',s
+          assert s['admission_parent']['qualified_code_sha']=='d9b0f3213c51ff78748619eb78434f63d3b58db9',s
+          assert s['e6_parent']['qualified_code_sha']=='72005b9d7eca06be99a4cebdbdaad48126b9d061',s
+          assert s['cohort_identity']['train_dependence_groups']==48,s
+          assert s['cohort_identity']['validation_dependence_groups']==12,s
+          assert s['cohort_identity']['total_counterfactual_branches']==540,s
+          assert s['cohort_identity']['parent_receipts_canonical_sha256']=='b8a5878a07689677967dcf92b42c44903d987fd2f7c5fd19517d93c1fd70daca',s
+          assert s['cohort_identity']['admission_prepared_train_hash']=='a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492',s
+          assert s['cohort_identity']['admission_prepared_validation_hash']=='0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131',s
+          assert s['student_initialization']['expected_policy_hash']=='d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886',s
+          assert s['student_initialization']['admission_one_step_model_continuation_allowed'] is False,s
+          assert s['training']['campaign_count']==1 and s['training']['canonical_generation']==0,s
+          assert s['training']['epochs']==12 and s['training']['batch_size']==512,s
+          assert s['training']['expected_optimizer_steps']==12,s
+          assert s['training']['optional_stopping'] is False,s
+          assert s['evaluation']['same_validation_followup_may_authorize_promotion'] is False,s
+          assert s['hard_outputs']['canonical_promotion_authorized'] is False,s
+          assert s['hard_outputs']['canonical_generation_advance_authorized'] is False,s
+          assert s['hard_outputs']['scientific_verdict'] is None,s
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_training_campaign_r0_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_training_campaign_r0_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f:
+              f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile campaign implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile \
+            scripts/r11_longtraj_training_campaign_r0.py \
+            scripts/r11_longtraj_training_admission_r0.py \
+            scripts/r11_longtraj_training_admission_r0_entry.py \
+            tests/test_longtraj_training_campaign_r0.py
+
+      - name: Run inherited and campaign known-answer gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q \
+            tests/test_minute_physics_binding_r2.py \
+            tests/test_longtraj_training_admission_r0_exact_sensory.py \
+            tests/test_canonical_historical_learning_baseline_r4.py \
+            tests/test_longtraj_training_campaign_r0.py
+
+      - name: Run one bounded generation-0 minute campaign
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_training_campaign_r0.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --g0-root "$CB16_G0_ROOT" \
+            --symbol BTCUSDT \
+            --workers 8 \
+            --device cuda \
+            --work-root "$OUT_DIR/work" \
+            --output "$OUT_DIR/CAMPAIGN_RESULT.json"
+
+      - name: Enforce campaign result contract and build freeze candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,math,os,pathlib
+          d=pathlib.Path('artifacts/r11_longtraj_training_campaign_r0')
+          p=d/'CAMPAIGN_RESULT.json'
+          x=json.load(open(p))
+          assert x['schema']=='CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_RESULT_V1',x
+          assert x['status']=='PASS',x
+          assert x['classification']=='ONE_BOUNDED_GENERATION0_MINUTE_CAMPAIGN_COMPLETED__SHADOW_ONLY__NO_MARKET_VERDICT',x
+          assert x['cohort']['train_groups']==48 and x['cohort']['validation_groups']==12,x
+          assert x['cohort']['total_groups']==60 and x['cohort']['total_branches']==540,x
+          assert x['cohort']['horizon_minutes']==4320 and x['cohort']['decision_to_execution_minutes']==1,x
+          h=x['cohort']['hashes']
+          assert h['parent_receipts_sha256']=='b8a5878a07689677967dcf92b42c44903d987fd2f7c5fd19517d93c1fd70daca',h
+          assert h['parent_ids_sha256']=='8a15f139047e0cfbaf1c47a3d2794e07df6cd1bc0f88870414c1efd36408061b',h
+          assert h['decision_times_sha256']=='dba104c55dd6c9987f9ff0231a075363c69ea18338acd24467af3726e117217c',h
+          assert x['teacher']['train_summary']['admitted_dependence_groups']==48,x['teacher']
+          assert x['teacher']['validation_summary']['admitted_dependence_groups']==12,x['teacher']
+          assert x['teacher']['train_summary']['rejected']==0 and x['teacher']['validation_summary']['rejected']==0,x['teacher']
+          assert x['champion']['policy_hash']=='d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886',x['champion']
+          assert x['champion']['state_mutated'] is False,x['champion']
+          tr=x['challenger']['training_receipt']
+          assert tr['epochs']==12 and tr['batch_size']==512 and tr['optimizer_steps']==12,tr
+          assert tr['generation_seed']==24680,tr
+          assert tr['lr']==0.0003 and tr['weight_decay']==0.0001,tr
+          assert tr['amp'] is False and tr['dtype']=='torch.float32',tr
+          assert len(tr['gradient_owner_set_last_step'])==6,tr
+          assert all(math.isfinite(float(v)) and float(v)>0.0 for v in tr['update_group_norms'].values()),tr
+          assert x['challenger']['checkpoint_restart']['exact'] is True,x['challenger']
+          assert all(x['gates'].values()),x['gates']
+          assert x['canonical_promotion_authorized'] is False,x
+          assert x['canonical_generation_advance_authorized'] is False,x
+          assert x['production_cutover_authorized'] is False,x
+          assert x['new_scientific_market_verdict'] is False,x
+          assert x['scientific_verdict'] is None,x
+          assert x['final_holdout_touched'] is False and x['fresh_market_data_downloaded'] is False,x
+          spec=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_SPEC_V1.json')
+          adm=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_ADMISSION_R0_FREEZE_RECEIPT_V1.json')
+          e6=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_RECEIPT_V1.json')
+          receipt={
+            'schema':'CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_FREEZE_CANDIDATE_V1',
+            'classification':'ONE_BOUNDED_GENERATION0_MINUTE_CAMPAIGN_ALL_GATES_PASS__SHADOW_ONLY',
+            'qualified_code_sha':os.environ['GITHUB_SHA'],
+            'spec_sha256':hashlib.sha256(spec.read_bytes()).hexdigest(),
+            'admission_freeze_receipt_sha256':hashlib.sha256(adm.read_bytes()).hexdigest(),
+            'e6_freeze_receipt_sha256':hashlib.sha256(e6.read_bytes()).hexdigest(),
+            'result_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+            'cohort_hashes':h,
+            'train_evidence_hash':tr['train_evidence_hash'],
+            'validation_evidence_hash':tr['validation_evidence_hash'],
+            'champion_policy_hash':x['champion']['policy_hash'],
+            'challenger_policy_hash':tr['challenger_semantic_sha256'],
+            'challenger_checkpoint_sha256':x['challenger']['checkpoint']['file_sha256'],
+            'checkpoint_restart_exact':x['challenger']['checkpoint_restart']['exact'],
+            'optimizer_steps':tr['optimizer_steps'],
+            'parameter_l2_delta':tr['parameter_l2_delta'],
+            'champion_validation_loss':x['champion']['validation']['loss'],
+            'challenger_validation_loss':tr['validation_after']['loss'],
+            'shadow_winner':x['shadow_tournament']['shadow_winner'],
+            'relative_validation_improvement':x['shadow_tournament']['relative_validation_improvement'],
+            'gates':x['gates'],
+            'canonical_promotion_authorized':False,
+            'canonical_generation_advance_authorized':False,
+            'scientific_verdict':None,
+            'final_holdout_touched':False,
+            'fresh_market_data_downloaded':False,
+            'next_gate':'LONGTRAJ_TRAINING_CAMPAIGN_R0_ADJUDICATION__NO_AUTOMATIC_PROMOTION',
+          }
+          (d/'CAMPAIGN_FREEZE_CANDIDATE_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload campaign evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-training-campaign-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_training_campaign_r0_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_training_campaign_r0_python.json
+            artifacts/r11_longtraj_training_campaign_r0/
+          if-no-files-found: warn
+          retention-days: 30
