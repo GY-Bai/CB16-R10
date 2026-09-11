@@ -17,6 +17,7 @@ permissions:
 
 env:
   CB16_RAW_ROOT: /cb16/raw
+  CB16_LONGTRAJ_SCIENCE_BASE: dc2b55728877888d4b872f76e0cb2770be9c0921
 
 jobs:
   shanxi-preflight:
@@ -34,18 +35,19 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Resolve experiment config
+      - name: Resolve experiment config and verify science ancestry
         id: cfg
         shell: bash
         run: |
           set -euo pipefail
+          git merge-base --is-ancestor "$CB16_LONGTRAJ_SCIENCE_BASE" HEAD
           CFG=authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
           test -f "$CFG"
-          python3 - "$CFG" <<'PY' > "$RUNNER_TEMP/cfg.env"
+          python3 - "$CFG" "$CB16_LONGTRAJ_SCIENCE_BASE" <<'PY' > "$RUNNER_TEMP/cfg.env"
           import json,sys,shlex
-          x=json.load(open(sys.argv[1]))
+          x=json.load(open(sys.argv[1])); expected=sys.argv[2]
           assert x['status']=='FROZEN_BEFORE_EXECUTION',x
-          assert x['parent_common_base']=='dc2b55728877888d4b872f76e0cb2770be9c0921',x
+          assert x['common_science_base']==expected,x
           assert x['final_holdout_payload_opened'] is False,x
           assert x['fresh_market_download'] is False,x
           mode=x['mode']
