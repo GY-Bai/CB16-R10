@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
+
 from cb16_local_opt.minute_physics_binding_r2 import (
     MinutePhysicsSessionR2,
     economic_state_projection,
@@ -29,10 +31,7 @@ def hbar(session, t_ms, *, o=100.0, h=101.0, l=99.0, c=100.0, v=60.0):
 
 
 def warmup(session, start_ms):
-    bars = [
-        hbar(session, start_ms + i * HOUR_MS)
-        for i in range(16)
-    ]
+    bars = [hbar(session, start_ms + i * HOUR_MS) for i in range(16)]
     session.warmup_hourly(bars)
     return bars
 
@@ -67,6 +66,34 @@ def test_checkpoint_restore_exact_inside_partial_hour():
     assert restored.export_state() == state
 
 
+def test_account6_drawdown_projects_exact_historical_peak():
+    rt = runtime()
+    s = MinutePhysicsSessionR2.initialize(rt, account_id="E6R2:ACCOUNT6")
+    t0 = 1_700_000_000_000 // HOUR_MS * HOUR_MS
+    warmup(s, t0 - 16 * HOUR_MS)
+    s.step_intent(
+        direction_v55=LONG,
+        risk=0.5,
+        symbol="BTCUSDT",
+        open_time_ms=t0,
+        ohlcv=minute_ohlcv(),
+        funding_rate=0.0,
+        trace_id="ACCOUNT6:ENTRY",
+    )
+    assert s.kernel.state.cash != 100000.0
+    assert s.kernel.state.peak_equity == 100000.0
+    mark = 99.0
+    expected = float(np.float32((s.kernel.state.peak_equity - s.equity_at_mark(mark)) / s.kernel.state.peak_equity))
+    projected = s.account6(mark)
+    assert projected.shape == (6,)
+    assert float(projected[3]) == expected
+
+    state = s.export_state()
+    restored = MinutePhysicsSessionR2.restore(rt, state, s.risk_authority)
+    assert np.array_equal(restored.account6(mark), projected)
+    assert restored.kernel.state.peak_equity == s.kernel.state.peak_equity
+
+
 def test_unambiguous_hourly_economic_parity():
     rt = runtime()
     s = MinutePhysicsSessionR2.initialize(rt, account_id="E6R2:PARITY")
@@ -93,9 +120,7 @@ def test_unambiguous_hourly_economic_parity():
         )
     s.kernel.r2_flush_completed_hour(t0 + HOUR_MS)
     minute_snap = s.base_snapshot()
-    base_snap = rt.physics.snapshot_kernel(
-        base, rt.physics_contract, s.support_state
-    )
+    base_snap = rt.physics.snapshot_kernel(base, rt.physics_contract, s.support_state)
     assert economic_state_projection(minute_snap) == economic_state_projection(base_snap)
 
 
