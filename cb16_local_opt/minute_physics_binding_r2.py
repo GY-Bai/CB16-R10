@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Sequence
 
+import numpy as np
+
 from .r102_common import HOUR_MS
 from .r102_physics import FLAT, LONG, SHORT, FrozenPhysicsRuntimeR102
 
@@ -24,15 +26,7 @@ def _hour_start_ms(ts_ms: int) -> int:
 
 
 def _restore_exact_kernel_state(base: Any, snapshot: Mapping[str, Any]) -> None:
-    """Undo constructor/post-init normalization when restoring a historical snapshot.
-
-    The recovered AccountState dataclass has a genesis convenience __post_init__ that
-    rewrites peak_equity when cash differs from the default.  That is correct for a
-    newly constructed account, but not for restoring an already-evolved ledger.  The
-    authoritative snapshot is therefore re-applied field-for-field after the frozen
-    loader has validated/schema-bound it.  This changes no transition equation; it
-    makes checkpoint restore exact.
-    """
+    """Undo constructor/post-init normalization when restoring an evolved ledger."""
     raw = snapshot["kernel_state"]
     for name, value in raw.items():
         if not hasattr(base.state, name):
@@ -46,16 +40,7 @@ def _minute_kernel_class(runtime: FrozenPhysicsRuntimeR102):
     CanonicalBar = runtime.physics.CanonicalBar
 
     class WallClockMinuteKernelR2(Base):
-        """Minute-resolution adapter preserving hourly temporal semantics.
-
-        The frozen financial equations and environment-owned exit logic are inherited.
-        Only bar-count clocks are adapted:
-        - ATR updates once per completed UTC hour using the exact frozen ATR update.
-        - stop cooldown counts 60 minute steps per frozen hourly bar.
-        - position_age_bars remains elapsed completed hours for the frozen time-stop.
-        Minute bars resolve threshold ordering causally; same-minute double touches keep
-        the frozen stop-first tie-break because Base._check_intrabar_sl_tp is reused.
-        """
+        """Minute-resolution adapter preserving hourly temporal semantics."""
 
         def __init__(self, config=None):
             super().__init__(config)
@@ -193,9 +178,7 @@ def _minute_kernel_class(runtime: FrozenPhysicsRuntimeR102):
                 st.max_adverse_price = min(st.max_adverse_price, float(bar.low))
                 if self._r2_entry_time_ms is None:
                     raise RuntimeError("R2_POSITION_WITHOUT_ENTRY_CLOCK")
-                elapsed_end = (
-                    int(self._r2_current_time_ms) + MINUTE_MS - int(self._r2_entry_time_ms)
-                )
+                elapsed_end = int(self._r2_current_time_ms) + MINUTE_MS - int(self._r2_entry_time_ms)
                 st.position_age_bars = max(0, int(elapsed_end // HOUR_MS))
             elif st.position < -1e-12:
                 st.trade_phase = "SHORT"
@@ -203,9 +186,7 @@ def _minute_kernel_class(runtime: FrozenPhysicsRuntimeR102):
                 st.max_adverse_price = max(st.max_adverse_price, float(bar.high))
                 if self._r2_entry_time_ms is None:
                     raise RuntimeError("R2_POSITION_WITHOUT_ENTRY_CLOCK")
-                elapsed_end = (
-                    int(self._r2_current_time_ms) + MINUTE_MS - int(self._r2_entry_time_ms)
-                )
+                elapsed_end = int(self._r2_current_time_ms) + MINUTE_MS - int(self._r2_entry_time_ms)
                 st.position_age_bars = max(0, int(elapsed_end // HOUR_MS))
             else:
                 st.position_age_bars = 0
@@ -305,11 +286,41 @@ class MinutePhysicsSessionR2:
             "minute_hidden": self.kernel.r2_hidden(),
         }
 
-    def account6(self, mark: float):
-        return self.runtime.account6(self.base_snapshot(), float(mark))
+    def _state_at_mark_exact(self, mark: float) -> Any:
+        px = float(mark)
+        if not math.isfinite(px) or px <= 0.0:
+            raise ValueError("R2_PROJECTION_MARK_MUST_BE_FINITE_POSITIVE")
+        st = copy.deepcopy(self.kernel.state)
+        st.last_mark_price = px
+        return st
+
+    def account6(self, mark: float) -> np.ndarray:
+        px = float(mark)
+        st = self._state_at_mark_exact(px)
+        equity = float(st.equity())
+        margin_capacity = float(st.margin_used + st.available_margin())
+        raw = {
+            "equity": equity,
+            "peak_equity": float(st.peak_equity),
+            "signed_position_notional": float(st.position) * px,
+            "max_gross_leverage_contract": float(self.runtime.physics_contract["sim_config"]["max_leverage"]),
+            "current_price": px,
+            "entry_price": None if abs(float(st.position)) < 1e-12 else float(st.avg_entry_price),
+            "holding_bars": float(st.position_age_bars),
+            "max_holding_bars_contract": float(self.runtime.physics_contract["sim_config"]["max_holding_bars"]),
+            "risk_budget_remaining": float(self.support_state["risk_budget_remaining"]),
+            "risk_budget_capacity": float(self.support_state["risk_budget_capacity"]),
+            "margin_used": float(st.margin_used),
+            "margin_capacity": margin_capacity,
+        }
+        packet = self.runtime.physics.encode_account(raw)
+        x = np.asarray(packet["payload"], dtype=np.float32)
+        if x.shape != (6,) or not np.all(np.isfinite(x)):
+            raise RuntimeError("R2_EXACT_ACCOUNT6_INVALID")
+        return x
 
     def equity_at_mark(self, mark: float) -> float:
-        return self.runtime.equity_at_mark(self.base_snapshot(), float(mark))
+        return float(self._state_at_mark_exact(mark).equity())
 
     def minute_bar(
         self,
@@ -379,9 +390,7 @@ class MinutePhysicsSessionR2:
             "executable_action": executable,
             "snapshot_t": snapshot_t,
             "snapshot_t1": snapshot_t1,
-            "account_observation_t1": self.runtime.account6(
-                snapshot_t1, float(bar.mark_price)
-            ).tolist(),
+            "account_observation_t1": self.account6(float(bar.mark_price)).tolist(),
             "termination_type": term,
             "execution_metadata": {
                 "step_reward": float(result.step_reward),
