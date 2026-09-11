@@ -1,0 +1,74 @@
+{
+  "r2=0.05": {
+    "replicates": 6,
+    "gate_pass_rate": 1.0,
+    "median_positive_fold_count": 5.0,
+    "median_beats_median_fold_count": 5.0,
+    "median_pairwise_wins": 25.0,
+    "mean_relative_gain_per_fold": [
+      0.016590552268486967,
+      0.014524762153430354,
+      0.014524762153430354,
+      0.014524762153430354,
+      0.014524762153430354
+    ]
+  },
+  "r2=0.1": {
+    "replicates": 6,
+    "gate_pass_rate": 1.0,
+    "median_positive_fold_count": 5.0,
+    "median_beats_median_fold_count": 5.0,
+    "median_pairwise_wins": 25.0,
+    "mean_relative_gain_per_fold": [
+      0.04136803325655404,
+      0.039474693420767974,
+      0.039474693420767974,
+      0.039474693420767974,
+      0.039474693420767974
+    ]
+  },
+  "r2=0.2": {
+    "replicates": 6,
+    "gate_pass_rate": 1.0,
+    "median_positive_fold_count": 5.0,
+    "median_beats_median_fold_count": 5.0,
+    "median_pairwise_wins": 25.0,
+    "mean_relative_gain_per_fold": [
+      0.08842599037107642,
+      0.08927663722608652,
+      0.08927663722608652,
+      0.08927663722608652,
+      0.08927663722608652
+    ]
+  },
+  "r2=0.4": {
+    "replicates": 6,
+    "gate_pass_rate": 1.0,
+    "median_positive_fold_count": 5.0,
+    "median_beats_median_fold_count": 5.0,
+    "median_pairwise_wins": 25.0,
+    "mean_relative_gain_per_fold": [
+      0.20319064489233563,
+      0.1982613108004256,
+      0.1982613108004256,
+      0.1982613108004256,
+      0.1982613108004256
+    ]
+  },
+  "r2=0.7": {
+    "replicates": 6,
+    "gate_pass_rate": 1.0,
+    "median_positive_fold_count": 5.0,
+    "median_beats_median_fold_count": 5.0,
+    "median_pairwise_wins": 25.0,
+    "mean_relative_gain_per_fold": [
+      0.36236337805446056,
+      0.35186442020663417,
+      0.35186442020663417,
+      0.35186442020663417,
+      0.35186442020663417
+    ]
+  }
+}
+WROTE /tmp/h516_scratch/exp2_power.json
+EXIT=0

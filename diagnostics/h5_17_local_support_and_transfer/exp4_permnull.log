@@ -1,0 +1,41 @@
+{
+  "per_fold": [
+    {
+      "fold": 1,
+      "true_rel%": -20.744,
+      "cyclic_median_rel%": -14.424,
+      "perm_median_rel%": -19.376,
+      "blocks_true_above_perm_median": 2
+    },
+    {
+      "fold": 2,
+      "true_rel%": -43.044,
+      "cyclic_median_rel%": -27.89,
+      "perm_median_rel%": -18.821,
+      "blocks_true_above_perm_median": 0
+    },
+    {
+      "fold": 3,
+      "true_rel%": -27.447,
+      "cyclic_median_rel%": -14.48,
+      "perm_median_rel%": -15.823,
+      "blocks_true_above_perm_median": 1
+    },
+    {
+      "fold": 4,
+      "true_rel%": -1.855,
+      "cyclic_median_rel%": -7.606,
+      "perm_median_rel%": -6.223,
+      "blocks_true_above_perm_median": 4
+    },
+    {
+      "fold": 5,
+      "true_rel%": -24.791,
+      "cyclic_median_rel%": -23.613,
+      "perm_median_rel%": -24.027,
+      "blocks_true_above_perm_median": 2
+    }
+  ]
+}
+WROTE /tmp/h516_scratch/exp4_permnull.json
+EXIT=0

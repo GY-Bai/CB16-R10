@@ -1,0 +1,75 @@
+{"stage": "built", "fold": 3, "clocks": 114, "groups": 1059}
+{"stage": "built", "fold": 4, "clocks": 142, "groups": 1339}
+{"stage": "built", "fold": 5, "clocks": 170, "groups": 1619}
+{
+  "frac=0.25": {
+    "clocks": [
+      22,
+      28,
+      36
+    ],
+    "rel%": [
+      -4.8,
+      -7.02,
+      2.05
+    ],
+    "folds": [
+      3,
+      4,
+      5
+    ]
+  },
+  "frac=0.5": {
+    "clocks": [
+      43,
+      57,
+      71
+    ],
+    "rel%": [
+      -5.2,
+      -7.72,
+      2.73
+    ],
+    "folds": [
+      3,
+      4,
+      5
+    ]
+  },
+  "frac=0.75": {
+    "clocks": [
+      64,
+      86,
+      106
+    ],
+    "rel%": [
+      -3.21,
+      -6.41,
+      -0.87
+    ],
+    "folds": [
+      3,
+      4,
+      5
+    ]
+  },
+  "frac=1.0": {
+    "clocks": [
+      86,
+      114,
+      142
+    ],
+    "rel%": [
+      -5.36,
+      -6.23,
+      -5.7
+    ],
+    "folds": [
+      3,
+      4,
+      5
+    ]
+  }
+}
+WROTE /tmp/h516_scratch/exp3_curve.json
+EXIT=0
