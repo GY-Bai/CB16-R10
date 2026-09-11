@@ -1,0 +1,98 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_ADJUDICATION_V1",
+  "status": "ADJUDICATED",
+  "classification": "CAMPAIGN_MECHANICS_PASS__SHADOW_CHALLENGER_LOWER_CONSUMED_VALIDATION_LOSS__NO_PROMOTION__NO_MARKET_VERDICT",
+  "authority_inputs": {
+    "campaign_spec": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_SPEC_V1.json",
+    "campaign_freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_FREEZE_RECEIPT_V1.json",
+    "qualified_code_sha": "ea4863e12073c1d796cc07e17f86f0ddb400e0fc",
+    "workflow_run_id": 34630256383,
+    "artifact_id": 10275947474,
+    "artifact_zip_sha256": "9800592c77f923baffc0146e87dc862c750f49c0b6bce73cd869bda0d5f89e08",
+    "result_sha256": "eda6280d47b52b10da2ae8ba5092c4b4ede76f8dde35a9500be77ac07e216459"
+  },
+  "adjudication": {
+    "campaign_mechanics": "PASS",
+    "learning_connectivity": "PASS",
+    "cohort_identity": "EXACT_MATCH_TO_FROZEN_ADMISSION_R0",
+    "teacher_support": "TRAIN_48_OF_48_AND_VALIDATION_12_OF_12__ZERO_REJECTIONS",
+    "student_full_campaign": "PASS__12_EPOCHS__12_OPTIMIZER_STEPS__ALL_SIX_OWNERS_UPDATED",
+    "checkpoint_restart": "BIT_EXACT_PASS",
+    "champion_immutability": "PASS",
+    "shadow_ordering": "CHALLENGER_LOWER_VALIDATION_TEACHER_TARGET_LOSS",
+    "canonical_promotion": "FORBIDDEN",
+    "canonical_generation_advance": "FORBIDDEN",
+    "scientific_market_verdict": null
+  },
+  "measured_shadow_observation": {
+    "validation_basis": "FROZEN_VALIDATION_PROBABILISTIC_TEACHER_TARGET_LOSS",
+    "validation_dependence_groups": 12,
+    "champion_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+    "challenger_policy_hash": "4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297",
+    "champion_total_loss": 1.5308542251586914,
+    "challenger_total_loss": 1.2729101181030273,
+    "absolute_loss_delta_challenger_minus_champion": -0.25794410705566406,
+    "relative_validation_improvement": 0.16849684497485387,
+    "direction_loss_delta_challenger_minus_champion": -0.1592562198638916,
+    "sizing_loss_delta_challenger_minus_champion": -0.0986880511045456,
+    "shadow_winner": "CHALLENGER",
+    "behavior_fingerprint_changed": true,
+    "discrete_direction_change_rate_on_12_consumed_validation_rows": 0.5833333333333334,
+    "parameter_l2_delta": 0.7447219223690486
+  },
+  "what_this_result_establishes": [
+    "The qualified minute-R2 State/Account/Sensory -> full 9-arm H72 counterfactual -> production dependence-balanced Teacher -> canonical six-owner Student path is mechanically connected end-to-end on the exact frozen Admission cohort.",
+    "The production Teacher admits the preregistered 48 TRAIN and 12 VALIDATION dependence groups without threshold relaxation.",
+    "A complete frozen canonical generation-0 Student campaign can change all six authorized parameter-owner groups while preserving detached Teacher/frozen inputs, exact lineage, checkpoint restart, Champion immutability, FINAL closure and fresh-data closure.",
+    "On the already-preregistered validation Teacher objective, the resulting shadow Challenger has lower total, direction and sizing loss than the immutable G0 Champion."
+  ],
+  "what_this_result_does_not_establish": [
+    "It does not establish profitability, alpha, economic value, qCRPS qualification, or state-specific market information.",
+    "It does not overturn the prior economic-ceiling or shuffle-control scientific failures.",
+    "It does not authorize treating realized branch winners as labels.",
+    "It does not authorize canonical promotion, generation advance, production cutover or live capital.",
+    "It does not authorize reusing the same 12 validation groups as independent evidence for promotion or a market-information verdict.",
+    "It does not authorize a second generation or post-result hyperparameter rescue."
+  ],
+  "scientific_interpretation": {
+    "feedback_topology_disconnected_hypothesis": "WEAKENED_MECHANICALLY__NOT_SCIENTIFICALLY_REJECTED",
+    "teacher_to_student_target_path_incompatible_hypothesis": "WEAKENED_MECHANICALLY__CANONICAL_LOSS_DECREASED_ON_FROZEN_TARGET_OBJECTIVE",
+    "student_loss_cannot_drive_six_owner_learning_hypothesis": "WEAKENED_MECHANICALLY__ALL_SIX_OWNER_UPDATES_NONZERO",
+    "market_information_exists_hypothesis": "NOT_TESTED_BY_THIS_CAMPAIGN",
+    "generalization_beyond_consumed_validation_hypothesis": "NOT_TESTED_BY_THIS_CAMPAIGN"
+  },
+  "validation_consumption": {
+    "validation_evidence_hash": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131",
+    "status": "CONSUMED_FOR_THIS_ONE_SHADOW_TOURNAMENT",
+    "future_role": "POST_HOC_DIAGNOSTIC_ONLY",
+    "promotion_authority": false,
+    "scientific_verdict_authority": false
+  },
+  "canonical_state": {
+    "champion_remains": "R11_G0_INITIAL_CHAMPION",
+    "champion_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+    "shadow_challenger_checkpoint_sha256": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246",
+    "shadow_challenger_is_canonical_authority": false,
+    "canonical_generation": 0,
+    "canonical_generation_advanced": false
+  },
+  "firewalls": {
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "canonical_promotion_authorized": false,
+    "canonical_generation_advance_authorized": false,
+    "production_cutover_authorized": false,
+    "live_capital_authorized": false,
+    "second_generation_authorized": false,
+    "new_scientific_market_verdict": false,
+    "scientific_verdict": null
+  },
+  "next_scientifically_legal_step": {
+    "gate": "SEPARATE_UNCONSUMED_PREFINAL_GENERALIZATION_PREREGISTRATION_REQUIRED",
+    "purpose": "Evaluate the frozen shadow Challenger versus the unchanged G0 Champion on genuinely unconsumed pre-FINAL evidence with preregistered negative/shuffle controls before any promotion discussion.",
+    "must_not_open_final_holdout": true,
+    "must_not_retrain_or_tune_on_the_new_evaluation": true,
+    "must_not_reuse_consumed_validation_as_independent_evidence": true,
+    "automatic_execution_authorized_by_this_adjudication": false
+  }
+}
