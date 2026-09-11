@@ -1,0 +1,122 @@
+{
+  "schema": "CB16_R11_FULL_MINUTE_HISTORICAL_REPLAY_R0_SPEC_V1",
+  "status": "FROZEN_BEFORE_R0_CANARY",
+  "classification": "INFRASTRUCTURE_AND_TRAINING_PROTOCOL_PREREGISTRATION__NO_MARKET_VERDICT",
+  "purpose": "Use every legally available causal 1-minute market endpoint as rolling historical practice while preserving path-dependent account state, frozen feedback semantics, and strict holdout discipline.",
+  "branch": "ai/r11-full-minute-historical-replay-r0",
+  "frozen_boundaries": {
+    "market_verdict_unchanged": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "final_holdout_start_utc": "2025-09-01T00:00:00Z",
+    "final_holdout_payload_opened": false,
+    "fresh_market_data_downloaded": false,
+    "frozen_physics_changed": false,
+    "supervisor_permission_changed": false,
+    "teacher_meaning_changed": false,
+    "evidence_meaning_changed": false,
+    "gradient_ownership_changed": false,
+    "requested_risk_semantics_changed": false,
+    "outcome_as_label_allowed": false,
+    "manual_cycle_or_regime_activation_allowed": false
+  },
+  "market_source": {
+    "host_root": "/data/cb16_hdd/binance_usdm_1m_funding_2020_2026",
+    "container_root": "/cb16/raw",
+    "family": "official Binance USD-M monthly 1m klines plus archived funding",
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "ADAUSDT",
+      "DOGEUSDT",
+      "DOTUSDT",
+      "LINKUSDT",
+      "LTCUSDT",
+      "SOLUSDT"
+    ],
+    "network_access": "FORBIDDEN",
+    "synthetic_gap_fill": "FORBIDDEN",
+    "interpolation": "FORBIDDEN",
+    "forward_fill_ohlcv": "FORBIDDEN",
+    "known_real_gap": "SOLUSDT 2022-02-26 through 2022-02-28; continuity must break and account episode must not bridge it"
+  },
+  "rolling_market_protocol": {
+    "base_cadence": "1 minute",
+    "decision_stride_minutes": 1,
+    "endpoint_rule": "Every eligible contiguous pre-FINAL minute is a rolling decision endpoint after causal lookback is available and a legal next transition exists.",
+    "future_in_observation": false,
+    "window_overlap_is_independent_evidence": false,
+    "same_future_dependence_key": "(symbol, decision_time_ms)",
+    "replicas_or_actions_increase_independent_market_future_n": false,
+    "gap_rule": "Any non-60000ms step terminates the contiguous segment; no rolling window, account trajectory, sensory history, or feedback transition may cross the gap."
+  },
+  "account_protocol": {
+    "path_dependent": true,
+    "recurrence": "A[t+1] = FrozenPhysics(A[t], Supervisor(ActionIntent[t]), realized_market_transition[t->t+1])",
+    "reset_each_rolling_window": false,
+    "allowed_resets": [
+      "explicit episode initialization",
+      "real market continuity break",
+      "explicit simulator terminal state"
+    ],
+    "multiple_replicas": "Allowed for trajectory diversity, but each replica sharing one (symbol, decision_time) shares the same market-future dependence group.",
+    "winner_only_retention": "FORBIDDEN",
+    "losses_and_errors_retained": true
+  },
+  "brain_candidate": {
+    "name": "ReplayCentralBrain16M",
+    "dtype": "FP32",
+    "amp": false,
+    "exact_trainable_parameters": 16116420,
+    "post_market_size_scan": "FORBIDDEN",
+    "logical_gradient_groups_preserved": [
+      "operator_brain_stem",
+      "medium_brain_stem",
+      "account_brain_stem",
+      "shared_decision_core",
+      "direction_head",
+      "requested_risk_head"
+    ],
+    "external_typed_inputs": [48, 48, 6],
+    "external_input_gradients": "BLOCKED",
+    "shared_core_width": 1024,
+    "shared_core_residual_blocks": 7,
+    "direction_output": "LONG/FLAT/SHORT logits using existing semantic surface",
+    "requested_risk_output": "direction-conditioned raw requested-risk; FLAT executable composition remains r=0 under existing semantics"
+  },
+  "compute_protocol": {
+    "qualified_gpu": "NVIDIA GeForce GTX 1060 6GB",
+    "qualified_precision": "FP32",
+    "rollout_chunk_rows": 32768,
+    "train_batch": 8192,
+    "historical_read_batch_rows": 65536,
+    "market_encode_batch_windows": 8192,
+    "experience_shards": 4,
+    "h72_workers": 2,
+    "teacher_workers": 2,
+    "vram_backpressure": 0.88,
+    "frozen_sensory_cache": "Allowed only per causal (symbol,timestamp) after deterministic equivalence validation; cache may not contain future information."
+  },
+  "r0_gates": {
+    "A_known_answer": [
+      "all eligible minutes enumerated at stride 1",
+      "gaps terminate windows",
+      "FINAL boundary excluded",
+      "observation contains no next/future bar",
+      "account persists across rolling windows",
+      "same market future replicas share dependence key",
+      "deterministic replay is reproducible",
+      "16,116,420 parameter count exact",
+      "six legacy-compatible gradient ownership prefixes cover every trainable parameter",
+      "typed external inputs receive zero gradient"
+    ],
+    "B_host_inventory": "All ten local symbol archive directories and matching CHECKSUM sidecars required; metadata-only inventory before any market-byte training run.",
+    "C_real_replay_canary": "Short pre-FINAL bounded replay only after A+B PASS; any missing mount/data/API binding is EXECUTION_BLOCKED, not SCIENTIFIC_FAIL.",
+    "D_full_authorized_replay": "Not opened by this R0 specification until causal/account/physics/sensory equivalence canaries PASS."
+  },
+  "failure_taxonomy": {
+    "engineering_or_mount_failure": "EXECUTION_BLOCKED",
+    "known_answer_or_semantic_invariant_failure": "EXECUTION_BLOCKED__SEMANTIC_CONTRACT_FAILURE",
+    "valid_market_learning_failure_after_all_gates": "SCIENTIFIC_FAIL"
+  }
+}
