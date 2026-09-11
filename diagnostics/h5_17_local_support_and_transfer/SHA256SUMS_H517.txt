@@ -1,24 +1,41 @@
+3ac0bde44ec27f303d3f5d421c42fff582cd93665c89fa6ea06b7287f510ede4  exp_revised.json
 ceb8b2d94272f845c801a6308b54b151bc09a2fd7fdbee5b0066e6d79df97868  exp1.json
 1c40113aa63cb8a09e294d6bf18f345290cd46118eafae8c833926f58aaad7ba  exp2_power.json
+bfe8bfc4584631cc19ec8af39df2715f10046a9cbaf91a8f391f2a5eab558511  exp2_power.log
+1d22e46bbfdd584d90404b8577b5cca3d415f51210c7ef476fbc0f73f2f6553d  EXP2B_EXP6_VOID.md
+2c6e4b1df27ce5c4229e8aa759e7ecc9d8d49190350effa0691084446d192cbe  exp2c_power.json
+2a7e227812b1f3684b57cec61545c05aa4d5e0ff6f3995de687d78bef8bffbff  exp2c_power.log
 111507538778c41624adc49b336d43dc043d40384e2e5d6caa6bbd678eda02d2  exp3_curve.json
+db4fff7337ae098d84d5d6f729d7a9028fa863b2e8efd2c038af574f6b0adf45  exp3_curve.log
 d4aa9c1a9ba4e331efcc94cd85d837190a8d93118a95dae256633fe8e267c1b4  exp4_permnull.json
+0cc29ba2cf0822a99cd81517acb0203be25a4b3d8b3e282cc09f1120a534f872  exp4_permnull.log
 d5445292ff6810413c0d96b44ef4464ecc9f0c7142d2f6a069f477511ff0c4c4  exp5_transfer.json
+9058a9798abd97e26bb77e0f493948bad31da9e73f3a7be567056943c2a2dd48  exp5_transfer.log
+0f6fcd386fccc40ba2fbfedeac77f5b3630fd460301d687abc686364dd3d27f5  exp6_mechanism.json
+9df03d1f97dcdf1302d2259fb623f26b965791d64eb9176422c4c202949cf0da  exp6s_state.json
+0198f02db5f49947449f0ef10ade9ce2a726cc78985eb8179b08c189af352f55  H5_17_DIAGNOSTIC_REPORT_V2.md
+63d4a8fb32d69f3a623bc2c7a96a2247807143d7b3b449a6b4133ba8b437dbb1  H5_17_DIAGNOSTIC_REPORT.md
+009ed803e4d6a92347595505d169eb5299ee94a88393e5d8af34a0c9fa6b01fa  h517_bugcheck.py
 e9d5d57ac8928be150239d76a7f8c30c1b4c71e3f41345a59519fc5d12b1b877  h517_common.py
-1df4ba0bfe4c8f69cef642a5441a555e42dd4d1d995a0a8abcbba930733fec8f  h517_curve.py
 5b39d2cc338b4676cc9059a7cc3cb735f70071ccbd50fb9ef5d99f1531511abf  h517_curve2.py
-23433d50c5d02f1003d3d66657b1dab2f514df05537c8682883ab950b1887135  h517_diag.py
+414bafdfa3d7d7508fe74173056c12f84c01cf27adac41ec2c6c719be9590120  h517_mechanism.py
 03cbdc44b2aa0ddd2b96ea1fcb7dbd3d629eafc837c92d9885085eadf15981da  h517_permnull.py
-ce5d7ddefe49aff7e95a195ea666859be143536ded4cc087a3c0386481ff0a2e  h517_power.py
 5c2b0d6293be7495186434900da0d6ad7a37fc4294dc288a73a08c1e1fa94f78  h517_power2.py
+5767afc32d6e95146c344a3c22a1b85aae6fe907d924a04a193bac5e55ec836d  h517_revised.py
+1e1db4d7a5c706b738b00ad2c792996daf09fbb626264f96e92ca8997ecdd595  h517_state_structure.py
 e41ff13b194e6591b0bd3e39e2353536ce4b9072184c16e71daf26358112d240  h517_timecheck.py
 87e5878b4c5a4d4e37e781d82981828a2369c8e5f8dd7e27f3dbcb85074d06fb  h517_transfer.py
+dc8953c038731e6d39cf23ceb523d0da3535950d3ef7642a8b5e8b82e30088dc  NOTE_ON_SUPPORT_DEFINITION.md
 
 # --- provenance ---
 # repo:      GY-Bai/CB16-R10
 # branch:    ai/m-series-h5-17-diagnostic-exploratory-r0
-# commit:    f847f61ef2c0dbd78fc46bb6ba1663e03240803b
 # base:      a0848118b3ec39dedd9fc73368e0fbae90de1034 (main)
 # code:      repo @ a312357361a9ad36edfd8114934eee7113c4b0cc (H5.16 adjudication)
 # runtime:   shanxi / cb16-runner-r11 / python 3.10.21 sklearn 1.7.2 numpy 2.2.6
 # data:      /cb16/runtime/r104 (R10.4 TRAIN-only evidence cache, loader-verified sha)
-# status:    EXPLORATORY — NOT PREREGISTERED — NOT A SCIENTIFIC VERDICT
+# status:    EXPLORATORY -- NOT PREREGISTERED -- NOT A SCIENTIFIC VERDICT
+# retained:  EXP-1, EXP-3, EXP-4, EXP-5
+# void:      EXP-2b (superseded by EXP-2c), EXP-6 (superseded by EXP-6S)
+# read:      H5_17_DIAGNOSTIC_REPORT_V2.md  (supersedes H5_17_DIAGNOSTIC_REPORT.md)
+#            EXP2B_EXP6_VOID.md
