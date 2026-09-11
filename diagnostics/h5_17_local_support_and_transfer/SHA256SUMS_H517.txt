@@ -12,3 +12,13 @@ ce5d7ddefe49aff7e95a195ea666859be143536ded4cc087a3c0386481ff0a2e  h517_power.py
 5c2b0d6293be7495186434900da0d6ad7a37fc4294dc288a73a08c1e1fa94f78  h517_power2.py
 e41ff13b194e6591b0bd3e39e2353536ce4b9072184c16e71daf26358112d240  h517_timecheck.py
 87e5878b4c5a4d4e37e781d82981828a2369c8e5f8dd7e27f3dbcb85074d06fb  h517_transfer.py
+
+# --- provenance ---
+# repo:      GY-Bai/CB16-R10
+# branch:    ai/m-series-h5-17-diagnostic-exploratory-r0
+# commit:    f847f61ef2c0dbd78fc46bb6ba1663e03240803b
+# base:      a0848118b3ec39dedd9fc73368e0fbae90de1034 (main)
+# code:      repo @ a312357361a9ad36edfd8114934eee7113c4b0cc (H5.16 adjudication)
+# runtime:   shanxi / cb16-runner-r11 / python 3.10.21 sklearn 1.7.2 numpy 2.2.6
+# data:      /cb16/runtime/r104 (R10.4 TRAIN-only evidence cache, loader-verified sha)
+# status:    EXPLORATORY — NOT PREREGISTERED — NOT A SCIENTIFIC VERDICT
