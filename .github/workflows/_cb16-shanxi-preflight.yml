@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD:ci/check_repository_policy.py)" = "c5c021ab9348387a0f43b766b66ab74977e45a5c"
-          test "$(git rev-parse HEAD:ci/check_shanxi_workflow_policy.py)" = "7999d47fd2117317adbfa39bd79bb462aa17874b"
+          test "$(git rev-parse HEAD:ci/check_shanxi_workflow_policy.py)" = "f60177e49d5b89d4d139af0670469900bfa0c26a"
           test "$(git rev-parse HEAD:ci/check_node24_actions_policy.py)" = "f8b7430960b0a456891afc4e9aedafe9e7bd43b7"
 
       - name: Repository sensitive-content policy
