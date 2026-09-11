@@ -23,6 +23,23 @@ def _hour_start_ms(ts_ms: int) -> int:
     return (int(ts_ms) // HOUR_MS) * HOUR_MS
 
 
+def _restore_exact_kernel_state(base: Any, snapshot: Mapping[str, Any]) -> None:
+    """Undo constructor/post-init normalization when restoring a historical snapshot.
+
+    The recovered AccountState dataclass has a genesis convenience __post_init__ that
+    rewrites peak_equity when cash differs from the default.  That is correct for a
+    newly constructed account, but not for restoring an already-evolved ledger.  The
+    authoritative snapshot is therefore re-applied field-for-field after the frozen
+    loader has validated/schema-bound it.  This changes no transition equation; it
+    makes checkpoint restore exact.
+    """
+    raw = snapshot["kernel_state"]
+    for name, value in raw.items():
+        if not hasattr(base.state, name):
+            raise RuntimeError(f"R2_RESTORE_UNKNOWN_KERNEL_STATE_FIELD:{name}")
+        setattr(base.state, name, copy.deepcopy(value))
+
+
 def _minute_kernel_class(runtime: FrozenPhysicsRuntimeR102):
     base_probe = runtime.physics.make_kernel(runtime.physics_contract)
     Base = type(base_probe)
@@ -221,6 +238,7 @@ class MinutePhysicsSessionR2:
         snap, risk = runtime.initialize(account_id, risk_fraction)
         K, Base, Canon = _minute_kernel_class(runtime)
         base = runtime.physics.restore_kernel(snap, runtime.physics_contract)
+        _restore_exact_kernel_state(base, snap)
         k = K(base.config)
         k.state = copy.deepcopy(base.state)
         k._last_bar_time = base._last_bar_time
@@ -247,6 +265,7 @@ class MinutePhysicsSessionR2:
         base_snap = state["base_snapshot"]
         K, Base, Canon = _minute_kernel_class(runtime)
         base = runtime.physics.restore_kernel(base_snap, runtime.physics_contract)
+        _restore_exact_kernel_state(base, base_snap)
         k = K(base.config)
         k.state = copy.deepcopy(base.state)
         k._last_bar_time = base._last_bar_time
