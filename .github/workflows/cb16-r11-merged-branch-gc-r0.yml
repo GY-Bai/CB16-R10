@@ -3,7 +3,7 @@ name: CB16 R11 Merged Branch GC R0
 on:
   push:
     branches:
-      - ai/r11-full-minute-historical-replay-r0
+      - main
     paths:
       - .github/workflows/cb16-r11-merged-branch-gc-r0.yml
   workflow_dispatch:
@@ -13,11 +13,11 @@ permissions:
 
 jobs:
   merged-branch-gc:
-    name: Delete branches already merged into R11 full-minute base
+    name: Delete branches already merged into main
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout full-minute authority base
+      - name: Checkout main authority base
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -27,13 +27,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "${GITHUB_REF_NAME}" = "ai/r11-full-minute-historical-replay-r0"
+          test "${GITHUB_REF_NAME}" = "main"
 
           git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
-          BASE='origin/ai/r11-full-minute-historical-replay-r0'
+          BASE='origin/main'
           git rev-parse --verify "$BASE"
 
-          PRESERVE_REGEX='^(main|ci-results|ai/v63-activation-r0|ai/r11-full-minute-historical-replay-r0)$'
+          PRESERVE_REGEX='^(main|ci-results|ai/v63-activation-r0)$'
 
           mapfile -t MERGED < <(
             git for-each-ref \
@@ -44,7 +44,7 @@ jobs:
           )
 
           {
-            echo '# CB16 R11 merged-branch GC receipt'
+            echo '# CB16 merged-branch GC receipt'
             echo
             echo "Base: $BASE"
             echo
@@ -62,7 +62,6 @@ jobs:
               continue
             fi
 
-            # Safety invariant: branch tip itself must be an ancestor of the full-minute base.
             git merge-base --is-ancestor "origin/$branch" "$BASE"
             echo "Deleting merged branch: $branch"
             git push origin --delete "$branch"
