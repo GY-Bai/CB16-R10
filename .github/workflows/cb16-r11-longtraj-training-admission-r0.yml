@@ -6,7 +6,8 @@ on:
       - ai/r11-longtraj-training-admission-r0
     paths:
       - scripts/r11_longtraj_training_admission_r0.py
-      - tests/test_longtraj_training_admission_r0.py
+      - scripts/r11_longtraj_training_admission_r0_entry.py
+      - tests/test_longtraj_training_admission_r0_exact_sensory.py
       - .github/workflows/cb16-r11-longtraj-training-admission-r0.yml
   workflow_dispatch:
 
@@ -101,7 +102,8 @@ jobs:
           set -euo pipefail
           "$CB16_PYTHON" -m py_compile \
             scripts/r11_longtraj_training_admission_r0.py \
-            tests/test_longtraj_training_admission_r0.py
+            scripts/r11_longtraj_training_admission_r0_entry.py \
+            tests/test_longtraj_training_admission_r0_exact_sensory.py
 
       - name: Run minute Physics and admission known-answer gates
         shell: bash
@@ -109,7 +111,7 @@ jobs:
           set -euo pipefail
           PYTHONPATH=. "$CB16_PYTHON" -m pytest -q \
             tests/test_minute_physics_binding_r2.py \
-            tests/test_longtraj_training_admission_r0.py
+            tests/test_longtraj_training_admission_r0_exact_sensory.py
 
       - name: Run real pre-FINAL minute R2 training admission
         shell: bash
@@ -117,7 +119,7 @@ jobs:
           set -euo pipefail
           rm -rf "$OUT_DIR"
           mkdir -p "$OUT_DIR"
-          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_training_admission_r0.py \
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_training_admission_r0_entry.py \
             --raw-root "$CB16_RAW_ROOT" \
             --package-root "$CB16_PACKAGE_ROOT" \
             --symbol BTCUSDT \
