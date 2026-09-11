@@ -1,0 +1,85 @@
+name: CB16 R11 Long-Trajectory E5 Sensory Causality R1
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-e5-minute-sensory-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
+      - cb16_local_opt/minute_sensory_adapter_r1.py
+      - scripts/r11_longtraj_sensory_causality_r1.py
+      - .github/workflows/cb16-r11-longtraj-e5-sensory-causality-r1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  sensory-causality:
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify E5 config
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          x=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json'))
+          assert x['status']=='FROZEN_BEFORE_EXECUTION'
+          assert x['experiment_id']=='E5_MINUTE_SENSORY_CAUSALITY'
+          assert x['micro_cadence_minutes']==1
+          assert x['slow_lane_current_incomplete_hour_visible'] is False
+          assert x['future_market_in_frame'] is False
+          PY
+      - name: Resolve verified Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/python.json"
+          python3 - "$RUNNER_TEMP/python.json" <<'PY' > "$RUNNER_TEMP/python_path"
+          import json,sys
+          x=json.load(open(sys.argv[1])); assert x['status']=='READY',x
+          print(x['python']['venv']+'/bin/python')
+          PY
+          echo "PYTHON=$(cat "$RUNNER_TEMP/python_path")" >> "$GITHUB_ENV"
+      - name: Run synthetic and real-BTC minute sensory causality audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16-e5-sensory-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUT"
+          "$PYTHON" -m scripts.r11_longtraj_sensory_causality_r1 --raw-root "$CB16_RAW_ROOT" --output "$OUT/RESULT.json"
+          cp authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json "$OUT/EXPERIMENT_SPEC.json"
+          sha256sum "$OUT/RESULT.json" "$OUT/EXPERIMENT_SPEC.json" > "$OUT/SHA256SUMS.txt"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+      - name: Validate E5 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PYTHON" - "$OUT/RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); assert x['status']=='PASS',x
+          assert all(x['gates'].values()),x
+          assert x['future_market_in_frame'] is False,x
+          assert x['halt_flag_student_feature'] is False,x
+          assert x['real_btc_bounded']['final_holdout_payload_opened'] is False,x
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-e5-sensory-${{ github.run_attempt }}
+          path: ${{ env.OUT }}/
+          retention-days: 30
