@@ -1,0 +1,18 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "experiment_id": "E4_VECTORIZATION",
+  "branch": "ai/r11-longtraj-e4-vectorization-r0",
+  "question": "Which parts of the path-dependent minute runtime are already batchable, and can persistent independent Physics kernels remove restore overhead with exact per-step parity while the causal time axis remains sequential?",
+  "time_axis_parallelized": false,
+  "parallel_axes_under_test": ["account_replica", "asset", "CentralBrain batch"],
+  "reference_physics": "Frozen V5.5 scalar step_account adapter",
+  "candidate_physics_execution": "persistent independent kernel pool; no tensor-Physics authority claim",
+  "exact_every_step_snapshot_hash_parity_required": true,
+  "brain": "ReplayCentralBrain16M FP32",
+  "future_leak_allowed": false,
+  "production_physics_semantics_changed": false,
+  "final_holdout_payload_opened": false,
+  "fresh_market_download": false,
+  "market_learning_claim": "NONE__INFRA_PARITY_AND_THROUGHPUT_ONLY"
+}
