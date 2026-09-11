@@ -1,0 +1,188 @@
+name: CB16 R11 Long-Trajectory E6 Feedback Binding R2
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-e6-feedback-binding-r2
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_SPEC_V1.json
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
+      - cb16_local_opt/minute_physics_binding_r2.py
+      - scripts/r11_longtraj_e6_feedback_binding_r2.py
+      - tests/test_minute_physics_binding_r2.py
+      - .github/workflows/cb16-r11-longtraj-e6-feedback-binding-r2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_PACKAGE_ROOT: /cb16/package
+  OUT_DIR: artifacts/r11_longtraj_e6_feedback_binding_r2
+  RUNTIME_FREEZE_PARENT: 7c8c02aaa1c619d0db3cdce831bbc6f31ef79bde
+  HISTORICAL_E6_PREDECESSOR: c3faab2c8f67f177b8e102abaa62347b379e643a
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  e6-r2-qualification:
+    name: Real 1m H72 feedback binding qualification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify lineage and preregistered E6 R2 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-e6-feedback-binding-r2"
+          git merge-base --is-ancestor "$RUNTIME_FREEZE_PARENT" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          p='authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_SPEC_V1.json'
+          x=json.load(open(p))
+          assert x['schema']=='CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_SPEC_V1',x
+          assert x['status']=='FROZEN_BEFORE_FIRST_R2_EXECUTION',x
+          assert x['runtime_parent_sha']=='7c8c02aaa1c619d0db3cdce831bbc6f31ef79bde',x
+          assert x['historical_e6_predecessor_sha']=='c3faab2c8f67f177b8e102abaa62347b379e643a',x
+          assert x['minute_physics_r2']['input_resolution']=='1m causal bars',x
+          assert x['minute_physics_r2']['max_holding_semantic_clock']=='72 elapsed hours',x
+          assert x['minute_physics_r2']['stop_cooldown_semantic_clock']=='1 hour = 60 minute transitions',x
+          assert x['qualification_scope']['real_parent_count']==8,x
+          assert x['qualification_scope']['horizon']=='72h = 4320 causal minute transitions',x
+          assert x['qualification_scope']['teacher_statistical_support']=='MECHANICAL_BINDING_CANARY_ONLY__PRODUCTION_SUPPORT_NOT_CLAIMED',x
+          assert x['preserved']['final_holdout_closed'] is True,x
+          assert x['preserved']['fresh_market_data_closed'] is True,x
+          assert 'BAR_COUNT_AS_MINUTE_COUNT' in x['forbidden'],x
+          assert 'REALIZED_WINNER_LABEL' in x['forbidden'],x
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_e6_r2_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_e6_r2_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f:
+              f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile E6 R2 implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile \
+            cb16_local_opt/minute_physics_binding_r2.py \
+            scripts/r11_longtraj_e6_feedback_binding_r2.py \
+            tests/test_minute_physics_binding_r2.py
+
+      - name: Run minute Physics known-answer gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q tests/test_minute_physics_binding_r2.py
+
+      - name: Run real pre-FINAL 1m H72 E6 binding qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_e6_feedback_binding_r2.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --symbol BTCUSDT \
+            --parents 8 \
+            --workers 8 \
+            --output "$OUT_DIR/E6_R2_RESULT.json"
+
+      - name: Enforce E6 R2 evidence contract and build freeze candidate receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,os,pathlib
+          d=pathlib.Path('artifacts/r11_longtraj_e6_feedback_binding_r2')
+          result_path=d/'E6_R2_RESULT.json'
+          x=json.load(open(result_path))
+          assert x['schema']=='CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_RESULT_V1',x
+          assert x['status']=='PASS',x
+          assert x['classification']=='E6_R2_MINUTE_FEEDBACK_BINDING_MECHANICALLY_QUALIFIED__NO_MARKET_VERDICT',x
+          assert x['execution']['parents']==8,x
+          assert x['execution']['branches_per_parent']==3,x
+          assert x['execution']['total_branches']==24,x
+          assert x['execution']['horizon_minutes']==4320,x
+          assert x['execution']['horizon_hours']==72,x
+          assert x['execution']['physics_workers']==8,x
+          assert x['execution']['recurrent_time_axis_parallelized'] is False,x
+          assert x['archive']['real_market_payload_opened'] is True,x
+          assert x['archive']['contiguous_observed_1m_only'] is True,x
+          assert x['archive']['halt_imputed_rows']==0,x
+          assert x['archive']['final_holdout_touched'] is False,x
+          assert x['archive']['fresh_market_data_downloaded'] is False,x
+          assert all(x['gates'].values()),x['gates']
+          assert x['outcome_as_label_used'] is False,x
+          assert x['teacher_canary']['outcome_as_label_used'] is False,x
+          assert x['teacher_canary']['production_support_sufficiency_claimed'] is False,x
+          assert x['long_gradient_training_authorized'] is False,x
+          assert x['production_teacher_support_sufficiency_claimed'] is False,x
+          assert x['new_scientific_verdict'] is False,x
+          assert x['scientific_verdict'] is None,x
+          spec=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_SPEC_V1.json')
+          receipt={
+            'schema':'CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_CANDIDATE_V1',
+            'classification':'E6_R2_BINDING_ALL_GATES_PASS__FREEZE_CANDIDATE__NO_MARKET_VERDICT',
+            'qualified_code_sha':os.environ['GITHUB_SHA'],
+            'runtime_freeze_parent':'7c8c02aaa1c619d0db3cdce831bbc6f31ef79bde',
+            'historical_e6_predecessor':'c3faab2c8f67f177b8e102abaa62347b379e643a',
+            'spec_sha256':hashlib.sha256(spec.read_bytes()).hexdigest(),
+            'result_sha256':hashlib.sha256(result_path.read_bytes()).hexdigest(),
+            'gates':x['gates'],
+            'real_parent_count':x['execution']['parents'],
+            'real_branch_count':x['execution']['total_branches'],
+            'horizon_minutes':x['execution']['horizon_minutes'],
+            'final_holdout_touched':False,
+            'fresh_market_data_downloaded':False,
+            'outcome_as_label_used':False,
+            'long_gradient_training_authorized':False,
+            'scientific_verdict':None,
+            'next_gate':'LONG_TRAJECTORY_INTEGRATION_REQUIRES_SEPARATE_TRAINING_ADMISSION',
+          }
+          (d/'E6_R2_FREEZE_CANDIDATE_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload E6 R2 qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-e6-feedback-binding-r2-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_e6_r2_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_e6_r2_python.json
+            artifacts/r11_longtraj_e6_feedback_binding_r2/
+          if-no-files-found: warn
+          retention-days: 30
