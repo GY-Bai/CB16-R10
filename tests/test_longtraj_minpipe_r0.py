@@ -27,14 +27,22 @@ def _bar(t: int, p: float, v: float = 1.0) -> KlineRecord:
 
 
 def _transition(account, action, current, nxt, lane_id):
-    # Environment may see nxt only after action is frozen.  Account evolution is
-    # deliberately simple so exact lane parity is transparent in this infra test.
     out = deepcopy(account)
     out["steps"] += 1
     out["score"] += float(action["x"])
     out["last_transition_time"] = int(nxt.record.open_time)
     out["lane"] = lane_id
     return out
+
+
+def _assert_closed_policy_surface(x):
+    assert "next_bar" not in x
+    assert "account_state_t1" not in x
+    assert "teacher" not in x
+    assert "target" not in x
+    assert "future" not in x
+    assert "market_times_ms" not in x
+    assert all(len(row) == 5 for row in x["market_window"])
 
 
 def test_time_major_batches_lanes_but_not_time_and_freezes_actions_before_future():
@@ -53,8 +61,8 @@ def test_time_major_batches_lanes_but_not_time_and_freezes_actions_before_future
 
     def policy_batch(obs):
         policy_calls.append(tuple((x["lane_id"], x["decision_time_ms"]) for x in obs))
-        assert all(max(row[0] for row in x["market_window"]) == x["decision_time_ms"] for x in obs)
-        assert all("next_bar" not in x and "account_state_t1" not in x and "teacher" not in x and "target" not in x for x in obs)
+        for x in obs:
+            _assert_closed_policy_surface(x)
         return [{"x": 1.0 if x["lane_id"] == "A" else 2.0} for x in obs]
 
     events = list(
@@ -66,8 +74,6 @@ def test_time_major_batches_lanes_but_not_time_and_freezes_actions_before_future
             audit_hook=hook,
         )
     )
-
-    # Three decision clocks, each one policy call for both lanes.
     assert len(policy_calls) == 3
     assert all(len(x) == 2 for x in policy_calls)
     assert len(events) == 6
@@ -75,7 +81,6 @@ def test_time_major_batches_lanes_but_not_time_and_freezes_actions_before_future
     assert all(e.observation_max_time_ms == e.decision_time_ms for e in events)
     assert all(e.transition_time_ms == e.decision_time_ms + MINUTE_MS for e in events)
 
-    # For each clock the whole batch is frozen before the first transition begins.
     for t in sorted({e.decision_time_ms for e in events}):
         stages = [x[0] for x in audit if x[1] == t]
         assert stages[:3] == ["OBSERVATIONS_READY", "POLICY_BATCH_BEGIN", "ACTIONS_FROZEN"]
@@ -120,16 +125,16 @@ def test_reopening_future_cannot_rewrite_imputed_halt_or_prior_action():
 
         def policy(obs):
             for x in obs:
+                _assert_closed_policy_surface(x)
                 last = x["market_window"][-1]
-                seen.append((x["decision_time_ms"], last[4], deepcopy(x["account_state_t"])))
-            return [{"x": float(x["market_window"][-1][4])} for x in obs]
+                seen.append((x["decision_time_ms"], last[3], deepcopy(x["account_state_t"])))
+            return [{"x": float(x["market_window"][-1][3])} for x in obs]
 
         events = list(time_major_batch_scan_r0([lane], lookback_minutes=1, policy_batch=policy, scalar_transition=_transition))
         return lane, seen, events
 
     lane_a, seen_a, events_a = run(80.0)
     lane_b, seen_b, events_b = run(8000.0)
-    # The two prefix-only halt rows are identical despite changing reopening future.
     for i in (1, 2):
         assert lane_a.minutes[i].record == lane_b.minutes[i].record
     cutoff = t0 + 2 * MINUTE_MS
@@ -147,11 +152,12 @@ def test_sensory_is_batched_from_causal_payload_only():
 
     def sensory(obs):
         calls.append(tuple(x["lane_id"] for x in obs))
-        assert all(max(row[0] for row in x["market_window"]) <= x["decision_time_ms"] for x in obs)
-        return [{"causal": x["decision_time_ms"]} for x in obs]
+        for x in obs:
+            _assert_closed_policy_surface(x)
+        return [{"causal_decision_time_ms": x["decision_time_ms"]} for x in obs]
 
     def policy(obs):
-        assert all(x["sensory"]["causal"] == x["decision_time_ms"] for x in obs)
+        assert all(x["sensory"]["causal_decision_time_ms"] == x["decision_time_ms"] for x in obs)
         return [{"x": 0.0} for _ in obs]
 
     events = list(time_major_batch_scan_r0(lanes, lookback_minutes=1, policy_batch=policy, scalar_transition=_transition, sensory_batch_provider=sensory))
@@ -180,6 +186,7 @@ def test_frozen_physics_bridge_constructs_next_market_only_post_action_boundary(
     )
 
     def policy(obs):
+        _assert_closed_policy_surface(obs[0])
         order.append(("policy", obs[0]["decision_time_ms"]))
         return [{"x": 7}]
 
