@@ -1,0 +1,125 @@
+name: CB16 R11 Long-Trajectory Perf A R0
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-perf-ab-r0
+    paths:
+      - scripts/r11_longtraj_perf_ab_r0.py
+      - .github/workflows/cb16-r11-longtraj-perf-a-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_G0_ROOT: /cb16/g0
+  OUT_DIR: artifacts/r11_longtraj_perf_a_r0
+  QUALIFIED_INFRA_BASE: 8e70212230a001751b720332fc1a25fef5436211
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  perf-a:
+    name: Physics workers 1-2-4-8 exact parity and throughput
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify performance-only branch ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-perf-ab-r0"
+          git merge-base --is-ancestor "$QUALIFIED_INFRA_BASE" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          x=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2.json'))
+          assert x['classification']=='INFRA_EXECUTION_QUALIFICATION_ONLY__NO_SCIENTIFIC_AUTHORITY',x
+          assert x['g1_minimum_training']['minute_feedback_binding']['status']=='EXPLICITLY_NOT_QUALIFIED_BY_INFRA_CLOSURE',x
+          assert 'TREAT_BAR_COUNT_AS_MINUTES_WITHOUT_REQUALIFICATION' in x['forbidden'],x
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_perf_a_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_perf_a_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f: f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile scripts/r11_longtraj_perf_ab_r0.py
+
+      - name: Run A worker scaling matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_perf_ab_r0.py \
+            --mode workers \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --symbol BTCUSDT \
+            --frames 24 \
+            --worker-counts 1,2,4,8 \
+            --output "$OUT_DIR/PERF_A_WORKERS_1_2_4_8.json"
+
+      - name: Enforce A evidence contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('artifacts/r11_longtraj_perf_a_r0/PERF_A_WORKERS_1_2_4_8.json')
+          x=json.load(open(p))
+          assert x['status']=='PASS' and x['mode']=='A_PHYSICS_WORKER_SCALING',x
+          assert x['worker_matrix']==[1,2,4,8],x
+          assert all(r['exact_parity_with_serial'] for r in x['results']),x
+          assert x['final_holdout_touched'] is False,x
+          assert x['fresh_market_data_downloaded'] is False,x
+          assert x['scientific_verdict'] is None,x
+          q=p.with_suffix('.sha256')
+          q.write_text(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n')
+          print(json.dumps({'status':'PASS','throughput':[(r['workers'],r['branches_per_second'],r['speedup_vs_1_worker']) for r in x['results']]},indent=2))
+          PY
+
+      - name: Upload A performance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-perf-a-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_perf_a_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_perf_a_python.json
+            artifacts/r11_longtraj_perf_a_r0/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,122 @@
+name: CB16 R11 Long-Trajectory Archive Experiment R1
+
+on:
+  push:
+    # This legacy archive experiment is authority only for the original E1-E3
+    # data-mixture/zipper lanes.  E4+ use their own qualification workflows.
+    branches:
+      - ai/r11-longtraj-e1-btc-zipper-r0
+      - ai/r11-longtraj-e2-tenasset-natural-r0
+      - ai/r11-longtraj-e3-tenasset-balanced-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
+      - scripts/r11_longtraj_archive_experiment_r1.py
+      - cb16_local_opt/longtraj_archive_r1.py
+      - cb16_local_opt/full_minute_long_trajectory_r1.py
+      - .github/workflows/cb16-r11-longtraj-r1-archive-experiment.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_LONGTRAJ_SCIENCE_BASE: dc2b55728877888d4b872f76e0cb2770be9c0921
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  archive-experiment:
+    name: Long-trajectory archive experiment
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 720
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout experiment branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve experiment config and verify science ancestry
+        id: cfg
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$CB16_LONGTRAJ_SCIENCE_BASE" HEAD
+          CFG=authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
+          test -f "$CFG"
+          python3 - "$CFG" "$CB16_LONGTRAJ_SCIENCE_BASE" <<'PY' > "$RUNNER_TEMP/cfg.env"
+          import json,sys,shlex
+          x=json.load(open(sys.argv[1])); expected=sys.argv[2]
+          assert x['status']=='FROZEN_BEFORE_EXECUTION',x
+          assert x['common_science_base']==expected,x
+          assert x['final_holdout_payload_opened'] is False,x
+          assert x['fresh_market_download'] is False,x
+          mode=x['mode']
+          assert mode in {'BTC_ZIPPER','TEN_NATURAL','TEN_BALANCED'},x
+          print('MODE='+shlex.quote(mode))
+          print('EXPERIMENT_ID='+shlex.quote(x['experiment_id']))
+          PY
+          cat "$RUNNER_TEMP/cfg.env" >> "$GITHUB_ENV"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY' > "$RUNNER_TEMP/python_path"
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['python']['network_install_attempted'] is False,x
+          print(x['python']['venv'] + '/bin/python')
+          PY
+          echo "PYTHON=$(cat "$RUNNER_TEMP/python_path")" >> "$GITHUB_ENV"
+
+      - name: Execute full pre-FINAL chronological scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16-longtraj-${EXPERIMENT_ID}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUT"
+          "$PYTHON" -m scripts.r11_longtraj_archive_experiment_r1 \
+            --raw-root "$CB16_RAW_ROOT" \
+            --mode "$MODE" \
+            --output "$OUT/RESULT.json"
+          cp authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json "$OUT/EXPERIMENT_SPEC.json"
+          cp authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_LONG_TRAJECTORY_R1_SPEC_V1.json "$OUT/COMMON_R1_SPEC.json"
+          sha256sum "$OUT/RESULT.json" "$OUT/EXPERIMENT_SPEC.json" "$OUT/COMMON_R1_SPEC.json" > "$OUT/SHA256SUMS.txt"
+          echo "EXPERIMENT_OUT=$OUT" >> "$GITHUB_ENV"
+
+      - name: Validate receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PYTHON" - "$EXPERIMENT_OUT/RESULT.json" "$MODE" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); mode=sys.argv[2]
+          assert x['status']=='PASS',x
+          assert x['mode']==mode,x
+          assert x['final_holdout_archive_filtered_before_open'] is True,x
+          assert x['fresh_network_access'] is False,x
+          assert x['halt_flag_student_feature'] is False,x
+          assert x['account_reset_at_gap'] is False,x
+          assert all(s['strict_expanded_stride_1m'] for s in x['scans']),x
+          assert all(s['archive_inventory']['final_2025_09_archive_selected'] is False for s in x['scans']),x
+          if mode=='BTC_ZIPPER': assert x['symbols']==['BTCUSDT'],x
+          if mode.startswith('TEN_'): assert len(x['symbols'])==10,x
+          if mode=='TEN_NATURAL': assert abs(sum(x['natural_optimizer_exposure'].values())-1)<1e-12,x
+          if mode=='TEN_BALANCED': assert x['balanced_optimizer_schedule']['chunks_per_symbol']>0,x
+          PY
+
+      - name: Upload experiment receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-longtraj-${{ env.EXPERIMENT_ID }}-${{ github.run_attempt }}
+          path: ${{ env.EXPERIMENT_OUT }}/
+          retention-days: 30

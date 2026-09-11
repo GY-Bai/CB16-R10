@@ -1,0 +1,76 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1",
+  "status": "FROZEN_BEFORE_SELECTION_EXECUTION",
+  "classification": "SELECTION_ONLY__NO_MODEL_LOAD__NO_TEACHER_LOSS__NO_SCIENTIFIC_VERDICT",
+  "highest_authority": "SEMANTIC_CONTRACTS_ARE_AUTHORITY__LEGACY_PYTHON_IMPLEMENTATION_IS_NOT_AUTHORITY",
+  "purpose": "Select and freeze a genuinely unconsumed pre-FINAL BTCUSDT generalization cohort before any Champion/Challenger scoring. Selection must depend only on chronology, archive continuity, prior-consumption boundaries, frozen horizon semantics and deterministic spacing.",
+  "branch_base": {
+    "branch": "ai/r11-longtraj-generalization-r0",
+    "base_sha": "69226b208b476ea0c9d687a24aa752a524122e98",
+    "campaign_adjudication": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_ADJUDICATION_V1.json"
+  },
+  "frozen_models": {
+    "g0_champion_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+    "shadow_challenger_policy_hash": "4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297",
+    "shadow_challenger_checkpoint_sha256": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246",
+    "selection_stage_may_load_models": false,
+    "selection_stage_may_score_models": false
+  },
+  "prior_consumption_boundary": {
+    "prior_cohort_last_decision_time_ms": 1593575940000,
+    "prior_horizon_minutes": 4320,
+    "new_sensory_history_minutes": 3900,
+    "extra_guard_minutes": 60,
+    "minimum_new_decision_time_rule": "prior_last_decision + prior_horizon + new_sensory_history + extra_guard",
+    "minimum_new_decision_time_ms": 1594072740000,
+    "require_zero_byte_overlap_with_prior_last_H72_future_and_new_first_sensory_history": true,
+    "prior_validation_evidence_hash": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131",
+    "prior_validation_future_role": "POST_HOC_DIAGNOSTIC_ONLY__NEVER_INDEPENDENT_EVIDENCE"
+  },
+  "selection": {
+    "symbol": "BTCUSDT",
+    "dependence_groups": 48,
+    "decision_clock": "HH:59 UTC",
+    "parent_spacing_hours_minimum": 73,
+    "horizon_minutes": 4320,
+    "sensory_history_minutes": 3900,
+    "contiguous_observed_1m_only": true,
+    "halt_imputation": false,
+    "fresh_market_data_download": false,
+    "selection_rule": "EARLIEST_48_ELIGIBLE_HH59_DECISIONS_IN_ARCHIVE_ORDER_AFTER_MINIMUM_NEW_DECISION_TIME_WITHIN_CONTIGUOUS_PREFINAL_SEGMENTS__EACH_AT_LEAST_73H_AFTER_PREVIOUS__EACH_WITH_FULL_65H_CAUSAL_HISTORY_AND_FULL_H72_FUTURE",
+    "resampling_after_model_scoring": false,
+    "replacement_after_model_scoring": false,
+    "manual_date_choice": false
+  },
+  "final_holdout": {
+    "start_ms": 1756684800000,
+    "start_iso": "2025-09-01T00:00:00Z",
+    "must_remain_closed": true,
+    "candidate_future_must_end_before_final": true
+  },
+  "selection_stage_forbidden": [
+    "LOAD_CHAMPION",
+    "LOAD_CHALLENGER",
+    "LOAD_SHADOW_CHALLENGER_CHECKPOINT",
+    "COMPILE_TEACHER_TARGETS",
+    "COMPUTE_STUDENT_LOSS",
+    "COMPUTE_CHAMPION_CHALLENGER_RANKING",
+    "OPEN_FINAL_HOLDOUT",
+    "DOWNLOAD_FRESH_MARKET_DATA",
+    "RESAMPLE_BASED_ON_MODEL_RESULT"
+  ],
+  "required_selection_outputs": {
+    "decision_times": true,
+    "decision_times_canonical_sha256": true,
+    "contiguous_segment_lineage": true,
+    "first_and_last_decision_time": true,
+    "future_end_times": true,
+    "zero_overlap_with_prior_consumed_tail_assertion": true,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "model_loaded": false,
+    "model_scored": false
+  },
+  "next_gate_after_selection": "FREEZE_EXACT_GENERALIZATION_COHORT_THEN_PREREGISTER_CHAMPION_VS_CHALLENGER_EVALUATION_WITH_NEGATIVE_AND_SHUFFLE_CONTROLS",
+  "scientific_verdict": null
+}

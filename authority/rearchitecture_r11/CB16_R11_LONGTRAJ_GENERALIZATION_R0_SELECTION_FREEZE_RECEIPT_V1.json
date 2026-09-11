@@ -1,0 +1,52 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_FREEZE_RECEIPT_V1",
+  "status": "FROZEN_AND_QUALIFIED",
+  "classification": "MODEL_BLIND_UNCONSUMED_PREFINAL_COHORT_SELECTION_QUALIFIED__NO_MODEL_SCORING__NO_SCIENTIFIC_VERDICT",
+  "qualified_branch": "ai/r11-longtraj-generalization-r0",
+  "qualified_code_sha": "c756971bebb690f6f63538d682271ae8d7a3eee4",
+  "qualification": {
+    "workflow_run_id": 34637261037,
+    "artifact_id": 10278973236,
+    "artifact_name": "cb16-r11-longtraj-generalization-r0-selection-1",
+    "artifact_zip_sha256": "4b5c87e7dceae376019796748cfb2f8e432d7b8d607f6b6ce88d233f042cbc84",
+    "selection_result_sha256": "d70bc8dd79b35e270b58ecef0cacef4c280223be77cb743a95abb4b6b1a992c2",
+    "freeze_candidate_receipt_sha256": "0ca545364f2c4621b9af210e46e8f5237999a737eaa59502226df60f019fb3c4",
+    "selection_spec_sha256": "e4cb22d4fb2da1848cb593d9a7a59d4e2fd72777e216f5a7879b180b07f07294"
+  },
+  "frozen_cohort": {
+    "path": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_COHORT_V1.json",
+    "git_blob_sha": "ed94b6eb881408ff3abf0f7514e009e74aed69f0",
+    "file_sha256": "aa0caaab8d58130efd3f680ff41abe00f6b8656f260d03f9bf0782fcff6e2dd1",
+    "creation_commit_sha": "a77990ccd9aa9cba2ffbf028a1875601ad868bb8",
+    "symbol": "BTCUSDT",
+    "dependence_groups": 48,
+    "decision_times_canonical_sha256": "e8e7698e5da67ef32f01926c752e9accef1d468e9e95f772a0b3ed62df021cc3",
+    "future_end_times_canonical_sha256": "23fe5e27a46ffafe81612ea0cc94e067809cb03a27a1599c02b1e79aa861a232",
+    "all_prefinal_segment_lineage_sha256": "a025c9b22b232aefc3a47d6521e65a8876ca935208d0bba73c650b7f8698900d",
+    "first_decision_time_ms": 1594072740000,
+    "last_decision_time_ms": 1606424340000,
+    "prior_future_end_ms": 1593835140000,
+    "first_new_sensory_start_ms": 1593838800000,
+    "zero_overlap_with_prior_consumed_tail": true
+  },
+  "selection_semantics": {
+    "model_loaded": false,
+    "model_scored": false,
+    "teacher_targets_compiled": false,
+    "cohort_selected_before_any_champion_challenger_scoring": true,
+    "resampling_after_model_scoring": false,
+    "replacement_after_model_scoring": false,
+    "manual_date_choice": false
+  },
+  "firewalls": {
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "canonical_promotion_authorized": false,
+    "canonical_generation_advance_authorized": false,
+    "retraining_or_tuning_on_frozen_generalization_cohort_authorized": false,
+    "new_scientific_market_verdict": false,
+    "scientific_verdict": null
+  },
+  "pass_meaning": "A deterministic, genuinely unconsumed pre-FINAL BTCUSDT cohort was selected and frozen without loading or scoring Champion/Challenger models and without compiling Teacher targets. This freezes evaluation support only; it does not establish model generalization, economic value, market information, promotion authority, or a scientific verdict.",
+  "next_gate": "PREREGISTER_FROZEN_CHAMPION_VS_FROZEN_SHADOW_CHALLENGER_EVALUATION_WITH_NEGATIVE_AND_SHUFFLE_CONTROLS"
+}

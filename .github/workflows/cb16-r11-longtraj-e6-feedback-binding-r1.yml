@@ -1,0 +1,88 @@
+name: CB16 R11 Long-Trajectory E6 Feedback Binding R1
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-e6-feedback-binding-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
+      - scripts/r11_longtraj_feedback_binding_audit_r1.py
+      - .github/workflows/cb16-r11-longtraj-e6-feedback-binding-r1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  feedback-binding-audit:
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify E6 config
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          x=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json'))
+          assert x['status']=='FROZEN_BEFORE_EXECUTION'
+          assert x['experiment_id']=='E6_FEEDBACK_BINDING'
+          assert x['outcome_as_label_allowed'] is False
+          assert x['future_teacher_target_in_student_input'] is False
+          assert x['long_gradient_training_before_binding_qualification'] is False
+          PY
+      - name: Resolve verified Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/python.json"
+          python3 - "$RUNNER_TEMP/python.json" <<'PY' > "$RUNNER_TEMP/python_path"
+          import json,sys
+          x=json.load(open(sys.argv[1])); assert x['status']=='READY',x
+          print(x['python']['venv']+'/bin/python')
+          PY
+          echo "PYTHON=$(cat "$RUNNER_TEMP/python_path")" >> "$GITHUB_ENV"
+      - name: Run minute-keyed Teacher and real-binding source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16-e6-feedback-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUT"
+          "$PYTHON" -m scripts.r11_longtraj_feedback_binding_audit_r1 --output "$OUT/RESULT.json"
+          cp authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json "$OUT/EXPERIMENT_SPEC.json"
+          sha256sum "$OUT/RESULT.json" "$OUT/EXPERIMENT_SPEC.json" > "$OUT/SHA256SUMS.txt"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+      - name: Validate diagnostic receipt without rescuing blocked binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PYTHON" - "$OUT/RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          a=x['teacher_minute_api_canary']
+          assert a['future_parent_utility_mutation_does_not_change_earlier_evidence'] is True,x
+          assert a['same_future_dependence_group_per_parent'] is True,x
+          assert a['one_prefix_context_per_parent'] is True,x
+          assert a['target_is_realized_winner_label'] is False,x
+          assert x['outcome_as_label_used'] is False,x
+          assert x['final_holdout_payload_opened'] is False,x
+          assert x['status'] in {
+            'EXECUTION_BLOCKED__REAL_PER_MINUTE_COUNTERFACTUAL_PHYSICS_ADAPTER_MISSING',
+            'REAL_PER_MINUTE_BINDING_CANDIDATE_FOUND__REQUIRES_RUNTIME_QUALIFICATION'
+          },x
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-e6-feedback-binding-${{ github.run_attempt }}
+          path: ${{ env.OUT }}/
+          retention-days: 30

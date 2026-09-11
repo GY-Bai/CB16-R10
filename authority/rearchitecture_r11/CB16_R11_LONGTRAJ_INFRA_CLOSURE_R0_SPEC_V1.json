@@ -1,0 +1,102 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V1",
+  "status": "FROZEN_BEFORE_INFRA_CLOSURE_QUALIFICATION",
+  "classification": "INFRA_EXECUTION_QUALIFICATION_ONLY__NO_SCIENTIFIC_AUTHORITY",
+  "parent_branch": "ai/r11-longtraj-infra-minpipe-r0",
+  "parent_sha": "e7c1048478b8ab5b047424194f116d701f9a28f4",
+  "purpose": "Close the minimum usable R11 long-trajectory training infrastructure before launching parallel scientific experiments.",
+  "inherited_g0": {
+    "status": "CAUSAL_EXECUTION_QUALIFIED__NOT_REOPENED",
+    "time_axis": "STRICTLY_SERIAL_PER_RECURRENT_ACCOUNT",
+    "parallel_axes": "ONLY_INDEPENDENT_LANES_AT_THE_SAME_CLOCK",
+    "physics_authority": "FROZEN_SCALAR_ACCOUNT_PHYSICS",
+    "batched_physics_required": false
+  },
+  "g1_minimum_training": {
+    "real_archive_required": true,
+    "final_holdout_start_utc": "2025-09-01T00:00:00Z",
+    "fresh_market_download": "FORBIDDEN",
+    "minute_parent_context": "market<=t plus Account[t] only",
+    "feedback_side": "future consequence is environment/Teacher side only and never enters policy observation at t",
+    "teacher": "EXISTING_R11_DEPENDENCE_BALANCED_PROBABILISTIC_TEACHER_ONLY",
+    "student_training": "EXISTING_R11_FP32_TRAINING_RUNTIME_ONLY",
+    "outcome_as_correct_action_label": "FORBIDDEN",
+    "winner_only_retention": "FORBIDDEN",
+    "counterfactual_horizon": "72h target-side rollout over causal 1m bars",
+    "counterfactual_first_action": "candidate action at t applied to transition t->t+1; later intents are FLAT/no-new-entry while Frozen Supervisor/Physics own position exit",
+    "funding": "ARCHIVED_EVENT_ONLY__ZERO_BETWEEN_ARCHIVED_EVENTS__NO_FORWARD_FILL",
+    "halt_policy_for_qualification": "G1_CANARY_MUST_USE_A_CONTIGUOUS_OBSERVED_1M_RUN_WITH_ZERO_IMPUTED_HALT_MINUTES",
+    "required_gates": [
+      "REAL_ARCHIVE_MINTRAIN_PASS",
+      "REAL_PER_MINUTE_COUNTERFACTUAL_PHYSICS_BINDING_PASS",
+      "CANONICAL_R11_TEACHER_EVIDENCE_PASS",
+      "STUDENT_PARAMETER_UPDATE_OBSERVED",
+      "TEACHER_AND_FROZEN_INPUTS_DETACHED_PASS",
+      "NO_FUTURE_MARKET_ACCOUNT_OR_TEACHER_IN_POLICY_PASS",
+      "ACCOUNT_RECURRENCE_PASS",
+      "SCALAR_FROZEN_PHYSICS_PASS",
+      "FINAL_FIREWALL_PASS",
+      "DURABLE_RECEIPT_PASS"
+    ]
+  },
+  "g2_restart_and_parallel_isolation": {
+    "checkpoint_required_state": [
+      "student_weights",
+      "optimizer_state",
+      "python_rng_state",
+      "numpy_rng_state",
+      "torch_cpu_rng_state",
+      "torch_cuda_rng_state_when_available",
+      "runtime_step_index",
+      "environment_clock_cursor",
+      "per_lane_account_state",
+      "evidence_identity",
+      "run_and_experiment_identity",
+      "spec_identity",
+      "archive_identity"
+    ],
+    "restart_oracle": "uninterrupted continuation and stop-save-destroy-restore-continuation must end in exact equal model, optimizer, RNG, account, cursor and evidence lineage state",
+    "parallel_mutable_state": "MUST_BE_PRIVATE_PER_EXPERIMENT",
+    "parallel_shared_state": "ONLY_IMMUTABLE_ARCHIVE_CODE_AND_FROZEN_AUTHORITIES_MAY_BE_SHARED",
+    "required_gates": [
+      "CHECKPOINT_STOP_RESTORE_CONTINUE_EXACT_PASS",
+      "MODEL_STATE_EXACT_PASS",
+      "OPTIMIZER_STATE_EXACT_PASS",
+      "RNG_STATE_EXACT_PASS",
+      "ACCOUNT_AND_CURSOR_EXACT_PASS",
+      "EVIDENCE_LINEAGE_EXACT_PASS",
+      "PARALLEL_A_EQUALS_SERIAL_A_PASS",
+      "PARALLEL_B_EQUALS_SERIAL_B_PASS",
+      "PEER_CONTINUES_WHEN_OTHER_EXPERIMENT_FAILS_PASS",
+      "MUTABLE_STATE_ISOLATION_PASS"
+    ]
+  },
+  "stress_gate": {
+    "duration_seconds": 300,
+    "runs_after_semantic_gates": true,
+    "scientific_verdict": "NONE",
+    "collect": [
+      "sensory_frames_per_second",
+      "student_inference_rows_per_second",
+      "optimizer_steps_per_second",
+      "scalar_physics_steps_per_second",
+      "process_cpu_seconds_and_peak_rss",
+      "torch_cuda_peak_memory_when_available",
+      "nvidia_smi_gpu_utilization_memory_and_power_when_available"
+    ],
+    "integrity_failures": ["OOM", "NONFINITE", "DEADLOCK_OR_CRASH", "STATE_OR_CAUSALITY_CORRUPTION"],
+    "low_utilization": "REPORT_AS_PERFORMANCE_FINDING__DO_NOT_REINTERPRET_AS_SCIENTIFIC_FAIL"
+  },
+  "freeze_rule": "INFRA_MAY_BE_FROZEN_ONLY_AFTER_G0_INHERITED_PLUS_G1_PLUS_G2_PLUS_300S_STRESS_INTEGRITY_PASS",
+  "post_freeze_rule": "NEW_SCIENTIFIC_EXPERIMENTS_BRANCH_FROM_THE_EXACT_FROZEN_INFRA_SHA; INFRA_CHANGES_REQUIRE_A_NEW_VERSIONED_QUALIFICATION LINEAGE",
+  "forbidden": [
+    "OPEN_FINAL",
+    "DOWNLOAD_FRESH_MARKET_DATA",
+    "CHANGE_FROZEN_PHYSICS",
+    "CHANGE_SUPERVISOR_OR_PERMISSION_SEMANTICS",
+    "CHANGE_TEACHER_MEANING",
+    "CHANGE_STUDENT_OBJECTIVE",
+    "CLAIM_MARKET_INFORMATION_FROM_THIS_INFRA_GATE",
+    "RESCUE_A_SCIENTIFIC_FAILURE"
+  ]
+}

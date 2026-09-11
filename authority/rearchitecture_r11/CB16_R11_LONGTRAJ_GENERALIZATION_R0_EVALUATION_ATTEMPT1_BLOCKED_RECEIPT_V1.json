@@ -1,0 +1,70 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_ATTEMPT1_BLOCKED_RECEIPT_V1",
+  "status": "EXECUTION_BLOCKED",
+  "classification": "EXECUTION_BLOCKED__TRAIN_TEACHER_FOLD_UNIVERSE_REBINDING_CHANGED_FROZEN_CAMPAIGN_TRAIN_SUPPORT__NO_SCIENTIFIC_VERDICT",
+  "run": {
+    "run_id": 34638507180,
+    "job_id": 103392228876,
+    "head_sha": "07ba03248f617fd373572bcaf27ec127a050b267",
+    "artifact_id": 10279596589,
+    "artifact_digest_sha256": "8ed969e93bf8eb9be8be852c9796198efab105a25f97199c4e499edf4d2cf9f9"
+  },
+  "pre_science_qualification": {
+    "repo_guard_passed": true,
+    "docker_preflight_passed": true,
+    "canonical_python_passed": true,
+    "known_answer_tests_passed": 10,
+    "campaign_artifact_digest_verified": "9800592c77f923baffc0146e87dc862c750f49c0b6bce73cd869bda0d5f89e08",
+    "challenger_checkpoint_sha256_verified": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246"
+  },
+  "blocker": {
+    "error_code": "GENERALIZATION_PRIOR_TRAIN_SUPPORT_DRIFT",
+    "observed_old_train_groups_total": 48,
+    "observed_old_train_groups_admitted": 9,
+    "observed_old_train_groups_rejected": 39,
+    "observed_rejection_reason": "INSUFFICIENT_TRAIN_DEPENDENCE_GROUPS",
+    "models_loaded": false,
+    "models_scored": false,
+    "G1_computed": false,
+    "G2_computed": false,
+    "G3_computed": false
+  },
+  "root_cause": {
+    "mechanism": "BLOCKED_CROSSFIT fold assignment is defined over the dependence-group universe supplied to the compiler. The attempt rebuilt the frozen Campaign TRAIN rows inside a new 96-group universe containing 48 prior TRAIN plus 48 new VALIDATION groups. This changed the fold geometry of the prior TRAIN targets and therefore did not reproduce frozen Campaign TRAIN authority.",
+    "scientific_interpretation": "NONE__THIS_IS_AUTHORITY_BINDING_EXECUTION_FAILURE",
+    "market_interpretation": null
+  },
+  "frozen_objects_unchanged": {
+    "evaluation_spec": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_SPEC_V1.json",
+    "cohort": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_COHORT_V1.json",
+    "cohort_decision_times_sha256": "e8e7698e5da67ef32f01926c752e9accef1d468e9e95f772a0b3ed62df021cc3",
+    "champion_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886",
+    "challenger_policy_hash": "4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297",
+    "G1_G2_G3_thresholds_changed": false,
+    "cohort_resampled": false,
+    "support_thresholds_relaxed": false
+  },
+  "repair_boundary": {
+    "allowed": [
+      "separate frozen Campaign authority reproduction from new-validation Teacher compilation",
+      "reproduce original Campaign 60-group Teacher universe exactly before deriving prior TRAIN climatology",
+      "compile new 48-group validation evidence in a separate universe with the original 48 TRAIN support groups",
+      "add execution-only canaries proving frozen authority reproduction and support isolation"
+    ],
+    "forbidden": [
+      "change G1 G2 or G3 definitions or thresholds",
+      "change or resample the frozen 48-group generalization cohort",
+      "relax Teacher support admission",
+      "retrain or tune Champion or Challenger",
+      "reuse the consumed Campaign validation rows as new evaluation evidence",
+      "touch FINAL holdout",
+      "download fresh market data",
+      "authorize promotion or a market verdict"
+    ]
+  },
+  "scientific_verdict": null,
+  "canonical_promotion_authorized": false,
+  "final_holdout_touched": false,
+  "fresh_market_data_downloaded": false,
+  "next_gate": "EVALUATOR_AUTHORITY_BINDING_REPAIR_R1_THEN_REPLAY_SAME_PREREGISTERED_EVALUATION"
+}

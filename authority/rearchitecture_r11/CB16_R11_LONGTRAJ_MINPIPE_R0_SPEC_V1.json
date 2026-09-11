@@ -1,0 +1,65 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_MINPIPE_R0_SPEC_V1",
+  "status": "FROZEN_EXECUTION_QUALIFICATION_ONLY",
+  "base_branch": "ai/r11-full-minute-historical-replay-r0",
+  "base_sha": "c3faab2c8f67f177b8e102abaa62347b379e643a",
+  "purpose": "Qualify the minimum causal long-trajectory execution pipeline before any long scientific experiment is launched.",
+  "scientific_authority": "NONE__INFRA_ONLY",
+  "market_gap_semantics": {
+    "name": "CONTINUOUS_CLOCK_TRADING_HALT_PREFIX_ONLY",
+    "internal_missing_minute": "TIME_EXISTS__PRICE_FROZEN_AT_LAST_CAUSALLY_KNOWN_CLOSE__ZERO_ACTIVITY",
+    "synthetic_ohlc": "O=H=L=C=previous_close",
+    "synthetic_activity": "volume=quote_volume=trade_count=taker_activity=0",
+    "construction": "PREFIX_ONLY__REOPENING_OR_FUTURE_BYTES_FORBIDDEN",
+    "account_reset_on_halt": false,
+    "prelisting_or_open_ended_fill": false
+  },
+  "causal_boundary": {
+    "policy_observation_t": [
+      "market_window_with_timestamps_le_t",
+      "Account[t]",
+      "causal_sensory_derived_only_from_market_le_t"
+    ],
+    "forbidden_at_policy_t": [
+      "next_bar_or_any_market_gt_t",
+      "Account[t+1]_or_future_account",
+      "teacher_target_or_realized_future_label",
+      "environment_execution_payload_for_t+1"
+    ],
+    "ordering": [
+      "construct_all_active_lane_observations_at_t",
+      "batch_sensory_optional",
+      "single_policy_batch_call",
+      "deep_freeze_all_actions_at_t",
+      "only_then_construct_t+1_execution_input_and_call_scalar_Frozen_Physics_per_lane",
+      "commit_all_Account[t+1]",
+      "advance_to_next_clock"
+    ]
+  },
+  "vectorization": {
+    "time_axis": "STRICTLY_SEQUENTIAL_SCAN__NOT_VECTORIZED_ACROSS_ACCOUNT_RECURRENCE",
+    "parallel_axis": "ACTIVE_INDEPENDENT_LANES_AT_SAME_CLOCK",
+    "lane_examples": ["assets", "independent_account_replicas", "counterfactual_replicas"],
+    "sensory": "BATCHED_WHERE_SUPPORTED",
+    "central_brain_policy": "BATCHED",
+    "training": "EXISTING_R11_MINIBATCH_RUNTIME",
+    "account_physics": "EXISTING_SCALAR_AUTHORITY_PER_LANE_AFTER_ACTION_BATCH_FREEZE",
+    "future_work": "TENSORIZE_PHYSICS_ONLY_AFTER_EXACT_SCALAR_PARITY_QUALIFICATION"
+  },
+  "holdout": {
+    "final_start_utc": "2025-09-01T00:00:00Z",
+    "rule": "FINAL_MUST_NOT_APPEAR_AS_OBSERVATION_OR_TRANSITION_FEEDBACK"
+  },
+  "qualification_gates": [
+    "HALT_PREFIX_ONLY_CANARY_PASS",
+    "ACCOUNT_CONTINUITY_ACROSS_HALT_PASS",
+    "NO_FUTURE_MARKET_IN_POLICY_PASS",
+    "NO_FUTURE_ACCOUNT_OR_TEACHER_IN_POLICY_PASS",
+    "ALL_ACTIONS_FROZEN_BEFORE_ANY_T_PLUS_1_TRANSITION_PASS",
+    "SAME_CLOCK_MULTI_LANE_POLICY_BATCH_PASS",
+    "SCALAR_FROZEN_PHYSICS_BRIDGE_ORDER_PASS",
+    "FINAL_SEAL_PASS",
+    "PYTEST_PASS"
+  ],
+  "long_experiment_launch_rule": "DO_NOT_LAUNCH_E1_E6_OR_SUCCESSORS_UNTIL_THIS_MINPIPE_WORKFLOW_PASSES"
+}

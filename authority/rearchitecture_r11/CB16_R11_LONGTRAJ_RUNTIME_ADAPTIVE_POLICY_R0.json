@@ -1,0 +1,93 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_POLICY_R0_V1",
+  "status": "FROZEN_AND_QUALIFIED",
+  "classification": "RUNTIME_SCHEDULING_ONLY__NO_SCIENTIFIC_AUTHORITY",
+  "qualified_infra_base_sha": "8e70212230a001751b720332fc1a25fef5436211",
+  "performance_overlay_parent_sha": "ae67e14a24c395c94b70209359b321e6dcc14aaa",
+  "selection": {
+    "strategy": "ADAPTIVE_LATENCY_AND_THROUGHPUT",
+    "selected_by_user": true,
+    "single_ready_experiment": {
+      "concurrent_experiments": 1,
+      "physics_workers_per_experiment": [8],
+      "threads_per_physics_process": 1,
+      "objective": "MINIMIZE_SINGLE_EXPERIMENT_LATENCY"
+    },
+    "two_or_more_mutually_independent_ready_experiments": {
+      "concurrent_experiments": 2,
+      "physics_workers_per_experiment": [4, 4],
+      "threads_per_physics_process": 1,
+      "objective": "MAXIMIZE_MEASURED_AGGREGATE_THROUGHPUT_WITHIN_8_WORKER_BUDGET",
+      "extra_ready_experiments": "REMAIN_QUEUED_FIFO"
+    },
+    "three_way_concurrency": "FORBIDDEN"
+  },
+  "independence_authority": {
+    "scheduler_may_infer_scientific_independence": false,
+    "required_input": "QUEUE_ALREADY_DECLARED_READY_AND_MUTUALLY_INDEPENDENT_BY_UPSTREAM_AUTHORITY",
+    "dependency_resolution_owner": "UPSTREAM_EXPERIMENT_ORCHESTRATOR_OR_HUMAN_AUTHORITY"
+  },
+  "global_limits": {
+    "max_concurrent_experiments": 2,
+    "max_total_physics_processes": 8,
+    "threads_per_physics_process": 1,
+    "physics_semantics": "SCALAR_FROZEN_PHYSICS_AUTHORITY"
+  },
+  "evidence": {
+    "physics_worker_scaling": {
+      "workflow_run_id": 34614446416,
+      "artifact_id": 10269274531,
+      "artifact_sha256": "3bb74ef94a999595c27261410e957ab2c04cad3148840469029a485be6ec7036",
+      "workers_1_branches_per_second": 9.52977956479451,
+      "workers_2_branches_per_second": 18.53709138089328,
+      "workers_4_branches_per_second": 36.0929070679108,
+      "workers_8_branches_per_second": 66.70777599587942,
+      "workers_8_speedup_vs_1": 6.999928544235727,
+      "all_exact_parity_with_serial": true
+    },
+    "experiment_concurrency": {
+      "workflow_run_id": 34614446315,
+      "artifact_id": 10269143856,
+      "artifact_sha256": "9772c0022e62a4114011a526e8fc0f056a43375232363cf67e8410867038376f",
+      "one_experiment_workers": [8],
+      "one_experiment_aggregate_branches_per_second": 59.00819794554504,
+      "two_experiments_workers": [4, 4],
+      "two_experiments_aggregate_branches_per_second": 66.24690270263407,
+      "two_experiments_speedup_vs_single": 1.12267286595956,
+      "three_experiments_workers": [3, 3, 2],
+      "three_experiments_aggregate_branches_per_second": 53.47793491253312,
+      "three_experiments_speedup_vs_single": 0.9062797505167765,
+      "all_exact_parity_with_serial": true
+    },
+    "adaptive_real_workload_qualification": {
+      "workflow_run_id": 34617281638,
+      "head_sha": "b2756050a594dad91e3f254c71ff931a06218ebe",
+      "artifact_id": 10271422786,
+      "artifact_zip_sha256": "3122cd5b90f452e417502d5738987fa416a1d2a6fda9aa7445088a4a4236accd",
+      "result_status": "PASS",
+      "result_digest": "a2ab6388a15f57d0096d4ac4ca19a30d522d5fd0bc2214c7c610bd46741d477d",
+      "single_8_workers_branches_per_second": 54.71835836063806,
+      "single_8_workers_wall_seconds": 7.894973696995294,
+      "two_4_plus_4_aggregate_branches_per_second": 53.97811478590648,
+      "two_4_plus_4_wall_seconds": 16.006487136997748,
+      "all_exact_parity_with_serial": true,
+      "final_holdout_touched": false,
+      "fresh_market_data_downloaded": false,
+      "new_scientific_verdict": false
+    }
+  },
+  "forbidden": [
+    "THREE_OR_MORE_SIMULTANEOUS_EXPERIMENTS",
+    "TOTAL_PHYSICS_PROCESS_BUDGET_ABOVE_8",
+    "MORE_THAN_ONE_THREAD_PER_PHYSICS_PROCESS",
+    "VECTORIZE_FROZEN_PHYSICS_WITHOUT_SEPARATE_PARITY_QUALIFICATION",
+    "PARALLELIZE_ACCOUNT_OR_RECURRENT_TIME_AXIS",
+    "INFER_EXPERIMENT_INDEPENDENCE_INSIDE_RUNTIME_SCHEDULER",
+    "CHANGE_BATCH_SIZE_PRECISION_TEACHER_MEANING_OR_SCIENTIFIC_OBJECTIVE_FOR_UTILIZATION",
+    "OPEN_FINAL_HOLDOUT",
+    "DOWNLOAD_FRESH_MARKET_DATA"
+  ],
+  "freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_FREEZE_R0_RECEIPT_V1.json",
+  "next_gate": "E6_FEEDBACK_BINDING_QUALIFICATION",
+  "scientific_verdict": null
+}

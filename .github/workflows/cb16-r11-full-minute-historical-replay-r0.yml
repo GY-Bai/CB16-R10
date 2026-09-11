@@ -1,0 +1,158 @@
+name: CB16 R11 Full-Minute Historical Replay R0
+
+on:
+  push:
+    branches:
+      - ai/r11-full-minute-historical-replay-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_HISTORICAL_REPLAY_R0_SPEC_V1.json
+      - cb16_local_opt/full_minute_historical_replay_r0.py
+      - tests/test_full_minute_historical_replay_r0.py
+      - scripts/r11_full_minute_historical_replay_r0.py
+      - .github/workflows/cb16-r11-full-minute-historical-replay-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  replay-r0-canary:
+    name: Rolling 1m + path-dependent account + 16M Brain canary
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen boundaries and branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-full-minute-historical-replay-r0"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          p='authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_HISTORICAL_REPLAY_R0_SPEC_V1.json'
+          x=json.load(open(p))
+          assert x['status']=='FROZEN_BEFORE_R0_CANARY',x
+          b=x['frozen_boundaries']
+          assert b['final_holdout_start_utc']=='2025-09-01T00:00:00Z',b
+          assert b['final_holdout_payload_opened'] is False,b
+          assert b['fresh_market_data_downloaded'] is False,b
+          assert b['frozen_physics_changed'] is False,b
+          assert b['teacher_meaning_changed'] is False,b
+          assert x['rolling_market_protocol']['decision_stride_minutes']==1,x
+          assert x['account_protocol']['path_dependent'] is True,x
+          assert x['account_protocol']['reset_each_rolling_window'] is False,x
+          assert x['brain_candidate']['exact_trainable_parameters']==16116420,x
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_minute_replay_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_minute_replay_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          PY
+
+      - name: Compile and run no-market known-answer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_minute_replay_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/full_minute_historical_replay_r0.py \
+            tests/test_full_minute_historical_replay_r0.py \
+            scripts/r11_full_minute_historical_replay_r0.py
+          "$PYTHON" -m pytest -q tests/test_full_minute_historical_replay_r0.py
+
+      - name: Execute host inventory and bounded real-minute enumeration canary
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_minute_replay_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          OUTDIR="$RUNNER_TEMP/cb16-r11-full-minute-replay-r0-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUTDIR"
+          set +e
+          "$PYTHON" -m scripts.r11_full_minute_historical_replay_r0 \
+            --raw-root "$CB16_RAW_ROOT" \
+            --require-raw-root \
+            --output "$OUTDIR/RESULT.json"
+          RC=$?
+          set -e
+          cp authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_HISTORICAL_REPLAY_R0_SPEC_V1.json "$OUTDIR/EXECUTION_SPEC.json"
+          sha256sum "$OUTDIR/RESULT.json" "$OUTDIR/EXECUTION_SPEC.json" > "$OUTDIR/SHA256SUMS.txt"
+          echo "REPLAY_R0_OUTDIR=$OUTDIR" >> "$GITHUB_ENV"
+          exit "$RC"
+
+      - name: Validate R0 receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${REPLAY_R0_OUTDIR:-}"
+          python3 - "$REPLAY_R0_OUTDIR/RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_FULL_MINUTE_HISTORICAL_REPLAY_R0_CANARY_RESULT_V1',x
+          if x['status']=='EXECUTION_BLOCKED':
+              raise SystemExit('EXECUTION_BLOCKED:'+x.get('blocker','UNKNOWN'))
+          assert x['status']=='PASS_R0_HOST_AND_MINUTE_CANARY',x
+          r=x['real_minute_enumeration_canary']
+          assert r['decision_stride_minutes']==1,r
+          assert r['rolling_samples']==r['expected_rolling_samples']==9940,r
+          assert r['final_holdout_payload_opened'] is False,r
+          b=x['brain_parameter_report']
+          assert b['total']==b['trainable']==16116420,b
+          assert b['unknown_parameter_names']==[],b
+          g=x['gradient_boundary_canary']
+          assert g['external_input_gradients_blocked'] is True,g
+          assert g['all_six_groups_receive_gradient'] is True,g
+          s=x['semantic_guards']
+          assert all(v is False for v in s.values()),s
+          print(json.dumps({'status':x['status'],'minute_canary':r,'brain_total':b['total']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload R0 receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-full-minute-historical-replay-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_minute_replay_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_minute_replay_python.json
+            ${{ env.REPLAY_R0_OUTDIR }}/
+          if-no-files-found: warn
+          retention-days: 30

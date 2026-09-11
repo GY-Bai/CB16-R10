@@ -5,6 +5,12 @@ Any job that could target a CB16 self-hosted/Shanxi runner must depend on the
 canonical reusable preflight. The preflight itself runs A=Repo Guard followed
 by B=Node24 Guard on GitHub-hosted runners.
 
+Permissions follow GitHub Actions inheritance semantics: workflow-level
+permissions are the default for jobs, while a job-level permissions block
+replaces that default for the job. Therefore a sensitive job is accepted when
+its *effective* contents permission is read-only, whether supplied at workflow
+scope or explicitly at job scope.
+
 This is repository-side defense in depth. The hard host-side boundary is the
 ACTIONS_RUNNER_HOOK_JOB_STARTED hook from ci/shanxi_runner_pre_job_gate.py.
 """
@@ -87,6 +93,50 @@ def _field(block: list[str], key: str) -> list[str]:
     return []
 
 
+def _workflow_field(text: str, key: str) -> list[str]:
+    """Return one top-level YAML field and its nested lines."""
+    lines = text.splitlines()
+    prefix = f"{key}:"
+    for i, line in enumerate(lines):
+        if line.startswith(prefix) and _indent(line) == 0:
+            base = 0
+            end = len(lines)
+            for j in range(i + 1, len(lines)):
+                if lines[j].strip() and not lines[j].lstrip().startswith("#") and _indent(lines[j]) <= base:
+                    end = j
+                    break
+            return lines[i:end]
+    return []
+
+
+def _permissions_contents_read_only(field: list[str]) -> bool:
+    """True when a permissions field grants contents read and not contents write.
+
+    Supports the canonical mapping form and GitHub's ``permissions: read-all``
+    shorthand. Job-level permissions replace workflow defaults, so callers must
+    decide which field is effective before invoking this helper.
+    """
+    if not field:
+        return False
+    text = "\n".join(field)
+    first = field[0].split("#", 1)[0].strip().lower()
+    if first == "permissions: read-all":
+        return True
+    if first == "permissions: write-all":
+        return False
+    has_read = bool(re.search(r"(?m)^\s+contents:\s*read\s*(?:#.*)?$", text))
+    has_write = bool(re.search(r"(?m)^\s+contents:\s*write\s*(?:#.*)?$", text))
+    return has_read and not has_write
+
+
+def _effective_contents_read_only(text: str, block: list[str]) -> bool:
+    """Resolve permissions using GitHub workflow/job inheritance semantics."""
+    job_permissions = _field(block, "permissions")
+    if job_permissions:
+        return _permissions_contents_read_only(job_permissions)
+    return _permissions_contents_read_only(_workflow_field(text, "permissions"))
+
+
 def _contains_sensitive_runner(block: list[str]) -> tuple[bool, bool]:
     field = _field(block, "runs-on")
     if not field:
@@ -100,16 +150,6 @@ def _contains_sensitive_runner(block: list[str]) -> tuple[bool, bool]:
 def _needs_preflight(block: list[str]) -> bool:
     field = _field(block, "needs")
     return PREFLIGHT_JOB_ID in "\n".join(field)
-
-
-def _job_permissions_read_only(block: list[str]) -> bool:
-    field = _field(block, "permissions")
-    if not field:
-        return False
-    text = "\n".join(field)
-    return bool(re.search(r"(?m)^\s+contents:\s*read\s*(?:#.*)?$", text)) and not bool(
-        re.search(r"(?m)^\s+contents:\s*write\s*(?:#.*)?$", text)
-    )
 
 
 def _checkout_persists_credentials(block: list[str]) -> bool:
@@ -171,8 +211,11 @@ def check_workflows(root: Path) -> list[str]:
                 continue
             if not _needs_preflight(block):
                 errors.append(f"{path}: job {job_id}: missing needs: {PREFLIGHT_JOB_ID}")
-            if not _job_permissions_read_only(block):
-                errors.append(f"{path}: job {job_id}: must declare job-level permissions.contents=read")
+            if not _effective_contents_read_only(text, block):
+                errors.append(
+                    f"{path}: job {job_id}: effective permissions.contents must be read-only "
+                    "(workflow default or job-level override)"
+                )
             if _checkout_persists_credentials(block):
                 errors.append(
                     f"{path}: job {job_id}: every checkout must set persist-credentials: false"

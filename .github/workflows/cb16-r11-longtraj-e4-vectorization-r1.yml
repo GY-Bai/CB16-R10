@@ -1,0 +1,82 @@
+name: CB16 R11 Long-Trajectory E4 Vectorization Audit R1
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-e4-vectorization-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json
+      - scripts/r11_longtraj_vectorization_audit_r1.py
+      - .github/workflows/cb16-r11-longtraj-e4-vectorization-r1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  vectorization-audit:
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify frozen E4 config
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          x=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json'))
+          assert x['status']=='FROZEN_BEFORE_EXECUTION'
+          assert x['experiment_id']=='E4_VECTORIZATION'
+          assert x['future_leak_allowed'] is False
+          assert x['time_axis_parallelized'] is False
+          assert x['production_physics_semantics_changed'] is False
+          PY
+      - name: Resolve verified Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/python.json"
+          python3 - "$RUNNER_TEMP/python.json" <<'PY' > "$RUNNER_TEMP/python_path"
+          import json,sys
+          x=json.load(open(sys.argv[1])); assert x['status']=='READY',x
+          print(x['python']['venv']+'/bin/python')
+          PY
+          echo "PYTHON=$(cat "$RUNNER_TEMP/python_path")" >> "$GITHUB_ENV"
+      - name: Benchmark exact scalar authority versus persistent batch axis
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16-e4-vectorization-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUT"
+          "$PYTHON" -m scripts.r11_longtraj_vectorization_audit_r1 --output "$OUT/RESULT.json"
+          cp authority/rearchitecture_r11/CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1.json "$OUT/EXPERIMENT_SPEC.json"
+          sha256sum "$OUT/RESULT.json" "$OUT/EXPERIMENT_SPEC.json" > "$OUT/SHA256SUMS.txt"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+      - name: Validate E4 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PYTHON" - "$OUT/RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='PASS',x
+          assert x['time_axis']=='SEQUENTIAL_CAUSAL_SCAN_REQUIRED',x
+          assert x['production_tensor_physics_claim'] is False,x
+          assert all(r['exact_every_step_hash_parity'] for r in x['physics_parity']),x
+          assert x['brain_batching']['status']=='PASS',x
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-e4-vectorization-${{ github.run_attempt }}
+          path: ${{ env.OUT }}/
+          retention-days: 30

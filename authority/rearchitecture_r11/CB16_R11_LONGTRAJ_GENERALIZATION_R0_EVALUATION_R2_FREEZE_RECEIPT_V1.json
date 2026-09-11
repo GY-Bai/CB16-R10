@@ -1,0 +1,100 @@
+{
+  "classification": "REFEREE_SYSTEM_QUALIFIED__R0_EXPERIMENT_SCIENTIFIC_FAIL_AT_G3__NO_PROMOTION__NO_MARKET_VERDICT",
+  "experiment_adjudication": {
+    "G1": {
+      "bootstrap_replicates": 10000,
+      "ci95_high": -0.07131383710851272,
+      "ci95_low": -0.16338286927590767,
+      "pass": true,
+      "point_challenger_minus_champion_total_loss": -0.11539684484402339,
+      "seed": 20260911
+    },
+    "G2": {
+      "bootstrap_replicates": 10000,
+      "ci95_high": -0.0005682421227296381,
+      "ci95_low": -0.09323384358237187,
+      "pass": true,
+      "point_challenger_minus_prior_train_climatology_total_loss": -0.04900826265414556,
+      "seed": 20260912
+    },
+    "G3": {
+      "best_nonidentity_shift_delta": -0.12333245078722636,
+      "exact_one_sided_rank_p": 0.10416666666666667,
+      "identity_delta_challenger_minus_champion": -0.11539684484402339,
+      "models_refit": false,
+      "nonidentity_shifts_with_delta_le_identity": 4,
+      "pass": false,
+      "permutation_family": "ALL_47_NONIDENTITY_CYCLIC_TARGET_ROW_SHIFTS"
+    },
+    "classification": "SCIENTIFIC_FAIL__CHALLENGER_ADVANTAGE_NOT_SPECIFIC_TO_TRUE_STATE_TARGET_CORRESPONDENCE",
+    "scope_interpretation": "THIS_FAILS_THE_FROZEN_R0_CORRESPONDENCE_SPECIFICITY_GATE_ONLY__IT_IS_NOT_A_VERDICT_ON_THE_OVERALL_CB16_SCIENTIFIC_VISION_OR_MARKET_INFORMATION_EXISTENCE",
+    "status": "SCIENTIFIC_FAIL"
+  },
+  "firewalls": {
+    "canonical_generation_advance_authorized": false,
+    "canonical_promotion_authorized": false,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "new_market_information_verdict": false,
+    "post_result_rescue_authorized_under_R0": false,
+    "reuse_of_this_48_group_cohort_as_independent_evidence_authorized": false,
+    "scientific_market_verdict": null
+  },
+  "frozen_models": {
+    "challenger_checkpoint_sha256": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246",
+    "challenger_policy_hash": "4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297",
+    "champion_policy_hash": "d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886"
+  },
+  "frozen_science_authority": {
+    "G1_G2_G3_changed_after_results": false,
+    "cohort_decision_times_sha256": "e8e7698e5da67ef32f01926c752e9accef1d468e9e95f772a0b3ed62df021cc3",
+    "cohort_dependence_groups": 48,
+    "cohort_file_sha256": "aa0caaab8d58130efd3f680ff41abe00f6b8656f260d03f9bf0782fcff6e2dd1",
+    "cohort_resampled": false,
+    "evaluation_spec_sha256": "32ef628f74ed5a17167a158cfac1689a78dbbbac65cba1fd1f635b7c8904d89d",
+    "repair_spec_sha256": "b89a85bfa9f9f9d29010cdf5d35292131c2f00e97c181ac3575e09ebd0e1402e"
+  },
+  "next_gate": "STOP_R0_AND_FREEZE__ANY_FURTHER_SCIENCE_REQUIRES_A_SEPARATE_PREREGISTERED_EXPERIMENT_AND_NEW_UNCONSUMED_EVIDENCE",
+  "qualified_code_sha": "6d6d74afe3f35c093f244323a8d4dcce8bd0aa46",
+  "referee_system_qualification": {
+    "campaign_consumed_validation_evidence_hash": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131",
+    "campaign_train_evidence_hash": "a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492",
+    "causality_canaries_all_passed": true,
+    "consumed_validation_scored_in_generalization": false,
+    "exact_campaign_consumed_validation_evidence_reproduced": true,
+    "exact_campaign_train_evidence_reproduced": true,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "independent_challenger_reload_outputs_exact": true,
+    "independent_champion_reload_outputs_exact": true,
+    "new_validation_admitted_dependence_groups": 48,
+    "new_validation_evidence_hash": "999ec595f3621c1ffcc4ff308b4e3b6cb98d5813bfa48f3ac1d9b60aa1aa4774",
+    "new_validation_rejected": 0,
+    "old_campaign_sensory_batch_geometry": [
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      4
+    ],
+    "status": "PASS",
+    "support_thresholds_relaxed": false,
+    "training_or_tuning_on_generalization_cohort": false,
+    "universe_b_rebound_train_outputs_used_for_G2": false
+  },
+  "run": {
+    "artifact_digest_sha256": "a8eb4532876cd4af2a217d36b3bbb14495b9e35ddd696e7ce243313c4b84b0b9",
+    "artifact_id": 10280617317,
+    "artifact_name": "cb16-r11-longtraj-generalization-r0-evaluation-r2-1",
+    "freeze_candidate_sha256": "b874c762b2e09edca87b2bb292ef9d19d74e5d28af0a5e4fee63c4b883e957a8",
+    "generalization_result_sha256": "c4eac2cbab1ac8b5dbb78d6f3e30b85792118ddc31e14ec3ecf0a614d0436bcc",
+    "job_id": 103402325726,
+    "workflow_conclusion": "success",
+    "workflow_run_id": 34641562617
+  },
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R2_FREEZE_RECEIPT_V1",
+  "status": "FROZEN_AND_QUALIFIED"
+}

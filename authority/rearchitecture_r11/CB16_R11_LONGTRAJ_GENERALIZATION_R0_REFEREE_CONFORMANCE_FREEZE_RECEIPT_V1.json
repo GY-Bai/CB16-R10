@@ -1,0 +1,66 @@
+{
+  "authority": {
+    "conformance_script_blob": "6b02582b025676563c4e81ab6751ec7ebfe9e549",
+    "conformance_spec_blob": "5bddf98b6895ca4d7ff2e8ac609e65cc958fef53",
+    "r2_freeze_receipt_blob": "5b163674aac61699a04520b4883b16be66f4041e",
+    "source_r2_generalization_result_sha256": "c4eac2cbab1ac8b5dbb78d6f3e30b85792118ddc31e14ec3ecf0a614d0436bcc"
+  },
+  "baseline_independent_recomputation": {
+    "G1_pass": true,
+    "G2_pass": true,
+    "G3_best_nonidentity": -0.12333245078722636,
+    "G3_count_le": 4,
+    "G3_exact_p": 0.10416666666666667,
+    "G3_pass": false,
+    "classification": "SCIENTIFIC_FAIL__CHALLENGER_ADVANTAGE_NOT_SPECIFIC_TO_TRUE_STATE_TARGET_CORRESPONDENCE",
+    "status": "SCIENTIFIC_FAIL"
+  },
+  "calibration_verdict": {
+    "canonical_generation_advance_authorized": false,
+    "canonical_promotion_authorized": false,
+    "market_information_existence_verdict": null,
+    "overall_cb16_scientific_vision_verdict": null,
+    "r0_48_group_cohort_may_be_reused_as_independent_evidence": false,
+    "r0_experiment_result_remains_frozen_scientific_fail": true,
+    "r0_post_result_rescue_authorized": false,
+    "referee_system_qualified_for_next_independent_science_series": true
+  },
+  "classification": "REFEREE_SYSTEM_CALIBRATION_COMPLETE__INDEPENDENT_RECOMPUTATION_AND_FAULT_INJECTION_PASS__NO_NEW_SCIENCE_VERDICT",
+  "fault_injection": {
+    "cases_passed": 11,
+    "cases_total": 11,
+    "verified_behaviors": [
+      "BASELINE_FROZEN_R2_REPRODUCES_G3_SCIENTIFIC_FAIL",
+      "G1_NONNEGATIVE_POINT_CLASSIFIES_G1_FAIL",
+      "G2_NONNEGATIVE_CI_HIGH_CLASSIFIES_G2_FAIL",
+      "G3_IDENTITY_STRICT_BEST_CLASSIFIES_PASS",
+      "G3_TIE_CLASSIFIES_G3_FAIL",
+      "TRAIN_EVIDENCE_HASH_DRIFT_REJECTED",
+      "CONSUMED_VALIDATION_EVIDENCE_HASH_DRIFT_REJECTED",
+      "CHAMPION_POLICY_HASH_DRIFT_REJECTED",
+      "FINAL_HOLDOUT_FIREWALL_VIOLATION_REJECTED",
+      "PROMOTION_FIREWALL_VIOLATION_REJECTED",
+      "G3_47_SHIFT_GEOMETRY_DRIFT_REJECTED"
+    ]
+  },
+  "firewalls": {
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "market_data_read_by_conformance_audit": false,
+    "model_loaded_or_scored_by_conformance_audit": false,
+    "teacher_recompiled_by_conformance_audit": false
+  },
+  "next_gate": "REFEREE_CALIBRATION_CLOSED__SEPARATE_NEXT_SCIENCE_SERIES_MUST_PREREGISTER_NEW_QUESTION_CONTROLS_AND_UNCONSUMED_EVIDENCE",
+  "qualified_code_sha": "5d687aaa35802339f3f26432331ad757439dc5b7",
+  "run": {
+    "artifact_digest_sha256": "41026fad6cce54723bf9a416c8a94817870f74bf94011d1c0d9a779b65902ed1",
+    "artifact_id": 10280149429,
+    "artifact_name": "cb16-r11-longtraj-generalization-r0-referee-conformance-1",
+    "conclusion": "success",
+    "conformance_result_sha256": "eef3b3591fc142d61938d04e9a7e66789aa4c19ded97da4127e7befd2610b8ff",
+    "job_id": 103407018156,
+    "workflow_run_id": 34642994340
+  },
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_REFEREE_CONFORMANCE_FREEZE_RECEIPT_V1",
+  "status": "FROZEN_AND_QUALIFIED"
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_SPEC_V1",
+  "status": "FROZEN_AND_QUALIFIED",
+  "classification": "FEEDBACK_BINDING_AND_MINUTE_PHYSICS_ADAPTER_QUALIFICATION__NO_MARKET_VERDICT",
+  "runtime_parent_sha": "7c8c02aaa1c619d0db3cdce831bbc6f31ef79bde",
+  "historical_e6_predecessor_sha": "c3faab2c8f67f177b8e102abaa62347b379e643a",
+  "authority_rule": "CURRENT_EXPERIMENTAL_REQUIREMENT_OVERRIDES_LEGACY_PIPELINE_STRUCTURE__SEMANTIC_CHANGES_MUST_BE_EXPLICITLY_VERSIONED_AND_QUALIFIED",
+  "preserved": {
+    "truth_belief_decision_permission_separation": true,
+    "requested_risk_is_confidence": false,
+    "environment_owns_position_exit": true,
+    "fees_slippage_margin_liquidation_equations": "INHERIT_FROZEN_V5_5_KERNEL",
+    "teacher_meaning": "P(U | I_t, a); realized future is one stochastic realization, never a correct-action label",
+    "final_holdout_closed": true,
+    "fresh_market_data_closed": true,
+    "recurrent_time_axis_parallelization": "FORBIDDEN"
+  },
+  "minute_physics_r2": {
+    "input_resolution": "1m causal bars",
+    "entry_execution": "next-minute-open",
+    "atr_semantic_clock": "14 completed UTC hourly aggregates using exact frozen ATR recurrence",
+    "stop_cooldown_semantic_clock": "1 hour = 60 minute transitions",
+    "max_holding_semantic_clock": "72 elapsed hours",
+    "funding": "only archived supplied funding observations; zero otherwise",
+    "threshold_ordering": {
+      "different_minutes": "earliest observed causal minute crossing wins",
+      "same_minute_stop_and_take": "stop-first, inherited from frozen tie-break"
+    },
+    "hourly_oracle_parity_scope": "Exact economic-state parity required on controls where hourly OHLC does not hide a different within-hour first-hit ordering.",
+    "hourly_ambiguous_double_touch": "Explicitly outside exact-parity claim; R2 uses observed minute chronology and does not inspect future minutes to emulate a coarse-bar tie-break."
+  },
+  "required_gates": [
+    "FROZEN_ECONOMIC_RULES_REUSED",
+    "HOURLY_CLOCK_SCALING_KNOWN_ANSWER",
+    "UNAMBIGUOUS_HOURLY_ECONOMIC_PARITY",
+    "MINUTE_FIRST_HIT_ORDERING_KNOWN_ANSWER",
+    "SAME_MINUTE_DOUBLE_TOUCH_STOP_FIRST",
+    "CHECKPOINT_RESTORE_EXACT",
+    "FUTURE_SUFFIX_MUTATION_INVARIANCE",
+    "FUTURE_ACCOUNT_POISON_INVARIANCE",
+    "NEXT_BAR_ISOLATION",
+    "REAL_PRE_FINAL_1M_H72_COUNTERFACTUAL_BINDING",
+    "TEACHER_PREQUENTIAL_EARLIER_EVIDENCE_INVARIANCE",
+    "SAME_PARENT_ONE_DEPENDENCE_GROUP",
+    "OUTCOME_NOT_LABEL",
+    "FINAL_FIREWALL_CLOSED"
+  ],
+  "qualification_scope": {
+    "symbol": "BTCUSDT",
+    "real_parent_count": 8,
+    "real_candidate_actions": [
+      {"direction": "SHORT", "requested_risk": 0.5},
+      {"direction": "FLAT", "requested_risk": 0.0},
+      {"direction": "LONG", "requested_risk": 0.5}
+    ],
+    "horizon": "72h = 4320 causal minute transitions",
+    "teacher_statistical_support": "MECHANICAL_BINDING_CANARY_ONLY__PRODUCTION_SUPPORT_NOT_CLAIMED",
+    "halt_compatible_open_position_physics": "NOT_CLAIMED_BY_E6_R2__HALT_IMPUTED_TRANSITIONS_REMAIN_FAIL_CLOSED_UNTIL_SEPARATE_QUALIFICATION"
+  },
+  "forbidden": [
+    "BAR_COUNT_AS_MINUTE_COUNT",
+    "72_TO_4320_PATCH_WITHOUT_CLOCK_AUDIT",
+    "FUTURE_HOURLY_OHLC_USED_TO_DECIDE_EARLIER_MINUTE_EXIT",
+    "REALIZED_WINNER_LABEL",
+    "FUTURE_TEACHER_IN_STUDENT_INPUT",
+    "OPEN_FINAL",
+    "DOWNLOAD_FRESH_DATA",
+    "CHANGE_TEACHER_OBJECTIVE",
+    "CHANGE_SUPERVISOR_PERMISSION_MEANING",
+    "CLAIM_HALT_COMPATIBLE_OPEN_POSITION_PHYSICS_FROM_NONHALT_E6_R2_EVIDENCE"
+  ],
+  "qualification_evidence": {
+    "qualified_code_sha": "72005b9d7eca06be99a4cebdbdaad48126b9d061",
+    "workflow_run_id": 34623547419,
+    "artifact_id": 10273204345,
+    "artifact_zip_sha256": "a3bf7c6b003edcda31ed5661998858dce0e834e6da8eacd1a6c7127464dea795",
+    "preregistered_spec_sha256": "b238939bc55920f8a4d975be9ef42781daa67c070e86b7502994af6afa22965c",
+    "result_sha256": "69638e4eb03639b563e1b89414da3211573ac4eb61ce37879653428b51efa4b8",
+    "freeze_candidate_receipt_sha256": "d8efc392899d8d6de09e468802b8964a13f8984a47695151626d48df270fcd0b",
+    "known_answer_tests": "6_PASS",
+    "all_required_runtime_gates_passed": true,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "long_gradient_training_authorized": false,
+    "scientific_verdict": null
+  },
+  "freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_RECEIPT_V1.json",
+  "success_effect": "Authorize the R2 minute feedback-binding runtime for subsequent long-trajectory integration. Does not create a market-information verdict and does not by itself claim production Teacher support sufficiency.",
+  "next_gate": "LONG_TRAJECTORY_INTEGRATION_REQUIRES_SEPARATE_TRAINING_ADMISSION"
+}

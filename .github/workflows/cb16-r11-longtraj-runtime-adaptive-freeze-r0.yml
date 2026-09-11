@@ -1,0 +1,153 @@
+name: CB16 R11 Long-Trajectory Adaptive Runtime Qualification R0
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-runtime-adaptive-freeze-r0
+    paths:
+      - cb16_local_opt/r11_adaptive_runtime_policy.py
+      - scripts/r11_longtraj_runtime_adaptive_qual_r0.py
+      - tests/test_r11_adaptive_runtime_policy.py
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_POLICY_R0.json
+      - .github/workflows/cb16-r11-longtraj-runtime-adaptive-freeze-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_G0_ROOT: /cb16/g0
+  OUT_DIR: artifacts/r11_longtraj_runtime_adaptive_qual_r0
+  QUALIFIED_INFRA_BASE: 8e70212230a001751b720332fc1a25fef5436211
+  PERFORMANCE_PARENT: ae67e14a24c395c94b70209359b321e6dcc14aaa
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  adaptive-runtime-qualification:
+    name: Adaptive 1x8 / 2x4x4 runtime exact-parity qualification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify runtime-only ancestry and frozen benchmark dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-runtime-adaptive-freeze-r0"
+          git merge-base --is-ancestor "$QUALIFIED_INFRA_BASE" HEAD
+          git merge-base --is-ancestor "$PERFORMANCE_PARENT" HEAD
+          git diff --quiet "$PERFORMANCE_PARENT" -- scripts/r11_longtraj_perf_ab_r0.py
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          p='authority/rearchitecture_r11/CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_POLICY_R0.json'
+          x=json.load(open(p))
+          assert x['status']=='FROZEN_POLICY_SELECTED__QUALIFICATION_REQUIRED',x
+          assert x['classification']=='RUNTIME_SCHEDULING_ONLY__NO_SCIENTIFIC_AUTHORITY',x
+          assert x['selection']['single_ready_experiment']['physics_workers_per_experiment']==[8],x
+          assert x['selection']['two_or_more_mutually_independent_ready_experiments']['physics_workers_per_experiment']==[4,4],x
+          assert x['selection']['three_way_concurrency']=='FORBIDDEN',x
+          assert x['independence_authority']['scheduler_may_infer_scientific_independence'] is False,x
+          assert x['global_limits']['max_total_physics_processes']==8,x
+          assert x['scientific_verdict'] is None,x
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_adaptive_runtime_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_adaptive_runtime_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f: f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile adaptive runtime implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile \
+            cb16_local_opt/r11_adaptive_runtime_policy.py \
+            scripts/r11_longtraj_runtime_adaptive_qual_r0.py
+
+      - name: Run scheduler unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q tests/test_r11_adaptive_runtime_policy.py
+
+      - name: Run real Frozen Physics adaptive qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_runtime_adaptive_qual_r0.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --symbol BTCUSDT \
+            --frames 8 \
+            --output "$OUT_DIR/ADAPTIVE_RUNTIME_QUALIFICATION.json"
+
+      - name: Enforce qualification evidence contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('artifacts/r11_longtraj_runtime_adaptive_qual_r0/ADAPTIVE_RUNTIME_QUALIFICATION.json')
+          x=json.load(open(p))
+          assert x['status']=='PASS',x
+          assert x['classification']=='RUNTIME_SCHEDULING_QUALIFICATION_ONLY__NO_SCIENCE_AUTHORITY',x
+          assert x['policy_checks']['single_worker_budgets']==[8],x
+          assert x['policy_checks']['pair_worker_budgets']==[4,4],x
+          assert x['policy_checks']['backlog_three_concurrent_experiments']==2,x
+          assert x['policy_checks']['backlog_three_queued']==['Q_C'],x
+          assert x['policy_checks']['scheduler_infers_independence'] is False,x
+          assert x['single_ready_real_workload']['exact_parity_with_serial'] is True,x
+          assert x['two_ready_real_workload']['all_exact_parity_with_serial'] is True,x
+          assert x['two_ready_real_workload']['total_worker_budget']==8,x
+          assert x['two_ready_real_workload']['concurrent_experiments']==2,x
+          assert x['final_holdout_touched'] is False,x
+          assert x['fresh_market_data_downloaded'] is False,x
+          assert x['new_scientific_verdict'] is False,x
+          assert x['scientific_verdict'] is None,x
+          print(json.dumps({
+            'status':'PASS',
+            'serial_bps':x['serial_oracle']['branches_per_second'],
+            'single_8_bps':x['single_ready_real_workload']['branches_per_second'],
+            'pair_4_4_aggregate_bps':x['two_ready_real_workload']['aggregate_branches_per_second'],
+          },indent=2))
+          PY
+
+      - name: Upload adaptive runtime qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-runtime-adaptive-qual-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_adaptive_runtime_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_adaptive_runtime_python.json
+            artifacts/r11_longtraj_runtime_adaptive_qual_r0/
+          if-no-files-found: warn
+          retention-days: 30
