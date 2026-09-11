@@ -129,7 +129,7 @@ jobs:
             tests/test_longtraj_generalization_r0_evaluation.py
 
       - name: Download frozen Campaign-R0 shadow Challenger artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.CAMPAIGN_ARTIFACT_NAME }}
           path: ${{ runner.temp }}/campaign_r0_artifact
