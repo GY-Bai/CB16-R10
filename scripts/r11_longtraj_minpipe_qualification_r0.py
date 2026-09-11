@@ -31,6 +31,14 @@ def bar(t: int, p: float, v: float = 1.0) -> KlineRecord:
     )
 
 
+def assert_closed_policy_surface(x) -> None:
+    forbidden = {"next_bar", "account_state_t1", "teacher", "target", "future", "market_times_ms"}
+    if forbidden.intersection(x):
+        raise RuntimeError("QUAL_FORBIDDEN_POLICY_KEY")
+    if not x["market_window"] or any(len(row) != 5 for row in x["market_window"]):
+        raise RuntimeError("QUAL_STUDENT_MARKET_SURFACE_DRIFT")
+
+
 def synthetic_qualification() -> tuple[dict, dict]:
     t0 = 1_700_700_000_000
     lane_a = prepare_lane_from_observed_r0(
@@ -52,11 +60,7 @@ def synthetic_qualification() -> tuple[dict, dict]:
     def policy(obs):
         policy_batch_sizes.append(len(obs))
         for x in obs:
-            if max(int(r[0]) for r in x["market_window"]) != int(x["decision_time_ms"]):
-                raise RuntimeError("QUAL_FUTURE_MARKET_VISIBLE")
-            forbidden = {"next_bar", "account_state_t1", "teacher", "target", "future"}
-            if forbidden.intersection(x):
-                raise RuntimeError("QUAL_FORBIDDEN_POLICY_KEY")
+            assert_closed_policy_surface(x)
         return [{"x": 1.0 if x["lane_id"] == "A" else 2.0} for x in obs]
 
     def transition(account, action, current, nxt, lane_id):
@@ -119,9 +123,6 @@ def real_archive_minpipe_canary(raw_root: str, rows: int = 2048) -> dict:
     if any(r.open_time >= FINAL_HOLDOUT_START_MS for r in prefix):
         raise RuntimeError("MINPIPE_REAL_FINAL_TOUCHED")
 
-    # Two independent accounts replay the identical real BTC prefix.  This proves
-    # that a real archive can drive same-clock batched policy while each account
-    # remains a separate recurrent lane.
     lanes = [
         prepare_lane_from_observed_r0("BTC_REPLICA_0", prefix, {"steps": 0, "score": 0.0}),
         prepare_lane_from_observed_r0("BTC_REPLICA_1", prefix, {"steps": 0, "score": 0.0}),
@@ -131,8 +132,7 @@ def real_archive_minpipe_canary(raw_root: str, rows: int = 2048) -> dict:
     def policy(obs):
         batch_sizes.append(len(obs))
         for x in obs:
-            if max(int(r[0]) for r in x["market_window"]) != int(x["decision_time_ms"]):
-                raise RuntimeError("MINPIPE_REAL_FUTURE_MARKET_VISIBLE")
+            assert_closed_policy_surface(x)
             if int(x["decision_time_ms"]) >= FINAL_HOLDOUT_START_MS:
                 raise RuntimeError("MINPIPE_REAL_FINAL_OBSERVATION")
         return [{"x": 0.0} for _ in obs]
