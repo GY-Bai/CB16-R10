@@ -1,0 +1,162 @@
+name: CB16 R11 M-Series H5.17 Three-Arm Forward Exploratory R0
+
+on:
+  push:
+    branches:
+      - ai/m-series-h5-17-three-arm-forward-exploratory-r0
+    paths:
+      - cb16_local_opt/h517_three_arm_forward_exploratory.py
+      - tests/test_h517_three_arm_forward_exploratory.py
+      - scripts/r11_m_series_h5_17_three_arm_forward_exploratory_r0.py
+      - diagnostics/h5_17_local_support_and_transfer/H5_17_THREE_ARM_EXPLORATORY_SPEC_V3.md
+      - .github/workflows/cb16-r11-m-series-h5-17-three-arm-forward-exploratory-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_R104_ROOT: /cb16/runtime/r104
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  h5-17-three-arm:
+    name: H5.17 corrected three-arm forward exploratory probe
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify exploration boundary and frozen scientific inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=bb072a1eb8d6dbf1b6228a69539c5f4ca143cc5b
+          git merge-base --is-ancestor "$BASE" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json)" = "54b9492e74d5011b671837ef402abd604c7c6"
+          test "$(git rev-parse HEAD:cb16_local_opt/full_state_nonlinear_utility_invariance_h516.py)" = "bfa28be3ad6676f26676404bb170a73b474b6192"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          if git diff --name-only "$BASE..HEAD" | grep -q '^authority/'; then
+            echo "H5.17 exploratory branch must not mutate authority/" >&2
+            exit 1
+          fi
+          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_h517_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_h517_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          pk={r['name'].lower():r for r in x['observed']['direct_package_versions']['packages']}
+          assert pk['scikit-learn']['satisfied'] is True,pk['scikit-learn']
+          PY
+
+      - name: Compile and run non-market known-answer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h517_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/h517_three_arm_forward_exploratory.py \
+            tests/test_h517_three_arm_forward_exploratory.py \
+            scripts/r11_m_series_h5_17_three_arm_forward_exploratory_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_h517_three_arm_forward_exploratory.py \
+            tests/test_full_state_nonlinear_utility_invariance_h516.py
+
+      - name: Execute H5.17 synthetic controls and consumed-TRAIN three-arm probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h517_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          OUTDIR="$RUNNER_TEMP/cb16-r11-m-series-h517-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUTDIR"
+          "$PYTHON" -m scripts.r11_m_series_h5_17_three_arm_forward_exploratory_r0 \
+            --r104-root "$CB16_R104_ROOT" \
+            --output "$OUTDIR/RESULT.json"
+          cp diagnostics/h5_17_local_support_and_transfer/H5_17_THREE_ARM_EXPLORATORY_SPEC_V3.md "$OUTDIR/EXECUTION_SPEC.md"
+          sha256sum "$OUTDIR/RESULT.json" "$OUTDIR/EXECUTION_SPEC.md" > "$OUTDIR/SHA256SUMS.txt"
+          echo "H517_OUTDIR=$OUTDIR" >> "$GITHUB_ENV"
+
+      - name: Validate exploratory result contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_h517_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" - "$H517_OUTDIR/RESULT.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_H5_17_THREE_ARM_FORWARD_EXPLORATORY_R0_RESULT_V1',x
+          assert x['status']=='H5_17_THREE_ARM_FORWARD_EXPLORATORY_EXECUTION_COMPLETE',x
+          assert x['framing']=='EXPLORATORY_ONLY__ALREADY_CONSUMED_TRAIN__NOT_AUTHORITY__NO_FINAL__NO_FRESH_DATA',x
+          assert x['known_answer_diagnostics']['support_tool']['iid_coverage_exceeds_shifted'] is True,x
+          s=x['synthetic_forward_pathway_controls']
+          assert s['positive_pathway_detected'] is True,s
+          assert s['null_rejected'] is True,s
+          assert len(x['fold_receipts'])==5,x['fold_receipts']
+          assert all(r['train_to_eval_gap_hours']>=256 for r in x['fold_receipts']),x['fold_receipts']
+          assert len(x['market_fold_results'])==5,x['market_fold_results']
+          assert len(x['market_support_diagnostics'])==5,x['market_support_diagnostics']
+          for r in x['market_fold_results']:
+              assert set(r['delta'])=={'B_vs_A','C_vs_A','C_vs_B','C_vs_constant','C_vs_shift_median'},r
+              assert len(r['C_shift_controls'])==5,r
+          g=x['semantic_guards']
+          assert g['already_consumed_train_only'] is True,g
+          assert g['fresh_market_data_downloaded'] is False,g
+          assert g['final_holdout_payload_opened'] is False,g
+          assert g['canonical_teacher_changed'] is False and g['canonical_student_changed'] is False,g
+          assert g['physics_or_supervisor_changed'] is False,g
+          assert g['authority_written'] is False,g
+          assert x['frozen_scientific_status_before']==x['frozen_scientific_status_after']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          print(json.dumps({'classification':x['classification'],'summary':x['summary'],'fold_receipts':x['fold_receipts']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload H5.17 exploratory evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-h5-17-three-arm-forward-exploratory-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_h517_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_h517_python.json
+            ${{ env.H517_OUTDIR }}/
+          if-no-files-found: error
+          retention-days: 30
