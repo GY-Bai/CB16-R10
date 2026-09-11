@@ -1,0 +1,41 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_FREEZE_R0_RECEIPT_V1",
+  "status": "FROZEN",
+  "classification": "RUNTIME_POLICY_FREEZE_ONLY__NO_SCIENCE_AUTHORITY",
+  "frozen_at_utc": "2026-09-11T15:41:41Z",
+  "policy_path": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_POLICY_R0.json",
+  "policy_content_sha256": "15b6166c4756f6d332669c11223249b897098ee0287855a4d0c1b2f89b551c76",
+  "qualification": {
+    "workflow_run_id": 34617281638,
+    "workflow_conclusion": "success",
+    "qualified_head_sha": "b2756050a594dad91e3f254c71ff931a06218ebe",
+    "artifact_id": 10271422786,
+    "artifact_name": "cb16-r11-longtraj-runtime-adaptive-qual-r0-1",
+    "artifact_zip_sha256": "3122cd5b90f452e417502d5738987fa416a1d2a6fda9aa7445088a4a4236accd",
+    "qualification_status": "PASS",
+    "result_digest": "a2ab6388a15f57d0096d4ac4ca19a30d522d5fd0bc2214c7c610bd46741d477d"
+  },
+  "frozen_runtime": {
+    "global_physics_worker_budget": 8,
+    "threads_per_physics_process": 1,
+    "max_concurrent_experiments": 2,
+    "single_ready_experiment": {
+      "workers": [8]
+    },
+    "two_mutually_independent_ready_experiments": {
+      "workers": [4, 4]
+    },
+    "third_and_later_ready_experiments": "QUEUE_FIFO",
+    "scheduler_may_infer_scientific_independence": false
+  },
+  "parity": {
+    "single_8_workers_exact_with_serial": true,
+    "two_4_plus_4_exact_with_serial": true
+  },
+  "firewalls": {
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "new_scientific_verdict": false
+  },
+  "next_owner": "E6_FEEDBACK_BINDING_QUALIFICATION"
+}
