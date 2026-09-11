@@ -1,6 +1,6 @@
 {
   "schema": "CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_SPEC_V1",
-  "status": "FROZEN_BEFORE_FIRST_R2_EXECUTION",
+  "status": "FROZEN_AND_QUALIFIED",
   "classification": "FEEDBACK_BINDING_AND_MINUTE_PHYSICS_ADAPTER_QUALIFICATION__NO_MARKET_VERDICT",
   "runtime_parent_sha": "7c8c02aaa1c619d0db3cdce831bbc6f31ef79bde",
   "historical_e6_predecessor_sha": "c3faab2c8f67f177b8e102abaa62347b379e643a",
@@ -69,5 +69,22 @@
     "CHANGE_SUPERVISOR_PERMISSION_MEANING",
     "CLAIM_HALT_COMPATIBLE_OPEN_POSITION_PHYSICS_FROM_NONHALT_E6_R2_EVIDENCE"
   ],
-  "success_effect": "Authorize the R2 minute feedback-binding runtime for subsequent long-trajectory integration. Does not create a market-information verdict and does not by itself claim production Teacher support sufficiency."
+  "qualification_evidence": {
+    "qualified_code_sha": "72005b9d7eca06be99a4cebdbdaad48126b9d061",
+    "workflow_run_id": 34623547419,
+    "artifact_id": 10273204345,
+    "artifact_zip_sha256": "a3bf7c6b003edcda31ed5661998858dce0e834e6da8eacd1a6c7127464dea795",
+    "preregistered_spec_sha256": "b238939bc55920f8a4d975be9ef42781daa67c070e86b7502994af6afa22965c",
+    "result_sha256": "69638e4eb03639b563e1b89414da3211573ac4eb61ce37879653428b51efa4b8",
+    "freeze_candidate_receipt_sha256": "d8efc392899d8d6de09e468802b8964a13f8984a47695151626d48df270fcd0b",
+    "known_answer_tests": "6_PASS",
+    "all_required_runtime_gates_passed": true,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false,
+    "long_gradient_training_authorized": false,
+    "scientific_verdict": null
+  },
+  "freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_RECEIPT_V1.json",
+  "success_effect": "Authorize the R2 minute feedback-binding runtime for subsequent long-trajectory integration. Does not create a market-information verdict and does not by itself claim production Teacher support sufficiency.",
+  "next_gate": "LONG_TRAJECTORY_INTEGRATION_REQUIRES_SEPARATE_TRAINING_ADMISSION"
 }
