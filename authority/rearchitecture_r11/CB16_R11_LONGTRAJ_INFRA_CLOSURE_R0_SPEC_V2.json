@@ -1,0 +1,118 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2",
+  "status": "FROZEN_BEFORE_FIRST_V2_QUALIFICATION",
+  "classification": "INFRA_EXECUTION_QUALIFICATION_ONLY__NO_SCIENTIFIC_AUTHORITY",
+  "supersedes": "CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V1",
+  "supersession_reason": "V1 incorrectly proposed applying the frozen bar-count Physics time-stop directly at 1m cadence, which would change 72-bar holding semantics from the historical hourly adapter into approximately 72 minutes. V2 fails that path closed instead of changing Frozen Physics or Teacher meaning.",
+  "parent_branch": "ai/r11-longtraj-infra-minpipe-r0",
+  "parent_sha": "e7c1048478b8ab5b047424194f116d701f9a28f4",
+  "purpose": "Close the minimum usable R11 long-trajectory execution, training, restart and experiment-isolation infrastructure before launching branch-specific scientific qualifications.",
+  "inherited_minpipe": {
+    "status": "CAUSAL_EXECUTION_QUALIFIED__NOT_REOPENED",
+    "time_axis": "STRICTLY_SERIAL_PER_RECURRENT_ACCOUNT",
+    "parallel_axes": "ONLY_INDEPENDENT_LANES_AT_THE_SAME_CLOCK",
+    "physics_authority": "FROZEN_SCALAR_ACCOUNT_PHYSICS",
+    "batched_physics_required": false
+  },
+  "g1_minimum_training": {
+    "real_archive_required": true,
+    "final_holdout_start_utc": "2025-09-01T00:00:00Z",
+    "fresh_market_download": "FORBIDDEN",
+    "minute_execution_canary": {
+      "student_visible_parent": "market<=t plus Account[t] only",
+      "sensory": "REAL_PREFINAL_1M_MICRO_WITH_COMPLETED_HOUR_SLOW_LANES",
+      "account_path": "REAL_PREFINAL_1M_FLAT_PATH_ONLY__NO_OPEN_POSITION__NO_ACCOUNT_RESET",
+      "reason_for_flat_only": "Minute-cadence recurrent execution is qualified without invoking unresolved bar-count holding-time semantics on an open position.",
+      "teacher_feedback": "NOT_BOUND_IN_THIS_INFRA_GATE"
+    },
+    "canonical_training_canary": {
+      "teacher": "EXISTING_R11_DEPENDENCE_BALANCED_PROBABILISTIC_TEACHER_ONLY",
+      "teacher_future_semantics": "EXISTING_QUALIFIED_HOURLY_H72_FROZEN_PHYSICS_BINDING",
+      "student_training": "EXISTING_R11_FP32_TRAINING_RUNTIME_ONLY",
+      "outcome_as_correct_action_label": "FORBIDDEN",
+      "winner_only_retention": "FORBIDDEN",
+      "purpose": "Prove real frozen-history Teacher evidence reaches legal Student gradients and optimizer.step without redefining Teacher meaning."
+    },
+    "minute_feedback_binding": {
+      "status": "EXPLICITLY_NOT_QUALIFIED_BY_INFRA_CLOSURE",
+      "next_owner": "E6_FEEDBACK_BINDING_QUALIFICATION",
+      "forbidden_shortcut": "DO_NOT_CALL_FROZEN_MAX_HOLDING_BARS_AT_1M_CADENCE_AS_IF_BAR_MEANT_MINUTE",
+      "required_before_scientific_long_trajectory_feedback_claim": true
+    },
+    "required_gates": [
+      "REAL_MINUTE_SENSORY_ACCOUNT_PATH_PASS",
+      "MINUTE_OPEN_POSITION_H72_PATH_FAILS_CLOSED_PASS",
+      "CANONICAL_HOURLY_H72_R11_TEACHER_EVIDENCE_PASS",
+      "STUDENT_PARAMETER_UPDATE_OBSERVED",
+      "TEACHER_AND_FROZEN_INPUTS_DETACHED_PASS",
+      "NO_FUTURE_MARKET_ACCOUNT_OR_TEACHER_IN_MINUTE_POLICY_SURFACE_PASS",
+      "ACCOUNT_RECURRENCE_PASS",
+      "SCALAR_FROZEN_PHYSICS_FLAT_MINUTE_CANARY_PASS",
+      "FINAL_FIREWALL_PASS",
+      "DURABLE_RECEIPT_PASS"
+    ]
+  },
+  "g2_restart_and_parallel_isolation": {
+    "checkpoint_required_state": [
+      "student_weights",
+      "optimizer_state",
+      "python_rng_state",
+      "numpy_rng_state",
+      "torch_cpu_rng_state",
+      "torch_cuda_rng_state_when_available",
+      "runtime_step_index",
+      "environment_clock_cursor",
+      "per_lane_account_state",
+      "evidence_identity",
+      "run_and_experiment_identity",
+      "spec_identity",
+      "archive_identity"
+    ],
+    "restart_oracle": "uninterrupted continuation and stop-save-destroy-restore-continuation must end in exact equal model, optimizer, RNG, account, cursor and evidence lineage state",
+    "parallel_mutable_state": "MUST_BE_PRIVATE_PER_EXPERIMENT",
+    "parallel_shared_state": "ONLY_IMMUTABLE_ARCHIVE_CODE_AND_FROZEN_AUTHORITIES_MAY_BE_SHARED",
+    "required_gates": [
+      "CHECKPOINT_STOP_RESTORE_CONTINUE_EXACT_PASS",
+      "MODEL_STATE_EXACT_PASS",
+      "OPTIMIZER_STATE_EXACT_PASS",
+      "RNG_STATE_EXACT_PASS",
+      "ACCOUNT_AND_CURSOR_EXACT_PASS",
+      "EVIDENCE_LINEAGE_EXACT_PASS",
+      "PARALLEL_A_EQUALS_SERIAL_A_PASS",
+      "PARALLEL_B_EQUALS_SERIAL_B_PASS",
+      "PEER_CONTINUES_WHEN_OTHER_EXPERIMENT_FAILS_PASS",
+      "MUTABLE_STATE_ISOLATION_PASS"
+    ]
+  },
+  "stress_gate": {
+    "duration_seconds": 300,
+    "runs_after_semantic_gates": true,
+    "scientific_verdict": "NONE",
+    "fixture_rule": "Throughput fixture may replay immutable inputs and reset a stress-only flat Physics path after fixture end; such resets carry zero scientific weight and cannot be used as experience.",
+    "collect": [
+      "sensory_frames_per_second",
+      "student_inference_rows_per_second",
+      "optimizer_steps_per_second",
+      "scalar_physics_steps_per_second",
+      "process_cpu_seconds_and_peak_rss",
+      "torch_cuda_peak_memory_when_available",
+      "nvidia_smi_gpu_utilization_memory_and_power_when_available"
+    ],
+    "integrity_failures": ["OOM", "NONFINITE", "DEADLOCK_OR_CRASH", "STATE_OR_CAUSALITY_CORRUPTION"],
+    "low_utilization": "REPORT_AS_PERFORMANCE_FINDING__DO_NOT_REINTERPRET_AS_SCIENTIFIC_FAIL"
+  },
+  "freeze_rule": "INFRA_MAY_BE_FROZEN_ONLY_AFTER_INHERITED_MINPIPE_PLUS_G1_V2_PLUS_G2_PLUS_300S_STRESS_INTEGRITY_PASS",
+  "post_freeze_rule": "NEW_BRANCH_SPECIFIC_QUALIFICATIONS_BRANCH_FROM_THE_EXACT_FROZEN_INFRA_SHA; E6_MUST_QUALIFY_MINUTE_FEEDBACK_BINDING_BEFORE_ANY_SCIENTIFIC_LONG_TRAJECTORY_FEEDBACK_CLAIM; INFRA_CHANGES_REQUIRE_A_NEW_VERSIONED_QUALIFICATION_LINEAGE",
+  "forbidden": [
+    "OPEN_FINAL",
+    "DOWNLOAD_FRESH_MARKET_DATA",
+    "CHANGE_FROZEN_PHYSICS",
+    "CHANGE_SUPERVISOR_OR_PERMISSION_SEMANTICS",
+    "CHANGE_TEACHER_MEANING",
+    "CHANGE_STUDENT_OBJECTIVE",
+    "TREAT_BAR_COUNT_AS_MINUTES_WITHOUT_REQUALIFICATION",
+    "CLAIM_MINUTE_FEEDBACK_BINDING_FROM_THIS_INFRA_GATE",
+    "CLAIM_MARKET_INFORMATION_FROM_THIS_INFRA_GATE",
+    "RESCUE_A_SCIENTIFIC_FAILURE"
+  ]
+}
