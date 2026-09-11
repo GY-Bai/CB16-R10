@@ -13,6 +13,10 @@ on:
       - .github/workflows/cb16-r11-longtraj-e6-feedback-binding-r2.yml
   workflow_dispatch:
 
+concurrency:
+  group: cb16-r11-longtraj-e6-feedback-binding-r2
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -137,6 +141,9 @@ jobs:
           assert x['execution']['horizon_minutes']==4320,x
           assert x['execution']['horizon_hours']==72,x
           assert x['execution']['physics_workers']==8,x
+          assert x['execution']['decision_to_execution_minutes']==1,x
+          assert x['gates']['NEXT_MINUTE_OPEN_EXECUTION'] is True,x
+          assert x['gates']['PARENT_ACCOUNT6_BOUND_IN_TEACHER_CONTEXT'] is True,x
           assert x['execution']['recurrent_time_axis_parallelized'] is False,x
           assert x['archive']['real_market_payload_opened'] is True,x
           assert x['archive']['contiguous_observed_1m_only'] is True,x
