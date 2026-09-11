@@ -1,6 +1,6 @@
 {
   "schema": "CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1",
-  "status": "FROZEN_BEFORE_EXECUTION",
+  "status": "FROZEN_AND_QUALIFIED",
   "experiment_id": "E6_FEEDBACK_BINDING_R2",
   "branch": "ai/r11-longtraj-e6-feedback-binding-r2",
   "predecessor": {
@@ -14,6 +14,7 @@
   "outcome_as_label_allowed": false,
   "future_teacher_target_in_student_input": false,
   "long_gradient_training_before_binding_qualification": false,
+  "long_gradient_training_authorized_by_e6": false,
   "final_holdout_start_utc": "2025-09-01T00:00:00Z",
   "final_holdout_payload_opened": false,
   "fresh_market_data_download": "FORBIDDEN",
@@ -24,5 +25,22 @@
     "teacher_mechanics_failure": "EXECUTION_BLOCKED",
     "scientific_market_verdict": "OUT_OF_SCOPE"
   },
-  "next_gate": "E6_R2_RUNTIME_QUALIFICATION"
+  "qualification": {
+    "qualified_code_sha": "72005b9d7eca06be99a4cebdbdaad48126b9d061",
+    "workflow_run_id": 34623547419,
+    "workflow_conclusion": "SUCCESS",
+    "artifact_id": 10273204345,
+    "artifact_zip_sha256": "a3bf7c6b003edcda31ed5661998858dce0e834e6da8eacd1a6c7127464dea795",
+    "result_sha256": "69638e4eb03639b563e1b89414da3211573ac4eb61ce37879653428b51efa4b8",
+    "freeze_candidate_receipt_sha256": "d8efc392899d8d6de09e468802b8964a13f8984a47695151626d48df270fcd0b",
+    "known_answer_tests": "6_PASS",
+    "mechanical_feedback_binding": "QUALIFIED",
+    "market_information_verdict": null,
+    "production_teacher_support_sufficiency": "NOT_CLAIMED",
+    "halt_compatible_open_position_physics": "NOT_QUALIFIED",
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false
+  },
+  "freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_E6_FEEDBACK_BINDING_R2_FREEZE_RECEIPT_V1.json",
+  "next_gate": "LONG_TRAJECTORY_INTEGRATION_REQUIRES_SEPARATE_TRAINING_ADMISSION"
 }
