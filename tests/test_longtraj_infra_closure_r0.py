@@ -3,10 +3,12 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 import torch
 
 from cb16_local_opt.binance_archive_input_r10 import KlineRecord, MINUTE_MS
 from cb16_local_opt.longtraj_infra_closure_r0 import (
+    MINUTE_H72_FORBIDDEN_CODE_R0,
     MinuteFrozenPhysicsAdapterR0,
     capture_rng_state_r0,
     load_exact_checkpoint_r0,
@@ -16,6 +18,7 @@ from cb16_local_opt.longtraj_infra_closure_r0 import (
     restore_exact_checkpoint_r0,
     restore_rng_state_r0,
     save_exact_checkpoint_r0,
+    simulate_h72_minute_branch_r0,
     tensor_mapping_sha256_r0,
 )
 
@@ -164,3 +167,8 @@ def test_future_lineage_hash_binds_market_and_funding_suffix():
     )
     assert base != changed_market
     assert base != changed_funding
+
+
+def test_open_position_h72_on_one_minute_physics_fails_closed():
+    with pytest.raises(RuntimeError, match=MINUTE_H72_FORBIDDEN_CODE_R0):
+        simulate_h72_minute_branch_r0()
