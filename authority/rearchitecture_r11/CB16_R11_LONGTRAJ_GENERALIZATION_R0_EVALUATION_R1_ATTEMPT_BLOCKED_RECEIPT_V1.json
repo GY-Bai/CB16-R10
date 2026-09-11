@@ -1,0 +1,55 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R1_ATTEMPT_BLOCKED_RECEIPT_V1",
+  "status": "EXECUTION_BLOCKED",
+  "classification": "EXECUTION_BLOCKED__CAMPAIGN_VALIDATION_PREPARED_EVIDENCE_HASH_NOT_EXACTLY_REPRODUCED__NO_SCIENTIFIC_VERDICT",
+  "run": {
+    "run_id": 34640418507,
+    "job_id": 103398489818,
+    "head_sha": "0abd7bfdfd8d1d648d1bdfdddab6d8283ace61e2",
+    "artifact_id": 10280780042,
+    "artifact_digest_sha256": "e5ab73949a7a93f8cfa2ea3cd443f85cbcde0460dcb0950343b33703c2596517"
+  },
+  "passed_before_block": {
+    "repo_guard": true,
+    "frozen_science_and_repair_pins": true,
+    "docker_preflight": true,
+    "canonical_python": true,
+    "known_answer_tests": 10,
+    "campaign_artifact_digest_sha256": "9800592c77f923baffc0146e87dc862c750f49c0b6bce73cd869bda0d5f89e08",
+    "challenger_checkpoint_sha256": "81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246",
+    "universe_a_train_admitted_groups": 48,
+    "universe_a_train_rejected_groups": 0,
+    "universe_a_consumed_validation_admitted_groups": 12,
+    "universe_a_consumed_validation_rejected_groups": 0,
+    "universe_a_train_prepared_evidence_hash_exact": true,
+    "universe_a_train_prepared_evidence_hash": "a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492"
+  },
+  "blocker": {
+    "error_code": "GZR1_A_VAL_HASH",
+    "expected_consumed_validation_prepared_evidence_hash": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131",
+    "exact_match": false,
+    "universe_b_compiled": false,
+    "models_loaded": false,
+    "models_scored": false,
+    "G1_computed": false,
+    "G2_computed": false,
+    "G3_computed": false
+  },
+  "diagnosis": {
+    "highest_probability_execution_cause": "SENSORY_BATCH_GEOMETRY_NOT_EXACTLY_REPRODUCED_FOR_LAST_FOUR_CONSUMED_VALIDATION_ROWS",
+    "basis": "The original 60-row Campaign sensory encoder used batches of 8, ending with a 4-row final batch. R1 encoded the original 60 plus the 48 new rows as one 108-row stream, causing original rows 56-59 to share an 8-row batch with new rows 60-63. The first 48 TRAIN rows retained identical 8-row batch boundaries and reproduced the exact frozen TRAIN evidence hash. Exact prepared-evidence hashes include packed floating-point sensory inputs, so a batch-shape-dependent numerical difference is sufficient to invalidate exact reproduction.",
+    "scientific_interpretation": "NONE__EXECUTION_REPRODUCTION_CANARY_CAUGHT_NONIDENTICAL_AUTHORITY_INPUT_GEOMETRY"
+  },
+  "frozen_science_unchanged": {
+    "cohort_resampled": false,
+    "support_thresholds_relaxed": false,
+    "G1_G2_G3_changed": false,
+    "models_changed": false,
+    "teacher_protocols_changed": false,
+    "final_holdout_touched": false,
+    "fresh_market_data_downloaded": false
+  },
+  "scientific_verdict": null,
+  "canonical_promotion_authorized": false,
+  "next_gate": "R2_EXECUTION_REPAIR__REPRODUCE_ORIGINAL_CAMPAIGN_SENSORY_BATCH_GEOMETRY_EXACTLY_THEN_REPLAY_SAME_FROZEN_SCIENCE_SPEC"
+}
