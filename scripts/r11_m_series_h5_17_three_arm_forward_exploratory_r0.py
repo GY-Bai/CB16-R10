@@ -32,7 +32,7 @@ FROZEN_STATUS = "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THA
 
 PINNED = {
     "semantic_freeze": ("authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json", "3c401a0a350984381912f7860181e3e96eb8d7cf"),
-    "h55_gate": ("authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json", "54b9492e74d5011b671837ef402abd604c7c6"),
+    "h55_gate": ("authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json", "54b9492e74d5017711b671837ef402abd604c7c6"),
     "h516_adjudication": ("authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_16_FULL_STATE_NONLINEAR_UTILITY_INVARIANCE_R0_ADJUDICATION_V1.json", None),
     "h516_helper": ("cb16_local_opt/full_state_nonlinear_utility_invariance_h516.py", "bfa28be3ad6676f26676404bb170a73b474b6192"),
     "h5_helper": ("cb16_local_opt/teacher_temporal_transport_audit_h5.py", "09b05de23c659fe6f47a43117ec70b5cafcf7d21"),
