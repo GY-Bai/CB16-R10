@@ -1,0 +1,161 @@
+name: CB16 R11 Long-Trajectory Minpipe R0
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-infra-minpipe-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_MINPIPE_R0_SPEC_V1.json
+      - cb16_local_opt/longtraj_minpipe_r0.py
+      - cb16_local_opt/full_minute_long_trajectory_r1.py
+      - tests/test_longtraj_minpipe_r0.py
+      - tests/test_full_minute_long_trajectory_r1.py
+      - scripts/r11_longtraj_minpipe_qualification_r0.py
+      - .github/workflows/cb16-r11-longtraj-minpipe-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  minpipe-r0:
+    name: Causal halt + batched lanes + recurrent account qualification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify branch and frozen execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-infra-minpipe-r0"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          p='authority/rearchitecture_r11/CB16_R11_LONGTRAJ_MINPIPE_R0_SPEC_V1.json'
+          x=json.load(open(p))
+          assert x['status']=='FROZEN_EXECUTION_QUALIFICATION_ONLY',x
+          assert x['scientific_authority']=='NONE__INFRA_ONLY',x
+          assert x['base_sha']=='c3faab2c8f67f177b8e102abaa62347b379e643a',x
+          g=x['market_gap_semantics']
+          assert g['name']=='CONTINUOUS_CLOCK_TRADING_HALT_PREFIX_ONLY',g
+          assert g['account_reset_on_halt'] is False,g
+          c=x['causal_boundary']
+          assert 'Account[t+1]_or_future_account' in c['forbidden_at_policy_t'],c
+          v=x['vectorization']
+          assert v['time_axis'].startswith('STRICTLY_SEQUENTIAL_SCAN'),v
+          assert v['account_physics'].startswith('EXISTING_SCALAR_AUTHORITY'),v
+          assert x['holdout']['final_start_utc']=='2025-09-01T00:00:00Z',x
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_longtraj_minpipe_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_longtraj_minpipe_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          PY
+
+      - name: Compile and run causal known-answer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_longtraj_minpipe_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/full_minute_long_trajectory_r1.py \
+            cb16_local_opt/longtraj_minpipe_r0.py \
+            tests/test_full_minute_long_trajectory_r1.py \
+            tests/test_longtraj_minpipe_r0.py \
+            scripts/r11_longtraj_minpipe_qualification_r0.py
+          "$PYTHON" -m pytest -q \
+            tests/test_full_minute_long_trajectory_r1.py \
+            tests/test_longtraj_minpipe_r0.py
+
+      - name: Execute synthetic plus real-archive minimum pipeline qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_longtraj_minpipe_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          rm -rf artifacts/r11_longtraj_minpipe_r0
+          PYTHONPATH=. "$PYTHON" scripts/r11_longtraj_minpipe_qualification_r0.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --require-raw-root
+
+      - name: Validate durable minpipe receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          d=pathlib.Path('artifacts/r11_longtraj_minpipe_r0')
+          p=d/'RESULT.json'
+          x=json.load(open(p))
+          assert x['schema']=='CB16_R11_LONGTRAJ_MINPIPE_R0_RESULT_V1',x
+          assert x['classification']=='INFRA_MINPIPE_QUALIFIED',x
+          assert x['scientific_verdict'] is None,x
+          assert x['final_holdout_touched'] is False,x
+          assert x['real_archive_canary'] is not None,x
+          assert x['real_archive_canary']['final_holdout_touched'] is False,x
+          assert x['real_archive_canary']['max_policy_batch_size']==2,x
+          required={
+            'HALT_PREFIX_ONLY_CANARY_PASS',
+            'ACCOUNT_CONTINUITY_ACROSS_HALT_PASS',
+            'NO_FUTURE_MARKET_IN_POLICY_PASS',
+            'ALL_ACTIONS_FROZEN_BEFORE_ANY_T_PLUS_1_TRANSITION_PASS',
+            'SAME_CLOCK_MULTI_LANE_POLICY_BATCH_PASS',
+            'ONE_MINUTE_TRANSITION_CLOCK_PASS',
+            'REAL_ARCHIVE_MINPIPE_PASS',
+          }
+          assert required <= set(x['gates']),x
+          assert all(x['gates'][k] for k in required),x
+          raw=p.read_bytes()
+          expected=(d/'RESULT.sha256').read_text().split()[0]
+          assert hashlib.sha256(raw).hexdigest()==expected,(hashlib.sha256(raw).hexdigest(),expected)
+          print(json.dumps(x,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload minpipe qualification receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-minpipe-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_longtraj_minpipe_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_longtraj_minpipe_python.json
+            artifacts/r11_longtraj_minpipe_r0/
+          if-no-files-found: warn
+          retention-days: 30
