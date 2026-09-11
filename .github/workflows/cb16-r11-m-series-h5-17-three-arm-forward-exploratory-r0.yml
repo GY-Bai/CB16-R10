@@ -42,18 +42,31 @@ jobs:
           set -euo pipefail
           BASE=bb072a1eb8d6dbf1b6228a69539c5f4ca143cc5b
           git merge-base --is-ancestor "$BASE" HEAD
+          echo "base ancestry OK"
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          echo "semantic freeze pin OK"
           test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_H5_5_STATE_UTILITY_GEOMETRY_TRANSPORT_AUDIT_R0_GATE_V1.json)" = "54b9492e74d5011b671837ef402abd604c7c6"
+          echo "H5.5 gate pin OK"
           test "$(git rev-parse HEAD:cb16_local_opt/full_state_nonlinear_utility_invariance_h516.py)" = "bfa28be3ad6676f26676404bb170a73b474b6192"
+          echo "H5.16 helper pin OK"
           test "$(git rev-parse HEAD:cb16_local_opt/teacher_temporal_transport_audit_h5.py)" = "09b05de23c659fe6f47a43117ec70b5cafcf7d21"
+          echo "H5 helper pin OK"
           test "$(git rev-parse HEAD:cb16_local_opt/teacher_vectorized_r11.py)" = "083ca6541b45577cfeb6d9a376b25e0eaf8d060a"
+          echo "columnar index pin OK"
           test "$(git rev-parse HEAD:cb16_local_opt/reduced_teacher_target_information_audit_r6.py)" = "bd7a8780e8dcab05cfae92744fde523ce62cc9ae"
+          echo "R6 helper pin OK"
           test "$(git rev-parse HEAD:scripts/r11_science_g0_reduced_teacher_target_information_audit_r6.py)" = "72bede8dd09015c702ec26ead639a81f48efe38a"
+          echo "R6 loader pin OK"
           if git diff --name-only "$BASE..HEAD" | grep -q '^authority/'; then
             echo "H5.17 exploratory branch must not mutate authority/" >&2
             exit 1
           fi
-          test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"
+          echo "authority mutation guard OK"
+          if test -f "$CB16_R104_ROOT/REAL_EVIDENCE_CACHE_MANIFEST_R102.json"; then
+            echo "R10.4 manifest visible in host-side runner shell"
+          else
+            echo "R10.4 manifest not visible before Docker preflight; defer mount/path validation to canonical preflight and train-only loader"
+          fi
 
       - name: Verify Docker execution contract
         shell: bash
