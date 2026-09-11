@@ -54,7 +54,8 @@
       {"direction": "LONG", "requested_risk": 0.5}
     ],
     "horizon": "72h = 4320 causal minute transitions",
-    "teacher_statistical_support": "MECHANICAL_BINDING_CANARY_ONLY__PRODUCTION_SUPPORT_NOT_CLAIMED"
+    "teacher_statistical_support": "MECHANICAL_BINDING_CANARY_ONLY__PRODUCTION_SUPPORT_NOT_CLAIMED",
+    "halt_compatible_open_position_physics": "NOT_CLAIMED_BY_E6_R2__HALT_IMPUTED_TRANSITIONS_REMAIN_FAIL_CLOSED_UNTIL_SEPARATE_QUALIFICATION"
   },
   "forbidden": [
     "BAR_COUNT_AS_MINUTE_COUNT",
@@ -65,7 +66,8 @@
     "OPEN_FINAL",
     "DOWNLOAD_FRESH_DATA",
     "CHANGE_TEACHER_OBJECTIVE",
-    "CHANGE_SUPERVISOR_PERMISSION_MEANING"
+    "CHANGE_SUPERVISOR_PERMISSION_MEANING",
+    "CLAIM_HALT_COMPATIBLE_OPEN_POSITION_PHYSICS_FROM_NONHALT_E6_R2_EVIDENCE"
   ],
   "success_effect": "Authorize the R2 minute feedback-binding runtime for subsequent long-trajectory integration. Does not create a market-information verdict and does not by itself claim production Teacher support sufficiency."
 }
