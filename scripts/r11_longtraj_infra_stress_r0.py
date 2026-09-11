@@ -203,7 +203,6 @@ def main() -> int:
     optimizer = runtime.build_optimizer(model)
     ids = torch.arange(prepared.rows, device=prepared.packed.device, dtype=torch.long)
 
-    # Warm up each active subsystem outside the measured window.
     sensory.encode_frames(sensory_frames[: min(8, len(sensory_frames))])
     with torch.inference_mode():
         model(prepared.operator48, prepared.medium48, prepared.account6)
@@ -230,6 +229,7 @@ def main() -> int:
     inference_rows_done = 0
     optimizer_steps_done = 0
     physics_steps_done = 0
+    physics_path_resets = 0
     cycles = 0
     start_cpu = time.process_time()
     start_wall = time.perf_counter()
@@ -262,7 +262,14 @@ def main() -> int:
             optimizer_steps_done += 1
 
             for _ in range(int(args.physics_steps_per_cycle)):
-                row = physics_records[physics_index % len(physics_records)]
+                if physics_index >= len(physics_records):
+                    physics_path_resets += 1
+                    snapshot, risk_auth = adapter.initialize(
+                        f"INFRA_STRESS_ACCOUNT:{physics_path_resets}",
+                        1.0,
+                    )
+                    physics_index = 1
+                row = physics_records[physics_index]
                 step = make_flat_action(
                     adapter,
                     snapshot,
@@ -345,6 +352,7 @@ def main() -> int:
             "optimizer_steps_per_second": optimizer_steps_done / wall,
             "scalar_frozen_physics_steps": physics_steps_done,
             "scalar_frozen_physics_steps_per_second": physics_steps_done / wall,
+            "physics_path_resets_after_fixture_end": physics_path_resets,
         },
         "memory": {
             "process_peak_rss_kib": max_rss_kib,
