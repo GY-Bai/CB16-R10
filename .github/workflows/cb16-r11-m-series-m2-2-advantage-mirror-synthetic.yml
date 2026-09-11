@@ -1,0 +1,151 @@
+name: CB16 R11 M-Series M2.2 Advantage Mirror Synthetic
+
+on:
+  push:
+    branches:
+      - ai/m-series-m2-2-adv-mirror-synthetic-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_GATE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_ADJUDICATION_V1.json
+      - cb16_local_opt/m_series_m2_2_advantage_mirror_synthetic.py
+      - tests/test_m_series_m2_2_advantage_mirror_synthetic.py
+      - scripts/r11_m_series_m2_2_advantage_mirror_synthetic.py
+      - .github/workflows/cb16-r11-m-series-m2-2-advantage-mirror-synthetic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  m2-2-synthetic:
+    name: M2.2 synthetic advantage-mirror benchmark
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable M2.2 preregistration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 9b48115c080e221efd70df0896347dbb224c4ada HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_GATE_V1.json)" = "4a75dcd18eb78fbef4b24a94ccad0bf444e4e2b0"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_M_SERIES_M2_1_CORRECTION_QUALITY_ATTRIBUTION_ADJUDICATION_V1.json)" = "f4e2a1ff358f00b42c27656a5c82bbdb751cc391"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_m22_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_m22_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          assert x['observed']['python_series']==[3,10],x
+          PY
+
+      - name: Compile and run M2.2 unit gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_m22_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile \
+            cb16_local_opt/m_series_m2_2_advantage_mirror_synthetic.py \
+            tests/test_m_series_m2_2_advantage_mirror_synthetic.py \
+            scripts/r11_m_series_m2_2_advantage_mirror_synthetic.py
+          "$PYTHON" -m pytest -q \
+            tests/test_m_series_m2_2_advantage_mirror_synthetic.py
+
+      - name: Execute preregistered 20-cell 360-arm synthetic benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$RUNNER_TEMP/cb16_r11_m22_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          RUN_ROOT="$RUNNER_TEMP/cb16-r11-m-series-m22-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$RUN_ROOT"; mkdir -p "$RUN_ROOT"
+          printf '%s\n' "$RUN_ROOT" > "$RUNNER_TEMP/cb16_r11_m22_run_root.txt"
+          "$PYTHON" -m scripts.r11_m_series_m2_2_advantage_mirror_synthetic \
+            --output "$RUN_ROOT/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_RESULT.json" \
+            --device cuda
+
+      - name: Verify M2.2 receipt and semantic guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ROOT=$(cat "$RUNNER_TEMP/cb16_r11_m22_run_root.txt")
+          python3 - "$RUN_ROOT/CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_RESULT.json" <<'PY'
+          import json,math,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['schema']=='CB16_R11_M_SERIES_M2_2_ADVANTAGE_MIRROR_SYNTHETIC_RESULT_V1',x
+          assert x['status']=='M2_2_ADVANTAGE_MIRROR_SYNTHETIC_COMPLETE',x
+          assert x['frozen_scientific_status_after']==x['frozen_scientific_status_before']=='DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE',x
+          p=x['protocol']
+          assert p['synthetic_only'] is True and p['market_data_read'] is False and p['market_evidence_read'] is False,p
+          assert p['cells']==20 and p['arms_per_cell']==18 and p['total_arms']==360,p
+          assert p['final_holdout_opened'] is False and p['r7_candidate_evaluated'] is False,p
+          assert len(x['cells'])==20,x
+          for c in x['cells']:
+              assert len(c['arms'])==18,c
+              for arm in c['arms'].values():
+                  e=arm['evaluation']
+                  for k in ('true_discrete_champion_relative_gain','true_available_advantage_capture_fraction','true_harmful_cost_mean','true_negative_gain_rate','true_direction_change_rate'):
+                      assert math.isfinite(float(e[k])),(k,e)
+                  assert e['true_harmful_cost_mean']>=0.0,e
+                  assert 0.0<=e['true_negative_gain_rate']<=1.0,e
+          s=x['m2_2_summary']
+          assert len(s['per_regime'])==4,s
+          assert s['conclusion'] in {
+              'POSITIVE_ADVANTAGE_MIRROR_OBJECTIVE_SYNTHETICALLY_QUALIFIED_FOR_CONSUMED_SUPPORT_SHADOW_SCREEN',
+              'POSITIVE_ADVANTAGE_MIRROR_OBJECTIVE_NOT_SYNTHETICALLY_QUALIFIED',
+          },s
+          assert s['market_information_verdict'] is False and s['canonical_change_authorized'] is False and s['m3_sizing_authorized'] is False,s
+          g=x['semantic_guards']
+          assert g['market_data_used'] is False and g['market_evidence_used'] is False,g
+          assert g['canonical_generation_advanced'] is False and g['champion_promoted'] is False and g['production_cutover'] is False,g
+          assert g['market_information_verdict_reopened'] is False and g['final_holdout_payload_opened'] is False and g['r7_candidate_evaluated'] is False,g
+          print(json.dumps({'status':x['status'],'conclusion':s['conclusion'],'overall_pass':s['overall_pass'],'per_regime':s['per_regime'],'next_legal_step':x['next_legal_step']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload M2.2 synthetic evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-m-series-m2-2-advantage-mirror-synthetic-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_m22_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_m22_python.json
+            ${{ runner.temp }}/cb16-r11-m-series-m22-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 30
