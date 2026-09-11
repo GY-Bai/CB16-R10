@@ -1,0 +1,112 @@
+name: CB16 R11 Long-Trajectory R1 Foundation
+
+on:
+  push:
+    branches:
+      - ai/r11-full-minute-historical-replay-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_LONG_TRAJECTORY_R1_SPEC_V1.json
+      - cb16_local_opt/full_minute_long_trajectory_r1.py
+      - tests/test_full_minute_long_trajectory_r1.py
+      - .github/workflows/cb16-r11-longtraj-r1-foundation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  causal-foundation:
+    name: Halt model + causal firewall + batch-axis parity
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout R1 foundation
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify branch and immutable historical boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-full-minute-historical-replay-r0"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          p='authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_LONG_TRAJECTORY_R1_SPEC_V1.json'
+          x=json.load(open(p))
+          assert x['status']=='FROZEN_BEFORE_R1_FOUNDATION_EXECUTION'
+          assert x['historical_status']['r0_receipt_immutable'] is True
+          assert x['historical_status']['final_holdout_payload_opened'] is False
+          assert x['internal_gap_halt_model']['price_source']=='last observed close strictly before the gap'
+          assert x['trajectory_semantics']['account_reset_at_internal_data_gap'] is False
+          assert x['causal_firewall']['future_market_in_student_input'] is False
+          assert x['causal_firewall']['future_account_in_student_input'] is False
+          assert x['vectorization_contract']['time_axis'].startswith('causal scan')
+          PY
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_longtraj_r1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['python']['network_install_attempted'] is False,x
+          PY
+          echo "PYTHON_JSON=$OUT" >> "$GITHUB_ENV"
+
+      - name: Run R1 semantic known-answer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON=$(python3 - "$PYTHON_JSON" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" -m py_compile cb16_local_opt/full_minute_long_trajectory_r1.py tests/test_full_minute_long_trajectory_r1.py
+          "$PYTHON" -m pytest -q tests/test_full_minute_long_trajectory_r1.py
+
+      - name: Emit durable foundation receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16-r11-longtraj-r1-foundation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$OUT"
+          python3 - "$OUT/RESULT.json" <<'PY'
+          import json,sys
+          from cb16_local_opt.full_minute_long_trajectory_r1 import batch_axis_parity_canary_r1
+          r={
+            'schema':'CB16_R11_LONGTRAJ_R1_FOUNDATION_RESULT_V1',
+            'status':'PASS_R1_SEMANTIC_FOUNDATION',
+            'halt_model':'PREFIX_LAST_CLOSE_ZERO_VOLUME_INTERNAL_GAPS_ONLY',
+            'account_gap_reset':False,
+            'future_market_in_student_input':False,
+            'future_account_in_student_input':False,
+            'time_axis_vectorization':'SEQUENTIAL_CAUSAL_SCAN',
+            'parallel_axes':['asset','account_replica','target_side_counterfactual_action'],
+            'production_physics_vectorized':False,
+            'batch_axis_canary':batch_axis_parity_canary_r1(batch=128),
+            'final_holdout_payload_opened':False,
+          }
+          json.dump(r,open(sys.argv[1],'w'),indent=2,sort_keys=True)
+          PY
+          cp authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_LONG_TRAJECTORY_R1_SPEC_V1.json "$OUT/EXECUTION_SPEC.json"
+          sha256sum "$OUT/RESULT.json" "$OUT/EXECUTION_SPEC.json" > "$OUT/SHA256SUMS.txt"
+          echo "R1_FOUNDATION_OUT=$OUT" >> "$GITHUB_ENV"
+
+      - name: Upload R1 foundation receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-r1-foundation-${{ github.run_attempt }}
+          path: ${{ env.R1_FOUNDATION_OUT }}/
+          retention-days: 30
