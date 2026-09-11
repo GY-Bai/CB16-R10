@@ -28,6 +28,8 @@ jobs:
     needs: shanxi-preflight
     runs-on: [self-hosted, shanxi-docker-r11]
     timeout-minutes: 720
+    permissions:
+      contents: read
     steps:
       - name: Checkout experiment branch
         uses: actions/checkout@v7
