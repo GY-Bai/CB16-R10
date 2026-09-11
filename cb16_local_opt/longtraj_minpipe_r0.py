@@ -2,14 +2,15 @@ from __future__ import annotations
 
 """R11 long-trajectory minimum causal pipeline.
 
-Execution-only adapter.  Time remains strictly sequential because Account[t+1]
-depends on Account[t] and Action[t].  Independent lanes that share decision clock
+Execution-only adapter. Time remains strictly sequential because Account[t+1]
+depends on Account[t] and Action[t]. Independent lanes that share decision clock
 t are batched through sensory/policy first; only after the complete action batch is
 frozen may environment/Frozen Physics consume the t+1 minute.
 
-The module intentionally does not change Frozen Physics numerical semantics.
-Production Physics remains the existing scalar authority and is invoked once per
-lane behind the batch boundary.
+The module intentionally does not change Frozen Physics numerical semantics or the
+R1 Student-visible market surface. Market timestamps used by causality assertions
+remain scheduler-private audit metadata; policy receives the frozen OHLCV window,
+decision_time, Account[t], and optional causal sensory only.
 """
 
 from collections import defaultdict
@@ -37,13 +38,14 @@ class LaneTrajectoryR0:
 class CausalLaneObservationR0:
     lane_id: str
     decision_time_ms: int
-    market_window: tuple[tuple[Any, ...], ...]
+    market_window: tuple[tuple[float, ...], ...]
+    market_times_ms: tuple[int, ...]
     account_state_t: Any
     sensory: Any = None
 
     def policy_payload(self) -> dict[str, Any]:
-        # Deliberately closed surface: there is no next_bar, t+1 account, target,
-        # teacher payload, or future market object here.
+        # Deliberately closed Student surface. market_times_ms is scheduler-private
+        # audit metadata and is NOT exported as an extra model feature.
         return {
             "lane_id": self.lane_id,
             "decision_time_ms": self.decision_time_ms,
@@ -126,8 +128,11 @@ def _candidate_schedule_r0(
                 continue
             if nt - t != MINUTE_MS:
                 raise RuntimeError(f"MINPIPE_TRANSITION_NOT_ONE_MINUTE:{lane.lane_id}:{t}->{nt}")
-            if max(int(x.record.open_time) for x in visible) != t:
+            visible_times = tuple(int(x.record.open_time) for x in visible)
+            if not visible_times or max(visible_times) != t:
                 raise RuntimeError("MINPIPE_VISIBLE_WINDOW_CLOCK_DRIFT")
+            if any(vt > t for vt in visible_times):
+                raise RuntimeError("MINPIPE_FUTURE_MARKET_ENTERED_SCHEDULE")
             by_clock[t].append(_CandidateR0(lane.lane_id, t, visible, current, nxt))
     return dict(by_clock)
 
@@ -168,21 +173,23 @@ def time_major_batch_scan_r0(
         active: list[_CandidateR0] = []
 
         for c in candidates:
-            # A lane's account state becomes meaningful at its first legal decision,
-            # then must advance exactly one minute per subsequent decision.
             if c.lane_id in started:
                 expected = last_decision[c.lane_id] + MINUTE_MS
                 if t != expected:
                     raise RuntimeError(
                         f"MINPIPE_ACCOUNT_CLOCK_GAP:{c.lane_id}:{last_decision[c.lane_id]}->{t}"
                     )
-            market_window = tuple(student_visible_market_tuple(x) for x in c.visible)
-            if max(int(x[0]) for x in market_window) > t:
+            market_times = tuple(int(x.record.open_time) for x in c.visible)
+            if any(vt > t for vt in market_times) or max(market_times) != t:
                 raise RuntimeError("MINPIPE_FUTURE_MARKET_ENTERED_OBSERVATION")
+            # Preserve R1 Student-visible OHLCV surface exactly; no audit flag or
+            # timestamp is injected as a new market feature.
+            market_window = student_visible_market_tuple(c.visible)
             obs = CausalLaneObservationR0(
                 lane_id=c.lane_id,
                 decision_time_ms=t,
                 market_window=market_window,
+                market_times_ms=market_times,
                 account_state_t=deepcopy(accounts[c.lane_id]),
             )
             observations.append(obs)
@@ -211,8 +218,7 @@ def time_major_batch_scan_r0(
         if audit_hook is not None:
             audit_hook("ACTIONS_FROZEN", t, tuple(c.lane_id for c in active))
 
-        # This loop is intentionally after the whole batch has been frozen.  The
-        # next-minute object is environment-private until this exact boundary.
+        # t+1 exists only on this environment-private side of ACTIONS_FROZEN.
         pending: list[tuple[_CandidateR0, CausalLaneObservationR0, Any, Any]] = []
         for c, obs, action in zip(active, observations, frozen_actions):
             if audit_hook is not None:
@@ -234,7 +240,7 @@ def time_major_batch_scan_r0(
             yield MinpipeTransitionEventR0(
                 lane_id=c.lane_id,
                 decision_time_ms=t,
-                observation_max_time_ms=max(int(x[0]) for x in obs.market_window),
+                observation_max_time_ms=max(obs.market_times_ms),
                 transition_time_ms=int(c.nxt.record.open_time),
                 current_halt_imputed=bool(c.current.halt_imputed),
                 next_halt_imputed=bool(c.nxt.halt_imputed),
@@ -256,7 +262,7 @@ def make_frozen_physics_scalar_transition_r0(
     """Bridge the batch scheduler to existing scalar Account Physics authority.
 
     The market execution factory and ``step_account`` are called only inside the
-    post-action environment boundary.  This prevents next-minute execution input
+    post-action environment boundary. This prevents next-minute execution input
     from being constructed before Action[t] is frozen.
     """
     if step_account_fn is None:
