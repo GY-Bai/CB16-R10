@@ -1,0 +1,55 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATOR_R2_REPAIR_SPEC_V1",
+  "status": "FROZEN_BEFORE_R2_REPLAY",
+  "classification": "EXECUTION_ONLY_EXACT_CAMPAIGN_REPRODUCTION_REPAIR__SCIENTIFIC_PREREG_UNCHANGED",
+  "parent_repair_spec": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATOR_R1_REPAIR_SPEC_V1.json",
+  "r1_blocked_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R1_ATTEMPT_BLOCKED_RECEIPT_V1.json",
+  "frozen_science_spec": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_SPEC_V1.json",
+  "frozen_cohort": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_COHORT_V1.json",
+  "scientific_gates_unchanged": true,
+  "G1_G2_G3_unchanged": true,
+  "cohort_unchanged": true,
+  "model_hashes_unchanged": true,
+  "teacher_protocols_unchanged": true,
+  "repair": {
+    "universe_A_exact_campaign_reproduction": {
+      "raw_window": "reconstruct with the exact original Campaign required_rows formula and exact original Campaign first/last funding bounds",
+      "sensory_frames": 60,
+      "sensory_batch_size": 8,
+      "sensory_batch_geometry": [8, 8, 8, 8, 8, 8, 8, 4],
+      "physics_parents": 60,
+      "parent_ids_and_scenarios": "exact original Campaign definitions",
+      "required_train_prepared_evidence_hash": "a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492",
+      "required_consumed_validation_prepared_evidence_hash": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131"
+    },
+    "universe_B_new_validation": {
+      "old_train_support_source": "reuse the exact 48 TRAIN ParentContext objects and branch samples produced by Universe A; do not rebuild prior support under a new sensory/funding universe",
+      "new_validation_source": "build the exact frozen 48 new validation rows independently from their own raw/funding/sensory execution window",
+      "new_validation_sensory_batch_geometry": [8, 8, 8, 8, 8, 8],
+      "consumed_campaign_validation_rows_present": false,
+      "rebound_train_outputs_are_authority": false,
+      "required_new_validation_admitted_groups": 48,
+      "support_thresholds_relaxed": false
+    }
+  },
+  "execution_order": [
+    "reproduce original Campaign 60-row execution geometry exactly",
+    "assert both original TRAIN and consumed VALIDATION prepared evidence hashes exactly",
+    "derive G2 climatology only from exact reproduced original TRAIN targets",
+    "combine exact original TRAIN support objects with independently built exact frozen new validation objects",
+    "compile new validation PREQUENTIAL Teacher evidence and require 48 of 48 admitted",
+    "load frozen Champion and Challenger only after authority canaries pass",
+    "run unchanged preregistered G1 G2 G3"
+  ],
+  "forbidden": [
+    "change any science threshold or test definition",
+    "change or resample the 48-group cohort",
+    "relax Teacher support",
+    "refit or tune either model",
+    "reuse consumed validation as new evidence",
+    "touch FINAL holdout",
+    "download fresh market data",
+    "promote a model",
+    "issue a market-information verdict"
+  ]
+}
