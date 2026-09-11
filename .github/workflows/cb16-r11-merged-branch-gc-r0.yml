@@ -1,0 +1,79 @@
+name: CB16 R11 Merged Branch GC R0
+
+on:
+  push:
+    branches:
+      - ai/r11-full-minute-historical-replay-r0
+    paths:
+      - .github/workflows/cb16-r11-merged-branch-gc-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  merged-branch-gc:
+    name: Delete branches already merged into R11 full-minute base
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout full-minute authority base
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Delete only ancestry-merged branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-full-minute-historical-replay-r0"
+
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+          BASE='origin/ai/r11-full-minute-historical-replay-r0'
+          git rev-parse --verify "$BASE"
+
+          PRESERVE_REGEX='^(main|ci-results|ai/v63-activation-r0|ai/r11-full-minute-historical-replay-r0)$'
+
+          mapfile -t MERGED < <(
+            git for-each-ref \
+              --format='%(refname:strip=3)' \
+              --merged "$BASE" \
+              refs/remotes/origin/ \
+            | sort -u
+          )
+
+          {
+            echo '# CB16 R11 merged-branch GC receipt'
+            echo
+            echo "Base: $BASE"
+            echo
+            echo '## Preserved'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          deleted=0
+          skipped=0
+          for branch in "${MERGED[@]}"; do
+            [[ -n "$branch" ]] || continue
+            [[ "$branch" != 'HEAD' ]] || continue
+            if [[ "$branch" =~ $PRESERVE_REGEX ]]; then
+              echo "- $branch" >> "$GITHUB_STEP_SUMMARY"
+              skipped=$((skipped + 1))
+              continue
+            fi
+
+            # Safety invariant: branch tip itself must be an ancestor of the full-minute base.
+            git merge-base --is-ancestor "origin/$branch" "$BASE"
+            echo "Deleting merged branch: $branch"
+            git push origin --delete "$branch"
+            deleted=$((deleted + 1))
+          done
+
+          {
+            echo
+            echo '## Result'
+            echo "- deleted_merged_branches: $deleted"
+            echo "- preserved_merged_branches: $skipped"
+            echo '- unmerged_branches: untouched'
+            echo '- deletion_rule: exact Git ancestry only'
+          } >> "$GITHUB_STEP_SUMMARY"
