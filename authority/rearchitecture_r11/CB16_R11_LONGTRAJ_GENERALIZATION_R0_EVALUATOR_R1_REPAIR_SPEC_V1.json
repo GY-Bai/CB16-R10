@@ -1,0 +1,59 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATOR_R1_REPAIR_SPEC_V1",
+  "status": "FROZEN_BEFORE_R1_REPLAY",
+  "classification": "EXECUTION_ONLY_AUTHORITY_BINDING_REPAIR__SCIENTIFIC_PREREG_UNCHANGED",
+  "blocked_attempt_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_ATTEMPT1_BLOCKED_RECEIPT_V1.json",
+  "frozen_science_spec": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_SPEC_V1.json",
+  "frozen_cohort": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_COHORT_V1.json",
+  "scientific_gates_unchanged": true,
+  "G1_G2_G3_unchanged": true,
+  "cohort_unchanged": true,
+  "model_hashes_unchanged": true,
+  "teacher_protocols_unchanged": true,
+  "repair": {
+    "universe_A_campaign_authority_reproduction": {
+      "purpose": "Reproduce the exact original Campaign Teacher authority and reconstruct the frozen prior TRAIN targets used only for G2 climatology.",
+      "groups": "exact original Campaign 60 groups: first 48 TRAIN plus consumed 12 VALIDATION",
+      "parent_id_rule": "ADMR0:<symbol>:<decision_time_ms> for all 60",
+      "scenario": "FLAT_MINUTE_R2_ADMISSION",
+      "required_decision_times_sha256": "dba104c55dd6c9987f9ff0231a075363c69ea18338acd24467af3726e117217c",
+      "required_prepared_train_evidence_sha256": "a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492",
+      "required_prepared_validation_evidence_sha256": "0ac7a0490e0df3c97150c14e84ca378fe3cc33d767ec26a907aad3a781297131",
+      "consumed_validation_scored_in_generalization": false,
+      "consumed_validation_reused_as_new_evidence": false
+    },
+    "universe_B_new_validation_compilation": {
+      "purpose": "Compile Teacher evidence for the exact frozen 48 new generalization groups using the original 48 TRAIN support groups while keeping validation targets model-blind.",
+      "groups": "original Campaign 48 TRAIN support groups plus exact frozen 48 new VALIDATION groups",
+      "old_train_parent_id_rule": "ADMR0:<symbol>:<decision_time_ms>",
+      "new_validation_parent_id_rule": "GENR0:<symbol>:<decision_time_ms>",
+      "new_validation_scenario": "GENERALIZATION_R0_UNCONSUMED",
+      "required_new_validation_groups": 48,
+      "required_new_validation_admitted_groups": 48,
+      "required_new_validation_rejected_groups": 0,
+      "blocked_crossfit_train_outputs_in_universe_B_are_authority": false,
+      "blocked_crossfit_train_outputs_in_universe_B_may_replace_frozen_campaign_train_targets": false,
+      "support_thresholds_relaxed": false
+    }
+  },
+  "execution_order": [
+    "verify frozen spec cohort and selection receipt",
+    "reproduce Universe A and assert exact Campaign evidence hashes",
+    "derive prior TRAIN climatology only from Universe A frozen TRAIN targets",
+    "compile Universe B and require 48 of 48 new validation support before any model load",
+    "prepare only admitted new VALIDATION evidence from Universe B",
+    "load Champion and Challenger only after all Teacher authority canaries pass",
+    "execute preregistered G1 G2 G3 without changes",
+    "emit durable result"
+  ],
+  "forbidden": [
+    "post-result threshold changes",
+    "cohort replacement or resampling",
+    "support relaxation",
+    "model refit or tuning on generalization rows",
+    "FINAL holdout access",
+    "fresh market-data download",
+    "canonical promotion",
+    "scientific market verdict"
+  ]
+}
