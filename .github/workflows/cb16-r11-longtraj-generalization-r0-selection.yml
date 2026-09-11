@@ -1,0 +1,196 @@
+name: CB16 R11 Long-Trajectory Generalization R0 Selection
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-generalization-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1.json
+      - scripts/r11_longtraj_generalization_r0_select.py
+      - .github/workflows/cb16-r11-longtraj-generalization-r0-selection.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-longtraj-generalization-r0-selection
+  cancel-in-progress: true
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  OUT_DIR: artifacts/r11_longtraj_generalization_r0_selection
+  GENERALIZATION_BASE: 69226b208b476ea0c9d687a24aa752a524122e98
+  SELECTION_SPEC_BLOB: 92807bd6cb2e04104748d61dafa14dcc63d70d7e
+  CAMPAIGN_ADJUDICATION_BLOB: a0f4672d4e737eb23ca775038b3854792dbaf841
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  blind-selection-r0:
+    name: Select unconsumed pre-FINAL generalization cohort
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen lineage and selection-only authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-generalization-r0"
+          git merge-base --is-ancestor "$GENERALIZATION_BASE" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1.json)" = "$SELECTION_SPEC_BLOB"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_ADJUDICATION_V1.json)" = "$CAMPAIGN_ADJUDICATION_BLOB"
+          python3 - <<'PY'
+          import json
+          s=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1.json'))
+          assert s['schema']=='CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1',s
+          assert s['status']=='FROZEN_BEFORE_SELECTION_EXECUTION',s
+          assert s['classification']=='SELECTION_ONLY__NO_MODEL_LOAD__NO_TEACHER_LOSS__NO_SCIENTIFIC_VERDICT',s
+          assert s['branch_base']['base_sha']=='69226b208b476ea0c9d687a24aa752a524122e98',s
+          assert s['frozen_models']['selection_stage_may_load_models'] is False,s
+          assert s['frozen_models']['selection_stage_may_score_models'] is False,s
+          assert s['selection']['symbol']=='BTCUSDT',s
+          assert s['selection']['dependence_groups']==48,s
+          assert s['selection']['parent_spacing_hours_minimum']==73,s
+          assert s['selection']['horizon_minutes']==4320,s
+          assert s['selection']['sensory_history_minutes']==3900,s
+          assert s['selection']['contiguous_observed_1m_only'] is True,s
+          assert s['selection']['halt_imputation'] is False,s
+          assert s['selection']['fresh_market_data_download'] is False,s
+          assert s['selection']['resampling_after_model_scoring'] is False,s
+          assert s['selection']['replacement_after_model_scoring'] is False,s
+          assert s['selection']['manual_date_choice'] is False,s
+          assert s['final_holdout']['start_iso']=='2025-09-01T00:00:00Z',s
+          assert s['final_holdout']['must_remain_closed'] is True,s
+          assert s['scientific_verdict'] is None,s
+          a=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_TRAINING_CAMPAIGN_R0_ADJUDICATION_V1.json'))
+          assert a['status']=='ADJUDICATED',a
+          assert a['canonical_state']['shadow_challenger_is_canonical_authority'] is False,a
+          assert a['canonical_state']['canonical_generation_advanced'] is False,a
+          assert a['firewalls']['second_generation_authorized'] is False,a
+          assert a['next_scientifically_legal_step']['gate']=='SEPARATE_UNCONSUMED_PREFINAL_GENERALIZATION_PREREGISTRATION_REQUIRED',a
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_generalization_r0_selection_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_generalization_r0_selection_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f:
+              f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile model-blind selector
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile scripts/r11_longtraj_generalization_r0_select.py
+
+      - name: Run model-blind cohort selection
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_generalization_r0_select.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --symbol BTCUSDT \
+            --output "$OUT_DIR/SELECTION_RESULT.json"
+
+      - name: Enforce selection result contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('artifacts/r11_longtraj_generalization_r0_selection/SELECTION_RESULT.json')
+          x=json.load(open(p))
+          s=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1.json'))
+          assert x['schema']=='CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_RESULT_V1',x
+          assert x['status']=='PASS',x
+          assert x['classification']=='GENERALIZATION_COHORT_SELECTED_MODEL_BLIND__NOT_YET_SCORED',x
+          assert x['spec_sha256']==hashlib.sha256(pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_SPEC_V1.json').read_bytes()).hexdigest(),x
+          assert x['symbol']=='BTCUSDT',x
+          assert x['dependence_groups']==48,x
+          ts=[int(v) for v in x['decision_times_ms']]
+          ends=[int(v) for v in x['future_end_times_ms']]
+          assert len(ts)==48 and len(ends)==48,x
+          assert ts==sorted(ts),ts
+          spacing=int(s['selection']['parent_spacing_hours_minimum'])*3600*1000
+          assert all(b-a>=spacing for a,b in zip(ts,ts[1:])),ts
+          assert ts[0]>=int(s['prior_consumption_boundary']['minimum_new_decision_time_ms']),x
+          assert x['first_decision_time_ms']==ts[0] and x['last_decision_time_ms']==ts[-1],x
+          assert all(v<int(s['final_holdout']['start_ms']) for v in ends),x
+          assert x['zero_overlap_with_prior_consumed_tail'] is True,x
+          assert x['first_new_sensory_start_ms']>x['prior_future_end_ms'],x
+          assert x['model_loaded'] is False,x
+          assert x['model_scored'] is False,x
+          assert x['teacher_targets_compiled'] is False,x
+          assert x['final_holdout_touched'] is False,x
+          assert x['fresh_market_data_downloaded'] is False,x
+          assert x['scientific_verdict'] is None,x
+          assert x['next_gate']=='FREEZE_EXACT_GENERALIZATION_COHORT_THEN_PREREGISTER_CHAMPION_VS_CHALLENGER_EVALUATION_WITH_NEGATIVE_AND_SHUFFLE_CONTROLS',x
+          receipt={
+            'schema':'CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_FREEZE_CANDIDATE_V1',
+            'status':'PASS',
+            'classification':'MODEL_BLIND_UNCONSUMED_PREFINAL_COHORT_SELECTED__NO_SCORING__NO_SCIENTIFIC_VERDICT',
+            'qualified_code_sha':__import__('os').environ['GITHUB_SHA'],
+            'spec_sha256':x['spec_sha256'],
+            'selection_result_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+            'decision_times_canonical_sha256':x['decision_times_canonical_sha256'],
+            'future_end_times_canonical_sha256':x['future_end_times_canonical_sha256'],
+            'all_prefinal_segment_lineage_sha256':x['all_prefinal_segment_lineage_sha256'],
+            'dependence_groups':48,
+            'first_decision_time_ms':ts[0],
+            'last_decision_time_ms':ts[-1],
+            'prior_future_end_ms':x['prior_future_end_ms'],
+            'first_new_sensory_start_ms':x['first_new_sensory_start_ms'],
+            'zero_overlap_with_prior_consumed_tail':True,
+            'model_loaded':False,
+            'model_scored':False,
+            'teacher_targets_compiled':False,
+            'final_holdout_touched':False,
+            'fresh_market_data_downloaded':False,
+            'scientific_verdict':None,
+            'next_gate':'DURABLE_SELECTION_FREEZE_THEN_EVALUATION_PREREGISTRATION'
+          }
+          q=p.parent/'SELECTION_FREEZE_CANDIDATE_RECEIPT.json'
+          q.write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload selection evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-generalization-r0-selection-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_generalization_r0_selection_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_generalization_r0_selection_python.json
+            artifacts/r11_longtraj_generalization_r0_selection/
+          if-no-files-found: warn
+          retention-days: 30
