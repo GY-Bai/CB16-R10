@@ -1,0 +1,18 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "experiment_id": "E5_MINUTE_SENSORY_CAUSALITY",
+  "branch": "ai/r11-longtraj-e5-minute-sensory-r0",
+  "question": "Can the frozen sensory surface be driven at every minute without leaking the unfinished current hour or any future minute?",
+  "micro_cadence_minutes": 1,
+  "micro_rule": "Micro60 ends at current decision minute t",
+  "slow_lane_rule": "Macro32 and Medium64 use complete hours only and latch within current hour",
+  "slow_lane_current_incomplete_hour_visible": false,
+  "future_suffix_mutation_must_not_change_current_frame": true,
+  "future_market_in_frame": false,
+  "halt_flag_student_feature": false,
+  "real_data_canary": "bounded BTC pre-FINAL only",
+  "final_holdout_payload_opened": false,
+  "fresh_market_download": false,
+  "market_learning_claim": "NONE__SENSORY_CAUSALITY_ONLY"
+}
