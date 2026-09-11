@@ -79,7 +79,7 @@ jobs:
           assert x['status']=='READY',x
           assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
           assert x['python']['network_install_attempted'] is False,x
-          with open(sys.argv[2],'a') as f: f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\\n')
+          with open(sys.argv[2],'a') as f: f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
           PY
 
       - name: Compile adaptive runtime implementation
@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q  tests/test_r11_adaptive_runtime_policy.py
+          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q tests/test_r11_adaptive_runtime_policy.py
 
       - name: Run real Frozen Physics adaptive qualification
         shell: bash
@@ -125,7 +125,7 @@ jobs:
           assert x['policy_checks']['backlog_three_queued']==['Q_C'],x
           assert x['policy_checks']['scheduler_infers_independence'] is False,x
           assert x['single_ready_real_workload']['exact_parity_with_serial'] is True,x
-          assert x['two_ready_real_workload']['all_exact_parity_with_serial'] is True x
+          assert x['two_ready_real_workload']['all_exact_parity_with_serial'] is True,x
           assert x['two_ready_real_workload']['total_worker_budget']==8,x
           assert x['two_ready_real_workload']['concurrent_experiments']==2,x
           assert x['final_holdout_touched'] is False,x
