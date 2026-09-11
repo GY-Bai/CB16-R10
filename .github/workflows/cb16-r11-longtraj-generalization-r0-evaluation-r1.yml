@@ -1,0 +1,178 @@
+name: CB16 R11 Long-Trajectory Generalization R0 Evaluation R1
+
+on:
+  push:
+    branches: [ai/r11-longtraj-generalization-r0]
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATOR_R1_REPAIR_SPEC_V1.json
+      - scripts/r11_longtraj_generalization_r0_evaluate_r1.py
+      - .github/workflows/cb16-r11-longtraj-generalization-r0-evaluation-r1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: cb16-r11-longtraj-generalization-r0-evaluation-r1
+  cancel-in-progress: true
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_G0_ROOT: /cb16/g0
+  OUT_DIR: artifacts/r11_longtraj_generalization_r0_evaluation_r1
+  EVAL_PREREG_BASE: fc331ce7af2c12680a887d604d30ef15e88ea36e
+  EVAL_SPEC_BLOB: 54f12b200c983bcb11880f2954155dcca918d9ab
+  COHORT_BLOB: ed94b6eb881408ff3abf0f7514e009e74aed69f0
+  SELECTION_FREEZE_BLOB: 77ec6a52e7e71495cce8a21602b670ca611a9897
+  BASE_EVALUATOR_BLOB: bd2009dc63926dc2b063dd0f652c1e1b72c24f60
+  R1_REPAIR_SPEC_BLOB: d81d29bf98e284b5ec75f2b9159bb3cdf71ee606
+  R1_EVALUATOR_BLOB: 874e5a6922950cb7391e58c968208e0956255f5d
+  CAMPAIGN_RUN_ID: "34630256383"
+  CAMPAIGN_ARTIFACT_NAME: cb16-r11-longtraj-training-campaign-r0-1
+  EXPECTED_CHALLENGER_SHA256: 81ea58ce1cbc90fdf912d106ec6e99186be2c3b7a28ee3497cca12613a97f246
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  generalization-evaluation-r1:
+    name: Two-universe authority-binding replay on frozen cohort
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify frozen science and R1 execution repair pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-generalization-r0"
+          git merge-base --is-ancestor "$EVAL_PREREG_BASE" HEAD
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_SPEC_V1.json)" = "$EVAL_SPEC_BLOB"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_COHORT_V1.json)" = "$COHORT_BLOB"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_SELECTION_FREEZE_RECEIPT_V1.json)" = "$SELECTION_FREEZE_BLOB"
+          test "$(git rev-parse HEAD:scripts/r11_longtraj_generalization_r0_evaluate.py)" = "$BASE_EVALUATOR_BLOB"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATOR_R1_REPAIR_SPEC_V1.json)" = "$R1_REPAIR_SPEC_BLOB"
+          test "$(git rev-parse HEAD:scripts/r11_longtraj_generalization_r0_evaluate_r1.py)" = "$R1_EVALUATOR_BLOB"
+          python3 - <<'PY'
+          import json
+          s=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_SPEC_V1.json'))
+          r=json.load(open('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATOR_R1_REPAIR_SPEC_V1.json'))
+          assert s['status']=='FROZEN_BEFORE_FIRST_EVALUATION_EXECUTION',s
+          assert s['selection_authority']['cohort_dependence_groups']==48,s
+          assert s['frozen_models']['training_or_tuning_on_generalization_cohort'] is False,s
+          assert s['teacher_and_support']['support_thresholds_may_be_relaxed'] is False,s
+          assert s['status_driving_tests']['G1_frozen_challenger_vs_frozen_champion']['bootstrap']['replicates']==10000,s
+          assert s['status_driving_tests']['G2_prior_train_no_state_climatology_negative_control']['bootstrap']['replicates']==10000,s
+          assert s['status_driving_tests']['G3_correspondence_shuffle_control']['permutation_family'].startswith('ALL_47_NONIDENTITY'),s
+          assert r['status']=='FROZEN_BEFORE_R1_REPLAY',r
+          assert r['classification']=='EXECUTION_ONLY_AUTHORITY_BINDING_REPAIR__SCIENTIFIC_PREREG_UNCHANGED',r
+          assert r['scientific_gates_unchanged'] is True and r['G1_G2_G3_unchanged'] is True,r
+          assert r['cohort_unchanged'] is True and r['model_hashes_unchanged'] is True and r['teacher_protocols_unchanged'] is True,r
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_generalization_r0_eval_r1_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_generalization_r0_eval_r1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); assert x['status']=='READY',x; assert x['python']['network_install_attempted'] is False,x
+          with open(sys.argv[2],'a') as f: f.write('CB16_PYTHON='+x['python']['venv']+'/bin/python\n')
+          PY
+
+      - name: Compile R1 executor and run known-answer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile scripts/r11_longtraj_generalization_r0_evaluate.py scripts/r11_longtraj_generalization_r0_evaluate_r1.py tests/test_longtraj_generalization_r0_evaluation.py
+          PYTHONPATH=. "$CB16_PYTHON" -m pytest -q tests/test_minute_physics_binding_r2.py tests/test_longtraj_training_admission_r0_exact_sensory.py tests/test_longtraj_generalization_r0_evaluation.py
+
+      - name: Download frozen Campaign-R0 shadow Challenger artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.CAMPAIGN_ARTIFACT_NAME }}
+          path: ${{ runner.temp }}/campaign_r0_artifact
+          github-token: ${{ github.token }}
+          repository: GY-Bai/CB16-R10
+          run-id: ${{ env.CAMPAIGN_RUN_ID }}
+
+      - name: Verify frozen shadow Challenger checkpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          CKPT="$(find "$RUNNER_TEMP/campaign_r0_artifact" -type f -name CAMPAIGN_R0_SHADOW_CHALLENGER.pt -print -quit)"
+          test -n "$CKPT"
+          test "$(sha256sum "$CKPT" | awk '{print $1}')" = "$EXPECTED_CHALLENGER_SHA256"
+          printf 'CB16_CHALLENGER_CHECKPOINT=%s\n' "$CKPT" >> "$GITHUB_ENV"
+
+      - name: Run R1 replay on exact frozen generalization cohort
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"; mkdir -p "$OUT_DIR"
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_generalization_r0_evaluate_r1.py \
+            --raw-root "$CB16_RAW_ROOT" --package-root "$CB16_PACKAGE_ROOT" --g0-root "$CB16_G0_ROOT" \
+            --challenger-checkpoint "$CB16_CHALLENGER_CHECKPOINT" --symbol BTCUSDT --workers 8 --device cuda \
+            --work-root "$OUT_DIR/work" --output "$OUT_DIR/GENERALIZATION_RESULT.json"
+
+      - name: Enforce unchanged science result contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,os,pathlib
+          d=pathlib.Path('artifacts/r11_longtraj_generalization_r0_evaluation_r1'); p=d/'GENERALIZATION_RESULT.json'; x=json.load(open(p))
+          assert x['schema']=='CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_RESULT_V1',x
+          assert x['status'] in {'PASS','SCIENTIFIC_FAIL'},x
+          assert x.get('executor_revision')=='R1_TWO_TEACHER_UNIVERSES',x
+          assert x['cohort']['dependence_groups']==48 and x['cohort']['cohort_resampled'] is False,x
+          assert x['firewalls']['final_holdout_touched'] is False and x['firewalls']['fresh_market_data_downloaded'] is False,x
+          assert x['firewalls']['canonical_promotion_authorized'] is False and x['firewalls']['canonical_generation_advance_authorized'] is False,x
+          assert x['firewalls']['new_market_information_verdict'] is False and x['firewalls']['scientific_market_verdict'] is None,x
+          if x['classification']=='SCIENTIFIC_FAIL__FROZEN_GENERALIZATION_COHORT_TEACHER_SUPPORT_NOT_QUALIFIED':
+              assert x['models_loaded'] is False and x['models_scored'] is False,x
+          else:
+              assert x['models']['champion_policy_hash']=='d0e8c01cc58a1e70936f94f58eeca794eae2e4f89036ec26ccb49ae5d5219886',x
+              assert x['models']['challenger_policy_hash']=='4c4bdc1b61da306777e02b9841b5aa4b9b04f4fb9d896ba089df10148f682297',x
+              assert x['models']['training_or_tuning_on_generalization_cohort'] is False,x
+              assert x['teacher']['prior_train_evidence_hash']=='a8f293ac0c01edb5a9e39b34c8d0d1b1f62f8b0041d9606eefe735e77992c492',x
+              assert x['teacher']['validation_summary']['admitted_dependence_groups']==48 and x['teacher']['validation_summary']['rejected']==0,x
+              assert x['teacher']['consumed_validation_scored_in_generalization'] is False,x
+              assert x['teacher']['rebound_train_outputs_used_for_G2'] is False,x
+              assert len(x['G3']['nonidentity_cyclic_shift_deltas'])==47,x
+          receipt={'schema':'CB16_R11_LONGTRAJ_GENERALIZATION_R0_EVALUATION_R1_FREEZE_CANDIDATE_V1','qualified_code_sha':os.environ['GITHUB_SHA'],'result_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'status':x['status'],'classification':x['classification'],'G1':x.get('G1'),'G2':x.get('G2'),'G3':x.get('G3'),'canonical_promotion_authorized':False,'scientific_market_verdict':None,'final_holdout_touched':False,'fresh_market_data_downloaded':False,'next_gate':x['next_gate']}
+          (d/'GENERALIZATION_R1_FREEZE_CANDIDATE_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload R1 generalization evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-generalization-r0-evaluation-r1-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_generalization_r0_eval_r1_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_generalization_r0_eval_r1_python.json
+            artifacts/r11_longtraj_generalization_r0_evaluation_r1/
+          if-no-files-found: warn
+          retention-days: 30
