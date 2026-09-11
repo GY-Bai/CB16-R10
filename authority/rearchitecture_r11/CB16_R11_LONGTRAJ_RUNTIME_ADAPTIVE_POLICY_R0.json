@@ -1,6 +1,6 @@
 {
   "schema": "CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_POLICY_R0_V1",
-  "status": "FROZEN_POLICY_SELECTED__QUALIFICATION_REQUIRED",
+  "status": "FROZEN_AND_QUALIFIED",
   "classification": "RUNTIME_SCHEDULING_ONLY__NO_SCIENTIFIC_AUTHORITY",
   "qualified_infra_base_sha": "8e70212230a001751b720332fc1a25fef5436211",
   "performance_overlay_parent_sha": "ae67e14a24c395c94b70209359b321e6dcc14aaa",
@@ -58,6 +58,22 @@
       "three_experiments_aggregate_branches_per_second": 53.47793491253312,
       "three_experiments_speedup_vs_single": 0.9062797505167765,
       "all_exact_parity_with_serial": true
+    },
+    "adaptive_real_workload_qualification": {
+      "workflow_run_id": 34617281638,
+      "head_sha": "b2756050a594dad91e3f254c71ff931a06218ebe",
+      "artifact_id": 10271422786,
+      "artifact_zip_sha256": "3122cd5b90f452e417502d5738987fa416a1d2a6fda9aa7445088a4a4236accd",
+      "result_status": "PASS",
+      "result_digest": "a2ab6388a15f57d0096d4ac4ca19a30d522d5fd0bc2214c7c610bd46741d477d",
+      "single_8_workers_branches_per_second": 54.71835836063806,
+      "single_8_workers_wall_seconds": 7.894973696995294,
+      "two_4_plus_4_aggregate_branches_per_second": 53.97811478590648,
+      "two_4_plus_4_wall_seconds": 16.006487136997748,
+      "all_exact_parity_with_serial": true,
+      "final_holdout_touched": false,
+      "fresh_market_data_downloaded": false,
+      "new_scientific_verdict": false
     }
   },
   "forbidden": [
@@ -71,6 +87,7 @@
     "OPEN_FINAL_HOLDOUT",
     "DOWNLOAD_FRESH_MARKET_DATA"
   ],
-  "next_gate": "REAL_WORKLOAD_ADAPTIVE_POLICY_QUALIFICATION",
+  "freeze_receipt": "authority/rearchitecture_r11/CB16_R11_LONGTRAJ_RUNTIME_ADAPTIVE_FREEZE_R0_RECEIPT_V1.json",
+  "next_gate": "E6_FEEDBACK_BINDING_QUALIFICATION",
   "scientific_verdict": null
 }
