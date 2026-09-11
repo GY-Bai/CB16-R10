@@ -1,0 +1,23 @@
+{
+  "schema": "CB16_R11_LONGTRAJ_BRANCH_EXPERIMENT_V1",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "experiment_id": "E3_TENASSET_BALANCED",
+  "branch": "ai/r11-longtraj-e3-tenasset-balanced-r0",
+  "common_science_base": "dc2b55728877888d4b872f76e0cb2770be9c0921",
+  "mode": "TEN_BALANCED",
+  "question": "Can ten chronological asset trajectories be exposed to learning with equalized optimizer/evidence scheduling without reordering, clipping, or resetting any environment trajectory?",
+  "symbols": ["BTCUSDT","ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","LINKUSDT","LTCUSDT","SOLUSDT"],
+  "trajectory_order": "chronological_within_each_asset",
+  "optimizer_asset_weighting": "equal round-robin chunks after trajectory generation",
+  "balanced_chunk_minutes": 10080,
+  "environment_reordering": false,
+  "environment_account_reset": false,
+  "prelisting_fill": false,
+  "internal_gap_account_reset": false,
+  "halt_model": "prefix-last-close, OHLC equal, zero volume/trades, reopening untouched",
+  "student_halt_flag_feature": false,
+  "final_holdout_payload_opened": false,
+  "fresh_market_download": false,
+  "status_driving_outputs": ["per_asset_expanded_minutes", "equalized_minutes_per_symbol", "round_robin_schedule_hash", "per_asset_gap_audit"],
+  "market_learning_claim": "NONE__OPTIMIZER_SCHEDULING_AUDIT_ONLY"
+}
