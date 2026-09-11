@@ -1,0 +1,313 @@
+name: CB16 R11 Long-Trajectory Infra Closure R0
+
+on:
+  push:
+    branches:
+      - ai/r11-longtraj-infra-closure-r0
+    paths:
+      - authority/rearchitecture_r11/CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2.json
+      - cb16_local_opt/longtraj_infra_closure_r0.py
+      - scripts/r11_longtraj_minute_flat_canary_v2.py
+      - scripts/r11_longtraj_canonical_mintrain_v2.py
+      - scripts/r11_longtraj_stress_fixture_v2.py
+      - scripts/r11_longtraj_infra_stress_r0.py
+      - scripts/r11_longtraj_infra_closure_r0.py
+      - tests/test_longtraj_infra_closure_r0.py
+      - tests/test_longtraj_minpipe_r0.py
+      - tests/test_full_minute_long_trajectory_r1.py
+      - .github/workflows/cb16-r11-longtraj-infra-closure-r0.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_PACKAGE_ROOT: /cb16/package
+  CB16_G0_ROOT: /cb16/g0
+  OUT_DIR: artifacts/r11_longtraj_infra_closure_r0
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  infra-closure-r0:
+    name: G1/G2 closure + exact 300s hardware stress
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify branch and frozen V2 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "ai/r11-longtraj-infra-closure-r0"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)" = "3c401a0a350984381912f7860181e3e96eb8d7cf"
+          python3 - <<'PY'
+          import json
+          p='authority/rearchitecture_r11/CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2.json'
+          x=json.load(open(p))
+          assert x['schema']=='CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2',x
+          assert x['status']=='FROZEN_BEFORE_FIRST_V2_QUALIFICATION',x
+          assert x['parent_sha']=='e7c1048478b8ab5b047424194f116d701f9a28f4',x
+          assert x['classification']=='INFRA_EXECUTION_QUALIFICATION_ONLY__NO_SCIENTIFIC_AUTHORITY',x
+          assert x['g1_minimum_training']['minute_feedback_binding']['status']=='EXPLICITLY_NOT_QUALIFIED_BY_INFRA_CLOSURE',x
+          assert x['g1_minimum_training']['minute_feedback_binding']['next_owner']=='E6_FEEDBACK_BINDING_QUALIFICATION',x
+          assert x['stress_gate']['duration_seconds']==300,x
+          assert 'TREAT_BAR_COUNT_AS_MINUTES_WITHOUT_REQUALIFICATION' in x['forbidden'],x
+          PY
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cb16_r11_longtraj_infra_closure_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cb16_r11_longtraj_infra_closure_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" "$GITHUB_ENV" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['status']=='READY',x
+          assert x['mode']=='VERIFIED_CANONICAL_R104_VENV_REUSE',x
+          assert x['python']['network_install_attempted'] is False,x
+          py=x['python']['venv'] + '/bin/python'
+          with open(sys.argv[2],'a') as f: f.write('CB16_PYTHON='+py+'\n')
+          print(py)
+          PY
+
+      - name: Compile and run inherited plus closure known-answer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CB16_PYTHON" -m py_compile \
+            cb16_local_opt/longtraj_infra_closure_r0.py \
+            scripts/r11_longtraj_minute_flat_canary_v2.py \
+            scripts/r11_longtraj_canonical_mintrain_v2.py \
+            scripts/r11_longtraj_stress_fixture_v2.py \
+            scripts/r11_longtraj_infra_stress_r0.py \
+            scripts/r11_longtraj_infra_closure_r0.py \
+            tests/test_longtraj_infra_closure_r0.py \
+            tests/test_longtraj_minpipe_r0.py \
+            tests/test_full_minute_long_trajectory_r1.py
+          "$CB16_PYTHON" -m pytest -q \
+            tests/test_longtraj_infra_closure_r0.py \
+            tests/test_longtraj_minpipe_r0.py \
+            tests/test_full_minute_long_trajectory_r1.py
+
+      - name: Reset durable output directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR/state_gates"
+
+      - name: G1a real 1m sensory and recurrent flat-account canary
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_minute_flat_canary_v2.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --frames 64 \
+            --sensory-batch-size 8 \
+            --output "$OUT_DIR/MINUTE_FLAT_CANARY_V2.json"
+
+      - name: G1b canonical hourly-H72 R11 Teacher to Student minimum train
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_canonical_mintrain_v2.py \
+            --g0-root "$CB16_G0_ROOT" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --device cuda \
+            --symbol BTCUSDT \
+            --train-groups 48 \
+            --validation-groups 12 \
+            --sensory-batch-size 8 \
+            --teacher-workers 4 \
+            --teacher-block-targets 32 \
+            --output "$OUT_DIR/CANONICAL_MINTRAIN_V2.json"
+
+      - name: G2 exact restart and parallel experiment isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" - <<'PY'
+          import hashlib,json,pathlib,torch
+          from cb16_local_opt.longtraj_infra_closure_r0 import capture_rng_state_r0, restore_rng_state_r0
+          from cb16_local_opt.training_runtime_r11 import PreparedEvidenceR11
+          from scripts.r11_longtraj_infra_closure_r0 import checkpoint_exact_canary, parallel_isolation_canary
+
+          out=pathlib.Path('artifacts/r11_longtraj_infra_closure_r0')
+          state_dir=out/'state_gates'; state_dir.mkdir(parents=True,exist_ok=True)
+          g=torch.Generator(device='cpu'); g.manual_seed(731991)
+          rows=96
+          packed=torch.zeros((rows,107),dtype=torch.float32)
+          packed[:,:102]=torch.randn((rows,102),generator=g,dtype=torch.float32)*0.05
+          packed[:,102:105]=torch.tensor([0.2,0.5,0.3],dtype=torch.float32)
+          packed[:,105]=0.4
+          packed[:,106]=1.0
+          prepared=PreparedEvidenceR11(
+              parent_ids=tuple(f'STATE_GATE_PARENT_{i:03d}' for i in range(rows)),
+              dependence_group_ids=tuple(f'STATE_GATE_GROUP_{i//2:03d}' for i in range(rows)),
+              packed=packed,
+              evidence_hash=hashlib.sha256(packed.numpy().tobytes(order='C')).hexdigest(),
+              host_to_device_transfers=0,
+              h2d_strategy='STATE_GATE_DETERMINISTIC_FIXTURE',
+          )
+          prepared.validate()
+          spec=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2.json')
+          spec_sha=hashlib.sha256(spec.read_bytes()).hexdigest()
+          checkpoint=checkpoint_exact_canary(
+              prepared=prepared,device='cpu',out_dir=state_dir,
+              account_state={'schema':'STATE_GATE_ACCOUNT','cursor':17,'position':0.0},
+              cursor_ms=1700000000000,evidence_hash=prepared.evidence_hash,spec_sha=spec_sha,
+              archive_identity={'role':'STATE_GATE_ONLY','scientific_weight':'NONE'},
+          )
+          isolation=parallel_isolation_canary(prepared=prepared,out_dir=state_dir)
+          cuda_rng={'applicable':False,'exact':True,'device_count':0}
+          if torch.cuda.is_available():
+              torch.cuda.manual_seed_all(998771)
+              state=capture_rng_state_r0()
+              expected=[torch.rand(8,device=f'cuda:{i}').cpu() for i in range(torch.cuda.device_count())]
+              restore_rng_state_r0(state)
+              got=[torch.rand(8,device=f'cuda:{i}').cpu() for i in range(torch.cuda.device_count())]
+              exact=len(expected)==len(got) and all(torch.equal(a,b) for a,b in zip(expected,got))
+              assert exact,'STATE_GATE_CUDA_RNG_RESTORE_DRIFT'
+              cuda_rng={'applicable':True,'exact':True,'device_count':torch.cuda.device_count()}
+          gates={
+              'CHECKPOINT_STOP_RESTORE_CONTINUE_EXACT_PASS':checkpoint['model_exact'] and checkpoint['optimizer_exact'] and checkpoint['rng_exact'],
+              'MODEL_STATE_EXACT_PASS':checkpoint['model_exact'],
+              'OPTIMIZER_STATE_EXACT_PASS':checkpoint['optimizer_exact'],
+              'RNG_STATE_EXACT_PASS':checkpoint['rng_exact'] and cuda_rng['exact'],
+              'ACCOUNT_AND_CURSOR_EXACT_PASS':checkpoint['account_cursor_evidence_lineage_exact'],
+              'EVIDENCE_LINEAGE_EXACT_PASS':checkpoint['account_cursor_evidence_lineage_exact'],
+              'PARALLEL_A_EQUALS_SERIAL_A_PASS':isolation['parallel_a_equals_serial_a'],
+              'PARALLEL_B_EQUALS_SERIAL_B_PASS':isolation['parallel_b_equals_serial_b'],
+              'PEER_CONTINUES_WHEN_OTHER_EXPERIMENT_FAILS_PASS':isolation['peer_continues_exact'],
+              'MUTABLE_STATE_ISOLATION_PASS':isolation['mutable_state_isolated'],
+          }
+          assert all(gates.values()),gates
+          result={'schema':'CB16_R11_LONGTRAJ_STATE_GATES_V2','status':'PASS','prepared_fixture_scientific_weight':'NONE__STATE_MECHANICS_ONLY','checkpoint':checkpoint,'parallel_isolation':isolation,'cuda_rng':cuda_rng,'gates':gates,'scientific_verdict':None}
+          (out/'STATE_GATES_V2.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(result,indent=2,sort_keys=True))
+          PY
+
+      - name: Build throughput-only real-minute stress fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_stress_fixture_v2.py \
+            --raw-root "$CB16_RAW_ROOT" \
+            --symbol BTCUSDT \
+            --output "$OUT_DIR/STRESS_FIXTURE_V2.pt"
+
+      - name: Exact 300 second integrated hardware stress
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. "$CB16_PYTHON" scripts/r11_longtraj_infra_stress_r0.py \
+            --fixture "$OUT_DIR/STRESS_FIXTURE_V2.pt" \
+            --package-root "$CB16_PACKAGE_ROOT" \
+            --duration-seconds 300 \
+            --device cuda \
+            --stress-evidence-rows 512 \
+            --physics-steps-per-cycle 64 \
+            --output "$OUT_DIR/STRESS_300S_V2.json"
+
+      - name: Compile freeze-candidate receipt and enforce every gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          d=pathlib.Path('artifacts/r11_longtraj_infra_closure_r0')
+          minute=json.load(open(d/'MINUTE_FLAT_CANARY_V2.json'))
+          train=json.load(open(d/'CANONICAL_MINTRAIN_V2.json'))
+          state=json.load(open(d/'STATE_GATES_V2.json'))
+          stress=json.load(open(d/'STRESS_300S_V2.json'))
+          fixture=json.load(open(d/'STRESS_FIXTURE_V2.pt.json'))
+          specp=pathlib.Path('authority/rearchitecture_r11/CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2.json')
+          spec=json.load(open(specp))
+          assert minute['status']=='PASS' and minute['scientific_verdict'] is None,minute
+          assert minute['archive']['final_holdout_touched'] is False,minute
+          assert minute['account_path']['account_reset_count']==0,minute
+          assert minute['account_path']['open_position_steps']==0,minute
+          assert minute['minute_h72_open_position_path_failed_closed'] is True,minute
+          assert minute['teacher_feedback_bound'] is False,minute
+          assert train['status']=='PASS' and train['scientific_verdict'] is None,train
+          assert train['teacher']['train_summary']['admitted_dependence_groups']>=32,train
+          assert train['student']['before_policy_hash']!=train['student']['after_policy_hash'],train
+          assert train['student']['optimizer_steps']==1,train
+          assert train['minute_feedback_binding_claimed'] is False,train
+          assert train['final_holdout_touched'] is False and train['fresh_market_data_downloaded'] is False,train
+          assert state['status']=='PASS' and all(state['gates'].values()),state
+          assert stress['status']=='PASS' and stress['classification']=='INFRA_300S_HARDWARE_STRESS_INTEGRITY_PASS',stress
+          assert stress['duration']['measured_wall_seconds']>=300.0,stress
+          assert all(stress['integrity_gates'].values()),stress
+          assert stress['final_holdout_touched'] is False and stress['fresh_market_data_downloaded'] is False,stress
+          assert fixture['status']=='PASS' and fixture['final_holdout_touched'] is False,fixture
+          assert spec['schema']=='CB16_R11_LONGTRAJ_INFRA_CLOSURE_R0_SPEC_V2',spec
+          receipt={
+            'schema':'CB16_R11_LONGTRAJ_INFRA_FREEZE_CANDIDATE_V2',
+            'classification':'INFRA_V2_ALL_GATES_PASS__FREEZE_CANDIDATE',
+            'qualified_code_sha':os.environ['GITHUB_SHA'],
+            'parent_minpipe_sha':spec['parent_sha'],
+            'spec_sha256':hashlib.sha256(specp.read_bytes()).hexdigest(),
+            'gates':{
+              'inherited_known_answer_tests':'PASS',
+              'real_minute_flat_causal_path':'PASS',
+              'canonical_r11_teacher_student_mintrain':'PASS',
+              'exact_restart_and_parallel_isolation':'PASS',
+              'exact_300_second_integrated_hardware_stress':'PASS',
+            },
+            'minute_feedback_binding':{
+              'status':'NOT_QUALIFIED__E6_REQUIRED',
+              'bar_count_as_minute_forbidden':True,
+            },
+            'hardware_stress':{
+              'device':stress['device'],
+              'duration':stress['duration'],
+              'throughput':stress['throughput'],
+              'memory':stress['memory'],
+              'nvidia_smi':stress['nvidia_smi'],
+              'hardware_efficiency':stress['hardware_efficiency'],
+            },
+            'final_holdout_touched':False,
+            'fresh_market_data_downloaded':False,
+            'scientific_verdict':None,
+            'market_information_claim':'NONE__INFRA_ONLY',
+            'next_required_scientific_prerequisite':'E6_MINUTE_FEEDBACK_BINDING_QUALIFICATION',
+          }
+          p=d/'INFRA_FREEZE_CANDIDATE_RECEIPT_V2.json'
+          p.write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          (d/'INFRA_FREEZE_CANDIDATE_RECEIPT_V2.sha256').write_text(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n')
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+
+      - name: Upload all infra closure evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-longtraj-infra-closure-r0-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cb16_r11_longtraj_infra_closure_docker_preflight.json
+            ${{ runner.temp }}/cb16_r11_longtraj_infra_closure_python.json
+            artifacts/r11_longtraj_infra_closure_r0/
+          if-no-files-found: warn
+          retention-days: 30
