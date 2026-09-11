@@ -1,0 +1,25 @@
+{
+  "schema": "CB16_PROVISION_SUMMARY_V1",
+  "commit_sha": "9daa17f0a3a0265a2a3058fe92e74cac94ad002d",
+  "ci_profile": "smoke",
+  "environment_id": "smoke",
+  "environment_sha256": "89debcbd08ff15709bd624359f0a2d0ee8bb2c1f3269b72d5d2fa2e04f211498",
+  "runtime_identity": {
+    "python_implementation": "CPython",
+    "python_major_minor": [
+      3,
+      10
+    ],
+    "sys_platform": "linux",
+    "machine": "x86_64"
+  },
+  "status": "PROVISION_FAILED",
+  "python": {
+    "status": "NOT_RUN",
+    "cache_hit": null
+  },
+  "assets": [],
+  "failure_stage": "python",
+  "error_code": "PYTHON_REQUIREMENTS_INSTALL_FAILED_UV_UNKNOWN",
+  "error_type": "RuntimeError"
+}
