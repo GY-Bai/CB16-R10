@@ -1,0 +1,3488 @@
+{
+  "schema": "CB16_H517_DIAGNOSTIC_REVISION_SUPPORT_AND_POWER_V2",
+  "framing": "DIAGNOSTIC_ONLY__ALREADY_CONSUMED_R10_4_TRAIN_CACHE__NO_NEW_DATA__NO_FINAL__NO_NEW_VERDICT__NO_AUTHORITY_CHANGE",
+  "defects_fixed": [
+    "D1_self_match",
+    "D2_mask_units",
+    "D3_level_correction",
+    "D4_shared_seed",
+    "D4b_gate_reimplementation"
+  ],
+  "support": {
+    "support_receipt": {
+      "manifest_path": "/cb16/runtime/r104/REAL_EVIDENCE_CACHE_MANIFEST_R102.json",
+      "parents_file": "/cb16/runtime/r104/evidence_cache/PARENT_CONTEXTS_R102.jsonl.gz",
+      "branches_file": "/cb16/runtime/r104/evidence_cache/COUNTERFACTUAL_BRANCHES_H72_R102.jsonl.gz",
+      "train_parent_contexts": 9714,
+      "train_branch_samples": 87426,
+      "train_dependence_groups": 1619,
+      "legacy_validation_rows_used": false,
+      "r5_purge_support_used": false,
+      "raw_market_payload_used": false
+    },
+    "block_sizes": [
+      29,
+      29,
+      28,
+      28,
+      28,
+      28
+    ],
+    "n_forward_cells": 15,
+    "n_reverse_cells": 15,
+    "blocks_are_shared_across_cells": true,
+    "independent_units": 6,
+    "summary": {
+      "raw102": {
+        "forward_median_distance_ratio": 16066.780568370583,
+        "forward_median_coverage": 0.0,
+        "forward_mean_coverage": 0.0,
+        "same_distribution_control_median_coverage": 0.0,
+        "same_distribution_control_median_ratio": 21380.18473856464
+      },
+      "standardised102": {
+        "forward_median_distance_ratio": 36.64004180622658,
+        "forward_median_coverage": 0.0,
+        "forward_mean_coverage": 0.0,
+        "same_distribution_control_median_coverage": 0.0,
+        "same_distribution_control_median_ratio": 47.32233229586377
+      },
+      "pca8_standardised": {
+        "forward_median_distance_ratio": 8324212445.904459,
+        "forward_median_coverage": 0.0,
+        "forward_mean_coverage": 0.0,
+        "same_distribution_control_median_coverage": 0.0,
+        "same_distribution_control_median_ratio": 8190147164.892178
+      }
+    },
+    "decomposition_forward": {
+      "raw_relative_gain_mean": -0.06843039628459704,
+      "shape_relative_gain_mean": -0.06843039628459703,
+      "level_share_of_error_mean": 5.3889747735718735e-33,
+      "baseline_level_share_mean": 5.009136905529789e-33,
+      "shape_positive_cells": 1
+    },
+    "cells": [
+      {
+        "train_block": 0,
+        "eval_block": 1,
+        "gap": 1,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 157,
+            "fraction_reference_duplicates": 0.12170542635658915,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0013893667538674925,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 22.32265076337834,
+            "distance_ratio": 16066.780568370583,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 354,
+            "fraction_reference_duplicates": 0.2744186046511628,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.25499650263438695,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.343082516965504,
+            "distance_ratio": 36.64004180622658,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 565,
+            "fraction_reference_duplicates": 0.437984496124031,
+            "n_exact_duplicate_pairs": 429,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.0431536967085576e-09,
+            "p95_threshold": 1.108348805726448e-06,
+            "median_eval_distance": 8.68343298513262,
+            "distance_ratio": 8324212445.904459,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 94,
+            "fraction_reference_duplicates": 0.10804597701149425,
+            "n_exact_duplicate_pairs": 189,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0004732158961405465,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 19.71439239338814,
+            "distance_ratio": 41660.46101615511,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 291,
+            "fraction_reference_duplicates": 0.33448275862068966,
+            "n_exact_duplicate_pairs": 189,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.09193946098656598,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.052273866904637,
+            "distance_ratio": 87.58234799833359,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 429,
+            "fraction_reference_duplicates": 0.49310344827586206,
+            "n_exact_duplicate_pairs": 285,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.767326168279047e-10,
+            "p95_threshold": 7.29899755099069e-07,
+            "median_eval_distance": 8.301055339386577,
+            "distance_ratio": 12266373945.882326,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 215,
+        "n_eval_groups": 290,
+        "decomposition": {
+          "model": {
+            "total": 7.724609058335605e-05,
+            "level": 4.292071067418016e-37,
+            "shape": 7.724609058335605e-05,
+            "level_share": 5.556360244259162e-33
+          },
+          "constant_baseline": {
+            "total": 7.34308344251547e-05,
+            "level": 3.671732585732367e-37,
+            "shape": 7.34308344251547e-05,
+            "level_share": 5.000259924153289e-33
+          },
+          "raw_relative_gain": -0.05195714018598147,
+          "shape_relative_gain": -0.05195714018598147,
+          "level_relative_gain": -0.16894979882145078
+        },
+        "mse_total": 7.724609058335605e-05
+      },
+      {
+        "train_block": 0,
+        "eval_block": 2,
+        "gap": 2,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 157,
+            "fraction_reference_duplicates": 0.12170542635658915,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0013893667538674925,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 22.054863727516178,
+            "distance_ratio": 15874.040217331707,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 354,
+            "fraction_reference_duplicates": 0.2744186046511628,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.25499650263438695,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.301779343102003,
+            "distance_ratio": 36.4780663538702,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 565,
+            "fraction_reference_duplicates": 0.437984496124031,
+            "n_exact_duplicate_pairs": 429,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.0431536967085576e-09,
+            "p95_threshold": 1.108348805726448e-06,
+            "median_eval_distance": 8.320242275743677,
+            "distance_ratio": 7976046388.941893,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 77,
+            "fraction_reference_duplicates": 0.09367396593673966,
+            "n_exact_duplicate_pairs": 219,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0018498272628629756,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 17.448951972853433,
+            "distance_ratio": 9432.746680275275,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 175,
+            "fraction_reference_duplicates": 0.21289537712895376,
+            "n_exact_duplicate_pairs": 219,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3188880240543438,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 7.483248866769672,
+            "distance_ratio": 23.466697719242045,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 314,
+            "fraction_reference_duplicates": 0.3819951338199513,
+            "n_exact_duplicate_pairs": 294,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.099322484870525e-09,
+            "p95_threshold": 1.1878202860172687e-06,
+            "median_eval_distance": 7.5169837912124375,
+            "distance_ratio": 6837833206.056698,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 215,
+        "n_eval_groups": 274,
+        "decomposition": {
+          "model": {
+            "total": 8.947072948510068e-05,
+            "level": 4.8498590614853815e-37,
+            "shape": 8.947072948510068e-05,
+            "level_share": 5.4206097227507405e-33
+          },
+          "constant_baseline": {
+            "total": 8.364754260664316e-05,
+            "level": 4.067573754358344e-37,
+            "shape": 8.364754260664316e-05,
+            "level_share": 4.862753438539513e-33
+          },
+          "raw_relative_gain": -0.0696157555499431,
+          "shape_relative_gain": -0.0696157555499431,
+          "level_relative_gain": -0.19232234112259922
+        },
+        "mse_total": 8.947072948510067e-05
+      },
+      {
+        "train_block": 0,
+        "eval_block": 3,
+        "gap": 3,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 157,
+            "fraction_reference_duplicates": 0.12170542635658915,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0013893667538674925,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.169142810568612,
+            "distance_ratio": 15236.540497058395,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 354,
+            "fraction_reference_duplicates": 0.2744186046511628,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.25499650263438695,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.336907231185378,
+            "distance_ratio": 36.61582466710377,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 565,
+            "fraction_reference_duplicates": 0.437984496124031,
+            "n_exact_duplicate_pairs": 429,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.0431536967085576e-09,
+            "p95_threshold": 1.108348805726448e-06,
+            "median_eval_distance": 7.55960744400015,
+            "distance_ratio": 7246877874.13574,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 105,
+            "fraction_reference_duplicates": 0.125,
+            "n_exact_duplicate_pairs": 175,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.1680077279964342e-06,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 17.913368934837735,
+            "distance_ratio": 15336686.997410366,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 274,
+            "fraction_reference_duplicates": 0.3261904761904762,
+            "n_exact_duplicate_pairs": 175,
+            "degenerate_threshold": false,
+            "median_reference_distance": 3.371747880871523e-07,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 7.807212250985196,
+            "distance_ratio": 23154792.489903495,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 436,
+            "fraction_reference_duplicates": 0.5190476190476191,
+            "n_exact_duplicate_pairs": 282,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0,
+            "p95_threshold": 5.923917033125911e-07,
+            "median_eval_distance": 7.255320550901773,
+            "distance_ratio": 7.255320550901774e+300,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 215,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 8.909157651138375e-05,
+            "level": 4.466056686773811e-37,
+            "shape": 8.909157651138375e-05,
+            "level_share": 5.012883217082995e-33
+          },
+          "constant_baseline": {
+            "total": 8.362685325549247e-05,
+            "level": 3.897351174620915e-37,
+            "shape": 8.362685325549247e-05,
+            "level_share": 4.660406344256345e-33
+          },
+          "raw_relative_gain": -0.06534651302968125,
+          "shape_relative_gain": -0.06534651302968125,
+          "level_relative_gain": -0.14592103371547285
+        },
+        "mse_total": 8.909157651138375e-05
+      },
+      {
+        "train_block": 0,
+        "eval_block": 4,
+        "gap": 4,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 157,
+            "fraction_reference_duplicates": 0.12170542635658915,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0013893667538674925,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.509677851674454,
+            "distance_ratio": 15481.641396556613,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 354,
+            "fraction_reference_duplicates": 0.2744186046511628,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.25499650263438695,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.230964521714412,
+            "distance_ratio": 36.20035736313503,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 565,
+            "fraction_reference_duplicates": 0.437984496124031,
+            "n_exact_duplicate_pairs": 429,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.0431536967085576e-09,
+            "p95_threshold": 1.108348805726448e-06,
+            "median_eval_distance": 8.276305715549523,
+            "distance_ratio": 7933927418.043562,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 122,
+            "fraction_reference_duplicates": 0.14523809523809525,
+            "n_exact_duplicate_pairs": 197,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0014610972173147501,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 18.92737658501448,
+            "distance_ratio": 12954.221225470403,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 228,
+            "fraction_reference_duplicates": 0.2714285714285714,
+            "n_exact_duplicate_pairs": 197,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3051791272906469,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.349492734715549,
+            "distance_ratio": 27.359317817183637,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 391,
+            "fraction_reference_duplicates": 0.4654761904761905,
+            "n_exact_duplicate_pairs": 299,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.486236436533814e-09,
+            "p95_threshold": 1.0587097767267492e-06,
+            "median_eval_distance": 7.703645456779569,
+            "distance_ratio": 5183324313.287551,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 215,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 7.608509423730249e-05,
+            "level": 4.075791934489937e-37,
+            "shape": 7.608509423730249e-05,
+            "level_share": 5.356886227646525e-33
+          },
+          "constant_baseline": {
+            "total": 6.658497964407963e-05,
+            "level": 3.4172401677061412e-37,
+            "shape": 6.658497964407963e-05,
+            "level_share": 5.1321487007617994e-33
+          },
+          "raw_relative_gain": -0.14267654122602955,
+          "shape_relative_gain": -0.14267654122602955,
+          "level_relative_gain": -0.19271451067656617
+        },
+        "mse_total": 7.608509423730246e-05
+      },
+      {
+        "train_block": 0,
+        "eval_block": 5,
+        "gap": 5,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 157,
+            "fraction_reference_duplicates": 0.12170542635658915,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0013893667538674925,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.51429423364138,
+            "distance_ratio": 15484.964048371963,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 354,
+            "fraction_reference_duplicates": 0.2744186046511628,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.25499650263438695,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.316192817286122,
+            "distance_ratio": 36.53459055728167,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1290,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 565,
+            "fraction_reference_duplicates": 0.437984496124031,
+            "n_exact_duplicate_pairs": 429,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.0431536967085576e-09,
+            "p95_threshold": 1.108348805726448e-06,
+            "median_eval_distance": 7.929828809787715,
+            "distance_ratio": 7601783739.834838,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 109,
+            "fraction_reference_duplicates": 0.12976190476190477,
+            "n_exact_duplicate_pairs": 183,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.6518123698891422e-06,
+            "p95_threshold": 0.7500000000004623,
+            "median_eval_distance": 18.996096217532532,
+            "distance_ratio": 11500153.748580666,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 233,
+            "fraction_reference_duplicates": 0.2773809523809524,
+            "n_exact_duplicate_pairs": 183,
+            "degenerate_threshold": false,
+            "median_reference_distance": 3.371747880871523e-07,
+            "p95_threshold": 2.683281572999755,
+            "median_eval_distance": 8.415217450741348,
+            "distance_ratio": 24958026.95830923,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 427,
+            "fraction_reference_duplicates": 0.5083333333333333,
+            "n_exact_duplicate_pairs": 314,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0,
+            "p95_threshold": 7.951348914762209e-07,
+            "median_eval_distance": 7.711890575822084,
+            "distance_ratio": 7.711890575822083e+300,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 215,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 9.270253954442041e-05,
+            "level": 4.468245776421462e-37,
+            "shape": 9.270253954442041e-05,
+            "level_share": 4.819982061311714e-33
+          },
+          "constant_baseline": {
+            "total": 8.501289600795405e-05,
+            "level": 4.06708606290852e-37,
+            "shape": 8.501289600795405e-05,
+            "level_share": 4.78408130282727e-33
+          },
+          "raw_relative_gain": -0.09045267127174321,
+          "shape_relative_gain": -0.09045267127174321,
+          "level_relative_gain": -0.0986356588741714
+        },
+        "mse_total": 9.270253954442038e-05
+      },
+      {
+        "train_block": 1,
+        "eval_block": 0,
+        "gap": -1,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 164,
+            "fraction_reference_duplicates": 0.09425287356321839,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00028791035115313966,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.630196892750547,
+            "distance_ratio": 75128.2362934059,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 481,
+            "fraction_reference_duplicates": 0.2764367816091954,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.05715331048081994,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.043977199961637,
+            "distance_ratio": 158.24065349629575,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 858,
+            "fraction_reference_duplicates": 0.49310344827586206,
+            "n_exact_duplicate_pairs": 612,
+            "degenerate_threshold": false,
+            "median_reference_distance": 5.176411588328482e-10,
+            "p95_threshold": 5.908538021613252e-07,
+            "median_eval_distance": 7.868541867650657,
+            "distance_ratio": 15200765498.230968,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 71,
+            "fraction_reference_duplicates": 0.11059190031152648,
+            "n_exact_duplicate_pairs": 150,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.000787380672501971,
+            "p95_threshold": 0.7500000000003032,
+            "median_eval_distance": 19.895989911335718,
+            "distance_ratio": 25268.57796510863,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 169,
+            "fraction_reference_duplicates": 0.2632398753894081,
+            "n_exact_duplicate_pairs": 150,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.15214672004877466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.532528050070914,
+            "distance_ratio": 56.080920096966835,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 295,
+            "fraction_reference_duplicates": 0.45950155763239875,
+            "n_exact_duplicate_pairs": 211,
+            "degenerate_threshold": false,
+            "median_reference_distance": 4.831762118732098e-10,
+            "p95_threshold": 4.605533437385881e-07,
+            "median_eval_distance": 8.914034371446654,
+            "distance_ratio": 18448827058.120537,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 290,
+        "n_eval_groups": 215,
+        "decomposition": {
+          "model": {
+            "total": 8.588012377237103e-05,
+            "level": 3.92423191154558e-37,
+            "shape": 8.588012377237103e-05,
+            "level_share": 4.5694297343433344e-33
+          },
+          "constant_baseline": {
+            "total": 8.184615488848806e-05,
+            "level": 3.4249226451507767e-37,
+            "shape": 8.184615488848806e-05,
+            "level_share": 4.184585885332169e-33
+          },
+          "raw_relative_gain": -0.04928721317915391,
+          "shape_relative_gain": -0.04928721317915391,
+          "level_relative_gain": -0.14578702006649902
+        },
+        "mse_total": 8.588012377237101e-05
+      },
+      {
+        "train_block": 1,
+        "eval_block": 2,
+        "gap": 1,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 164,
+            "fraction_reference_duplicates": 0.09425287356321839,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00028791035115313966,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.687246722091906,
+            "distance_ratio": 71853.08426472082,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 481,
+            "fraction_reference_duplicates": 0.2764367816091954,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.05715331048081994,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.903798375612864,
+            "distance_ratio": 155.7879727474559,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 858,
+            "fraction_reference_duplicates": 0.49310344827586206,
+            "n_exact_duplicate_pairs": 612,
+            "degenerate_threshold": false,
+            "median_reference_distance": 5.176411588328482e-10,
+            "p95_threshold": 5.908538021613252e-07,
+            "median_eval_distance": 7.748409356633179,
+            "distance_ratio": 14968688684.075876,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 74,
+            "fraction_reference_duplicates": 0.09002433090024331,
+            "n_exact_duplicate_pairs": 222,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0019349464563269752,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 17.643925070166134,
+            "distance_ratio": 9118.55985082855,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 216,
+            "fraction_reference_duplicates": 0.26277372262773724,
+            "n_exact_duplicate_pairs": 222,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3318189569041829,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 7.127097051130265,
+            "distance_ratio": 21.478872447870145,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 308,
+            "fraction_reference_duplicates": 0.3746958637469586,
+            "n_exact_duplicate_pairs": 298,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.4718205117502155e-09,
+            "p95_threshold": 1.5713689599902944e-06,
+            "median_eval_distance": 7.268412563949572,
+            "distance_ratio": 4938382435.849014,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 290,
+        "n_eval_groups": 274,
+        "decomposition": {
+          "model": {
+            "total": 8.2270435684239e-05,
+            "level": 4.550022778750822e-37,
+            "shape": 8.2270435684239e-05,
+            "level_share": 5.5305684732413487e-33
+          },
+          "constant_baseline": {
+            "total": 7.634283662052399e-05,
+            "level": 4.043550507921031e-37,
+            "shape": 7.634283662052399e-05,
+            "level_share": 5.2965683316435266e-33
+          },
+          "raw_relative_gain": -0.07764446968586215,
+          "shape_relative_gain": -0.07764446968586215,
+          "level_relative_gain": -0.12525434512012348
+        },
+        "mse_total": 8.227043568423897e-05
+      },
+      {
+        "train_block": 1,
+        "eval_block": 3,
+        "gap": 2,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 164,
+            "fraction_reference_duplicates": 0.09425287356321839,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00028791035115313966,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.984649399252987,
+            "distance_ratio": 72886.05399286683,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 481,
+            "fraction_reference_duplicates": 0.2764367816091954,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.05715331048081994,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 9.076301464341881,
+            "distance_ratio": 158.80622466108582,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 858,
+            "fraction_reference_duplicates": 0.49310344827586206,
+            "n_exact_duplicate_pairs": 612,
+            "degenerate_threshold": false,
+            "median_reference_distance": 5.176411588328482e-10,
+            "p95_threshold": 5.908538021613252e-07,
+            "median_eval_distance": 7.300960691992664,
+            "distance_ratio": 14104289366.120943,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 100,
+            "fraction_reference_duplicates": 0.11904761904761904,
+            "n_exact_duplicate_pairs": 185,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00043812891069758676,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 18.00076865028265,
+            "distance_ratio": 41085.55315745294,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 286,
+            "fraction_reference_duplicates": 0.3404761904761905,
+            "n_exact_duplicate_pairs": 185,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.08494906188258282,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.118762611468904,
+            "distance_ratio": 95.5721279499321,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 411,
+            "fraction_reference_duplicates": 0.48928571428571427,
+            "n_exact_duplicate_pairs": 324,
+            "degenerate_threshold": false,
+            "median_reference_distance": 4.757877139443422e-10,
+            "p95_threshold": 6.171275436369742e-07,
+            "median_eval_distance": 7.5120869773236105,
+            "distance_ratio": 15788736777.264444,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 290,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 7.992748770744003e-05,
+            "level": 4.499326032646497e-37,
+            "shape": 7.992748770744003e-05,
+            "level_share": 5.629259922588156e-33
+          },
+          "constant_baseline": {
+            "total": 7.572543260700806e-05,
+            "level": 3.882624669849591e-37,
+            "shape": 7.572543260700806e-05,
+            "level_share": 5.127239998745508e-33
+          },
+          "raw_relative_gain": -0.05549067143979698,
+          "shape_relative_gain": -0.05549067143979698,
+          "level_relative_gain": -0.15883620366034415
+        },
+        "mse_total": 7.992748770744001e-05
+      },
+      {
+        "train_block": 1,
+        "eval_block": 4,
+        "gap": 3,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 164,
+            "fraction_reference_duplicates": 0.09425287356321839,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00028791035115313966,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.186376595869234,
+            "distance_ratio": 73586.71374965672,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 481,
+            "fraction_reference_duplicates": 0.2764367816091954,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.05715331048081994,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.831140636047706,
+            "distance_ratio": 154.51669486426943,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 858,
+            "fraction_reference_duplicates": 0.49310344827586206,
+            "n_exact_duplicate_pairs": 612,
+            "degenerate_threshold": false,
+            "median_reference_distance": 5.176411588328482e-10,
+            "p95_threshold": 5.908538021613252e-07,
+            "median_eval_distance": 7.724309852326657,
+            "distance_ratio": 14922132292.84752,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 99,
+            "fraction_reference_duplicates": 0.11785714285714285,
+            "n_exact_duplicate_pairs": 202,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0015409152314760292,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 19.429853093828076,
+            "distance_ratio": 12609.293942286748,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 275,
+            "fraction_reference_duplicates": 0.3273809523809524,
+            "n_exact_duplicate_pairs": 202,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3172225928974344,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.439363846859255,
+            "distance_ratio": 26.60391799265036,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 387,
+            "fraction_reference_duplicates": 0.4607142857142857,
+            "n_exact_duplicate_pairs": 281,
+            "degenerate_threshold": false,
+            "median_reference_distance": 9.491986335838194e-10,
+            "p95_threshold": 7.757185039465101e-07,
+            "median_eval_distance": 7.605505772141141,
+            "distance_ratio": 8012554488.64859,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 290,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 6.752278328715986e-05,
+            "level": 3.799653448512756e-37,
+            "shape": 6.752278328715986e-05,
+            "level_share": 5.6272168644969034e-33
+          },
+          "constant_baseline": {
+            "total": 6.408293791589591e-05,
+            "level": 3.387718052087606e-37,
+            "shape": 6.408293791589591e-05,
+            "level_share": 5.286458708453308e-33
+          },
+          "raw_relative_gain": -0.053678022311937246,
+          "shape_relative_gain": -0.053678022311937246,
+          "level_relative_gain": -0.12159671793563342
+        },
+        "mse_total": 6.752278328715985e-05
+      },
+      {
+        "train_block": 1,
+        "eval_block": 5,
+        "gap": 4,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 164,
+            "fraction_reference_duplicates": 0.09425287356321839,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00028791035115313966,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.164678727234364,
+            "distance_ratio": 73511.35046887168,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 481,
+            "fraction_reference_duplicates": 0.2764367816091954,
+            "n_exact_duplicate_pairs": 151,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.05715331048081994,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.920337369934263,
+            "distance_ratio": 156.07735221090712,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1740,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 858,
+            "fraction_reference_duplicates": 0.49310344827586206,
+            "n_exact_duplicate_pairs": 612,
+            "degenerate_threshold": false,
+            "median_reference_distance": 5.176411588328482e-10,
+            "p95_threshold": 5.908538021613252e-07,
+            "median_eval_distance": 7.34769054026656,
+            "distance_ratio": 14194563965.573702,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 111,
+            "fraction_reference_duplicates": 0.13214285714285715,
+            "n_exact_duplicate_pairs": 185,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00038473767277152476,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 18.958606515008547,
+            "distance_ratio": 49276.70944838058,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 243,
+            "fraction_reference_duplicates": 0.2892857142857143,
+            "n_exact_duplicate_pairs": 185,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07319735861082419,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.4712336484307,
+            "distance_ratio": 115.73141175039615,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 408,
+            "fraction_reference_duplicates": 0.4857142857142857,
+            "n_exact_duplicate_pairs": 311,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.104967258351825e-09,
+            "p95_threshold": 1.2951189651783544e-06,
+            "median_eval_distance": 7.434568109578333,
+            "distance_ratio": 6728315299.285676,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 290,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 9.15403631968134e-05,
+            "level": 4.47036305812585e-37,
+            "shape": 9.15403631968134e-05,
+            "level_share": 4.883488443796634e-33
+          },
+          "constant_baseline": {
+            "total": 8.500748304584804e-05,
+            "level": 4.064460032024849e-37,
+            "shape": 8.500748304584804e-05,
+            "level_share": 4.781296759289671e-33
+          },
+          "raw_relative_gain": -0.07685064792992292,
+          "shape_relative_gain": -0.07685064792992292,
+          "level_relative_gain": -0.09986640855188492
+        },
+        "mse_total": 9.15403631968134e-05
+      },
+      {
+        "train_block": 2,
+        "eval_block": 0,
+        "gap": -2,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 145,
+            "fraction_reference_duplicates": 0.08819951338199514,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0017933939340432743,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.73357901289658,
+            "distance_ratio": 12118.686586553467,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 398,
+            "fraction_reference_duplicates": 0.24209245742092458,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3160452974034482,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.368290082492273,
+            "distance_ratio": 29.64223850017665,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 637,
+            "fraction_reference_duplicates": 0.38746958637469586,
+            "n_exact_duplicate_pairs": 625,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2254456461993886e-09,
+            "p95_threshold": 1.1760940337783173e-06,
+            "median_eval_distance": 8.364017636891171,
+            "distance_ratio": 6825286509.304948,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 76,
+            "fraction_reference_duplicates": 0.11838006230529595,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0005647794683405617,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 20.971436776561827,
+            "distance_ratio": 37132.08066536169,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 186,
+            "fraction_reference_duplicates": 0.2897196261682243,
+            "n_exact_duplicate_pairs": 143,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.10161610137523937,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.762350073678748,
+            "distance_ratio": 86.2299375304892,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 301,
+            "fraction_reference_duplicates": 0.4688473520249221,
+            "n_exact_duplicate_pairs": 206,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.1903166205179974e-09,
+            "p95_threshold": 1.2790073062427992e-06,
+            "median_eval_distance": 8.076855362798787,
+            "distance_ratio": 6785468020.503597,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 274,
+        "n_eval_groups": 215,
+        "decomposition": {
+          "model": {
+            "total": 8.845370704891611e-05,
+            "level": 4.232152922495541e-37,
+            "shape": 8.845370704891611e-05,
+            "level_share": 4.7845964445052634e-33
+          },
+          "constant_baseline": {
+            "total": 8.829396599535356e-05,
+            "level": 3.61846466925212e-37,
+            "shape": 8.829396599535356e-05,
+            "level_share": 4.09820153445428e-33
+          },
+          "raw_relative_gain": -0.0018091955861508303,
+          "shape_relative_gain": -0.0018091955861508303,
+          "level_relative_gain": -0.16959907290465853
+        },
+        "mse_total": 8.845370704891611e-05
+      },
+      {
+        "train_block": 2,
+        "eval_block": 1,
+        "gap": -1,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 145,
+            "fraction_reference_duplicates": 0.08819951338199514,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0017933939340432743,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.960721906062787,
+            "distance_ratio": 11687.739937207241,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 398,
+            "fraction_reference_duplicates": 0.24209245742092458,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3160452974034482,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.152048005026632,
+            "distance_ratio": 28.958026207691262,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 637,
+            "fraction_reference_duplicates": 0.38746958637469586,
+            "n_exact_duplicate_pairs": 625,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2254456461993886e-09,
+            "p95_threshold": 1.1760940337783173e-06,
+            "median_eval_distance": 8.014975671012081,
+            "distance_ratio": 6540457910.858649,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 84,
+            "fraction_reference_duplicates": 0.09655172413793103,
+            "n_exact_duplicate_pairs": 189,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0001626067146731041,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 19.4858845989635,
+            "distance_ratio": 119834.44003611345,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 248,
+            "fraction_reference_duplicates": 0.2850574712643678,
+            "n_exact_duplicate_pairs": 189,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0314320885291999,
+            "p95_threshold": 2.683281572999757,
+            "median_eval_distance": 8.238213339423408,
+            "distance_ratio": 262.09563935817505,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 432,
+            "fraction_reference_duplicates": 0.496551724137931,
+            "n_exact_duplicate_pairs": 306,
+            "degenerate_threshold": false,
+            "median_reference_distance": 4.303919070434057e-10,
+            "p95_threshold": 6.462449952650297e-07,
+            "median_eval_distance": 7.9693403772768985,
+            "distance_ratio": 18516473583.396584,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 274,
+        "n_eval_groups": 290,
+        "decomposition": {
+          "model": {
+            "total": 7.62157679263185e-05,
+            "level": 4.267402518506284e-37,
+            "shape": 7.62157679263185e-05,
+            "level_share": 5.5991071593371476e-33
+          },
+          "constant_baseline": {
+            "total": 7.257393954590105e-05,
+            "level": 3.789752418724248e-37,
+            "shape": 7.257393954590105e-05,
+            "level_share": 5.2219191109603914e-33
+          },
+          "raw_relative_gain": -0.050180938270742305,
+          "shape_relative_gain": -0.050180938270742305,
+          "level_relative_gain": -0.1260372834441856
+        },
+        "mse_total": 7.62157679263185e-05
+      },
+      {
+        "train_block": 2,
+        "eval_block": 3,
+        "gap": 1,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 145,
+            "fraction_reference_duplicates": 0.08819951338199514,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0017933939340432743,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.135827913992074,
+            "distance_ratio": 11785.379393104422,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 398,
+            "fraction_reference_duplicates": 0.24209245742092458,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3160452974034482,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.248231113711839,
+            "distance_ratio": 29.262359508883918,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 637,
+            "fraction_reference_duplicates": 0.38746958637469586,
+            "n_exact_duplicate_pairs": 625,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2254456461993886e-09,
+            "p95_threshold": 1.1760940337783173e-06,
+            "median_eval_distance": 7.644529703524647,
+            "distance_ratio": 6238163012.152746,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 97,
+            "fraction_reference_duplicates": 0.11547619047619048,
+            "n_exact_duplicate_pairs": 195,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0005099990970775952,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 17.528990027025365,
+            "distance_ratio": 34370.62953144478,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 246,
+            "fraction_reference_duplicates": 0.29285714285714287,
+            "n_exact_duplicate_pairs": 195,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.100357559436142,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 7.887159513990848,
+            "distance_ratio": 78.59058707988495,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 399,
+            "fraction_reference_duplicates": 0.475,
+            "n_exact_duplicate_pairs": 296,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.847408937110178e-10,
+            "p95_threshold": 7.817187611330596e-07,
+            "median_eval_distance": 7.079578594933462,
+            "distance_ratio": 10339062059.759596,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 274,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 7.943032326646114e-05,
+            "level": 4.7278800561608865e-37,
+            "shape": 7.943032326646114e-05,
+            "level_share": 5.952235697569165e-33
+          },
+          "constant_baseline": {
+            "total": 7.335088781211128e-05,
+            "level": 4.072355401194833e-37,
+            "shape": 7.335088781211128e-05,
+            "level_share": 5.551882905120651e-33
+          },
+          "raw_relative_gain": -0.08288155243495304,
+          "shape_relative_gain": -0.08288155243495304,
+          "level_relative_gain": -0.16096941214259486
+        },
+        "mse_total": 7.943032326646116e-05
+      },
+      {
+        "train_block": 2,
+        "eval_block": 4,
+        "gap": 2,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 145,
+            "fraction_reference_duplicates": 0.08819951338199514,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0017933939340432743,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.848223100720666,
+            "distance_ratio": 11625.01038113671,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 398,
+            "fraction_reference_duplicates": 0.24209245742092458,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3160452974034482,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.281975443737602,
+            "distance_ratio": 29.36913005824187,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 637,
+            "fraction_reference_duplicates": 0.38746958637469586,
+            "n_exact_duplicate_pairs": 625,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2254456461993886e-09,
+            "p95_threshold": 1.1760940337783173e-06,
+            "median_eval_distance": 7.6676935846684415,
+            "distance_ratio": 6257065426.319899,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 90,
+            "fraction_reference_duplicates": 0.10714285714285714,
+            "n_exact_duplicate_pairs": 198,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0012754223856436188,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 19.344265460445996,
+            "distance_ratio": 15166.94836015777,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 220,
+            "fraction_reference_duplicates": 0.2619047619047619,
+            "n_exact_duplicate_pairs": 198,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.2673720179370077,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.361494600306475,
+            "distance_ratio": 31.272885864505184,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 385,
+            "fraction_reference_duplicates": 0.4583333333333333,
+            "n_exact_duplicate_pairs": 306,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.0534849303579182e-09,
+            "p95_threshold": 8.944987260777152e-07,
+            "median_eval_distance": 7.291762382497782,
+            "distance_ratio": 6921563064.049173,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 274,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 7.264148490595248e-05,
+            "level": 4.178946252350209e-37,
+            "shape": 7.264148490595248e-05,
+            "level_share": 5.752837043131221e-33
+          },
+          "constant_baseline": {
+            "total": 6.677844282141455e-05,
+            "level": 3.6514268376689025e-37,
+            "shape": 6.677844282141455e-05,
+            "level_share": 5.467972422528488e-33
+          },
+          "raw_relative_gain": -0.08779842471345807,
+          "shape_relative_gain": -0.08779842471345807,
+          "level_relative_gain": -0.14446939186602425
+        },
+        "mse_total": 7.264148490595247e-05
+      },
+      {
+        "train_block": 2,
+        "eval_block": 5,
+        "gap": 3,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 145,
+            "fraction_reference_duplicates": 0.08819951338199514,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0017933939340432743,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.984020037757226,
+            "distance_ratio": 11700.731021459385,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 398,
+            "fraction_reference_duplicates": 0.24209245742092458,
+            "n_exact_duplicate_pairs": 264,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3160452974034482,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.197711555346585,
+            "distance_ratio": 29.10251040250483,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1644,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 637,
+            "fraction_reference_duplicates": 0.38746958637469586,
+            "n_exact_duplicate_pairs": 625,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2254456461993886e-09,
+            "p95_threshold": 1.1760940337783173e-06,
+            "median_eval_distance": 8.248975678634691,
+            "distance_ratio": 6731408858.661468,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 109,
+            "fraction_reference_duplicates": 0.12976190476190477,
+            "n_exact_duplicate_pairs": 188,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0001295872134832652,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 18.912292339873186,
+            "distance_ratio": 145942.58053334485,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 262,
+            "fraction_reference_duplicates": 0.3119047619047619,
+            "n_exact_duplicate_pairs": 188,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.025892772807630277,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.484496734125058,
+            "distance_ratio": 327.6781825245376,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 416,
+            "fraction_reference_duplicates": 0.49523809523809526,
+            "n_exact_duplicate_pairs": 286,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2206202565392982e-09,
+            "p95_threshold": 1.163141215795241e-06,
+            "median_eval_distance": 7.942946334313603,
+            "distance_ratio": 6507303390.846092,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 274,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 9.539520309319844e-05,
+            "level": 4.58165641054178e-37,
+            "shape": 9.539520309319844e-05,
+            "level_share": 4.802816349230505e-33
+          },
+          "constant_baseline": {
+            "total": 8.894756032177157e-05,
+            "level": 4.193688393931826e-37,
+            "shape": 8.894756032177158e-05,
+            "level_share": 4.714787430662494e-33
+          },
+          "raw_relative_gain": -0.07248813512256275,
+          "shape_relative_gain": -0.0724881351225626,
+          "level_relative_gain": -0.09251236147428958
+        },
+        "mse_total": 9.539520309319843e-05
+      },
+      {
+        "train_block": 3,
+        "eval_block": 0,
+        "gap": -3,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 191,
+            "fraction_reference_duplicates": 0.11369047619047619,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0004833153446583396,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.600431437157777,
+            "distance_ratio": 44692.21115341855,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 464,
+            "fraction_reference_duplicates": 0.2761904761904762,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.094031500937095,
+            "p95_threshold": 2.683281572999759,
+            "median_eval_distance": 9.355007589707204,
+            "distance_ratio": 99.48801727588607,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 812,
+            "fraction_reference_duplicates": 0.48333333333333334,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.553411187809278e-10,
+            "p95_threshold": 7.113371636932156e-07,
+            "median_eval_distance": 8.053997956211106,
+            "distance_ratio": 12289779666.49374,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 67,
+            "fraction_reference_duplicates": 0.1043613707165109,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0015587174358127273,
+            "p95_threshold": 0.7500000000003032,
+            "median_eval_distance": 20.834852322527972,
+            "distance_ratio": 13366.664055864954,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 160,
+            "fraction_reference_duplicates": 0.24922118380062305,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.28203889714947905,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.495226484479334,
+            "distance_ratio": 30.120761959925375,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 267,
+            "fraction_reference_duplicates": 0.4158878504672897,
+            "n_exact_duplicate_pairs": 240,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.4096867449330881e-09,
+            "p95_threshold": 1.3042568100232769e-06,
+            "median_eval_distance": 8.238009150722188,
+            "distance_ratio": 5843857992.091152,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 215,
+        "decomposition": {
+          "model": {
+            "total": 9.57077758348686e-05,
+            "level": 4.348829361946813e-37,
+            "shape": 9.57077758348686e-05,
+            "level_share": 4.543862109438377e-33
+          },
+          "constant_baseline": {
+            "total": 8.93207006035932e-05,
+            "level": 3.4481152796763154e-37,
+            "shape": 8.93207006035932e-05,
+            "level_share": 3.86037643723722e-33
+          },
+          "raw_relative_gain": -0.07150722271672887,
+          "shape_relative_gain": -0.07150722271672887,
+          "level_relative_gain": -0.2612192485499066
+        },
+        "mse_total": 9.570777583486861e-05
+      },
+      {
+        "train_block": 3,
+        "eval_block": 1,
+        "gap": -2,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 191,
+            "fraction_reference_duplicates": 0.11369047619047619,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0004833153446583396,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.492090026716404,
+            "distance_ratio": 44468.04816823967,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 464,
+            "fraction_reference_duplicates": 0.2761904761904762,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.094031500937095,
+            "p95_threshold": 2.683281572999759,
+            "median_eval_distance": 9.350633513350441,
+            "distance_ratio": 99.44150013734024,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 812,
+            "fraction_reference_duplicates": 0.48333333333333334,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.553411187809278e-10,
+            "p95_threshold": 7.113371636932156e-07,
+            "median_eval_distance": 8.083150057141157,
+            "distance_ratio": 12334263523.975903,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 59,
+            "fraction_reference_duplicates": 0.067816091954023,
+            "n_exact_duplicate_pairs": 202,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0009536028477592231,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 19.305465488571777,
+            "distance_ratio": 20244.764929064317,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 266,
+            "fraction_reference_duplicates": 0.3057471264367816,
+            "n_exact_duplicate_pairs": 202,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.18909212080598292,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 7.896017176909513,
+            "distance_ratio": 41.757515560424565,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 404,
+            "fraction_reference_duplicates": 0.46436781609195404,
+            "n_exact_duplicate_pairs": 336,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.142701400619752e-10,
+            "p95_threshold": 7.565806269118033e-07,
+            "median_eval_distance": 7.9348306930580685,
+            "distance_ratio": 12917493746.737396,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 290,
+        "decomposition": {
+          "model": {
+            "total": 7.659944149998534e-05,
+            "level": 4.4763609455746434e-37,
+            "shape": 7.659944149998534e-05,
+            "level_share": 5.8438558531467885e-33
+          },
+          "constant_baseline": {
+            "total": 7.300395949177543e-05,
+            "level": 3.73946988472228e-37,
+            "shape": 7.300395949177543e-05,
+            "level_share": 5.122283655235941e-33
+          },
+          "raw_relative_gain": -0.049250506866206016,
+          "shape_relative_gain": -0.049250506866206016,
+          "level_relative_gain": -0.1970576267676214
+        },
+        "mse_total": 7.659944149998535e-05
+      },
+      {
+        "train_block": 3,
+        "eval_block": 2,
+        "gap": -1,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 191,
+            "fraction_reference_duplicates": 0.11369047619047619,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0004833153446583396,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.326967177054755,
+            "distance_ratio": 44126.40197081059,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 464,
+            "fraction_reference_duplicates": 0.2761904761904762,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.094031500937095,
+            "p95_threshold": 2.683281572999759,
+            "median_eval_distance": 9.245454789930562,
+            "distance_ratio": 98.3229523914073,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 812,
+            "fraction_reference_duplicates": 0.48333333333333334,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.553411187809278e-10,
+            "p95_threshold": 7.113371636932156e-07,
+            "median_eval_distance": 8.168951459504195,
+            "distance_ratio": 12465189846.015097,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 82,
+            "fraction_reference_duplicates": 0.09975669099756691,
+            "n_exact_duplicate_pairs": 221,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0018883397166524086,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 17.50960036239024,
+            "distance_ratio": 9272.484292937888,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 215,
+            "fraction_reference_duplicates": 0.2615571776155718,
+            "n_exact_duplicate_pairs": 221,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3250485218249829,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 7.256855556342613,
+            "distance_ratio": 22.325453183417178,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 319,
+            "fraction_reference_duplicates": 0.3880778588807786,
+            "n_exact_duplicate_pairs": 279,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.893021904088339e-10,
+            "p95_threshold": 1.0454793462126682e-06,
+            "median_eval_distance": 7.441449369493302,
+            "distance_ratio": 8367739841.135764,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 274,
+        "decomposition": {
+          "model": {
+            "total": 7.768689806952277e-05,
+            "level": 4.920802182075385e-37,
+            "shape": 7.768689806952277e-05,
+            "level_share": 6.334146818002323e-33
+          },
+          "constant_baseline": {
+            "total": 7.439831177150159e-05,
+            "level": 4.041139693102262e-37,
+            "shape": 7.439831177150159e-05,
+            "level_share": 5.4317626258963416e-33
+          },
+          "raw_relative_gain": -0.04420243174497523,
+          "shape_relative_gain": -0.04420243174497523,
+          "level_relative_gain": -0.2176768327198886
+        },
+        "mse_total": 7.768689806952277e-05
+      },
+      {
+        "train_block": 3,
+        "eval_block": 4,
+        "gap": 1,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 191,
+            "fraction_reference_duplicates": 0.11369047619047619,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0004833153446583396,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.049228246421414,
+            "distance_ratio": 43551.74831310461,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 464,
+            "fraction_reference_duplicates": 0.2761904761904762,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.094031500937095,
+            "p95_threshold": 2.683281572999759,
+            "median_eval_distance": 9.31608821715528,
+            "distance_ratio": 99.07412010138535,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 812,
+            "fraction_reference_duplicates": 0.48333333333333334,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.553411187809278e-10,
+            "p95_threshold": 7.113371636932156e-07,
+            "median_eval_distance": 7.692922355472636,
+            "distance_ratio": 11738806149.96826,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 129,
+            "fraction_reference_duplicates": 0.15357142857142858,
+            "n_exact_duplicate_pairs": 194,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0010733528329225368,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 19.103103959801697,
+            "distance_ratio": 17797.59960924271,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 248,
+            "fraction_reference_duplicates": 0.29523809523809524,
+            "n_exact_duplicate_pairs": 194,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.2226863304850455,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.45914958552322,
+            "distance_ratio": 37.986838110349545,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 411,
+            "fraction_reference_duplicates": 0.48928571428571427,
+            "n_exact_duplicate_pairs": 289,
+            "degenerate_threshold": false,
+            "median_reference_distance": 9.957362024938763e-10,
+            "p95_threshold": 9.923124569895097e-07,
+            "median_eval_distance": 7.349057234274224,
+            "distance_ratio": 7380526303.9227705,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 7.188392991970224e-05,
+            "level": 4.177441292294038e-37,
+            "shape": 7.188392991970224e-05,
+            "level_share": 5.811370214400407e-33
+          },
+          "constant_baseline": {
+            "total": 6.716776050893689e-05,
+            "level": 3.3688106297251736e-37,
+            "shape": 6.716776050893689e-05,
+            "level_share": 5.015517272273716e-33
+          },
+          "raw_relative_gain": -0.07021477826609761,
+          "shape_relative_gain": -0.07021477826609761,
+          "level_relative_gain": -0.24003446659595482
+        },
+        "mse_total": 7.188392991970224e-05
+      },
+      {
+        "train_block": 3,
+        "eval_block": 5,
+        "gap": 2,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 191,
+            "fraction_reference_duplicates": 0.11369047619047619,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0004833153446583396,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.212739036622523,
+            "distance_ratio": 43890.05909096062,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 464,
+            "fraction_reference_duplicates": 0.2761904761904762,
+            "n_exact_duplicate_pairs": 163,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.094031500937095,
+            "p95_threshold": 2.683281572999759,
+            "median_eval_distance": 9.266668984607971,
+            "distance_ratio": 98.54855970880618,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 812,
+            "fraction_reference_duplicates": 0.48333333333333334,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 6.553411187809278e-10,
+            "p95_threshold": 7.113371636932156e-07,
+            "median_eval_distance": 7.708796424186617,
+            "distance_ratio": 11763028754.439516,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 130,
+            "fraction_reference_duplicates": 0.15476190476190477,
+            "n_exact_duplicate_pairs": 186,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.6518123698891422e-06,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 18.787468999058383,
+            "distance_ratio": 11373851.740993598,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 222,
+            "fraction_reference_duplicates": 0.2642857142857143,
+            "n_exact_duplicate_pairs": 186,
+            "degenerate_threshold": false,
+            "median_reference_distance": 4.1295309247228556e-07,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.391016865077221,
+            "distance_ratio": 20319539.962375667,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 427,
+            "fraction_reference_duplicates": 0.5083333333333333,
+            "n_exact_duplicate_pairs": 254,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0,
+            "p95_threshold": 1.4915428676986637e-06,
+            "median_eval_distance": 7.511496489182056,
+            "distance_ratio": 7.511496489182056e+300,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 9.333377807393723e-05,
+            "level": 4.8444537458113e-37,
+            "shape": 9.333377807393723e-05,
+            "level_share": 5.19046142327338e-33
+          },
+          "constant_baseline": {
+            "total": 8.972140815639385e-05,
+            "level": 4.126240863867007e-37,
+            "shape": 8.972140815639385e-05,
+            "level_share": 4.5989479530621454e-33
+          },
+          "raw_relative_gain": -0.04026207336432615,
+          "shape_relative_gain": -0.04026207336432615,
+          "level_relative_gain": -0.17405985390566903
+        },
+        "mse_total": 9.33337780739372e-05
+      },
+      {
+        "train_block": 4,
+        "eval_block": 0,
+        "gap": -4,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 211,
+            "fraction_reference_duplicates": 0.1255952380952381,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0009982519352846001,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.004211248868145,
+            "distance_ratio": 21040.992265023637,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 467,
+            "fraction_reference_duplicates": 0.2779761904761905,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.21320377357817466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.168102090254,
+            "distance_ratio": 43.001593904210914,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 814,
+            "fraction_reference_duplicates": 0.4845238095238095,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.229062594086373e-10,
+            "p95_threshold": 7.604106728739745e-07,
+            "median_eval_distance": 7.730392385095396,
+            "distance_ratio": 9394013348.070368,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 82,
+            "fraction_reference_duplicates": 0.1277258566978193,
+            "n_exact_duplicate_pairs": 150,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0014440146077518423,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 20.7559848230732,
+            "distance_ratio": 14373.805300617962,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 172,
+            "fraction_reference_duplicates": 0.26791277258566976,
+            "n_exact_duplicate_pairs": 150,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.26633740163400466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.816740140253833,
+            "distance_ratio": 33.10365005501411,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 281,
+            "fraction_reference_duplicates": 0.43769470404984423,
+            "n_exact_duplicate_pairs": 204,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.4688765248553018e-09,
+            "p95_threshold": 1.4452019256612683e-06,
+            "median_eval_distance": 8.028465263616928,
+            "distance_ratio": 5465718273.636246,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 215,
+        "decomposition": {
+          "model": {
+            "total": 9.146850909515961e-05,
+            "level": 3.874799513278919e-37,
+            "shape": 9.146850909515961e-05,
+            "level_share": 4.236211513240865e-33
+          },
+          "constant_baseline": {
+            "total": 8.174000650542534e-05,
+            "level": 3.556536622934127e-37,
+            "shape": 8.174000650542534e-05,
+            "level_share": 4.351035404796633e-33
+          },
+          "raw_relative_gain": -0.11901763904421225,
+          "shape_relative_gain": -0.11901763904421225,
+          "level_relative_gain": -0.08948674626109324
+        },
+        "mse_total": 9.146850909515962e-05
+      },
+      {
+        "train_block": 4,
+        "eval_block": 1,
+        "gap": -3,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 211,
+            "fraction_reference_duplicates": 0.1255952380952381,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0009982519352846001,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.33609286894769,
+            "distance_ratio": 21373.455051569526,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 467,
+            "fraction_reference_duplicates": 0.2779761904761905,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.21320377357817466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.312297728208666,
+            "distance_ratio": 43.67792169867087,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 814,
+            "fraction_reference_duplicates": 0.4845238095238095,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.229062594086373e-10,
+            "p95_threshold": 7.604106728739745e-07,
+            "median_eval_distance": 7.682490276150733,
+            "distance_ratio": 9335802454.184244,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 77,
+            "fraction_reference_duplicates": 0.08850574712643679,
+            "n_exact_duplicate_pairs": 180,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.3486991523486091e-06,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.370393954832117,
+            "distance_ratio": 15103734.527718319,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 298,
+            "fraction_reference_duplicates": 0.3425287356321839,
+            "n_exact_duplicate_pairs": 180,
+            "degenerate_threshold": false,
+            "median_reference_distance": 2.9200193199910854e-07,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.367451973787219,
+            "distance_ratio": 28655467.84742768,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 452,
+            "fraction_reference_duplicates": 0.5195402298850574,
+            "n_exact_duplicate_pairs": 290,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0,
+            "p95_threshold": 8.420082752828841e-07,
+            "median_eval_distance": 7.860632342063054,
+            "distance_ratio": 7.860632342063054e+300,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 290,
+        "decomposition": {
+          "model": {
+            "total": 7.558165432206983e-05,
+            "level": 4.3350442129935575e-37,
+            "shape": 7.558165432206983e-05,
+            "level_share": 5.735577306261376e-33
+          },
+          "constant_baseline": {
+            "total": 7.082264431390826e-05,
+            "level": 3.7428327293529855e-37,
+            "shape": 7.082264431390826e-05,
+            "level_share": 5.284796643236833e-33
+          },
+          "raw_relative_gain": -0.06719616380134201,
+          "shape_relative_gain": -0.06719616380134201,
+          "level_relative_gain": -0.1582254742500732
+        },
+        "mse_total": 7.558165432206983e-05
+      },
+      {
+        "train_block": 4,
+        "eval_block": 2,
+        "gap": -2,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 211,
+            "fraction_reference_duplicates": 0.1255952380952381,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0009982519352846001,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 21.019436662811508,
+            "distance_ratio": 21056.244340582118,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 467,
+            "fraction_reference_duplicates": 0.2779761904761905,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.21320377357817466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.210534763877863,
+            "distance_ratio": 43.200617931373856,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 814,
+            "fraction_reference_duplicates": 0.4845238095238095,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.229062594086373e-10,
+            "p95_threshold": 7.604106728739745e-07,
+            "median_eval_distance": 7.861512733911702,
+            "distance_ratio": 9553351483.267607,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 78,
+            "fraction_reference_duplicates": 0.0948905109489051,
+            "n_exact_duplicate_pairs": 229,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0018911117263792259,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 16.87580140543833,
+            "distance_ratio": 8923.746371003263,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 166,
+            "fraction_reference_duplicates": 0.20194647201946472,
+            "n_exact_duplicate_pairs": 229,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.3267053184288349,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 7.256239456168518,
+            "distance_ratio": 22.210349960216888,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 281,
+            "fraction_reference_duplicates": 0.3418491484184915,
+            "n_exact_duplicate_pairs": 312,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2221560606677044e-09,
+            "p95_threshold": 1.3875120058192963e-06,
+            "median_eval_distance": 7.0793756068165745,
+            "distance_ratio": 5792529967.857686,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 274,
+        "decomposition": {
+          "model": {
+            "total": 8.470413986400434e-05,
+            "level": 4.59566552395862e-37,
+            "shape": 8.470413986400434e-05,
+            "level_share": 5.425550075046076e-33
+          },
+          "constant_baseline": {
+            "total": 7.728704629404986e-05,
+            "level": 4.209302418163459e-37,
+            "shape": 7.728704629404986e-05,
+            "level_share": 5.446323310310699e-33
+          },
+          "raw_relative_gain": -0.09596813341442836,
+          "shape_relative_gain": -0.09596813341442836,
+          "level_relative_gain": -0.09178791814243989
+        },
+        "mse_total": 8.470413986400431e-05
+      },
+      {
+        "train_block": 4,
+        "eval_block": 3,
+        "gap": -1,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 211,
+            "fraction_reference_duplicates": 0.1255952380952381,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0009982519352846001,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.754841020143004,
+            "distance_ratio": 20791.185357658065,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 467,
+            "fraction_reference_duplicates": 0.2779761904761905,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.21320377357817466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.13498050317784,
+            "distance_ratio": 42.84624211788798,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 814,
+            "fraction_reference_duplicates": 0.4845238095238095,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.229062594086373e-10,
+            "p95_threshold": 7.604106728739745e-07,
+            "median_eval_distance": 7.444218194476798,
+            "distance_ratio": 9046252971.543095,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 97,
+            "fraction_reference_duplicates": 0.11547619047619048,
+            "n_exact_duplicate_pairs": 188,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0008666129346329311,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 17.619340181942434,
+            "distance_ratio": 20331.26841039525,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 245,
+            "fraction_reference_duplicates": 0.2916666666666667,
+            "n_exact_duplicate_pairs": 188,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.16698417021893147,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 7.772398107735577,
+            "distance_ratio": 46.5457180614501,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 393,
+            "fraction_reference_duplicates": 0.46785714285714286,
+            "n_exact_duplicate_pairs": 315,
+            "degenerate_threshold": false,
+            "median_reference_distance": 4.409101840250157e-10,
+            "p95_threshold": 7.175222167643776e-07,
+            "median_eval_distance": 7.123460293899531,
+            "distance_ratio": 16156261642.383318,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 7.974819082524938e-05,
+            "level": 4.342649643402518e-37,
+            "shape": 7.97481908252494e-05,
+            "level_share": 5.445452239685887e-33
+          },
+          "constant_baseline": {
+            "total": 7.662894002218188e-05,
+            "level": 4.01118961342806e-37,
+            "shape": 7.662894002218188e-05,
+            "level_share": 5.2345623106191164e-33
+          },
+          "raw_relative_gain": -0.04070591087602896,
+          "shape_relative_gain": -0.04070591087602914,
+          "level_relative_gain": -0.08263384729179717
+        },
+        "mse_total": 7.974819082524938e-05
+      },
+      {
+        "train_block": 4,
+        "eval_block": 5,
+        "gap": 1,
+        "forward": true,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 211,
+            "fraction_reference_duplicates": 0.1255952380952381,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0009982519352846001,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 20.811979333103373,
+            "distance_ratio": 20848.423726992234,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 467,
+            "fraction_reference_duplicates": 0.2779761904761905,
+            "n_exact_duplicate_pairs": 162,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.21320377357817466,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.091743441691154,
+            "distance_ratio": 42.64344523131771,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 814,
+            "fraction_reference_duplicates": 0.4845238095238095,
+            "n_exact_duplicate_pairs": 587,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.229062594086373e-10,
+            "p95_threshold": 7.604106728739745e-07,
+            "median_eval_distance": 7.399746195442434,
+            "distance_ratio": 8992210365.200153,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 92,
+            "fraction_reference_duplicates": 0.10952380952380952,
+            "n_exact_duplicate_pairs": 192,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.000378282764627036,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 18.760932703157845,
+            "distance_ratio": 49594.99733395201,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 246,
+            "fraction_reference_duplicates": 0.29285714285714287,
+            "n_exact_duplicate_pairs": 192,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07663243015910022,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 8.436969802353913,
+            "distance_ratio": 110.0965972870431,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 405,
+            "fraction_reference_duplicates": 0.48214285714285715,
+            "n_exact_duplicate_pairs": 269,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.108491360074022e-09,
+            "p95_threshold": 1.1086316674788202e-06,
+            "median_eval_distance": 7.899400131854273,
+            "distance_ratio": 7126262248.292827,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 8.440738737279123e-05,
+            "level": 4.631978362631795e-37,
+            "shape": 8.440738737279123e-05,
+            "level_share": 5.4876456987992454e-33
+          },
+          "constant_baseline": {
+            "total": 8.533769215002836e-05,
+            "level": 4.144623080052706e-37,
+            "shape": 8.533769215002836e-05,
+            "level_share": 4.85673209062911e-33
+          },
+          "raw_relative_gain": 0.01090145226333992,
+          "shape_relative_gain": 0.01090145226333992,
+          "level_relative_gain": -0.11758735913155499
+        },
+        "mse_total": 8.440738737279121e-05
+      },
+      {
+        "train_block": 5,
+        "eval_block": 0,
+        "gap": -5,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 205,
+            "fraction_reference_duplicates": 0.12202380952380952,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00038678592519482603,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.174640173941114,
+            "distance_ratio": 54745.11556560736,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 489,
+            "fraction_reference_duplicates": 0.2910714285714286,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07687777418629328,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.356001805997709,
+            "distance_ratio": 121.69969675924634,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1290,
+            "n_reference_points_with_zero_self_excluded_distance": 815,
+            "fraction_reference_duplicates": 0.4851190476190476,
+            "n_exact_duplicate_pairs": 561,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.95135568242674e-10,
+            "p95_threshold": 9.928158680347229e-07,
+            "median_eval_distance": 7.830234717538229,
+            "distance_ratio": 8747540590.874418,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 58,
+            "fraction_reference_duplicates": 0.09034267912772585,
+            "n_exact_duplicate_pairs": 144,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0015748547945491828,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 20.661388539540297,
+            "distance_ratio": 13119.551472969173,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 166,
+            "fraction_reference_duplicates": 0.2585669781931464,
+            "n_exact_duplicate_pairs": 144,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.282047342974735,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.526687320264607,
+            "distance_ratio": 30.231404523560442,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 642,
+            "n_eval_points": 648,
+            "n_reference_points_with_zero_self_excluded_distance": 269,
+            "fraction_reference_duplicates": 0.4190031152647975,
+            "n_exact_duplicate_pairs": 189,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2120683429131578e-09,
+            "p95_threshold": 1.1673251225840412e-06,
+            "median_eval_distance": 8.462155262885311,
+            "distance_ratio": 6981582608.243739,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 215,
+        "decomposition": {
+          "model": {
+            "total": 8.455674721652893e-05,
+            "level": 3.883771449398198e-37,
+            "shape": 8.455674721652893e-05,
+            "level_share": 4.5930946698467705e-33
+          },
+          "constant_baseline": {
+            "total": 7.980020725038992e-05,
+            "level": 3.431215799218441e-37,
+            "shape": 7.980020725038992e-05,
+            "level_share": 4.2997580049538977e-33
+          },
+          "raw_relative_gain": -0.05960560918362494,
+          "shape_relative_gain": -0.05960560918362494,
+          "level_relative_gain": -0.13189367170751526
+        },
+        "mse_total": 8.455674721652895e-05
+      },
+      {
+        "train_block": 5,
+        "eval_block": 1,
+        "gap": -4,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 205,
+            "fraction_reference_duplicates": 0.12202380952380952,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00038678592519482603,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.172763294888032,
+            "distance_ratio": 54740.26306469969,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 489,
+            "fraction_reference_duplicates": 0.2910714285714286,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07687777418629328,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.300647708026977,
+            "distance_ratio": 120.97966943591886,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1740,
+            "n_reference_points_with_zero_self_excluded_distance": 815,
+            "fraction_reference_duplicates": 0.4851190476190476,
+            "n_exact_duplicate_pairs": 561,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.95135568242674e-10,
+            "p95_threshold": 9.928158680347229e-07,
+            "median_eval_distance": 8.217047273781205,
+            "distance_ratio": 9179667935.565195,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 75,
+            "fraction_reference_duplicates": 0.08620689655172414,
+            "n_exact_duplicate_pairs": 190,
+            "degenerate_threshold": false,
+            "median_reference_distance": 2.132480599880018e-06,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 19.35077808618317,
+            "distance_ratio": 9074304.39801981,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 258,
+            "fraction_reference_duplicates": 0.296551724137931,
+            "n_exact_duplicate_pairs": 190,
+            "degenerate_threshold": false,
+            "median_reference_distance": 3.769728732309794e-07,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 7.7995288415920765,
+            "distance_ratio": 20689894.142099548,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 870,
+            "n_eval_points": 870,
+            "n_reference_points_with_zero_self_excluded_distance": 439,
+            "fraction_reference_duplicates": 0.5045977011494253,
+            "n_exact_duplicate_pairs": 329,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0,
+            "p95_threshold": 9.666514290755559e-07,
+            "median_eval_distance": 7.833437809689765,
+            "distance_ratio": 7.833437809689764e+300,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 290,
+        "decomposition": {
+          "model": {
+            "total": 7.607928210171552e-05,
+            "level": 4.190708531623082e-37,
+            "shape": 7.607928210171551e-05,
+            "level_share": 5.5083439483830054e-33
+          },
+          "constant_baseline": {
+            "total": 7.137947382495056e-05,
+            "level": 3.670041154950853e-37,
+            "shape": 7.137947382495056e-05,
+            "level_share": 5.141591774620223e-33
+          },
+          "raw_relative_gain": -0.06584257385100194,
+          "shape_relative_gain": -0.06584257385100174,
+          "level_relative_gain": -0.14186962889226826
+        },
+        "mse_total": 7.607928210171551e-05
+      },
+      {
+        "train_block": 5,
+        "eval_block": 2,
+        "gap": -3,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 205,
+            "fraction_reference_duplicates": 0.12202380952380952,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00038678592519482603,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 21.292180163787712,
+            "distance_ratio": 55049.00457032591,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 489,
+            "fraction_reference_duplicates": 0.2910714285714286,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07687777418629328,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.286488112488279,
+            "distance_ratio": 120.79548622186812,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1644,
+            "n_reference_points_with_zero_self_excluded_distance": 815,
+            "fraction_reference_duplicates": 0.4851190476190476,
+            "n_exact_duplicate_pairs": 561,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.95135568242674e-10,
+            "p95_threshold": 9.928158680347229e-07,
+            "median_eval_distance": 8.276644784429985,
+            "distance_ratio": 9246247247.976812,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 60,
+            "fraction_reference_duplicates": 0.072992700729927,
+            "n_exact_duplicate_pairs": 220,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0017324412832429032,
+            "p95_threshold": 0.7500000000006063,
+            "median_eval_distance": 17.464878036202077,
+            "distance_ratio": 10081.079344582526,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 217,
+            "fraction_reference_duplicates": 0.2639902676399027,
+            "n_exact_duplicate_pairs": 220,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.31027424965533806,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 7.143983924390955,
+            "distance_ratio": 23.024739991561358,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 822,
+            "n_eval_points": 822,
+            "n_reference_points_with_zero_self_excluded_distance": 322,
+            "fraction_reference_duplicates": 0.39172749391727496,
+            "n_exact_duplicate_pairs": 265,
+            "degenerate_threshold": false,
+            "median_reference_distance": 7.976841511955802e-10,
+            "p95_threshold": 8.843328653731313e-07,
+            "median_eval_distance": 7.120083384813503,
+            "distance_ratio": 8925943149.480682,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 274,
+        "decomposition": {
+          "model": {
+            "total": 8.902408440400295e-05,
+            "level": 4.683313483747529e-37,
+            "shape": 8.902408440400295e-05,
+            "level_share": 5.260726369837222e-33
+          },
+          "constant_baseline": {
+            "total": 7.908844817549704e-05,
+            "level": 4.05411090354608e-37,
+            "shape": 7.908844817549704e-05,
+            "level_share": 5.1260468463738465e-33
+          },
+          "raw_relative_gain": -0.1256268956808807,
+          "shape_relative_gain": -0.1256268956808807,
+          "level_relative_gain": -0.15520112675040368
+        },
+        "mse_total": 8.902408440400295e-05
+      },
+      {
+        "train_block": 5,
+        "eval_block": 3,
+        "gap": -2,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 205,
+            "fraction_reference_duplicates": 0.12202380952380952,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00038678592519482603,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 20.610179835225374,
+            "distance_ratio": 53285.75445149386,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 489,
+            "fraction_reference_duplicates": 0.2910714285714286,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07687777418629328,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.273863431866364,
+            "distance_ratio": 120.63126866021861,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 815,
+            "fraction_reference_duplicates": 0.4851190476190476,
+            "n_exact_duplicate_pairs": 561,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.95135568242674e-10,
+            "p95_threshold": 9.928158680347229e-07,
+            "median_eval_distance": 7.8162629251296885,
+            "distance_ratio": 8731932013.912193,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 83,
+            "fraction_reference_duplicates": 0.0988095238095238,
+            "n_exact_duplicate_pairs": 187,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0008712146166625245,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 18.009967544537414,
+            "distance_ratio": 20672.25136044038,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 272,
+            "fraction_reference_duplicates": 0.3238095238095238,
+            "n_exact_duplicate_pairs": 187,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.15953096055893787,
+            "p95_threshold": 2.683281572999756,
+            "median_eval_distance": 7.673271141848151,
+            "distance_ratio": 48.09894653027743,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 388,
+            "fraction_reference_duplicates": 0.46190476190476193,
+            "n_exact_duplicate_pairs": 303,
+            "degenerate_threshold": false,
+            "median_reference_distance": 1.2085352601646007e-09,
+            "p95_threshold": 1.1774886792101502e-06,
+            "median_eval_distance": 6.9647875382298405,
+            "distance_ratio": 5762999035.113999,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 8.177148677525819e-05,
+            "level": 4.588357904836102e-37,
+            "shape": 8.177148677525819e-05,
+            "level_share": 5.6111954004784136e-33
+          },
+          "constant_baseline": {
+            "total": 7.881487205072899e-05,
+            "level": 3.888536694641645e-37,
+            "shape": 7.881487205072899e-05,
+            "level_share": 4.933760080380259e-33
+          },
+          "raw_relative_gain": -0.03751341146156004,
+          "shape_relative_gain": -0.03751341146156004,
+          "level_relative_gain": -0.1799703243533235
+        },
+        "mse_total": 8.177148677525822e-05
+      },
+      {
+        "train_block": 5,
+        "eval_block": 4,
+        "gap": -1,
+        "forward": false,
+        "variants": {
+          "raw102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 205,
+            "fraction_reference_duplicates": 0.12202380952380952,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.00038678592519482603,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 20.900015169441595,
+            "distance_ratio": 54035.097473917005,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 489,
+            "fraction_reference_duplicates": 0.2910714285714286,
+            "n_exact_duplicate_pairs": 152,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.07687777418629328,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 9.220789381398294,
+            "distance_ratio": 119.94089942112672,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 1680,
+            "n_eval_points": 1680,
+            "n_reference_points_with_zero_self_excluded_distance": 815,
+            "fraction_reference_duplicates": 0.4851190476190476,
+            "n_exact_duplicate_pairs": 561,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.95135568242674e-10,
+            "p95_threshold": 9.928158680347229e-07,
+            "median_eval_distance": 7.77270323563091,
+            "distance_ratio": 8683269340.855537,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "same_distribution_control": {
+          "raw102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 110,
+            "fraction_reference_duplicates": 0.13095238095238096,
+            "n_exact_duplicate_pairs": 193,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.0008839577298595565,
+            "p95_threshold": 0.7500000000004547,
+            "median_eval_distance": 19.524962747298062,
+            "distance_ratio": 22088.1181166889,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "standardised102": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 268,
+            "fraction_reference_duplicates": 0.319047619047619,
+            "n_exact_duplicate_pairs": 193,
+            "degenerate_threshold": false,
+            "median_reference_distance": 0.19073867645764558,
+            "p95_threshold": 2.6832815729997535,
+            "median_eval_distance": 8.730802602275835,
+            "distance_ratio": 45.77363523970216,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          },
+          "pca8_standardised": {
+            "n_reference_points": 840,
+            "n_eval_points": 840,
+            "n_reference_points_with_zero_self_excluded_distance": 411,
+            "fraction_reference_duplicates": 0.48928571428571427,
+            "n_exact_duplicate_pairs": 255,
+            "degenerate_threshold": false,
+            "median_reference_distance": 8.015392495216881e-10,
+            "p95_threshold": 7.937057952570567e-07,
+            "median_eval_distance": 7.625311950795386,
+            "distance_ratio": 9513335691.727795,
+            "coverage_below_p95": 0.0,
+            "coverage_below_p95_inclusive": 0.0
+          }
+        },
+        "n_train_groups": 280,
+        "n_eval_groups": 280,
+        "decomposition": {
+          "model": {
+            "total": 6.651965928284578e-05,
+            "level": 3.800727490837834e-37,
+            "shape": 6.651965928284578e-05,
+            "level_share": 5.713690556767438e-33
+          },
+          "constant_baseline": {
+            "total": 6.496997653111851e-05,
+            "level": 3.4010278823032656e-37,
+            "shape": 6.496997653111851e-05,
+            "level_share": 5.23476852523455e-33
+          },
+          "raw_relative_gain": -0.02385229046504313,
+          "shape_relative_gain": -0.02385229046504313,
+          "level_relative_gain": -0.11752317898196157
+        },
+        "mse_total": 6.65196592828458e-05
+      }
+    ]
+  }
+}

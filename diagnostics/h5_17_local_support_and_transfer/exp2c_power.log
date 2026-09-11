@@ -1,0 +1,8 @@
+=== EXP-2c corrected power, FROZEN local arm + FROZEN gate ===
+  r2=0.02   pass 3/6  pos_folds 4.0  beat_med 5.0  pairwise 25.0  distinct_streams=True
+  r2=0.05   pass 6/6  pos_folds 5.0  beat_med 5.0  pairwise 25.0  distinct_streams=True
+  r2=0.1    pass 6/6  pos_folds 5.0  beat_med 5.0  pairwise 25.0  distinct_streams=True
+  r2=0.2    pass 6/6  pos_folds 5.0  beat_med 5.0  pairwise 25.0  distinct_streams=True
+  r2=0.4    pass 6/6  pos_folds 5.0  beat_med 5.0  pairwise 25.0  distinct_streams=True
+WROTE /tmp/h516_scratch/exp2c_power.json
+EXIT=0

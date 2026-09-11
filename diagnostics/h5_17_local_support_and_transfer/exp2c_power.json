@@ -1,0 +1,840 @@
+{
+  "schema": "CB16_H517_DIAGNOSTIC_REVISION_SUPPORT_AND_POWER_V2",
+  "framing": "DIAGNOSTIC_ONLY__ALREADY_CONSUMED_R10_4_TRAIN_CACHE__NO_NEW_DATA__NO_FINAL__NO_NEW_VERDICT__NO_AUTHORITY_CHANGE",
+  "defects_fixed": [
+    "D1_self_match",
+    "D2_mask_units",
+    "D3_level_correction",
+    "D4_shared_seed",
+    "D4b_gate_reimplementation"
+  ],
+  "power": {
+    "geometry": [
+      [
+        29,
+        290
+      ],
+      [
+        28,
+        274
+      ],
+      [
+        28,
+        280
+      ],
+      [
+        28,
+        280
+      ],
+      [
+        28,
+        280
+      ]
+    ],
+    "summary": {
+      "r2=0.02": {
+        "replicates": 6,
+        "gate_pass_count": 3,
+        "gate_pass_rate": 0.5,
+        "median_positive_fold_count": 4.0,
+        "median_beats_median_fold_count": 5.0,
+        "median_pairwise_wins": 25.0,
+        "distinct_per_fold_streams": true,
+        "per_fold_relative_gain_median": [
+          0.0015971978429524655,
+          0.0015563475682275714,
+          0.0022784101373078142,
+          0.001424473433614148,
+          0.0010863080754151535
+        ]
+      },
+      "r2=0.05": {
+        "replicates": 6,
+        "gate_pass_count": 6,
+        "gate_pass_rate": 1.0,
+        "median_positive_fold_count": 5.0,
+        "median_beats_median_fold_count": 5.0,
+        "median_pairwise_wins": 25.0,
+        "distinct_per_fold_streams": true,
+        "per_fold_relative_gain_median": [
+          0.01443560617796515,
+          0.012979578844927031,
+          0.015733252391305054,
+          0.015863313737898215,
+          0.016728852990846615
+        ]
+      },
+      "r2=0.1": {
+        "replicates": 6,
+        "gate_pass_count": 6,
+        "gate_pass_rate": 1.0,
+        "median_positive_fold_count": 5.0,
+        "median_beats_median_fold_count": 5.0,
+        "median_pairwise_wins": 25.0,
+        "distinct_per_fold_streams": true,
+        "per_fold_relative_gain_median": [
+          0.04551185701107906,
+          0.04403890407359775,
+          0.04052860021610745,
+          0.04129468281073148,
+          0.04220726538901868
+        ]
+      },
+      "r2=0.2": {
+        "replicates": 6,
+        "gate_pass_count": 6,
+        "gate_pass_rate": 1.0,
+        "median_positive_fold_count": 5.0,
+        "median_beats_median_fold_count": 5.0,
+        "median_pairwise_wins": 25.0,
+        "distinct_per_fold_streams": true,
+        "per_fold_relative_gain_median": [
+          0.0991566536727409,
+          0.08854079900435055,
+          0.09675009462315903,
+          0.09228068633553392,
+          0.09538993264605597
+        ]
+      },
+      "r2=0.4": {
+        "replicates": 6,
+        "gate_pass_count": 6,
+        "gate_pass_rate": 1.0,
+        "median_positive_fold_count": 5.0,
+        "median_beats_median_fold_count": 5.0,
+        "median_pairwise_wins": 25.0,
+        "distinct_per_fold_streams": true,
+        "per_fold_relative_gain_median": [
+          0.19941702343348972,
+          0.19252234455966824,
+          0.19696567261266312,
+          0.20629741083413988,
+          0.19861895385919565
+        ]
+      }
+    },
+    "trials": [
+      {
+        "r2": 0.02,
+        "replicate": 0,
+        "local_map_supported": true,
+        "positive_gain_folds": 4,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.0030786642268355734,
+          -3.602878834025942e-05,
+          0.001750550752762145,
+          0.0006819293458573532,
+          0.002186344607913197
+        ],
+        "per_fold_shift_median_relative": [
+          -0.003974047869767077,
+          -0.0041814267483497826,
+          -0.004928467141464414,
+          -0.004314292170320246,
+          -0.006590294442809612
+        ]
+      },
+      {
+        "r2": 0.02,
+        "replicate": 1,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.0003013685541552298,
+          0.00010945710323992111,
+          0.0034642449634609057,
+          0.0016291015121828623,
+          0.003926991777670291
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005795497166912047,
+          -0.005967941174961616,
+          -0.0049380292986607325,
+          -0.0034236502449119994,
+          -0.005013667908051069
+        ]
+      },
+      {
+        "r2": 0.02,
+        "replicate": 2,
+        "local_map_supported": false,
+        "positive_gain_folds": 4,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": false,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.0005671598959424232,
+          0.0048272271187997165,
+          0.002850878411966138,
+          0.0016643976305448804,
+          -0.0020949045741768322
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005805552274281696,
+          -0.005467772715207405,
+          -0.004848292648261615,
+          -0.00544059796215827,
+          -0.004943106652732781
+        ]
+      },
+      {
+        "r2": 0.02,
+        "replicate": 3,
+        "local_map_supported": false,
+        "positive_gain_folds": 3,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": false,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.001671555011631138,
+          0.0031407015491483497,
+          -0.0009089726106686862,
+          -0.0017582210479579856,
+          0.0004931085469266381
+        ],
+        "per_fold_shift_median_relative": [
+          -0.004898786959417069,
+          -0.0051077458822748134,
+          -0.004961829288281166,
+          -0.0045149529551753685,
+          -0.005336913171838043
+        ]
+      },
+      {
+        "r2": 0.02,
+        "replicate": 4,
+        "local_map_supported": false,
+        "positive_gain_folds": 3,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": false,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.0015228406742737932,
+          0.0030032380332152215,
+          -0.0008600603337972154,
+          0.0012198453550454334,
+          -0.0004424935515923533
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005193076332469795,
+          -0.004728472325170928,
+          -0.0048608096085565955,
+          -0.004774599522183375,
+          -0.004713098813886302
+        ]
+      },
+      {
+        "r2": 0.02,
+        "replicate": 5,
+        "local_map_supported": true,
+        "positive_gain_folds": 4,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.004677894192793285,
+          -0.00044719722207902486,
+          0.0028062695218534833,
+          0.0016457297658784829,
+          0.0016795076039036688
+        ],
+        "per_fold_shift_median_relative": [
+          -0.004772490952359829,
+          -0.00353859011005045,
+          -0.0048269759828964195,
+          -0.00621808132093221,
+          -0.004170483470604564
+        ]
+      },
+      {
+        "r2": 0.05,
+        "replicate": 0,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.012047663172829041,
+          0.011578782526557235,
+          0.009648706782795599,
+          0.016222370256413484,
+          0.017325025519314405
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005625027586468761,
+          -0.006629504576455663,
+          -0.005213568468449347,
+          -0.005992153065861715,
+          -0.005645597198163963
+        ]
+      },
+      {
+        "r2": 0.05,
+        "replicate": 1,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.017094039635712266,
+          0.016148864603918185,
+          0.014579865129795401,
+          0.015756362881836565,
+          0.009904614813213869
+        ],
+        "per_fold_shift_median_relative": [
+          -0.004618068978494987,
+          -0.005472042256950511,
+          -0.005949808333741826,
+          -0.005144021801977344,
+          -0.0039978409730546186
+        ]
+      },
+      {
+        "r2": 0.05,
+        "replicate": 2,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.01426016788978229,
+          0.013057542552701818,
+          0.019164557807599347,
+          0.014483133142420255,
+          0.01613268046237883
+        ],
+        "per_fold_shift_median_relative": [
+          -0.004568110252828694,
+          -0.005521789058307888,
+          -0.00491965326798246,
+          -0.0056966758274447065,
+          -0.005292012035524026
+        ]
+      },
+      {
+        "r2": 0.05,
+        "replicate": 3,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.01461104446614801,
+          0.012175701347556056,
+          0.02081021289540197,
+          0.015175833483973774,
+          0.014563647245184868
+        ],
+        "per_fold_shift_median_relative": [
+          -0.004323124353588356,
+          -0.007034770000920524,
+          -0.00649391876890914,
+          -0.004149150088728488,
+          -0.005989047914176997
+        ]
+      },
+      {
+        "r2": 0.05,
+        "replicate": 4,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.014901602865800403,
+          0.012901615137152244,
+          0.01688663965281471,
+          0.015970264593959865,
+          0.01761038694655656
+        ],
+        "per_fold_shift_median_relative": [
+          -0.0058127527346136,
+          -0.004956552171226569,
+          -0.004563083699194609,
+          -0.006358918345309557,
+          -0.0050514468875406315
+        ]
+      },
+      {
+        "r2": 0.05,
+        "replicate": 5,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.013902296829926842,
+          0.014219394510562098,
+          0.013953813068439675,
+          0.019900428995182136,
+          0.017926940924135316
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005213656477694842,
+          -0.005529453148263077,
+          -0.004609860721924385,
+          -0.005524771679042412,
+          -0.004519743358450023
+        ]
+      },
+      {
+        "r2": 0.1,
+        "replicate": 0,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.047147759305167534,
+          0.04738909654695928,
+          0.040908777249542366,
+          0.04546165614562471,
+          0.050443438196783735
+        ],
+        "per_fold_shift_median_relative": [
+          -0.0057234534533265905,
+          -0.0067662271252162745,
+          -0.0037814115308829393,
+          -0.0068639346996614186,
+          -0.00589108257700631
+        ]
+      },
+      {
+        "r2": 0.1,
+        "replicate": 1,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.04551980597743944,
+          0.03549622058896102,
+          0.038452874436664175,
+          0.037849929342377006,
+          0.04298831404410196
+        ],
+        "per_fold_shift_median_relative": [
+          -0.006570682002953698,
+          -0.00543629412544467,
+          -0.006495186888544068,
+          -0.004847353959567994,
+          -0.005585879437932428
+        ]
+      },
+      {
+        "r2": 0.1,
+        "replicate": 2,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.04587476992290202,
+          0.045100898904848905,
+          0.0394027373656286,
+          0.03778494902169738,
+          0.04157860979474269
+        ],
+        "per_fold_shift_median_relative": [
+          -0.004145144048158942,
+          -0.006272031747660806,
+          -0.0032558504890053976,
+          -0.005995826586126361,
+          -0.0055670617873221275
+        ]
+      },
+      {
+        "r2": 0.1,
+        "replicate": 3,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.0384164688351849,
+          0.045237709692637365,
+          0.040148423182672525,
+          0.03963856225410756,
+          0.04177633136049347
+        ],
+        "per_fold_shift_median_relative": [
+          -0.008030065836210663,
+          -0.005109998498519477,
+          -0.007507530252768196,
+          -0.005665160746527174,
+          -0.007330760487121047
+        ]
+      },
+      {
+        "r2": 0.1,
+        "replicate": 4,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.04290856763863364,
+          0.04152268322154956,
+          0.041484441354284494,
+          0.0429508033673554,
+          0.04263819941754389
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005290533794456946,
+          -0.007558599811383093,
+          -0.004994788702437537,
+          -0.0047905426471121166,
+          -0.0064710910446858635
+        ]
+      },
+      {
+        "r2": 0.1,
+        "replicate": 5,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.045503908044718676,
+          0.042976909242346595,
+          0.046634053080695174,
+          0.04756355860153738,
+          0.03657976617692583
+        ],
+        "per_fold_shift_median_relative": [
+          -0.005907261528058492,
+          -0.004344593060555945,
+          -0.0056418182992622554,
+          -0.004985524912126083,
+          -0.004980070312305028
+        ]
+      },
+      {
+        "r2": 0.2,
+        "replicate": 0,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.09938754227342614,
+          0.10648546831679066,
+          0.09816375462461341,
+          0.08671275082649255,
+          0.10063060489003112
+        ],
+        "per_fold_shift_median_relative": [
+          -0.00785124587357497,
+          -0.00615418934899638,
+          -0.010876208447781595,
+          -0.003963827552849727,
+          -0.007445283773408818
+        ]
+      },
+      {
+        "r2": 0.2,
+        "replicate": 1,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.10067571269639468,
+          0.09031567356664852,
+          0.10172973495181037,
+          0.10098636688784642,
+          0.09139350434622678
+        ],
+        "per_fold_shift_median_relative": [
+          -0.006305135861304997,
+          -0.008337518898139792,
+          -0.004834255057060923,
+          -0.008603423829879655,
+          -0.007101453201299981
+        ]
+      },
+      {
+        "r2": 0.2,
+        "replicate": 2,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.08501579576859768,
+          0.08847689375630273,
+          0.08072543606503428,
+          0.09240582427692902,
+          0.09798922122452583
+        ],
+        "per_fold_shift_median_relative": [
+          -0.0077272636611608585,
+          -0.007813332423813978,
+          -0.0069963150815913686,
+          -0.008653583101749091,
+          -0.0038352994289453618
+        ]
+      },
+      {
+        "r2": 0.2,
+        "replicate": 3,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.09892576507205565,
+          0.08860470425239839,
+          0.09745153380717449,
+          0.08877994312777109,
+          0.0927906440675861
+        ],
+        "per_fold_shift_median_relative": [
+          -0.0031231318872165805,
+          -0.007033694911091322,
+          -0.00784977593008024,
+          -0.007371824130334439,
+          -0.007795315086505841
+        ]
+      },
+      {
+        "r2": 0.2,
+        "replicate": 4,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.09706303818396164,
+          0.07909122539302661,
+          0.09604865543914357,
+          0.0946824624388632,
+          0.0857928825342829
+        ],
+        "per_fold_shift_median_relative": [
+          -0.006868714250945071,
+          -0.0072892992066540515,
+          -0.006935479039647561,
+          -0.005681662284454311,
+          -0.005535632865737147
+        ]
+      },
+      {
+        "r2": 0.2,
+        "replicate": 5,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.10015712957731247,
+          0.08394827066374509,
+          0.08094237447756765,
+          0.09215554839413882,
+          0.10640331126908995
+        ],
+        "per_fold_shift_median_relative": [
+          -0.007327605656864041,
+          -0.004362679954934646,
+          -0.005909285213264516,
+          -0.005232681974408754,
+          -0.006474707304914976
+        ]
+      },
+      {
+        "r2": 0.4,
+        "replicate": 0,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.20478469877006017,
+          0.18580378841819914,
+          0.19015957109761447,
+          0.20893536509466823,
+          0.18740672087450333
+        ],
+        "per_fold_shift_median_relative": [
+          -0.009846798788050278,
+          -0.010729535244261268,
+          -0.00724525498369498,
+          -0.007742201627171299,
+          -0.003335098735266934
+        ]
+      },
+      {
+        "r2": 0.4,
+        "replicate": 1,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.21322537489352078,
+          0.2040437788671103,
+          0.2063175388448665,
+          0.20502722853288438,
+          0.19289046193118276
+        ],
+        "per_fold_shift_median_relative": [
+          -0.012414657908843295,
+          -0.0024842725470013947,
+          -0.016916705285853977,
+          -0.009859189142532993,
+          -0.009006821180439814
+        ]
+      },
+      {
+        "r2": 0.4,
+        "replicate": 2,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.18230620846655038,
+          0.20026172155757194,
+          0.20493516317401927,
+          0.20901871349608397,
+          0.21304760118621355
+        ],
+        "per_fold_shift_median_relative": [
+          -0.014648890216191507,
+          -0.010592905558438519,
+          -0.010611539583728324,
+          -0.009237875776635363,
+          -0.01016004544465677
+        ]
+      },
+      {
+        "r2": 0.4,
+        "replicate": 3,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.20024073918104301,
+          0.19924090070113734,
+          0.18505110566826238,
+          0.20116471193811228,
+          0.20184487125700723
+        ],
+        "per_fold_shift_median_relative": [
+          -0.002676952201691462,
+          -0.00925329615089744,
+          -0.013717989853559253,
+          -0.014239370975312181,
+          -0.005083397319591371
+        ]
+      },
+      {
+        "r2": 0.4,
+        "replicate": 4,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.19297224863688278,
+          0.16911011938650533,
+          0.19998775872882418,
+          0.19573215244621248,
+          0.19599471303722948
+        ],
+        "per_fold_shift_median_relative": [
+          -0.012206622113253181,
+          -0.013660703396406727,
+          -0.011620310458238995,
+          -0.010547737492293676,
+          -0.012048624024304566
+        ]
+      },
+      {
+        "r2": 0.4,
+        "replicate": 5,
+        "local_map_supported": true,
+        "positive_gain_folds": 5,
+        "beats_shift_median_folds": 5,
+        "pairwise_wins_of_25": 25,
+        "both_late_positive": true,
+        "both_late_beats_median": true,
+        "per_fold_relative_gain": [
+          0.1985933076859364,
+          0.17573626127910008,
+          0.19394358649650206,
+          0.20756759313539538,
+          0.20124319468116178
+        ],
+        "per_fold_shift_median_relative": [
+          -0.0052566636169462215,
+          -0.0035139410544472987,
+          -0.015755936174390545,
+          -0.009309573469303015,
+          -0.006329227512437908
+        ]
+      }
+    ],
+    "criterion": "FROZEN: pos>=4/5 AND pos in folds 4,5 AND beats_shift_median>=4/5 AND in folds 4,5 AND pairwise>=20/25 (classify_h516 verbatim)"
+  }
+}
