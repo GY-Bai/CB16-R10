@@ -1,0 +1,90 @@
+{
+  "schema": "CB16_R11_FULL_MINUTE_LONG_TRAJECTORY_R1_SPEC_V1",
+  "status": "FROZEN_BEFORE_R1_FOUNDATION_EXECUTION",
+  "classification": "NEW_EXPERIMENTAL_LINEAGE__R0_HISTORY_IMMUTABLE",
+  "parent_branch": "ai/r11-full-minute-historical-replay-r0",
+  "parent_head_before_r1": "08af700258920609111d063bc32ebf4e5f4131da",
+  "purpose": "Qualify a causal 1-minute chronological zipper trajectory from available historical start through the pre-FINAL boundary with path-dependent account state, halt-style internal-gap semantics, and time-serial/batch-parallel execution.",
+  "historical_status": {
+    "r0_receipt_immutable": true,
+    "r0_gap_semantics_not_retroactively_rewritten": true,
+    "market_verdict_unchanged": "DISTRIBUTIONAL_MARKET_INFORMATION_NOT_QUALIFIED__TRUE_WORSE_THAN_SHUFFLE",
+    "final_holdout_start_utc": "2025-09-01T00:00:00Z",
+    "final_holdout_payload_opened": false,
+    "fresh_market_download": "FORBIDDEN"
+  },
+  "trajectory_semantics": {
+    "decision_cadence": "1 minute",
+    "chronology": "strictly increasing; no random clip reset in status-driving long-trajectory experiments",
+    "state_recurrence": "Account[t+1] is produced only after Action[t] is frozen and transition t->t+1 is realized",
+    "account_reset_each_window": false,
+    "account_reset_at_internal_data_gap": false,
+    "checkpoint_restart": "must restore exact terminal account/runtime state; restart-from-default is forbidden",
+    "optimizer_batching_may_reorder_stored_training_evidence": true,
+    "environment_time_may_not_be_reordered": true
+  },
+  "internal_gap_halt_model": {
+    "scope": "internal gaps bracketed by two observed 1-minute records for the same listed asset",
+    "scientific_interpretation": "simulation convention analogous to a trading halt; not a factual claim that the exchange price truly remained constant",
+    "price_source": "last observed close strictly before the gap",
+    "forbidden_price_source": "first post-gap/reopening price or any later payload",
+    "imputed_ohlc": "open=high=low=close=last_pre_gap_close for each missing minute",
+    "imputed_volume": 0.0,
+    "imputed_quote_volume": 0.0,
+    "imputed_trade_count": 0,
+    "imputed_taker_volumes": 0.0,
+    "reopening": "first observed post-gap minute remains untouched and may jump",
+    "pre_listing_fill": "FORBIDDEN",
+    "post_history_open_ended_fill": "FORBIDDEN",
+    "audit_flag": "halt_imputed; audit/provenance only and forbidden as an extra Student feature",
+    "new_entry_during_halt": "FORBIDDEN",
+    "forced_exit_during_halt": "FORBIDDEN until a halt-compatible Physics adapter is parity-qualified",
+    "funding": "only archived funding observations may be applied; no synthetic funding"
+  },
+  "causal_firewall": {
+    "decision_indexing": "observation at decision t may contain only market data with timestamp <= t and Account[t] computed from the prefix ending before transition t->t+1",
+    "future_market_in_student_input": false,
+    "future_account_in_student_input": false,
+    "teacher_future_in_student_input": false,
+    "action_t_must_be_frozen_before_next_transition_payload": true,
+    "account_t_plus_1_may_exist_only_after_action_t": true,
+    "future_suffix_mutation_invariance_required": true,
+    "reopening_price_mutation_invariance_for_pre_reopen_gap_bars_required": true,
+    "gradient_from_future_or_physics_into_student_input": "FORBIDDEN"
+  },
+  "vectorization_contract": {
+    "time_axis": "causal scan; inherently sequential for one path-dependent account",
+    "parallel_axes": ["assets at the same UTC clock", "independent account replicas", "counterfactual action branches for target-side evidence"],
+    "market_encoding": "compute once per (asset,timestamp) and broadcast across account/action replicas where semantics permit",
+    "physics_reference": "existing FrozenTradingKernel is scalar authority; any batched Physics adapter must prove parity against it before scientific use",
+    "training": "stored causal evidence may be minibatched on GPU; minibatch order is not trajectory order",
+    "required_parity": "batched environment result must equal scalar reference account-by-account for identical inputs"
+  },
+  "learning_semantics": {
+    "outcome_as_correct_action_label": "FORBIDDEN",
+    "winner_only_retention": "FORBIDDEN",
+    "all_losses_and_errors_retained": true,
+    "r11_teacher": "allowed only through current probabilistic/cross-fit authority or a separately preregistered experimental objective",
+    "teacher_target_self_future_leak": "FORBIDDEN",
+    "requested_risk_is_confidence": false
+  },
+  "foundation_gates": [
+    "HALT_FILL_USES_PREFIX_PRICE_ONLY",
+    "HALT_ZERO_VOLUME",
+    "REOPENING_BAR_UNMODIFIED",
+    "NO_PRELISTING_FILL",
+    "ACCOUNT_NOT_RESET_BY_INTERNAL_GAP",
+    "FUTURE_SUFFIX_MUTATION_INVARIANCE",
+    "FUTURE_ACCOUNT_POISON_INVARIANCE",
+    "CHECKPOINT_CONTINUATION_EXACT",
+    "BATCH_AXIS_EQUALS_SCALAR_REFERENCE",
+    "FINAL_FIREWALL_CLOSED"
+  ],
+  "failure_taxonomy": {
+    "causality_or_future_leak": "EXECUTION_BLOCKED__FUTURE_LEAK_OR_CAUSAL_ORDER_VIOLATION",
+    "halt_semantic_mismatch": "EXECUTION_BLOCKED__HALT_MODEL_CONTRACT_FAILURE",
+    "batched_physics_mismatch": "EXECUTION_BLOCKED__VECTORIZED_PHYSICS_PARITY_FAILURE",
+    "missing_legal_feedback_binding": "EXECUTION_BLOCKED__PER_MINUTE_FEEDBACK_BINDING_MISSING",
+    "valid_learning_failure_after_all_required_gates": "SCIENTIFIC_FAIL"
+  }
+}
