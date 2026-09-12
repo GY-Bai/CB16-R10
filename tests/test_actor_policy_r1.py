@@ -23,11 +23,16 @@ from cb16_local_opt.actor_policy_r1 import (
     ActorPolicyR1,
     ConditionalBoundedRiskR1,
     DirectionCategoricalR1,
+    JointNominalActionLikelihoodR1,
     RiskLikelihoodTermR1,
+    SampledNominalActionR1,
+    joint_nominal_action_likelihood_r1,
     make_actor_policy_distribution_identity_r1,
     make_conditional_bounded_risk_r1,
     make_direction_categorical_r1,
     make_policy_tensor_contract_r1,
+    recompute_sampled_log_mu_r1,
+    sample_nominal_action_r1,
     validate_actor_policy_interface_r1,
     validate_actor_policy_observation_r1,
     validate_policy_action_binding_r1,
@@ -75,7 +80,7 @@ def _observation():
 def _identity(*, device_type="cpu", device_index=None, dtype="float32"):
     return make_actor_policy_distribution_identity_r1(
         distribution_id="round2-actor-distribution",
-        distribution_version="ENDPOINT_SEMANTICS_BC037",
+        distribution_version="JOINT_NOMINAL_ACTION_BC038",
         policy_id="behavior-policy",
         policy_version="v1",
         policy_sha256="a" * 64,
@@ -111,7 +116,7 @@ def _conditional_risk(
 
 
 class StubPolicy(ActorPolicyR1):
-    """Interface fixture; BC-038 still owns joint nominal-action likelihood."""
+    """Interface fixture; component-level joint likelihood is tested separately."""
 
     def __init__(self, identity: ActorPolicyDistributionIdentityR1 | None = None) -> None:
         self._identity = _identity() if identity is None else identity
@@ -627,10 +632,183 @@ def test_conditional_risk_log_prob_retains_gradient_paths() -> None:
     assert short_log_scale.grad is None
 
 
-def test_bc037_does_not_predefine_bc038_joint_likelihood() -> None:
-    risk_source = inspect.getsource(ConditionalBoundedRiskR1)
-    term_source = inspect.getsource(RiskLikelihoodTermR1)
-    for source in (risk_source, term_source):
-        assert "joint_log_prob" not in source
-        assert "log_mu" not in source
-        assert "direction_log_prob" not in source
+def test_bc038_joint_known_answers_and_flat_has_no_risk_density() -> None:
+    direction = _direction_distribution((0.2, 0.3, 0.5))
+    risk = _conditional_risk(
+        short_location=0.0,
+        short_log_scale=0.0,
+        long_location=0.0,
+        long_log_scale=0.0,
+    )
+    identity = _identity()
+    interior_risk_log = math.log(4.0) - 0.5 * math.log(2.0 * math.pi)
+
+    long_action = make_target_position_action_r1(
+        action_id="long-half",
+        policy_id=identity.policy_id,
+        policy_version=identity.policy_version,
+        target_direction=LONG,
+        requested_target_risk=0.5,
+    )
+    long_joint = joint_nominal_action_likelihood_r1(
+        direction_distribution=direction,
+        risk_distribution=risk,
+        action=long_action,
+    )
+    assert isinstance(long_joint, JointNominalActionLikelihoodR1)
+    assert long_joint.risk_likelihood.measure_kind == CONTINUOUS_DENSITY
+    assert long_joint.joint_log_likelihood.item() == pytest.approx(
+        math.log(0.5) + interior_risk_log,
+        rel=1e-6,
+        abs=1e-6,
+    )
+
+    flat_action = make_target_position_action_r1(
+        action_id="flat",
+        policy_id=identity.policy_id,
+        policy_version=identity.policy_version,
+        target_direction=FLAT,
+        requested_target_risk=0.0,
+    )
+    flat_joint = joint_nominal_action_likelihood_r1(
+        direction_distribution=direction,
+        risk_distribution=risk,
+        action=flat_action,
+    )
+    assert flat_joint.risk_likelihood.measure_kind == POINT_MASS
+    assert flat_joint.risk_likelihood.log_likelihood.item() == 0.0
+    assert flat_joint.joint_log_likelihood.item() == pytest.approx(math.log(0.3), rel=1e-6)
+
+
+def test_bc038_nonflat_zero_mass_endpoint_makes_joint_log_likelihood_negative_infinity() -> None:
+    direction = _direction_distribution()
+    risk = _conditional_risk()
+    identity = _identity()
+    for direction_name in (SHORT, LONG):
+        for endpoint in (0.0, 1.0):
+            action = make_target_position_action_r1(
+                action_id=f"{direction_name}-{endpoint}",
+                policy_id=identity.policy_id,
+                policy_version=identity.policy_version,
+                target_direction=direction_name,
+                requested_target_risk=endpoint,
+            )
+            joint = joint_nominal_action_likelihood_r1(
+                direction_distribution=direction,
+                risk_distribution=risk,
+                action=action,
+            )
+            assert joint.risk_likelihood.measure_kind == POINT_MASS
+            assert joint.joint_log_likelihood.item() == float("-inf")
+
+
+def test_bc038_sampled_log_mu_exactly_matches_later_recomputation() -> None:
+    identity = _identity()
+    direction = _direction_distribution()
+    risk = _conditional_risk()
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(20260912)
+
+    saw_flat = False
+    saw_nonflat = False
+    for index in range(64):
+        sample = sample_nominal_action_r1(
+            identity=identity,
+            direction_distribution=direction,
+            risk_distribution=risk,
+            action_id=f"sample-{index}",
+            generator=generator,
+        )
+        assert isinstance(sample, SampledNominalActionR1)
+        assert sample.behavior_policy_sha256 == identity.policy_sha256
+        assert sample.distribution_identity_sha256 == identity.semantic_sha256
+        recomputed = recompute_sampled_log_mu_r1(
+            sample=sample,
+            identity=identity,
+            direction_distribution=direction,
+            risk_distribution=risk,
+        )
+        assert torch.equal(sample.log_mu, recomputed)
+        saw_flat |= sample.action.target_direction == FLAT
+        saw_nonflat |= sample.action.target_direction in (SHORT, LONG)
+    assert saw_flat
+    assert saw_nonflat
+
+
+def test_bc038_recomputation_fails_closed_on_behavior_checkpoint_identity_change() -> None:
+    identity = _identity()
+    direction = _direction_distribution()
+    risk = _conditional_risk()
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(42)
+    sample = sample_nominal_action_r1(
+        identity=identity,
+        direction_distribution=direction,
+        risk_distribution=risk,
+        action_id="frozen",
+        generator=generator,
+    )
+
+    changed_checkpoint = replace(identity, policy_sha256="b" * 64)
+    with pytest.raises(RuntimeError, match="BEHAVIOR_CHECKPOINT_HASH_MISMATCH"):
+        recompute_sampled_log_mu_r1(
+            sample=sample,
+            identity=changed_checkpoint,
+            direction_distribution=direction,
+            risk_distribution=risk,
+        )
+
+    changed_identity = replace(identity, distribution_version="OTHER")
+    with pytest.raises(RuntimeError, match="DISTRIBUTION_IDENTITY_MISMATCH"):
+        recompute_sampled_log_mu_r1(
+            sample=sample,
+            identity=changed_identity,
+            direction_distribution=direction,
+            risk_distribution=risk,
+        )
+
+
+def test_bc038_joint_tampering_and_tensor_contract_mismatch_fail_closed() -> None:
+    identity = _identity()
+    direction = _direction_distribution()
+    risk = _conditional_risk()
+    action = make_target_position_action_r1(
+        action_id="joint",
+        policy_id=identity.policy_id,
+        policy_version=identity.policy_version,
+        target_direction=LONG,
+        requested_target_risk=0.6,
+    )
+    joint = joint_nominal_action_likelihood_r1(
+        direction_distribution=direction,
+        risk_distribution=risk,
+        action=action,
+    )
+    with pytest.raises(RuntimeError, match="JOINT_LOG_LIKELIHOOD_MISMATCH"):
+        replace(
+            joint,
+            joint_log_likelihood=joint.joint_log_likelihood + torch.tensor(1.0),
+        ).validate()
+
+    cpu64 = make_policy_tensor_contract_r1(device_type="cpu", dtype="float64")
+    risk64 = make_conditional_bounded_risk_r1(
+        short_location=torch.tensor(0.0, dtype=torch.float64),
+        short_log_scale=torch.tensor(0.0, dtype=torch.float64),
+        long_location=torch.tensor(0.0, dtype=torch.float64),
+        long_log_scale=torch.tensor(0.0, dtype=torch.float64),
+        tensor_contract=cpu64,
+    )
+    with pytest.raises(RuntimeError, match="JOINT_COMPONENT_CONTRACT_MISMATCH"):
+        joint_nominal_action_likelihood_r1(
+            direction_distribution=direction,
+            risk_distribution=risk64,
+            action=action,
+        )
+
+
+def test_bc038_still_does_not_serialize_rng_state() -> None:
+    source = inspect.getsource(actor_policy_module)
+    assert "get_state" not in source
+    assert "set_state" not in source
+    assert "rng_position" not in source
+    assert "trajectory_rng" not in source
