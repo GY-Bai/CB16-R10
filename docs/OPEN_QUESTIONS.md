@@ -1,57 +1,49 @@
 # 未决问题与建议
 
-截至 2026-09-12。未决项不阻止当前文档交付；仅在后续任务依赖该选择时向用户确认。不要重新询问已明确的“高风险但更高长期期望收益是否允许赢”。
+截至 2026-09-12，CC R11 integration 已以 PR #99 合入 `main`。当前机器可读 authority 为：
 
-## O-01 精确经济目标与基准组合
+- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
+- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
 
-已明确：长期期望收益取向，比较 buy-and-hold 和不开仓。
+本页只保留**仍需要项目 owner 决定、且不能由实现 Agent 自行推导**的问题。已经被 CC 合同、qualification 或工程实现关闭的旧问题，不再继续列作 owner-open。
 
-待定：收益用净值比、净收益率还是其他量？主排序如何组合两个基准？是否要求同时超过两者？不同资产、起始账户和时间如何加权？观察时域如何延长？
+## O-01 Buy-and-Hold 与 FLAT 冲突时的 master precedence — 未决
 
-候选建议：先并列报告两个超额收益及整体分布，再由用户确定主排序；不能事后选有利口径。期望收益与期望 log-growth 不得互换。
+已明确：
 
-## O-02 失败轨迹的训练用途 — 原则已关闭，方法设计中
+- 经济方向仍以长期算术期望收益为主；完整失败进入分母。
+- Buy-and-Hold 与全程 FLAT 都是正式 component baseline。
+- Thread C 已实现各 component outcome 的独立计算与报告。
+- Integration 明确禁止在两个 baseline component 发生冲突时自行制造统一 master winner。
 
-2026-09-12 用户已明确允许：保留成功与失败完整经历，优胜示范另筛，并允许失败参与长期后果学习。不再提问这一原则。
+仍待 owner 决定：
 
-具体提案见 [TRAINING_ALGORITHM_R0](TRAINING_ALGORITHM_R0.md)：V-trace 序列回放 Actor–Critic，失败参与价值和策略更新，旧经验须满足概率与执行语义合同。完整方法尚未获训练资格证据；不要预设正负各半，也不要将失败中的所有动作判错。
+> 当 Buy-and-Hold 与 FLAT component outcomes 给出互相冲突的胜负时，哪个 baseline 拥有 master precedence，或者是否采用另一个显式组合规则？
 
-后续需在实际任务中固定采样、权重和存储协议，无需重新请求原则许可。
+在此决定出现前：
 
-## O-03 环境机制与人工风险策略的边界
+- evaluator 可以分别给出 B&H delta 与 FLAT delta；
+- component 级 measurement 可以完成；
+- promotion/master-winner 层必须返回 `UNRESOLVED_OWNER_DECISION` 或等价 fail-closed 状态；
+- 不得事后选择更容易获胜的 baseline；
+- 不得用 Sharpe、log-growth、drawdown 或 survival 替代这项 owner decision。
 
-已明确：用户希望风险取舍由模型学习，同时交易环境必须可信。
+## 已不再属于 owner-open 的旧问题
 
-待定：现有 Supervisor/Physics 中的风险限制、止盈止损、时间退出、动作合法性规则，哪些是执行现实必须存在，哪些是会替模型决策的历史设计？
+下列内容仍可能在未来实验中成为**预注册参数或版本化工程选择**，但不再是当前 CC canonical 运行的未决 owner 原则：
 
-下一步应先做字段和行为清单，不能直接删除 Supervisor，也不能用“它被冻结了”终止理念讨论。本轮不修改执行机制。
-
-最初核实的是旧冻结链的持仓 FORCED_NOOP 限制。后续 main `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2` 已实现新目标动作协议、持仓调整许可、先平后开的反转契约和机械目标数量映射。因此不再笼统重复询问是否允许模型持仓调整；当前需核对其实际执行连接，以及各强制限制的来源。新版本已有设计选择，不等于所有外部风险上限已被用户逐项确认。详见 [组件要求](COMPONENT_REQUIREMENTS.md) 和 [当前状态](CURRENT_STATE.md)。
-
-## O-04 示范与自主连续探索的先后关系
-
-已明确：最终必须包含策略驱动的新账户轨迹，固定示范可以提供经验。
-
-待定：当前 71 块固定 flat/H72 示范生产是否先完成，还是优先验证最小连续账户闭环，或另有依赖关系？本轮文档未批准全量生产或改造。
-
-需要证据：实际账户接续、多次 Brain 决策、合法恢复、产生经验、学习更新、下一代实际使用。不能只以 throughput 或分片数量回答此问题。
-
-## O-05 长期反馈与策略记忆
-
-已明确：账户尽可能持续，计算分片不抹除后果。
-
-已提出有界目标下 gamma=1、固定初始资本归一化净值增量和 V-trace 的具体方案，见 [算法设计](TRAINING_ALGORITHM_R0.md)。待定：精确 T、无限期目标的数学定义、数据末尾与清算后责任的合同、模型所需历史表示。AccountState6 是否足够，需验证而非猜测；已有部分接口实现，完整算法与长期后果学习仍待验证。
-
-## O-06 真实模拟账户的换代流程
-
-已明确：固定 checkpoint 运行，积累经历后训练下一代。
-
-待定：更新周期、候选比较、由谁批准切换、失败回滚、账户与策略历史接续、历史经验混合。未来模拟账户路线不等于现在已授权接入 fresh data、FINAL 或实盘。
-
-## 确认后的处理
-
-记录日期和用户决定，更新 DECISIONS 及相关原则。若涉及运行语义，另行完成适用 authority 和实现迁移；不能只在本页把“待定”改成“完成”而忽略代码与证据。
+- 失败轨迹是否允许学习：已关闭，允许；完整事实保留，失败可参与长期后果学习。
+- 持仓后能否主动减仓/退出/反转：CC action/runtime 已实现并完成 synthetic qualification。
+- 固定 SL/TP/max-hold/cooldown 是否作为 canonical autonomous policy：已关闭为否；不能作为隐藏策略偏好重新进入 canonical CC。
+- 账户是否跨 chunk/pause/checkpoint generation 持续：已关闭为是，并已通过 closed-loop/recovery qualification。
+- stochastic Actor、true `log_mu`、Critic/V-trace、exactly-once learner update 是否已接线：已完成 synthetic closed-loop qualification。
+- 四线程与性能 hard cutover 的组织方式：已完成并合入 main；legacy broker/farm/vectorized runtime 不属于 canonical CC fallback。
+- 精确历史经济实验的 horizon `T`、cohort weighting、训练 budget、replay mixture、sequence length 等：这些在相应科学 run 前按该 run 预注册，不在本页提前固定，也不因此阻塞当前 canonical runtime。
+- policy memory 是否最终需要：由后续 state-sufficiency / representation evidence 驱动；不是当前必须由 owner 主观选择的原则问题。
+- 真实模拟账户的更新频率、晋升、回滚和部署权限：属于未来阶段 authority；当前 CC integration 不自动授权 fresh data、FINAL 或实盘。
 
 ## 问题提交纪律
 
-常规接口编码、文件布局和已有任务拆解由 sol 在授权内处理，不提交为最高理念问题。若涉及精确经济人群/权重/时域、额外风险偏好或真实模拟账户晋升范围，应先完成可审阅的具体建议，再说明选择会改变什么。已有实现选择与用户明确确认分别记录，不能仅凭 commit 标题补写用户批准。
+Agent 只有在某个选择会改变用户已经确认的目标、经济 master ranking 含义或未来部署权限时，才应把问题重新提交给 owner。
+
+普通接口编码、性能拓扑、模型容量、batch、worker、训练预算等工程/实验参数，在已有语义边界内由任务自己预注册和验证；不得把常规实现选择伪装成需要 owner 反复批准的问题。
