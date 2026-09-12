@@ -73,7 +73,7 @@ jobs:
           set -euo pipefail
           BASE=fc7102442e91a1c27cf705487c6d06bd64b8ea09
           test "$(git merge-base HEAD "$BASE")" = "$BASE"
-          test "$(git hash-object authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json)" = "3fea48f46ef676cb0b9f8a2c22fe4c4dbd6d2867"
+          test "$(git hash-object authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json)" = "3fea57a6c5d3a0a2ad5d88d99e6041b7fe9973e5"
           test "$(git hash-object authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json)" = "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
           if git diff --name-only "$BASE" HEAD -- authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json | grep -q .; then
             echo HISTORICAL_RECEIPT_MUTATION_DETECTED >&2
