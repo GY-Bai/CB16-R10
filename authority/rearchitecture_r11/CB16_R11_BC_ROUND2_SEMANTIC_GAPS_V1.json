@@ -1,0 +1,238 @@
+{
+  "schema": "CB16_R11_BC_ROUND2_SEMANTIC_GAPS_V1",
+  "status": "FROZEN_BASELINE_GAP_REGISTRY",
+  "task_id": "BC-003",
+  "captured_date_utc": "2026-09-12",
+  "dependencies": {
+    "BC-001": {
+      "merged_main_sha": "d69c8686a33e077669266a06550426d3e4f0d812",
+      "artifact": "authority/rearchitecture_r11/CB16_R11_BC_ROUND2_BASELINE_V1.json",
+      "artifact_git_blob_sha": "9aec8635dd087d2e5c451c4d115ab257e8a2b973"
+    },
+    "BC-002": {
+      "merged_main_sha": "f09492830ef2d5cda12ac055f329388f7fd43bc3",
+      "artifact": "authority/rearchitecture_r11/CB16_R11_BC_ROUND2_PRINCIPLE_TRACE_V1.json",
+      "artifact_git_blob_sha": "f81fb0c344f14e584bca790666dac035cc1cccf4"
+    }
+  },
+  "policy": {
+    "required_gap_ids": ["G-01", "G-02", "G-03", "G-04", "G-05", "G-06", "G-07", "G-08", "G-09", "G-10"],
+    "initial_status": "OPEN",
+    "resolution_rule": "A_GAP_MAY_NOT_BE_RESOLVED_UNTIL_ITS_REQUIRED_GATE_HAS_A_MACHINE_READABLE_PASS_RECEIPT",
+    "stale_resolution_without_evidence": "FAIL_CLOSED"
+  },
+  "gaps": [
+    {
+      "id": "G-01",
+      "title": "Nominal same-risk is classified as NOOP too early",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/action_contract_r0.py",
+          "git_blob_sha": "e978391559f55076fc1369e6e337395695d5361d",
+          "symbol": "classify_target_state_transition_r0",
+          "observation": "Same direction plus equal source/requested target-risk is classified as SAME_TARGET_NOOP before current sizing authority is recomputed."
+        },
+        {
+          "path": "cb16_local_opt/target_exposure_r0.py",
+          "git_blob_sha": "817705a041c8c9a59aedf6dcd68bb90e6adba5a2",
+          "symbol": "map_permission_to_target_exposure_r0",
+          "observation": "Target quantity is recomputed from current equity, price, margin capacity, leverage and legal quantity constraints."
+        }
+      ],
+      "resolution_tasks": ["BC-011", "BC-012"],
+      "required_resolution_gate": "BC-020",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_A_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-02",
+      "title": "Supervisor infers exposure increase from risk scalar",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_supervisor_r0.py",
+          "git_blob_sha": "25846b96fb33140b8e80d9f22ef417cea86b1272",
+          "symbol": "supervise_target_action_r0",
+          "observation": "Held-position increase/reduce/same classification compares permitted/requested risk directly with authority.current_target_risk."
+        },
+        {
+          "path": "cb16_local_opt/target_exposure_r0.py",
+          "git_blob_sha": "817705a041c8c9a59aedf6dcd68bb90e6adba5a2",
+          "symbol": "map_permission_to_target_exposure_r0",
+          "observation": "Actual target quantity depends on the current legal notional envelope and price, so risk-scalar ordering need not equal quantity-delta ordering."
+        }
+      ],
+      "resolution_tasks": ["BC-013", "BC-014"],
+      "required_resolution_gate": "BC-020",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_A_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-03",
+      "title": "Current adapter inherits strategy preferences from frozen kernel",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_physics_adapter_r0.py",
+          "git_blob_sha": "51a28efca8f592946ae2a69aec1291f8cac5e1f7",
+          "symbol": "module contract / _open_from_flat / execute_target_position_r0",
+          "observation": "Adapter explicitly delegates funding, intrabar SL/TP, liquidation and max-hold to frozen step_account; entry path also calls kernel._entry_risk_prices."
+        }
+      ],
+      "resolution_tasks": ["BC-009", "BC-010", "BC-016", "BC-020", "BC-048", "BC-091"],
+      "required_resolution_gate": "BC-020",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_A_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-04",
+      "title": "Economic loss may be erased by cash clamping",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_physics_adapter_r0.py",
+          "git_blob_sha": "51a28efca8f592946ae2a69aec1291f8cac5e1f7",
+          "symbol": "_partial_reduce",
+          "observation": "After realized PnL, fees and margin release, the adapter executes st.cash = max(0.0, float(st.cash))."
+        },
+        {
+          "path": "cb16_local_opt/actor_critic_physics_adapter_r0.py",
+          "git_blob_sha": "51a28efca8f592946ae2a69aec1291f8cac5e1f7",
+          "symbol": "_full_close",
+          "observation": "Full close delegates settlement to frozen kernel._force_close_at, so Round-2 liability semantics are not established by this adapter."
+        }
+      ],
+      "resolution_tasks": ["BC-017", "BC-018", "BC-019"],
+      "required_resolution_gate": "BC-020",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_A_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-05",
+      "title": "Target adapter is not an environment clock",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_physics_adapter_r0.py",
+          "git_blob_sha": "51a28efca8f592946ae2a69aec1291f8cac5e1f7",
+          "symbol": "execute_target_position_r0",
+          "observation": "Docstring states execution occurs without advancing a market bar and execution payload records bar_lifecycle_advanced=false."
+        }
+      ],
+      "resolution_tasks": ["BC-044", "BC-045", "BC-046", "BC-047", "BC-048", "BC-049"],
+      "required_resolution_gate": "BC-056",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_C_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-06",
+      "title": "Account observation is not the authoritative ledger",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_supervisor_r0.py",
+          "git_blob_sha": "25846b96fb33140b8e80d9f22ef417cea86b1272",
+          "symbol": "SupervisorAuthorityStateR0",
+          "observation": "This is a causal permission/risk-authority projection, not a complete recoverable account ledger."
+        },
+        {
+          "path": "cb16_local_opt/target_exposure_r0.py",
+          "git_blob_sha": "817705a041c8c9a59aedf6dcd68bb90e6adba5a2",
+          "symbol": "TargetExposureAuthorityR0",
+          "observation": "This is a sizing envelope projection and does not define the policy observation relationship to complete account truth."
+        }
+      ],
+      "resolution_tasks": ["BC-017", "BC-021", "BC-022", "BC-023", "BC-024", "BC-027"],
+      "required_resolution_gate": "BC-043",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_B_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-07",
+      "title": "State sufficiency is not established",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_contract_r0.py",
+          "git_blob_sha": "ae76cd299be73ea822dea9adc54babc999833e16",
+          "symbol": "ActorCriticScienceContractR0 / OBSERVATION_VERSION_R0",
+          "observation": "R0 registers an observation semantic version but does not itself provide a state-sufficiency qualification."
+        },
+        {
+          "path": "cb16_local_opt/actor_critic_supervisor_r0.py",
+          "git_blob_sha": "25846b96fb33140b8e80d9f22ef417cea86b1272",
+          "symbol": "SupervisorAuthorityStateR0",
+          "observation": "Existing account-related state surface is authority-specific; no known-answer anti-alias proof is bound to it."
+        }
+      ],
+      "resolution_tasks": ["BC-029", "BC-030", "BC-031", "BC-032", "BC-033", "BC-087"],
+      "required_resolution_gate": "BC-043",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_B_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-08",
+      "title": "No complete stochastic-policy collector learner chain exists on baseline main",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/actor_critic_runtime_router_r0.py",
+          "git_blob_sha": "e1ed865672766443dad4b3fa2928b0513df53a9d",
+          "symbol": "select_runtime_lane_r0",
+          "observation": "Module explicitly states it does not instantiate either runtime; it only freezes protocol-routing identity."
+        },
+        {
+          "path": "cb16_local_opt/actor_critic_contract_r0.py",
+          "git_blob_sha": "ae76cd299be73ea822dea9adc54babc999833e16",
+          "symbol": "ActorCriticScienceContractR0",
+          "observation": "Science version registry names Actor/Critic/trajectory/checkpoint semantics but does not instantiate or qualify the stochastic learning chain."
+        }
+      ],
+      "resolution_tasks": ["BC-034", "BC-041", "BC-049", "BC-057", "BC-068", "BC-070", "BC-076", "BC-078", "BC-092"],
+      "required_resolution_gate": "BC-092",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_F_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-09",
+      "title": "Continual knowledge retention has no scientific gate",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "cb16_local_opt/continuous_generation_binding_r0.py",
+          "git_blob_sha": "91684870fedf1303d0e2ea26413d2345d6e0b0ff",
+          "symbol": "validate_generation_transition_r0 / assert_account_continuity_r0",
+          "observation": "Existing infrastructure binds generation lineage and account continuity but does not prove A-to-B-to-A retention/adaptation quality."
+        },
+        {
+          "path": "docs/PRINCIPLE_ALIGNMENT.md",
+          "git_blob_sha": "77012d60cb8fc3d34f58b865813e07ca9e81d2f3",
+          "symbol": "P-09",
+          "observation": "Owner-aligned requirement preserves reusable historical knowledge without hand-built regime activation."
+        }
+      ],
+      "resolution_tasks": ["BC-079", "BC-080", "BC-081", "BC-082", "BC-083", "BC-084"],
+      "required_resolution_gate": "BC-085",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_GATE_E_RECEIPT_V1.json",
+      "resolution_evidence": []
+    },
+    {
+      "id": "G-10",
+      "title": "Component PASS and closed-loop/economic PASS are not equivalent evidence",
+      "status": "OPEN",
+      "source_refs": [
+        {
+          "path": "docs/R11_BC_ROUND2_CODE_ALIGNMENT_TODO.md",
+          "git_blob_sha": "d513b4be29eca4caed7d03e0b909d87d8bfa15f3",
+          "symbol": "# 3. Evidence levels",
+          "observation": "CONTRACT, COMPONENT, CLOSED_LOOP, KNOWN_ANSWER, ECONOMIC and TRANSFER are separate ceilings and must not be silently upgraded."
+        }
+      ],
+      "resolution_tasks": ["BC-007", "BC-008", "BC-101", "BC-105"],
+      "required_resolution_gate": "BC-105",
+      "expected_gate_receipt": "authority/rearchitecture_r11/CB16_R11_BC_ROUND2_FINAL_RECEIPT_V1.json",
+      "resolution_evidence": []
+    }
+  ]
+}
