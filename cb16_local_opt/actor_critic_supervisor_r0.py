@@ -2,10 +2,10 @@ from __future__ import annotations
 
 """Deterministic hard-authority Supervisor contract for Actor-Critic R0.
 
-AC-010 intentionally stops before quantity sizing (AC-013) and Physics (AC-014).
-The caller supplies an explicit projection of external hard authority; this
-module only adjudicates a nominal target-state request into ACCEPT/CLAMP/REJECT.
-No market view, expected return, confidence, or strategy heuristic is accepted.
+AC-010 freezes the permission contract without quantity sizing or Physics.
+AC-011 additionally authorizes mechanically legal held-position same-direction
+resize and close operations without inheriting the legacy POSITION_ALREADY_OPEN
+forced no-op. Reversal remains fail-closed until AC-012.
 """
 
 from dataclasses import dataclass
@@ -288,8 +288,6 @@ def supervise_target_action_r0(
         prefix="ACSUP_CURRENT_TARGET",
     )
 
-    # Stable precedence is part of the contract.  No rejected request is repaired
-    # into a different strategy action; REJECT simply preserves the current target.
     if authority.terminated:
         return _result(
             action=action,
@@ -318,17 +316,71 @@ def supervise_target_action_r0(
             permitted_target_risk=current_risk,
         )
 
-    # AC-010 freezes the permission contract without silently inheriting the
-    # legacy FORCED_NOOP rule.  Held-position resize/close becomes authorized in
-    # AC-011; until then the new lane fails closed rather than delegating to legacy.
+    requested = _canonical_risk(
+        action.requested_target_risk,
+        code="ACSUP_REQUESTED_TARGET_RISK_INVALID",
+    )
+    cap = _canonical_risk(
+        authority.max_permitted_target_risk,
+        code="ACSUP_MAX_TARGET_RISK_INVALID",
+    )
+
     if current_direction != FLAT:
+        if action.target_direction not in (current_direction, FLAT):
+            return _result(
+                action=action,
+                authority=authority,
+                outcome=REJECT,
+                reason_code="REVERSAL_NOT_AUTHORIZED_R0",
+                permitted_target_direction=current_direction,
+                permitted_target_risk=current_risk,
+            )
+
+        if action.target_direction == FLAT:
+            return _result(
+                action=action,
+                authority=authority,
+                outcome=ACCEPT,
+                reason_code="HELD_POSITION_CLOSE_AUTHORIZED",
+                permitted_target_direction=FLAT,
+                permitted_target_risk=0.0,
+            )
+
+        permitted_risk = min(requested, cap)
+        is_exposure_increase = permitted_risk > current_risk
+        if is_exposure_increase and not authority.margin_available_for_new_exposure:
+            return _result(
+                action=action,
+                authority=authority,
+                outcome=REJECT,
+                reason_code="MARGIN_UNAVAILABLE_FOR_EXPOSURE_INCREASE",
+                permitted_target_direction=current_direction,
+                permitted_target_risk=current_risk,
+            )
+
+        if permitted_risk < requested:
+            return _result(
+                action=action,
+                authority=authority,
+                outcome=CLAMP,
+                reason_code="HELD_POSITION_TARGET_RISK_CLAMPED_TO_HARD_AUTHORITY",
+                permitted_target_direction=current_direction,
+                permitted_target_risk=permitted_risk,
+            )
+
+        if requested < current_risk:
+            reason = "HELD_POSITION_REDUCE_AUTHORIZED"
+        elif requested == current_risk:
+            reason = "HELD_POSITION_SAME_TARGET_AUTHORIZED"
+        else:
+            reason = "HELD_POSITION_INCREASE_AUTHORIZED"
         return _result(
             action=action,
             authority=authority,
-            outcome=REJECT,
-            reason_code="HELD_POSITION_TRANSITION_NOT_AUTHORIZED_R0",
+            outcome=ACCEPT,
+            reason_code=reason,
             permitted_target_direction=current_direction,
-            permitted_target_risk=current_risk,
+            permitted_target_risk=requested,
         )
 
     if action.target_direction == FLAT:
@@ -351,10 +403,6 @@ def supervise_target_action_r0(
             permitted_target_risk=0.0,
         )
 
-    cap = _canonical_risk(
-        authority.max_permitted_target_risk,
-        code="ACSUP_MAX_TARGET_RISK_INVALID",
-    )
     if cap == 0.0:
         return _result(
             action=action,
@@ -364,10 +412,6 @@ def supervise_target_action_r0(
             permitted_target_direction=FLAT,
             permitted_target_risk=0.0,
         )
-    requested = _canonical_risk(
-        action.requested_target_risk,
-        code="ACSUP_REQUESTED_TARGET_RISK_INVALID",
-    )
     if requested > cap:
         return _result(
             action=action,

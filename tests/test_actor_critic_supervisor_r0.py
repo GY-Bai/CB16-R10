@@ -135,17 +135,118 @@ def test_rejection_precedence_is_stable_and_deterministic() -> None:
     assert result.reason_code == "TERMINATED_ACCOUNT"
 
 
-def test_held_position_fails_closed_without_legacy_forced_noop_semantics() -> None:
+@pytest.mark.parametrize("direction", [LONG, SHORT])
+def test_held_position_reduce_is_authorized_without_new_margin(direction: str) -> None:
+    result = supervise_target_action_r0(
+        _action(direction, 0.2),
+        _authority(
+            current_direction=direction,
+            current_target_risk=0.6,
+            margin_available_for_new_exposure=False,
+        ),
+    )
+    assert result.outcome == ACCEPT
+    assert result.reason_code == "HELD_POSITION_REDUCE_AUTHORIZED"
+    assert result.permitted_target_direction == direction
+    assert result.permitted_target_risk == 0.2
+
+
+@pytest.mark.parametrize("direction", [LONG, SHORT])
+def test_held_position_close_is_authorized_without_new_margin(direction: str) -> None:
     result = supervise_target_action_r0(
         _action(FLAT, 0.0),
-        _authority(current_direction=LONG, current_target_risk=0.5),
+        _authority(
+            current_direction=direction,
+            current_target_risk=0.6,
+            margin_available_for_new_exposure=False,
+        ),
     )
-    assert result.outcome == REJECT
-    assert result.reason_code == "HELD_POSITION_TRANSITION_NOT_AUTHORIZED_R0"
-    assert result.permitted_target_direction == LONG
-    assert result.permitted_target_risk == 0.5
+    assert result.outcome == ACCEPT
+    assert result.reason_code == "HELD_POSITION_CLOSE_AUTHORIZED"
+    assert result.permitted_target_direction == FLAT
+    assert result.permitted_target_risk == 0.0
     assert "FORCED_NOOP" not in str(result.to_payload())
     assert "POSITION_ALREADY_OPEN" not in str(result.to_payload())
+
+
+@pytest.mark.parametrize("direction", [LONG, SHORT])
+def test_same_held_target_is_not_blocked_by_margin(direction: str) -> None:
+    result = supervise_target_action_r0(
+        _action(direction, 0.4),
+        _authority(
+            current_direction=direction,
+            current_target_risk=0.4,
+            margin_available_for_new_exposure=False,
+        ),
+    )
+    assert result.outcome == ACCEPT
+    assert result.reason_code == "HELD_POSITION_SAME_TARGET_AUTHORIZED"
+    assert result.permitted_target_risk == 0.4
+
+
+@pytest.mark.parametrize("direction", [LONG, SHORT])
+def test_held_exposure_increase_requires_new_margin(direction: str) -> None:
+    rejected = supervise_target_action_r0(
+        _action(direction, 0.7),
+        _authority(
+            current_direction=direction,
+            current_target_risk=0.4,
+            margin_available_for_new_exposure=False,
+        ),
+    )
+    assert rejected.outcome == REJECT
+    assert rejected.reason_code == "MARGIN_UNAVAILABLE_FOR_EXPOSURE_INCREASE"
+    assert rejected.permitted_target_risk == 0.4
+
+    accepted = supervise_target_action_r0(
+        _action(direction, 0.7),
+        _authority(
+            current_direction=direction,
+            current_target_risk=0.4,
+            margin_available_for_new_exposure=True,
+        ),
+    )
+    assert accepted.outcome == ACCEPT
+    assert accepted.reason_code == "HELD_POSITION_INCREASE_AUTHORIZED"
+    assert accepted.permitted_target_risk == 0.7
+
+
+@pytest.mark.parametrize("direction", [LONG, SHORT])
+def test_hard_cap_can_clamp_held_request_to_lower_exposure(direction: str) -> None:
+    result = supervise_target_action_r0(
+        _action(direction, 0.8),
+        _authority(
+            current_direction=direction,
+            current_target_risk=0.5,
+            margin_available_for_new_exposure=False,
+            max_permitted_target_risk=0.3,
+        ),
+    )
+    assert result.outcome == CLAMP
+    assert result.reason_code == "HELD_POSITION_TARGET_RISK_CLAMPED_TO_HARD_AUTHORITY"
+    assert result.permitted_target_direction == direction
+    assert result.permitted_target_risk == 0.3
+
+
+@pytest.mark.parametrize(
+    ("current_direction", "target_direction"),
+    [(LONG, SHORT), (SHORT, LONG)],
+)
+def test_reversal_remains_fail_closed_until_ac012(
+    current_direction: str,
+    target_direction: str,
+) -> None:
+    result = supervise_target_action_r0(
+        _action(target_direction, 0.3),
+        _authority(
+            current_direction=current_direction,
+            current_target_risk=0.5,
+        ),
+    )
+    assert result.outcome == REJECT
+    assert result.reason_code == "REVERSAL_NOT_AUTHORIZED_R0"
+    assert result.permitted_target_direction == current_direction
+    assert result.permitted_target_risk == 0.5
 
 
 def test_authority_direction_set_is_canonicalized() -> None:
