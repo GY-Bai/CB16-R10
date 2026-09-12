@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
-import math
 from typing import Mapping
 
 from .account_economics_r0 import AccountEconomicsStateR0
@@ -85,8 +84,13 @@ def _fill_price(mark: float, delta_quantity: float, slippage_bps: float) -> floa
 
 
 def _available_new_margin(state: AccountEconomicsStateR0) -> float:
-    # Resource capacity may floor at zero; the authoritative cash/equity ledger is never mutated/clamped.
+    # This is a derived mechanical capacity only. It never rewrites the signed ledger.
     return max(0.0, state.cash)
+
+
+def _maintenance_collateral_capacity(state: AccountEconomicsStateR0) -> float:
+    # Same rule: resource capacity can bottom at zero while cash/equity remain signed.
+    return max(0.0, state.cash + state.margin_collateral)
 
 
 def _sizing_target(
@@ -127,7 +131,7 @@ def _feasibility(state: AccountEconomicsStateR0, target, mark_price: float, conf
             available_margin_for_new_exposure=_available_new_margin(state),
             initial_margin_rate=config.initial_margin_rate,
             maintenance_margin_rate=config.maintenance_margin_rate,
-            maintenance_collateral=state.cash + state.margin_collateral,
+            maintenance_collateral=_maintenance_collateral_capacity(state),
             lot_min_qty=config.lot_min_qty,
             lot_max_qty=config.lot_max_qty,
             min_notional=config.min_notional,
@@ -208,6 +212,9 @@ def execute_target_position_r1(
     if supervisor_authority.account_id != account.account_id:
         raise RuntimeError("ACPHY_R1_ACCOUNT_ID_MISMATCH")
     before_sha = _state_sha(account)
+    if supervisor_authority.account_state_sha256 != before_sha:
+        raise RuntimeError("ACPHY_R1_SUPERVISOR_ACCOUNT_STATE_STALE")
+
     permission = supervise_target_action_r1(action, supervisor_authority)
     if permission.outcome == REJECT:
         return TargetExecutionReceiptR1(
