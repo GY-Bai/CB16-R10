@@ -1,0 +1,57 @@
+name: CB16 R11 BC Gate A Temporary
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bc-gate-a:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'ai/r11-bc-020-physics-adapter-r1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Run BC Gate A tests
+        run: |
+          python -m pytest -q \
+            tests/test_bc_round2_baseline_r0.py \
+            tests/test_bc_round2_principle_trace_r0.py \
+            tests/test_bc_round2_semantic_gaps_r0.py \
+            tests/test_actor_critic_contract_r1.py \
+            tests/test_actor_critic_runtime_router_r1.py \
+            tests/test_bc_round2_legacy_and_r0_freeze.py \
+            tests/test_evidence_level_r0.py \
+            tests/test_bc_round2_receipt_r0.py \
+            tests/test_bc_execution_rule_taxonomy_r0.py \
+            tests/test_actor_critic_environment_profile_r1.py \
+            tests/test_action_contract_r1.py \
+            tests/test_target_exposure_r1.py \
+            tests/test_actor_critic_supervisor_r1.py \
+            tests/test_execution_feasibility_r0.py \
+            tests/test_reversal_execution_r1.py \
+            tests/test_account_economics_r0.py \
+            tests/test_account_terminal_r0.py \
+            tests/test_actor_critic_physics_adapter_r1.py
+
+      - name: Prove FINAL and fresh-data firewalls
+        run: |
+          test ! -e data/2025-09
+          test ! -e final_holdout
+          git diff --exit-code
