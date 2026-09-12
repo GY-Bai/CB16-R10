@@ -11,12 +11,15 @@ PR #99 merge commit：
 | 问题 | 当前入口 |
 |---|---|
 | 当前精确状态与下一断点 | **[CURRENT_STATE](CURRENT_STATE.md)** |
+| 当前 S0/S1 可执行总控 TODO | **[R11_POST_CC_S0_S1_TODO](R11_POST_CC_S0_S1_TODO.md)** |
+| S0 契约/经济语义迁移任务包 | **[S0_CONTRACT_MIGRATION_TODO](post_cc/S0_CONTRACT_MIGRATION_TODO.md)** |
+| S1 端到端可学习性任务包 | **[S1_END_TO_END_LEARNABILITY_TODO](post_cc/S1_END_TO_END_LEARNABILITY_TODO.md)** |
 | CC integration 最终交接 | **[CC_INTEGRATION_HANDOFF](CC_INTEGRATION_HANDOFF.md)** |
 | 最终机器可读 spec / receipt | `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json` / `CB16_R11_CC_INTEGRATION_RECEIPT_V1.json` |
 | 项目最高目标 | [VISION](VISION.md) |
 | 当前已确认设计决策 | [DECISIONS](DECISIONS.md) |
 | 双基准、模型排序与沙盒冠军晋升 | [ECONOMIC_ORDERING_AND_PROMOTION](ECONOMIC_ORDERING_AND_PROMOTION.md) |
-| 下一 scientific program / historical / capacity / economic qualification | **[POST_CC_SCIENTIFIC_PROGRAM_R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)** |
+| 后 CC scientific program 总体路线 | **[POST_CC_SCIENTIFIC_PROGRAM_R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)** |
 | 已关闭的问题与将来问题提交边界 | [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
 | 当前组件地图 | [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md) |
 | Agent 执行规则 | [根目录 AGENTS](../AGENTS.md) |
@@ -67,11 +70,17 @@ Receipt 冻结的 Shanxi benchmark：
 
 它不是 ECONOMIC 或 TRANSFER evidence。FINAL 未开启，fresh market data 未使用；当前没有真实历史市场 edge 或未来盈利性结论。
 
-## 后 CC 设计决定与下一步
+## 后 CC 设计决定与当前执行入口
 
-双基准不设 master precedence；同合同下完整算术收益决定候选排序。有充分预登记证据的相对改善可晋升沙盒学习冠军；不额外要求同时击败 B&H 和 FLAT。旧 C-20 代码/receipt 尚需后继语义迁移，设计关闭不等于代码已实现。
+双基准不设 master precedence；同合同下完整算术收益决定候选排序。有充分预登记证据的相对改善可晋升沙盒学习冠军；不额外要求同时击败 B&H 和 FLAT。旧 C-20 代码/receipt 保留历史身份，当前 S0 负责显式 successor migration，不改写历史 receipt。
 
-下一步 S0 契约/spec 与 S1 真实闭环可学习性，其后 S2 历史接入、S3 小规模历史学习、条件性 S4 容量、S5 经济确认。完整规则与阶段边界见上表两个新入口；不重新打开 CC 四线程，不自动 dispatch 或解封数据。
+当前直接执行顺序是：
+
+`S0 contract migration -> S0 receipt -> freeze S1 base -> S1 end-to-end learnability -> S1 receipt`
+
+具体 task numbering、hard gates、文件建议和机器可读交付均已写入 `R11_POST_CC_S0_S1_TODO.md` 及两个 `docs/post_cc/` 任务包。Sol 不需要重新拆一套 S0/S1。
+
+S1 通过之前，不进入 S2/S3 historical learning；S4 capacity 与 S5 economic qualification 继续按 `POST_CC_SCIENTIFIC_PROGRAM_R0.md` 的条件推进。
 
 ## 历史资料地位
 
