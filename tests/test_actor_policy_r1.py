@@ -15,11 +15,15 @@ from cb16_local_opt.action_contract_r1 import FLAT, LONG, SHORT, make_target_pos
 from cb16_local_opt.actor_observation_r0 import build_actor_observation_r0
 from cb16_local_opt.actor_policy_r1 import (
     ACTOR_POLICY_INTERFACE_VERSION_R1,
+    CONTINUOUS_DENSITY,
     DIRECTION_ORDER_R1,
+    POINT_MASS,
+    RISK_ENDPOINT_POLICY_R1,
     ActorPolicyDistributionIdentityR1,
     ActorPolicyR1,
     ConditionalBoundedRiskR1,
     DirectionCategoricalR1,
+    RiskLikelihoodTermR1,
     make_actor_policy_distribution_identity_r1,
     make_conditional_bounded_risk_r1,
     make_direction_categorical_r1,
@@ -71,7 +75,7 @@ def _observation():
 def _identity(*, device_type="cpu", device_index=None, dtype="float32"):
     return make_actor_policy_distribution_identity_r1(
         distribution_id="round2-actor-distribution",
-        distribution_version="CONDITIONAL_RISK_BC036",
+        distribution_version="ENDPOINT_SEMANTICS_BC037",
         policy_id="behavior-policy",
         policy_version="v1",
         policy_sha256="a" * 64,
@@ -494,9 +498,11 @@ def test_conditional_risk_known_answer_log_density_is_reconstructable() -> None:
     risk = torch.tensor(0.5, dtype=torch.float32)
     expected = math.log(4.0) - 0.5 * math.log(2.0 * math.pi)
     for direction in (SHORT, LONG):
-        score = distribution.log_prob(direction, risk)
-        assert score.item() == pytest.approx(expected, rel=1e-6, abs=1e-6)
-        assert torch.equal(score, distribution.log_prob(direction, risk))
+        term = distribution.likelihood_term(direction, risk)
+        assert term.measure_kind == CONTINUOUS_DENSITY
+        assert term.endpoint_policy == RISK_ENDPOINT_POLICY_R1
+        assert term.log_likelihood.item() == pytest.approx(expected, rel=1e-6, abs=1e-6)
+        assert torch.equal(term.log_likelihood, distribution.log_prob(direction, risk))
 
     generator = torch.Generator(device="cpu")
     generator.manual_seed(99)
@@ -506,17 +512,57 @@ def test_conditional_risk_known_answer_log_density_is_reconstructable() -> None:
     assert torch.equal(reconstructed_a, reconstructed_b)
 
 
-def test_conditional_risk_endpoint_semantics_are_deferred_to_bc037() -> None:
+def test_bc037_endpoint_likelihood_known_answers() -> None:
     distribution = _conditional_risk()
+    flat = distribution.likelihood_term(FLAT, torch.tensor(0.0, dtype=torch.float32))
+    assert flat.measure_kind == POINT_MASS
+    assert flat.endpoint_policy == RISK_ENDPOINT_POLICY_R1
+    assert flat.log_likelihood.item() == 0.0
+
     for direction in (SHORT, LONG):
         for endpoint in (0.0, 1.0):
-            with pytest.raises(RuntimeError, match="ENDPOINT_PENDING_BC037"):
-                distribution.log_prob(direction, torch.tensor(endpoint, dtype=torch.float32))
+            risk = torch.tensor(endpoint, dtype=torch.float32)
+            term = distribution.likelihood_term(direction, risk)
+            assert term.measure_kind == POINT_MASS
+            assert term.endpoint_policy == RISK_ENDPOINT_POLICY_R1
+            assert term.log_likelihood.item() == float("-inf")
+            assert distribution.log_prob(direction, risk).item() == float("-inf")
 
-    distribution_fields = {field.name for field in fields(ConditionalBoundedRiskR1)}
-    assert "endpoint_mass_zero" not in distribution_fields
-    assert "endpoint_mass_one" not in distribution_fields
-    assert "endpoint_policy" not in distribution_fields
+
+def test_bc037_endpoints_never_evaluate_continuous_density(monkeypatch) -> None:
+    distribution = _conditional_risk()
+
+    def forbidden_density(*args, **kwargs):
+        raise AssertionError("continuous density evaluated at a point-mass endpoint")
+
+    monkeypatch.setattr(ConditionalBoundedRiskR1, "_interior_log_density", forbidden_density)
+    for direction in (SHORT, LONG):
+        for endpoint in (0.0, 1.0):
+            term = distribution.likelihood_term(
+                direction,
+                torch.tensor(endpoint, dtype=torch.float32),
+            )
+            assert term.measure_kind == POINT_MASS
+            assert term.log_likelihood.item() == float("-inf")
+
+
+def test_bc037_likelihood_term_tampering_fails_closed() -> None:
+    distribution = _conditional_risk()
+    flat = distribution.likelihood_term(FLAT, torch.tensor(0.0, dtype=torch.float32))
+    with pytest.raises(RuntimeError, match="FLAT_POINT_MASS_REQUIRED"):
+        replace(flat, measure_kind=CONTINUOUS_DENSITY).validate()
+    with pytest.raises(RuntimeError, match="RISK_ENDPOINT_POLICY_MISMATCH"):
+        replace(flat, endpoint_policy="OTHER").validate()
+
+    endpoint = distribution.likelihood_term(LONG, torch.tensor(1.0, dtype=torch.float32))
+    with pytest.raises(RuntimeError, match="NONFLAT_ENDPOINT_ZERO_MASS_REQUIRED"):
+        replace(endpoint, log_likelihood=torch.tensor(0.0, dtype=torch.float32)).validate()
+    with pytest.raises(RuntimeError, match="NONFLAT_ENDPOINT_ZERO_MASS_REQUIRED"):
+        replace(endpoint, measure_kind=CONTINUOUS_DENSITY).validate()
+
+    interior = distribution.likelihood_term(LONG, torch.tensor(0.5, dtype=torch.float32))
+    with pytest.raises(RuntimeError, match="INTERIOR_DENSITY_REQUIRED"):
+        replace(interior, measure_kind=POINT_MASS).validate()
 
 
 def test_conditional_risk_rejects_bad_shapes_scale_overflow_and_generator() -> None:
@@ -581,9 +627,10 @@ def test_conditional_risk_log_prob_retains_gradient_paths() -> None:
     assert short_log_scale.grad is None
 
 
-def test_bc036_does_not_predefine_bc037_endpoint_masses_or_bc038_joint_likelihood() -> None:
-    source = inspect.getsource(ConditionalBoundedRiskR1)
-    assert "endpoint_mass_zero" not in source
-    assert "endpoint_mass_one" not in source
-    assert "joint_log_prob" not in source
-    assert "log_mu" not in source
+def test_bc037_does_not_predefine_bc038_joint_likelihood() -> None:
+    risk_source = inspect.getsource(ConditionalBoundedRiskR1)
+    term_source = inspect.getsource(RiskLikelihoodTermR1)
+    for source in (risk_source, term_source):
+        assert "joint_log_prob" not in source
+        assert "log_mu" not in source
+        assert "direction_log_prob" not in source

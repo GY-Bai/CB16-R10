@@ -4,10 +4,11 @@ from __future__ import annotations
 
 BC-034 freezes the API and compatibility boundary. BC-035 adds the categorical
 SHORT/FLAT/LONG direction distribution. BC-036 adds a direction-conditioned
-sigmoid-squashed Normal risk component: LONG/SHORT use an interior continuous
-law on (0, 1), while FLAT is the exact zero-risk point contract. Endpoint point
-masses, joint likelihood math, and RNG serialization remain owned by BC-037
-through BC-039.
+sigmoid-squashed Normal risk component. BC-037 freezes endpoint semantics:
+FLAT has an exact zero-risk point mass; LONG/SHORT have no point mass at risk 0
+or 1, so those exact points have probability zero while interior values use a
+continuous density. Joint action likelihood and RNG serialization remain owned
+by BC-038 and BC-039.
 """
 
 from abc import ABC, abstractmethod
@@ -35,6 +36,11 @@ ACTOR_POLICY_IDENTITY_SCHEMA_R1 = "CB16_R11_BC_ACTOR_POLICY_IDENTITY_V1_R1"
 POLICY_TENSOR_CONTRACT_SCHEMA_R1 = "CB16_R11_BC_POLICY_TENSOR_CONTRACT_V1_R1"
 DIRECTION_CATEGORICAL_SCHEMA_R1 = "CB16_R11_BC_DIRECTION_CATEGORICAL_V1_R1"
 CONDITIONAL_RISK_SCHEMA_R1 = "CB16_R11_BC_CONDITIONAL_SQUASHED_NORMAL_RISK_V1_R1"
+RISK_LIKELIHOOD_SCHEMA_R1 = "CB16_R11_BC_RISK_LIKELIHOOD_TERM_V1_R1"
+RISK_ENDPOINT_POLICY_R1 = "FLAT_ZERO_POINT_MASS_NONFLAT_ENDPOINT_MASSES_DISALLOWED_V1_R1"
+CONTINUOUS_DENSITY = "CONTINUOUS_DENSITY"
+POINT_MASS = "POINT_MASS"
+RISK_MEASURE_KINDS_R1 = (CONTINUOUS_DENSITY, POINT_MASS)
 DIRECTION_ORDER_R1 = (SHORT, FLAT, LONG)
 _DIRECTION_INDEX_R1 = {direction: index for index, direction in enumerate(DIRECTION_ORDER_R1)}
 SUPPORTED_FLOAT_DTYPES_R1 = {
@@ -317,13 +323,81 @@ def make_direction_categorical_r1(
     return distribution
 
 
+def _validate_scalar_tensor_allow_negative_infinity_r1(
+    tensor: object,
+    contract: PolicyTensorContractR1,
+    *,
+    code: str,
+) -> torch.Tensor:
+    contract.validate()
+    if not isinstance(tensor, torch.Tensor):
+        raise RuntimeError(code)
+    if tensor.dtype != SUPPORTED_FLOAT_DTYPES_R1[contract.dtype]:
+        raise RuntimeError(code)
+    if tensor.device.type != contract.device_type or tensor.device.index != contract.device_index:
+        raise RuntimeError(code)
+    if tensor.ndim != 0:
+        raise RuntimeError(code)
+    if bool(torch.isnan(tensor).item()) or bool(torch.isposinf(tensor).item()):
+        raise RuntimeError(code)
+    return tensor
+
+
+@dataclass(frozen=True)
+class RiskLikelihoodTermR1:
+    """One conditional risk likelihood term with an explicit reference measure."""
+
+    schema_version: str
+    endpoint_policy: str
+    direction: str
+    risk: torch.Tensor
+    measure_kind: str
+    log_likelihood: torch.Tensor
+    tensor_contract: PolicyTensorContractR1
+
+    def validate(self) -> None:
+        if self.schema_version != RISK_LIKELIHOOD_SCHEMA_R1:
+            raise RuntimeError("ACPOL_R1_RISK_LIKELIHOOD_SCHEMA_MISMATCH")
+        if self.endpoint_policy != RISK_ENDPOINT_POLICY_R1:
+            raise RuntimeError("ACPOL_R1_RISK_ENDPOINT_POLICY_MISMATCH")
+        _direction_index_r1(self.direction)
+        value = validate_policy_tensor_r1(self.risk, self.tensor_contract)
+        if value.ndim != 0:
+            raise RuntimeError("ACPOL_R1_RISK_VALUE_SHAPE_INVALID")
+        if self.measure_kind not in RISK_MEASURE_KINDS_R1:
+            raise RuntimeError("ACPOL_R1_RISK_MEASURE_KIND_INVALID")
+        score = _validate_scalar_tensor_allow_negative_infinity_r1(
+            self.log_likelihood,
+            self.tensor_contract,
+            code="ACPOL_R1_RISK_LIKELIHOOD_INVALID",
+        )
+
+        risk_value = value.item()
+        score_value = score.item()
+        if self.direction == FLAT:
+            if risk_value != 0.0:
+                raise RuntimeError("ACPOL_R1_FLAT_RISK_MUST_BE_ZERO")
+            if self.measure_kind != POINT_MASS or score_value != 0.0:
+                raise RuntimeError("ACPOL_R1_FLAT_POINT_MASS_REQUIRED")
+            return
+
+        if risk_value in (0.0, 1.0):
+            if self.measure_kind != POINT_MASS or not math.isinf(score_value) or score_value >= 0.0:
+                raise RuntimeError("ACPOL_R1_NONFLAT_ENDPOINT_ZERO_MASS_REQUIRED")
+            return
+        if not 0.0 < risk_value < 1.0:
+            raise RuntimeError("ACPOL_R1_RISK_OUT_OF_BOUNDS")
+        if self.measure_kind != CONTINUOUS_DENSITY or not math.isfinite(score_value):
+            raise RuntimeError("ACPOL_R1_INTERIOR_DENSITY_REQUIRED")
+
+
 @dataclass(frozen=True)
 class ConditionalBoundedRiskR1:
-    """Direction-conditioned sigmoid-Normal continuous risk component.
+    """Direction-conditioned sigmoid-Normal risk with explicit endpoint policy.
 
-    SHORT and LONG use separate location/log-scale parameters and produce only
-    interior risk samples. FLAT is exactly the zero-risk point contract. Exact
-    LONG/SHORT endpoint semantics are intentionally unresolved until BC-037.
+    SHORT and LONG have a continuous density only on (0,1). Their exact 0/1
+    point masses are disallowed and therefore have probability zero. FLAT is
+    exactly the risk-zero point mass with conditional probability one.
     """
 
     schema_version: str
@@ -383,22 +457,10 @@ class ConditionalBoundedRiskR1:
         risk = torch.sigmoid(latent)
         validate_policy_tensor_r1(risk, self.tensor_contract)
         if not bool(((risk > 0) & (risk < 1)).item()):
-            raise RuntimeError("ACPOL_R1_RISK_NUMERIC_ENDPOINT_PENDING_BC037")
+            raise RuntimeError("ACPOL_R1_RISK_NUMERIC_ZERO_MASS_ENDPOINT")
         return risk
 
-    def log_prob(self, direction: str, risk: torch.Tensor) -> torch.Tensor:
-        self.validate()
-        _direction_index_r1(direction)
-        value = self._validated_scalar(risk, code="ACPOL_R1_RISK_VALUE_SHAPE_INVALID")
-        if direction == FLAT:
-            if value.item() != 0.0:
-                raise RuntimeError("ACPOL_R1_FLAT_RISK_MUST_BE_ZERO")
-            return torch.zeros_like(value)
-        if value.item() == 0.0 or value.item() == 1.0:
-            raise RuntimeError("ACPOL_R1_RISK_ENDPOINT_PENDING_BC037")
-        if not bool(((value > 0) & (value < 1)).item()):
-            raise RuntimeError("ACPOL_R1_RISK_OUT_OF_BOUNDS")
-
+    def _interior_log_density(self, direction: str, value: torch.Tensor) -> torch.Tensor:
         location, log_scale = self._parameters(direction)
         latent = torch.log(value) - torch.log1p(-value)
         standardized = (latent - location) * torch.exp(-log_scale)
@@ -412,6 +474,56 @@ class ConditionalBoundedRiskR1:
         if not bool(torch.isfinite(result).item()):
             raise RuntimeError("ACPOL_R1_RISK_LOG_PROB_NONFINITE")
         return result
+
+    def likelihood_term(self, direction: str, risk: torch.Tensor) -> RiskLikelihoodTermR1:
+        self.validate()
+        _direction_index_r1(direction)
+        value = self._validated_scalar(risk, code="ACPOL_R1_RISK_VALUE_SHAPE_INVALID")
+        risk_value = value.item()
+        if direction == FLAT:
+            if risk_value != 0.0:
+                raise RuntimeError("ACPOL_R1_FLAT_RISK_MUST_BE_ZERO")
+            term = RiskLikelihoodTermR1(
+                schema_version=RISK_LIKELIHOOD_SCHEMA_R1,
+                endpoint_policy=RISK_ENDPOINT_POLICY_R1,
+                direction=direction,
+                risk=value,
+                measure_kind=POINT_MASS,
+                log_likelihood=torch.zeros_like(value),
+                tensor_contract=self.tensor_contract,
+            )
+        elif risk_value in (0.0, 1.0):
+            term = RiskLikelihoodTermR1(
+                schema_version=RISK_LIKELIHOOD_SCHEMA_R1,
+                endpoint_policy=RISK_ENDPOINT_POLICY_R1,
+                direction=direction,
+                risk=value,
+                measure_kind=POINT_MASS,
+                log_likelihood=torch.full_like(value, float("-inf")),
+                tensor_contract=self.tensor_contract,
+            )
+        elif 0.0 < risk_value < 1.0:
+            term = RiskLikelihoodTermR1(
+                schema_version=RISK_LIKELIHOOD_SCHEMA_R1,
+                endpoint_policy=RISK_ENDPOINT_POLICY_R1,
+                direction=direction,
+                risk=value,
+                measure_kind=CONTINUOUS_DENSITY,
+                log_likelihood=self._interior_log_density(direction, value),
+                tensor_contract=self.tensor_contract,
+            )
+        else:
+            raise RuntimeError("ACPOL_R1_RISK_OUT_OF_BOUNDS")
+        term.validate()
+        return term
+
+    def log_prob(self, direction: str, risk: torch.Tensor) -> torch.Tensor:
+        """Return the log likelihood under BC-037's explicit mixed measure.
+
+        Callers that need to distinguish density from point-mass likelihood must
+        consume ``likelihood_term`` rather than infer the reference measure.
+        """
+        return self.likelihood_term(direction, risk).log_likelihood
 
 
 def make_conditional_bounded_risk_r1(
@@ -440,8 +552,8 @@ class ActorPolicyR1(ABC, Generic[ObservationT, SamplingRngT, LogProbT]):
     ``sample`` owns stochastic behavior collection and receives an explicit RNG.
     ``log_prob`` scores a supplied action and must not consume sampling RNG.
     ``deterministic_action`` is a separate evaluation path and must not consume
-    sampling RNG. BC-035/036 define direction and conditional-risk component
-    math; endpoint and joint action likelihood semantics remain deferred.
+    sampling RNG. BC-035 through BC-037 define direction, conditional-risk, and
+    endpoint component math; joint action likelihood remains BC-038 work.
     """
 
     @property
