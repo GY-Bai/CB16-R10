@@ -2,10 +2,11 @@ from __future__ import annotations
 
 """Canonical target-state action contract for the R11 Actor-Critic lane.
 
-AC-005 introduces the datatype.  AC-006 freezes canonical encoding, FLAT risk
+AC-005 introduces the datatype. AC-006 freezes canonical encoding, FLAT risk
 semantics, and the fact that ``requested_target_risk`` is a target-exposure
-request rather than confidence.  AC-007 owns the transition matrix and AC-009
-owns behavior-policy probability/log-probability binding.
+request rather than confidence. AC-007 adds the complete nominal target-state
+transition matrix. AC-009 owns behavior-policy probability/log-probability
+binding.
 """
 
 from dataclasses import dataclass
@@ -33,6 +34,31 @@ ACTION_FIELDS_R0 = (
     "requested_target_risk_semantics",
 )
 
+SAME_TARGET_NOOP = "SAME_TARGET_NOOP"
+OPEN_LONG = "OPEN_LONG"
+OPEN_SHORT = "OPEN_SHORT"
+INCREASE_LONG = "INCREASE_LONG"
+DECREASE_LONG = "DECREASE_LONG"
+INCREASE_SHORT = "INCREASE_SHORT"
+DECREASE_SHORT = "DECREASE_SHORT"
+CLOSE_LONG = "CLOSE_LONG"
+CLOSE_SHORT = "CLOSE_SHORT"
+REVERSE_LONG_TO_SHORT = "REVERSE_LONG_TO_SHORT"
+REVERSE_SHORT_TO_LONG = "REVERSE_SHORT_TO_LONG"
+TARGET_TRANSITION_KINDS_R0 = (
+    SAME_TARGET_NOOP,
+    OPEN_LONG,
+    OPEN_SHORT,
+    INCREASE_LONG,
+    DECREASE_LONG,
+    INCREASE_SHORT,
+    DECREASE_SHORT,
+    CLOSE_LONG,
+    CLOSE_SHORT,
+    REVERSE_LONG_TO_SHORT,
+    REVERSE_SHORT_TO_LONG,
+)
+
 
 def _require_nonempty_string(value: object, *, code: str) -> str:
     if not isinstance(value, str) or not value.strip():
@@ -46,9 +72,21 @@ def _canonical_risk(value: object) -> float:
     risk = float(value)
     if not math.isfinite(risk) or not 0.0 <= risk <= 1.0:
         raise RuntimeError("ACACT_TARGET_RISK_OUT_OF_RANGE")
-    # JSON distinguishes -0.0 from 0.0 even though the target exposure does not.
-    # Normalize the zero representation before hashing/receipt use downstream.
+    # JSON distinguishes -0.0 from 0.0 even though target exposure does not.
     return 0.0 if risk == 0.0 else risk
+
+
+def _validate_direction_risk_pair(direction: object, risk_value: object) -> tuple[str, float]:
+    direction_text = _require_nonempty_string(
+        direction,
+        code="ACACT_TARGET_DIRECTION_INVALID",
+    )
+    if direction_text not in TARGET_DIRECTIONS_R0:
+        raise RuntimeError("ACACT_TARGET_DIRECTION_INVALID")
+    risk = _canonical_risk(risk_value)
+    if direction_text == FLAT and risk != 0.0:
+        raise RuntimeError("ACACT_FLAT_TARGET_RISK_MUST_BE_ZERO")
+    return direction_text, risk
 
 
 @dataclass(frozen=True)
@@ -74,11 +112,10 @@ class TargetPositionActionR0:
             raise RuntimeError("ACACT_SEMANTICS_MISMATCH")
         if self.requested_target_risk_semantics != TARGET_RISK_SEMANTICS_R0:
             raise RuntimeError("ACACT_TARGET_RISK_SEMANTICS_MISMATCH")
-        if self.target_direction not in TARGET_DIRECTIONS_R0:
-            raise RuntimeError("ACACT_TARGET_DIRECTION_INVALID")
-        risk = _canonical_risk(self.requested_target_risk)
-        if self.target_direction == FLAT and risk != 0.0:
-            raise RuntimeError("ACACT_FLAT_TARGET_RISK_MUST_BE_ZERO")
+        _validate_direction_risk_pair(
+            self.target_direction,
+            self.requested_target_risk,
+        )
 
     def to_payload(self) -> dict[str, object]:
         self.validate()
@@ -152,6 +189,36 @@ class TargetPositionActionR0:
         return cls.from_payload(payload)
 
 
+@dataclass(frozen=True)
+class TargetStateTransitionR0:
+    """Nominal state transition before Supervisor permission and Physics."""
+
+    action_id: str
+    source_direction: str
+    source_target_risk: float
+    target_direction: str
+    requested_target_risk: float
+    transition_kind: str
+
+    def validate(self) -> None:
+        _require_nonempty_string(self.action_id, code="ACACT_ACTION_ID_INVALID")
+        _validate_direction_risk_pair(self.source_direction, self.source_target_risk)
+        _validate_direction_risk_pair(self.target_direction, self.requested_target_risk)
+        if self.transition_kind not in TARGET_TRANSITION_KINDS_R0:
+            raise RuntimeError("ACACT_TRANSITION_KIND_INVALID")
+
+    @property
+    def is_noop(self) -> bool:
+        return self.transition_kind == SAME_TARGET_NOOP
+
+    @property
+    def is_reversal(self) -> bool:
+        return self.transition_kind in (
+            REVERSE_LONG_TO_SHORT,
+            REVERSE_SHORT_TO_LONG,
+        )
+
+
 def make_target_position_action_r0(
     *,
     action_id: str,
@@ -172,3 +239,52 @@ def make_target_position_action_r0(
     )
     action.validate()
     return action
+
+
+def classify_target_state_transition_r0(
+    *,
+    source_direction: str,
+    source_target_risk: float,
+    action: TargetPositionActionR0,
+) -> TargetStateTransitionR0:
+    """Classify every legal nominal target-state change without execution policy."""
+
+    source_direction, source_risk = _validate_direction_risk_pair(
+        source_direction,
+        source_target_risk,
+    )
+    action.validate()
+    target_direction = action.target_direction
+    target_risk = _canonical_risk(action.requested_target_risk)
+
+    if source_direction == target_direction:
+        if source_risk == target_risk:
+            kind = SAME_TARGET_NOOP
+        elif source_direction == LONG:
+            kind = INCREASE_LONG if target_risk > source_risk else DECREASE_LONG
+        elif source_direction == SHORT:
+            kind = INCREASE_SHORT if target_risk > source_risk else DECREASE_SHORT
+        else:
+            # FLAT has exactly one canonical risk representation: zero.
+            raise RuntimeError("ACACT_FLAT_TRANSITION_NONCANONICAL")
+    elif source_direction == FLAT:
+        kind = OPEN_LONG if target_direction == LONG else OPEN_SHORT
+    elif target_direction == FLAT:
+        kind = CLOSE_LONG if source_direction == LONG else CLOSE_SHORT
+    elif source_direction == LONG and target_direction == SHORT:
+        kind = REVERSE_LONG_TO_SHORT
+    elif source_direction == SHORT and target_direction == LONG:
+        kind = REVERSE_SHORT_TO_LONG
+    else:
+        raise RuntimeError("ACACT_TRANSITION_UNREPRESENTABLE")
+
+    transition = TargetStateTransitionR0(
+        action_id=action.action_id,
+        source_direction=source_direction,
+        source_target_risk=source_risk,
+        target_direction=target_direction,
+        requested_target_risk=target_risk,
+        transition_kind=kind,
+    )
+    transition.validate()
+    return transition
