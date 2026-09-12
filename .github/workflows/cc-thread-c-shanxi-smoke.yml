@@ -1,0 +1,100 @@
+name: CC Thread C Shanxi Smoke
+
+on:
+  push:
+    branches:
+      - ai/r11-cc-thread-c-experience-r0
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cc-thread-c-shanxi-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Thread C synthetic qualification
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 20
+    env:
+      CC_THREAD_C_BASE: 89d62bf966f476e598f0e2f5c5e8e03c15a8db51
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout Thread C
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Enforce frozen-base and owned-path firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$CC_THREAD_C_BASE" HEAD
+          changed="$(git diff --name-only "$CC_THREAD_C_BASE"...HEAD)"
+          printf '%s\n' "$changed"
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(cb16_local_opt/cc_.*_r0\.py|tests/test_cc_.*_r0\.py|tests/cc_thread_c_fixtures\.py|authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_(BASELINE|RECEIPT)_V1\.json|\.github/workflows/cc-thread-c-shanxi-smoke\.yml)$' || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo "Thread-C owned-path firewall rejected:"
+            printf '%s\n' "$unexpected"
+            exit 1
+          fi
+
+      - name: Resolve verified Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/python.json"
+          python3 - "$RUNNER_TEMP/python.json" <<'PY' > "$RUNNER_TEMP/python_path"
+          import json, sys
+          x = json.load(open(sys.argv[1]))
+          assert x["status"] == "READY", x
+          print(x["python"]["venv"] + "/bin/python")
+          PY
+          echo "PYTHON=$(cat "$RUNNER_TEMP/python_path")" >> "$GITHUB_ENV"
+
+      - name: Compile Thread C modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PYTHON" -m py_compile cb16_local_opt/cc_*_r0.py
+
+      - name: Run Thread C qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PYTHON" -m pytest -q \
+            tests/test_cc_thread_c_baseline_r0.py \
+            tests/test_cc_experience_wire_r0.py \
+            tests/test_cc_experience_transition_r0.py \
+            tests/test_cc_experience_sequence_r0.py \
+            tests/test_cc_experience_store_r0.py \
+            tests/test_cc_experience_failure_persistence_r0.py \
+            tests/test_cc_experience_views_r0.py \
+            tests/test_cc_experience_source_r0.py \
+            tests/test_cc_replay_compatibility_r0.py \
+            tests/test_cc_replay_support_r0.py \
+            tests/test_cc_replay_selection_r0.py \
+            tests/test_cc_experience_transaction_r0.py \
+            tests/test_cc_economic_cohort_r0.py \
+            tests/test_cc_economic_baselines_r0.py \
+            tests/test_cc_economic_capital_r0.py \
+            tests/test_cc_economic_evaluator_r0.py \
+            tests/test_cc_economic_policy_identity_r0.py \
+            tests/test_cc_economic_promotion_r0.py \
+            tests/test_cc_economic_freeze_r0.py \
+            tests/test_cc_economic_toys_r0.py \
+            tests/test_cc_experience_economic_qualification_r0.py \
+            | tee cc-thread-c-pytest.txt
+
+      - name: Upload smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cc-thread-c-smoke-${{ github.sha }}
+          path: cc-thread-c-pytest.txt
+          if-no-files-found: warn
+          retention-days: 14
