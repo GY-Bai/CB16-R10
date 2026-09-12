@@ -2,11 +2,11 @@ from __future__ import annotations
 
 """Immutable nominal / permitted / executed record separation for Actor-Critic R0.
 
-AC-008 freezes the separation boundary only.  Supervisor permission semantics
-are intentionally carried as an immutable canonical payload until AC-010 owns
-the typed ACCEPT/CLAMP/REJECT contract.  Physics execution details likewise
-remain an immutable payload plus the actual signed executed quantity delta until
-AC-014 owns the adapter.
+AC-008 freezes the separation boundary only. AC-009 adds immutable behavior-
+policy provenance for sampled nominal actions without storing or fabricating a
+probability. Supervisor permission semantics remain an immutable canonical
+payload until AC-010 owns ACCEPT/CLAMP/REJECT. Physics execution details remain
+an immutable payload plus actual signed executed quantity until AC-014.
 """
 
 from dataclasses import dataclass
@@ -14,11 +14,18 @@ import json
 import math
 from typing import Mapping
 
-from .action_contract_r0 import TargetPositionActionR0
+from .action_contract_r0 import (
+    ActionBehaviorPolicyBindingR0,
+    TargetPositionActionR0,
+    validate_action_behavior_binding_r0,
+)
 from .actor_critic_contract_r0 import PERMISSION_EXECUTION_VERSION_R0
 
 
 NOMINAL_ACTOR_RECORD_SCHEMA_R0 = "CB16_R11_AC_NOMINAL_ACTOR_RECORD_V1_R0"
+BEHAVIOR_BOUND_NOMINAL_RECORD_SCHEMA_R0 = (
+    "CB16_R11_AC_BEHAVIOR_BOUND_NOMINAL_RECORD_V1_R0"
+)
 PERMISSION_RECORD_SCHEMA_R0 = "CB16_R11_AC_PERMISSION_RECORD_V1_R0"
 EXECUTION_DELTA_RECORD_SCHEMA_R0 = "CB16_R11_AC_EXECUTION_DELTA_RECORD_V1_R0"
 COMBINED_EXECUTION_RECORD_SCHEMA_R0 = "CB16_R11_AC_ACTION_EXECUTION_RECORD_V1_R0"
@@ -70,6 +77,48 @@ class NominalActorActionRecordR0:
 
 
 @dataclass(frozen=True)
+class BehaviorBoundNominalActorActionRecordR0:
+    """Nominal sampled action plus exact immutable behavior-policy provenance."""
+
+    record_id: str
+    schema_version: str
+    nominal: NominalActorActionRecordR0
+    behavior_binding: ActionBehaviorPolicyBindingR0
+
+    def validate(self) -> None:
+        _require_nonempty_string(
+            self.record_id,
+            code="ACREC_BOUND_NOMINAL_RECORD_ID_INVALID",
+        )
+        if self.schema_version != BEHAVIOR_BOUND_NOMINAL_RECORD_SCHEMA_R0:
+            raise RuntimeError("ACREC_BOUND_NOMINAL_SCHEMA_MISMATCH")
+        if not isinstance(self.nominal, NominalActorActionRecordR0):
+            raise RuntimeError("ACREC_BOUND_NOMINAL_TYPE_INVALID")
+        self.nominal.validate()
+        validate_action_behavior_binding_r0(
+            self.nominal.action,
+            self.behavior_binding,
+        )
+
+    def to_payload(self) -> dict[str, object]:
+        self.validate()
+        payload = {
+            "record_id": self.record_id,
+            "schema_version": self.schema_version,
+            "nominal": {
+                "record_id": self.nominal.record_id,
+                "schema_version": self.nominal.schema_version,
+                "action": self.nominal.action.to_payload(),
+            },
+            "behavior_policy": self.behavior_binding.to_payload(),
+        }
+        # AC-009 freezes provenance only. log_mu/log_prob enters only after the
+        # exact Actor distribution is frozen and auditable in AC-019.
+        assert "log_mu" not in payload
+        return payload
+
+
+@dataclass(frozen=True)
 class SupervisorPermissionRecordR0:
     record_id: str
     schema_version: str
@@ -97,7 +146,11 @@ class SupervisorPermissionRecordR0:
             raise RuntimeError("ACREC_PERMISSION_PAYLOAD_INVALID") from exc
         if not isinstance(decoded, dict):
             raise RuntimeError("ACREC_PERMISSION_PAYLOAD_INVALID")
-        if _canonical_json_object(decoded, code="ACREC_PERMISSION_PAYLOAD_INVALID") != self.permission_payload_json:
+        canonical = _canonical_json_object(
+            decoded,
+            code="ACREC_PERMISSION_PAYLOAD_INVALID",
+        )
+        if canonical != self.permission_payload_json:
             raise RuntimeError("ACREC_PERMISSION_PAYLOAD_NONCANONICAL")
 
     def payload(self) -> dict[str, object]:
@@ -143,7 +196,11 @@ class ExecutedDeltaRecordR0:
             raise RuntimeError("ACREC_EXECUTION_PAYLOAD_INVALID") from exc
         if not isinstance(decoded, dict):
             raise RuntimeError("ACREC_EXECUTION_PAYLOAD_INVALID")
-        if _canonical_json_object(decoded, code="ACREC_EXECUTION_PAYLOAD_INVALID") != self.execution_payload_json:
+        canonical = _canonical_json_object(
+            decoded,
+            code="ACREC_EXECUTION_PAYLOAD_INVALID",
+        )
+        if canonical != self.execution_payload_json:
             raise RuntimeError("ACREC_EXECUTION_PAYLOAD_NONCANONICAL")
 
     def payload(self) -> dict[str, object]:
@@ -215,6 +272,22 @@ def make_nominal_actor_record_r0(
         record_id=record_id,
         schema_version=NOMINAL_ACTOR_RECORD_SCHEMA_R0,
         action=action,
+    )
+    record.validate()
+    return record
+
+
+def make_behavior_bound_nominal_actor_record_r0(
+    *,
+    record_id: str,
+    nominal: NominalActorActionRecordR0,
+    behavior_binding: ActionBehaviorPolicyBindingR0,
+) -> BehaviorBoundNominalActorActionRecordR0:
+    record = BehaviorBoundNominalActorActionRecordR0(
+        record_id=record_id,
+        schema_version=BEHAVIOR_BOUND_NOMINAL_RECORD_SCHEMA_R0,
+        nominal=nominal,
+        behavior_binding=behavior_binding,
     )
     record.validate()
     return record

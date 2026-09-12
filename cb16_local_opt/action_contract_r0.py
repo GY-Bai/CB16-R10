@@ -5,16 +5,20 @@ from __future__ import annotations
 AC-005 introduces the datatype. AC-006 freezes canonical encoding, FLAT risk
 semantics, and the fact that ``requested_target_risk`` is a target-exposure
 request rather than confidence. AC-007 adds the complete nominal target-state
-transition matrix. AC-009 owns behavior-policy probability/log-probability
-binding.
+transition matrix. AC-009 binds each sampled action to one immutable behavior
+policy identity without fabricating any probability or log-probability.
 """
 
 from dataclasses import dataclass
 import json
 import math
+import re
 from typing import Mapping
 
-from .actor_critic_contract_r0 import ACTION_VERSION_R0
+from .actor_critic_contract_r0 import (
+    ACTION_VERSION_R0,
+    ACTOR_DISTRIBUTION_VERSION_R0,
+)
 
 
 SHORT = "SHORT"
@@ -64,6 +68,13 @@ def _require_nonempty_string(value: object, *, code: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise RuntimeError(code)
     return value
+
+
+def _require_sha256_hex(value: object, *, code: str) -> str:
+    text = _require_nonempty_string(value, code=code)
+    if re.fullmatch(r"[0-9a-f]{64}", text) is None:
+        raise RuntimeError(code)
+    return text
 
 
 def _canonical_risk(value: object) -> float:
@@ -219,6 +230,44 @@ class TargetStateTransitionR0:
         )
 
 
+@dataclass(frozen=True)
+class ActionBehaviorPolicyBindingR0:
+    """Immutable provenance linking one sampled action to one behavior policy."""
+
+    action_id: str
+    behavior_policy_id: str
+    behavior_policy_version: str
+    behavior_policy_hash: str
+    actor_distribution_version: str
+
+    def validate(self) -> None:
+        _require_nonempty_string(self.action_id, code="ACACT_BINDING_ACTION_ID_INVALID")
+        _require_nonempty_string(
+            self.behavior_policy_id,
+            code="ACACT_BINDING_POLICY_ID_INVALID",
+        )
+        _require_nonempty_string(
+            self.behavior_policy_version,
+            code="ACACT_BINDING_POLICY_VERSION_INVALID",
+        )
+        _require_sha256_hex(
+            self.behavior_policy_hash,
+            code="ACACT_BINDING_POLICY_HASH_INVALID",
+        )
+        if self.actor_distribution_version != ACTOR_DISTRIBUTION_VERSION_R0:
+            raise RuntimeError("ACACT_BINDING_DISTRIBUTION_VERSION_MISMATCH")
+
+    def to_payload(self) -> dict[str, str]:
+        self.validate()
+        return {
+            "action_id": self.action_id,
+            "behavior_policy_id": self.behavior_policy_id,
+            "behavior_policy_version": self.behavior_policy_version,
+            "behavior_policy_hash": self.behavior_policy_hash,
+            "actor_distribution_version": self.actor_distribution_version,
+        }
+
+
 def make_target_position_action_r0(
     *,
     action_id: str,
@@ -288,3 +337,42 @@ def classify_target_state_transition_r0(
     )
     transition.validate()
     return transition
+
+
+def bind_action_behavior_policy_r0(
+    action: TargetPositionActionR0,
+    *,
+    behavior_policy_hash: str,
+    actor_distribution_version: str = ACTOR_DISTRIBUTION_VERSION_R0,
+) -> ActionBehaviorPolicyBindingR0:
+    """Bind provenance only; probability/log_mu is intentionally absent here."""
+
+    action.validate()
+    binding = ActionBehaviorPolicyBindingR0(
+        action_id=action.action_id,
+        behavior_policy_id=action.policy_id,
+        behavior_policy_version=action.policy_version,
+        behavior_policy_hash=_require_sha256_hex(
+            behavior_policy_hash,
+            code="ACACT_BINDING_POLICY_HASH_INVALID",
+        ),
+        actor_distribution_version=actor_distribution_version,
+    )
+    binding.validate()
+    return binding
+
+
+def validate_action_behavior_binding_r0(
+    action: TargetPositionActionR0,
+    binding: ActionBehaviorPolicyBindingR0,
+) -> None:
+    action.validate()
+    if not isinstance(binding, ActionBehaviorPolicyBindingR0):
+        raise RuntimeError("ACACT_BINDING_TYPE_INVALID")
+    binding.validate()
+    if binding.action_id != action.action_id:
+        raise RuntimeError("ACACT_BINDING_ACTION_MISMATCH")
+    if binding.behavior_policy_id != action.policy_id:
+        raise RuntimeError("ACACT_BINDING_POLICY_ID_MISMATCH")
+    if binding.behavior_policy_version != action.policy_version:
+        raise RuntimeError("ACACT_BINDING_POLICY_VERSION_MISMATCH")
