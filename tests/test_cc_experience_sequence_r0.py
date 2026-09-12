@@ -10,5 +10,5 @@ def test_order_continuity_and_mixed_generation_attribution():
     assert s.pure_generation() is None
 
 def test_reorder_duplicate_cross_account_and_hash_gap_fail_closed():
-    for bad in ((tx(1),tx(0)),(tx(0),tx(0)),(tx(0),tx(1,lineage='other')),(tx(0,post='x'),tx(1,pre='y'))):
+    for bad in ((tx(1),tx(0)),(tx(0),tx(0)),(tx(0),tx(2)),(tx(0),tx(1,lineage='other')),(tx(0,post='x'),tx(1,pre='y'))):
         with pytest.raises(ValueError): build(bad)

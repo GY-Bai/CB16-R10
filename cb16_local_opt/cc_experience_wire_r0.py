@@ -1,61 +1,177 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from math import isfinite
-from typing import Any, Mapping
 
-class WireValidationError(ValueError): pass
-W02_SCHEMA="CCEnvironmentTransitionV1"; W03_SCHEMA="CCExperienceSequenceV1"; W05_SCHEMA="CCEconomicResultV1"
-W02_FIELDS=("schema_version","environment_transition_id","account_lineage_id","generation_id","step_id","market_data_ref","source_family","source_policy_class","source_window_or_seed_ref","decision_index","decision_ts","policy_decision_ref","nominal_action","nominal_target_quantity","nominal_limit_or_market","nominal_time_in_force","nominal_cancel_replace_budget","target_quantity","clip_applied","executed_quantity","execution_price","fees_paid","slippage_cost","impact_cost","retry_count","throttle_delay_ms","pre_account_truth_hash","post_account_truth_hash","realized_pnl_delta","unrealized_pnl_delta","margin_used_post","equity_post","drawdown_post","runtime_terminal","mechanical_terminal","done","failure_code","next_observation_ref_or_null","rng_state_in_hash","rng_state_out_hash","transition_integrity_hash")
-W03_FIELDS=("schema_version","sequence_id","account_lineage_id","generation_id","environment_id","source_family","source_policy_class","source_window_or_seed_ref","first_decision_index","last_decision_index","transition_refs","policy_version_refs","terminal_outcome","failure_code_or_null","rng_initial_state_hash","rng_final_state_hash","sequence_integrity_hash","eligible_for_replay","replay_ineligibility_reason_or_null","bootstrap_state_ref_or_null")
-W05_FIELDS=("evaluation_id","policy_object_type","policy_identity","cohort_id","common_horizon_id","capital_denominator_id","account_results","mean_arithmetic_return","buy_hold_delta","flat_delta","failure_counts","tail_diagnostics","result_scope")
-SOURCE_FAMILIES={"train","validation","final_test","synthetic"}; POLICY_OBJECT_TYPES={"frozen_checkpoint","generation_chain","baseline"}
+from dataclasses import asdict, dataclass, is_dataclass
+from hashlib import sha256
+import json
+import math
+from typing import Any, Mapping, Sequence
 
-def _exact(p:Mapping[str,Any], fields:tuple[str,...], label:str):
-    got,want=set(p),set(fields)
-    if got!=want: raise WireValidationError(f"{label} field mismatch missing={sorted(want-got)} extra={sorted(got-want)}")
-def _nonempty(p,names,label):
-    for n in names:
-        if not isinstance(p[n],str) or not p[n]: raise WireValidationError(f"{label}.{n} required")
-def validate_w02(p:Mapping[str,Any])->dict[str,Any]:
-    _exact(p,W02_FIELDS,W02_SCHEMA)
-    if p["schema_version"]!=W02_SCHEMA: raise WireValidationError("W-02 schema drift")
-    _nonempty(p,("environment_transition_id","account_lineage_id","generation_id","step_id","market_data_ref","source_policy_class","source_window_or_seed_ref","policy_decision_ref","pre_account_truth_hash","post_account_truth_hash","rng_state_in_hash","rng_state_out_hash","transition_integrity_hash"),W02_SCHEMA)
-    if p["source_family"] not in SOURCE_FAMILIES: raise WireValidationError("invalid source_family")
-    if not isinstance(p["decision_index"],int) or p["decision_index"]<0: raise WireValidationError("invalid decision_index")
-    for n in ("executed_quantity","fees_paid","slippage_cost","impact_cost","realized_pnl_delta","unrealized_pnl_delta","margin_used_post","equity_post","drawdown_post"):
-        if not isinstance(p[n],(int,float)) or not isfinite(float(p[n])): raise WireValidationError(f"{n} must be finite")
-    price=p["execution_price"]
-    if price is not None and (not isinstance(price,(int,float)) or not isfinite(float(price))): raise WireValidationError("execution_price must be finite or null")
-    if price is None and float(p["executed_quantity"])!=0.0: raise WireValidationError("filled transition requires execution_price")
-    if p["failure_code"] is not None and not isinstance(p["failure_code"],str): raise WireValidationError("invalid failure_code")
-    return dict(p)
-def validate_w03(p:Mapping[str,Any])->dict[str,Any]:
-    _exact(p,W03_FIELDS,W03_SCHEMA)
-    if p["schema_version"]!=W03_SCHEMA: raise WireValidationError("W-03 schema drift")
-    _nonempty(p,("sequence_id","account_lineage_id","generation_id","environment_id","source_policy_class","source_window_or_seed_ref","rng_initial_state_hash","rng_final_state_hash","sequence_integrity_hash"),W03_SCHEMA)
-    if p["source_family"] not in SOURCE_FAMILIES: raise WireValidationError("invalid source_family")
-    a,b=p["first_decision_index"],p["last_decision_index"]
-    if not isinstance(a,int) or not isinstance(b,int) or a<0 or b<a: raise WireValidationError("invalid index range")
-    refs=p["transition_refs"]
-    if not isinstance(refs,list) or not refs or len(refs)!=len(set(refs)): raise WireValidationError("transition refs must be nonempty and unique")
-    if not isinstance(p["policy_version_refs"],list) or not p["policy_version_refs"]: raise WireValidationError("policy_version_refs required")
-    if bool(p["eligible_for_replay"]) == bool(p["replay_ineligibility_reason_or_null"]): raise WireValidationError("replay eligibility/reason inconsistent")
-    return dict(p)
-def validate_w05(p:Mapping[str,Any])->dict[str,Any]:
-    _exact(p,W05_FIELDS,W05_SCHEMA); _nonempty(p,("evaluation_id","policy_identity","cohort_id","common_horizon_id","capital_denominator_id","result_scope"),W05_SCHEMA)
-    if p["policy_object_type"] not in POLICY_OBJECT_TYPES: raise WireValidationError("invalid policy object type")
-    if not isinstance(p["account_results"],list) or not p["account_results"]: raise WireValidationError("account_results required")
-    if not isinstance(p["mean_arithmetic_return"],(int,float)) or not isfinite(float(p["mean_arithmetic_return"])): raise WireValidationError("finite arithmetic return required")
-    return dict(p)
+W02_VERSION = "CCEnvironmentTransitionV1"
+W03_VERSION = "CCExperienceSequenceV1"
+W05_VERSION = "CCEconomicResultV1"
+
+
+def _normalize(value: Any) -> Any:
+    if is_dataclass(value):
+        return _normalize(asdict(value))
+    if isinstance(value, Mapping):
+        return {str(k): _normalize(v) for k, v in sorted(value.items(), key=lambda kv: str(kv[0]))}
+    if isinstance(value, (list, tuple)):
+        return [_normalize(v) for v in value]
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("non-finite numeric value")
+        if value == 0.0:
+            return 0.0
+    return value
+
+
+def canonical_json_bytes(value: Any) -> bytes:
+    return json.dumps(_normalize(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
+
+def content_sha256(value: Any) -> str:
+    return sha256(canonical_json_bytes(value)).hexdigest()
+
+
+def _require_text(name: str, value: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{name} must be non-empty text")
+
+
 @dataclass(frozen=True)
 class CCEnvironmentTransitionV1:
-    payload:Mapping[str,Any]
-    def __post_init__(self): object.__setattr__(self,"payload",validate_w02(self.payload))
+    account_lineage_id: str
+    decision_index: int
+    environment_time_before: str
+    environment_time_after: str
+    pre_account_truth_hash: str
+    policy_decision_ref: str
+    permission_status: str
+    permission_reason: str
+    permitted_target_direction: str
+    permitted_target_risk: float
+    target_quantity: float
+    execution_legs: tuple[Mapping[str, Any], ...]
+    fees: float
+    funding: float
+    realized_pnl: float
+    unrealized_pnl_delta: float
+    liability_delta: float
+    post_account_truth_hash: str
+    post_equity: float
+    boundary_type: str
+    mechanical_terminal: bool
+    external_capital_flow_ref_or_null: str | None
+
+    def validate(self) -> "CCEnvironmentTransitionV1":
+        for n in ("account_lineage_id", "environment_time_before", "environment_time_after", "pre_account_truth_hash",
+                  "policy_decision_ref", "permission_status", "permission_reason", "permitted_target_direction",
+                  "post_account_truth_hash", "boundary_type"):
+            _require_text(n, getattr(self, n))
+        if self.decision_index < 0:
+            raise ValueError("decision_index must be >= 0")
+        if self.environment_time_after < self.environment_time_before:
+            raise ValueError("environment time must not reverse")
+        if self.permitted_target_direction not in {"SHORT", "FLAT", "LONG"}:
+            raise ValueError("invalid permitted_target_direction")
+        if not 0.0 <= float(self.permitted_target_risk) <= 1.0:
+            raise ValueError("permitted_target_risk outside [0,1]")
+        if self.permitted_target_direction == "FLAT" and float(self.permitted_target_risk) != 0.0:
+            raise ValueError("FLAT permitted_target_risk must be 0")
+        for n in ("target_quantity", "fees", "funding", "realized_pnl", "unrealized_pnl_delta", "liability_delta", "post_equity"):
+            if not math.isfinite(float(getattr(self, n))):
+                raise ValueError(f"{n} must be finite")
+        if not isinstance(self.execution_legs, tuple):
+            raise ValueError("execution_legs must be an immutable tuple")
+        for expected_index, leg in enumerate(self.execution_legs):
+            if not isinstance(leg, Mapping):
+                raise ValueError("each execution leg must be a mapping")
+            if leg.get("leg_index") != expected_index:
+                raise ValueError("execution legs must be explicitly ordered by contiguous leg_index")
+            if "executed_quantity" not in leg:
+                raise ValueError("execution leg missing executed_quantity")
+            qty = float(leg["executed_quantity"])
+            if not math.isfinite(qty):
+                raise ValueError("executed_quantity must be finite")
+            price = leg.get("execution_price")
+            if qty != 0.0:
+                if price is None or not math.isfinite(float(price)):
+                    raise ValueError("nonzero execution requires finite execution_price")
+            elif price is not None and not math.isfinite(float(price)):
+                raise ValueError("execution_price must be finite when present")
+        return self
+
+    @property
+    def content_sha256(self) -> str:
+        self.validate()
+        return content_sha256(self)
+
+
 @dataclass(frozen=True)
 class CCExperienceSequenceV1:
-    payload:Mapping[str,Any]
-    def __post_init__(self): object.__setattr__(self,"payload",validate_w03(self.payload))
+    sequence_id: str
+    account_lineage_id: str
+    science_semantic_version: str
+    market_lineage_id: str
+    source_classification: str
+    transition_refs: tuple[str, ...]
+    first_decision_index: int
+    last_decision_index: int
+    behavior_policy_identities: tuple[str, ...]
+    normalizer_identities: tuple[str, ...]
+    chunk_boundary_type: str
+    bootstrap_state_ref_or_null: str | None
+    raw_fact_content_sha256: str
+
+    def validate(self) -> "CCExperienceSequenceV1":
+        for n in ("sequence_id", "account_lineage_id", "science_semantic_version", "market_lineage_id",
+                  "source_classification", "chunk_boundary_type", "raw_fact_content_sha256"):
+            _require_text(n, getattr(self, n))
+        if not self.transition_refs:
+            raise ValueError("sequence must contain transition refs")
+        if len(set(self.transition_refs)) != len(self.transition_refs):
+            raise ValueError("duplicate transition refs")
+        if self.first_decision_index < 0 or self.last_decision_index < self.first_decision_index:
+            raise ValueError("invalid decision interval")
+        return self
+
+    @property
+    def content_sha256(self) -> str:
+        self.validate()
+        return content_sha256(self)
+
+
 @dataclass(frozen=True)
 class CCEconomicResultV1:
-    payload:Mapping[str,Any]
-    def __post_init__(self): object.__setattr__(self,"payload",validate_w05(self.payload))
+    evaluation_id: str
+    policy_object_type: str
+    policy_identity: str
+    cohort_id: str
+    common_horizon_id: str
+    capital_denominator_id: str
+    account_results: tuple[Mapping[str, Any], ...]
+    mean_arithmetic_return: float
+    buy_hold_delta: float
+    flat_delta: float
+    failure_counts: Mapping[str, int]
+    tail_diagnostics: Mapping[str, float]
+    result_scope: str
+
+    def validate(self) -> "CCEconomicResultV1":
+        for n in ("evaluation_id", "policy_object_type", "policy_identity", "cohort_id", "common_horizon_id",
+                  "capital_denominator_id", "result_scope"):
+            _require_text(n, getattr(self, n))
+        if self.policy_object_type not in {"frozen_checkpoint", "generation_chain", "baseline"}:
+            raise ValueError("invalid policy_object_type")
+        for n in ("mean_arithmetic_return", "buy_hold_delta", "flat_delta"):
+            if not math.isfinite(float(getattr(self, n))):
+                raise ValueError(f"{n} must be finite")
+        if any(int(v) < 0 for v in self.failure_counts.values()):
+            raise ValueError("failure counts must be non-negative")
+        return self
+
+    @property
+    def content_sha256(self) -> str:
+        self.validate()
+        return content_sha256(self)
