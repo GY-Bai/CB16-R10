@@ -29,11 +29,13 @@ CC integrated closed-loop 已证明同一逻辑账户跨 generation switch 保�
 
 完整计入失败后，如果高爆仓概率策略的长期算术期望收益更高，用户允许其获胜。不得静默替换为最少爆仓、最大 Sharpe、最大 log-growth 或回撤最小化目标。
 
-## D-05 Buy-and-Hold 与 FLAT baseline — 部分明确，master precedence 仍未决
+## D-05 Buy-and-Hold 与 FLAT baseline — 后续沙盒设计已确定
 
-两种 baseline 均正式保留并分别计算。当前唯一 owner-open 科学决策是：当 Buy-and-Hold 与 FLAT component outcomes 冲突时，哪个拥有 master precedence，或采用什么显式组合规则。
+两种 baseline 均正式保留并分别计算。原先未区分“单模型的基准诊断”“模型之间的排序”“晋升门槛”，导致 C-20 与 integration 留下过宽的 master precedence 问题。
 
-在 owner 决定前，系统不得自行制造 master winner。
+2026-09-12 用户要求本对话表态并落实，后续沙盒设计确定为：两基准无默认主次；共同合同下按完整算术收益排名；达到预登记改善证据的候选可以相对现任晋升，不以同时击败两基准为额外门槛。该设计由用户的目标与本次委托落实，不表示用户逐项指定了所有统计参数。数学推导、例子与版本迁移见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
+
+旧 C-20/receipt 原样保留，新行为须迁移及验证。关闭原则不等于新增经济 PASS 或真实账户部署权限。
 
 ## D-06 失败经验 — 原则已关闭
 
@@ -101,6 +103,12 @@ PR #99 已合入 `main`；merge commit 为 `daa889d758ce80c7d1ce73ea37110937e1b1
 它证明 integrated synthetic closed loop、known-answer、recovery、exactly-once update、reference-vs-fast semantic equivalence、hard cutover 和 Shanxi measured performance。
 
 它**不证明**真实历史市场 ECONOMIC edge，也不证明 TRANSFER。FINAL 仍封存，fresh data 未使用。
+
+## D-14 后 CC 科学路线 — 设计落实，未执行
+
+2026-09-12 用户要求落实下一 scientific program / historical execution / capacity experiment / economic qualification。采用 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)：S0 后继评价契约与精确 spec → S1 实际端到端可学习性 → S2 真实已授权历史接入 → S3 小规模历史学习 → 按诊断进入 S4 容量 → S5 冻结候选经济确认。S4 非必经；不以加参数代替闭环归因资格。
+
+文档角色负责研究顺序与理念边界；sol 负责 TODO、实现和版本化运行参数。起始预算与统计门槛为本次设计建议，运行前冻结；不把它们伪称为用户逐项指定。保留失败、账户连续、FINAL/fresh firewall 与旧 receipt。本轮没有运行这些新科学阶段，也没有批准真实账户部署。
 
 ## 运行语义迁移登记
 

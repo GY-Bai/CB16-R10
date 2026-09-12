@@ -15,7 +15,9 @@ PR #99 merge commit：
 | 最终机器可读 spec / receipt | `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json` / `CB16_R11_CC_INTEGRATION_RECEIPT_V1.json` |
 | 项目最高目标 | [VISION](VISION.md) |
 | 当前已确认设计决策 | [DECISIONS](DECISIONS.md) |
-| 当前唯一 owner-open 科学决策 | [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
+| 双基准、模型排序与沙盒冠军晋升 | [ECONOMIC_ORDERING_AND_PROMOTION](ECONOMIC_ORDERING_AND_PROMOTION.md) |
+| 下一 scientific program / historical / capacity / economic qualification | **[POST_CC_SCIENTIFIC_PROGRAM_R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)** |
+| 已关闭的问题与将来问题提交边界 | [OPEN_QUESTIONS](OPEN_QUESTIONS.md) |
 | 当前组件地图 | [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md) |
 | Agent 执行规则 | [根目录 AGENTS](../AGENTS.md) |
 | 理念约束 | [PRINCIPLE_ALIGNMENT](PRINCIPLE_ALIGNMENT.md) / [COMPONENT_REQUIREMENTS](COMPONENT_REQUIREMENTS.md) |
@@ -65,13 +67,11 @@ Receipt 冻结的 Shanxi benchmark：
 
 它不是 ECONOMIC 或 TRANSFER evidence。FINAL 未开启，fresh market data 未使用；当前没有真实历史市场 edge 或未来盈利性结论。
 
-## 当前未决项
+## 后 CC 设计决定与下一步
 
-唯一保留的 owner-open 科学决策：
+双基准不设 master precedence；同合同下完整算术收益决定候选排序。有充分预登记证据的相对改善可晋升沙盒学习冠军；不额外要求同时击败 B&H 和 FLAT。旧 C-20 代码/receipt 尚需后继语义迁移，设计关闭不等于代码已实现。
 
-> 当 Buy-and-Hold 与 FLAT component outcomes 冲突时，哪个拥有 master precedence / master winner，或使用什么显式组合规则？
-
-在 owner 决定前，两项分别报告，master promotion fail closed。详见 [OPEN_QUESTIONS](OPEN_QUESTIONS.md)。
+下一步 S0 契约/spec 与 S1 真实闭环可学习性，其后 S2 历史接入、S3 小规模历史学习、条件性 S4 容量、S5 经济确认。完整规则与阶段边界见上表两个新入口；不重新打开 CC 四线程，不自动 dispatch 或解封数据。
 
 ## 历史资料地位
 

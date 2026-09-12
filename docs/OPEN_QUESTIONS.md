@@ -7,26 +7,20 @@
 
 本页只保留**仍需要项目 owner 决定、且不能由实现 Agent 自行推导**的问题。已经被 CC 合同、qualification 或工程实现关闭的旧问题，不再继续列作 owner-open。
 
-## O-01 Buy-and-Hold 与 FLAT 冲突时的 master precedence — 未决
+## O-01 Buy-and-Hold 与 FLAT 的 master precedence — 设计关闭，实施待迁移
 
 已明确：
 
 - 经济方向仍以长期算术期望收益为主；完整失败进入分母。
 - Buy-and-Hold 与全程 FLAT 都是正式 component baseline。
 - Thread C 已实现各 component outcome 的独立计算与报告。
-- Integration 明确禁止在两个 baseline component 发生冲突时自行制造统一 master winner。
+- Integration 原始 receipt 保留当时的未决状态；它是历史事实，不因本轮后继设计被改写。
 
-仍待 owner 决定：
+2026-09-12 用户要求本对话表态并落实，确定后续沙盒设计：**不设 baseline 优先级；同合同按完整算术收益排名；满足预登记证据要求的候选相对改善可晋升沙盒学习冠军，不以同时胜过双基准为额外门槛。** 详见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
 
-> 当 Buy-and-Hold 与 FLAT component outcomes 给出互相冲突的胜负时，哪个 baseline 拥有 master precedence，或者是否采用另一个显式组合规则？
+这项选择由既有目标及本次设计委托落实，不把助手选定的统计超参数伪称为用户逐项指定。双基准数值/符号、模型排名、晋升分别报告；不把 sandbox champion 变成部署许可。
 
-在此决定出现前：
-
-- evaluator 可以分别给出 B&H delta 与 FLAT delta；
-- component 级 measurement 可以完成；
-- promotion/master-winner 层必须返回 `UNRESOLVED_OWNER_DECISION` 或等价 fail-closed 状态；
-- 不得事后选择更容易获胜的 baseline；
-- 不得用 Sharpe、log-growth、drawdown 或 survival 替代这项 owner decision。
+当前没有因此需要再次提交 owner 的原则选择。旧 `assess` 仍返回 unresolved 的行为属于 S0 后继语义迁移任务；不得靠重问用户代替修补。精确参数由 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md) 的执行 spec 在开跑前冻结。
 
 ## 已不再属于 owner-open 的旧问题
 

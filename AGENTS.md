@@ -104,11 +104,13 @@ Receipt 冻结 benchmark：
 
 不得把 workflow PASS、性能 PASS、loss 下降或 checkpoint 变化升级为 ECONOMIC/TRANSFER evidence。FINAL 未打开，fresh market data 未使用。
 
-## 当前唯一 owner-open 决策
+## 经济排序与下一科学阶段
 
-当 Buy-and-Hold 与 FLAT component outcomes 冲突时，没有授权统一 master winner / precedence。
+2026-09-12 用户要求对双基准和下一科学阶段表态并落实，当前设计见 [经济排序与晋升](docs/ECONOMIC_ORDERING_AND_PROMOTION.md) 和 [后 CC 科学计划 R0](docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md)。
 
-在 owner 明确之前：分别报告 component outcomes；promotion/master winner 层 fail closed；不得自行选更有利 baseline。见 `docs/OPEN_QUESTIONS.md`。
+B&H/FLAT 分别诊断，不设 master precedence。共同合同下按完整算术收益比较候选；满足预登记改善证据的候选可晋升沙盒学习冠军，不额外要求同时超过两个基准。排序、证据充分性与晋升分开，不能从沙盒冠军推定真实账户部署权限。O-01 原则问题关闭，不重复提交 owner。
+
+旧 C-20/receipt 的 unresolved 保留历史身份；新行为先作后继评价语义迁移并验证，不静默改写 frozen receipt。下一任务是 S0 契约/spec 与 S1 实际端到端学习资格，其后按 S2 历史 canary、S3 历史学习、条件性 S4 容量、S5 经济确认推进。
 
 ## 后续执行
 

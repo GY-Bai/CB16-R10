@@ -87,9 +87,11 @@ Canonical topology：
 
 它不升级成 ECONOMIC 或 TRANSFER。
 
-## 6. 当前仍需 fail closed 的 owner boundary
+## 6. 后续经济排序与科学执行边界
 
-Buy-and-Hold 与 FLAT component outcomes 冲突时，没有授权 master precedence / master winner。系统可以分别报告 component results，但 promotion/master ranking 不能自行选择更有利 baseline。
+O-01 已由本轮设计关闭。评价组件分别输出可比策略排序、单策略双基准诊断和晋升资格；共同基准不会改变模型名次，混合 delta 不再是需要 owner 猜主次的问题。满足预登记证据的相对改善可以晋升沙盒学习冠军；不能自动推定真实账户准入。单结果分类器不能冒充多模型 winner selector。
+
+旧 C-20 的 unresolved 行为须在后继评价语义中迁移与验证，原 receipt 不改写。见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md) 与 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)。
 
 除此之外，未来 horizon、cohort、budget、replay mixture、sequence length、model capacity 等通常属于具体科学 run 的预注册参数，不再作为本页的永久 owner-open 原则。
 

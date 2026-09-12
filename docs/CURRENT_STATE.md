@@ -112,21 +112,17 @@ Hard cutover 已完成。Canonical CC runtime 不得 import、兼容或 fallback
 
 不能升级为 ECONOMIC 或 TRANSFER。当前没有证明真实历史市场 edge、未来盈利性或跨时期迁移；FINAL 未打开，fresh market data 未使用。
 
-## 6. 当前唯一 owner-open 科学决策
+## 6. 双基准问题已澄清，后继实现待迁移
 
-当 Buy-and-Hold 与 FLAT component outcomes 冲突时，尚未授权统一 master precedence / master winner。
+2026-09-12 用户要求本对话表态并落实：B&H/FLAT 无默认主次，同合同的完整算术收益决定候选排序；满足预登记改善证据的候选可晋升沙盒学习冠军，不以同时击败两基准为额外门槛。详见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
 
-在 owner 明确决定前：
-
-- 两个 component result 分别报告；
-- master promotion 必须 fail closed / `UNRESOLVED_OWNER_DECISION`；
-- Agent 不得自行采用更有利 baseline 或换成别的风险指标。
-
-详见 `docs/OPEN_QUESTIONS.md`。
+这是后续训练设计决定，不是已实现或已测经济结论。现有 `cc_economic_promotion_r0.py::assess` 及 frozen receipt 仍反映旧 unresolved 契约；下一阶段 S0 迁移并验证新语义，原 receipt 不改写。不得继续把这项文档已关闭的问题当作需要 owner 再选基准。
 
 ## 7. 下一断点
 
-如果后续开始真实 historical science、容量实验或下一阶段训练：
+当前后继路线由 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md) 明确：S0 契约/spec → S1 端到端可学习性 → S2 历史执行 canary → S3 小规模历史学习 → 条件性 S4 容量 → S5 经济确认。先完成 S0/S1，不直接全量训练或扩大 Brain。本轮只落实文档，尚无这些新阶段的运行结果。
+
+后续执行继续遵守：
 
 1. 以 integration receipt/spec 指定的 canonical CC runtime 为起点；
 2. 不重新打开 A/B/C/D 四线程 implementation；

@@ -121,20 +121,16 @@ This is not ECONOMIC or TRANSFER evidence. FINAL remained sealed and fresh marke
 
 No statement in this handoff authorizes real-market deployment, FINAL access, fresh-data consumption, or economic promotion beyond the evidence actually obtained.
 
-## Remaining owner-open decision
+## Post-integration economic clarification — 2026-09-12
 
-The only current owner-open scientific decision is the master precedence rule when Buy-and-Hold and FLAT component outcomes conflict.
+The frozen receipt correctly retains the then-open baseline question. The subsequent design decision is documented in [Economic ordering and promotion](ECONOMIC_ORDERING_AND_PROMOTION.md): no B&H/FLAT precedence; comparable complete arithmetic returns determine policy ordering; a sufficiently supported improvement over the incumbent may promote a sandbox learning champion without an additional requirement to beat both baselines.
 
-Until explicitly resolved:
-
-- both component outcomes are reported;
-- no unified master winner is fabricated;
-- promotion must fail closed as `UNRESOLVED_OWNER_DECISION` or equivalent.
-
-See `docs/OPEN_QUESTIONS.md`.
+This closes the design question, not its implementation migration. Preserve old receipt bytes. The successor evaluation contract must explicitly separate ordering, baseline diagnostics and promotion eligibility, and pass new qualification before the new promotion behavior is used. No real-account deployment permission or economic PASS follows from this clarification.
 
 ## Next work
 
 Future historical science, capacity experiments or further training should begin from the canonical CC authority above, not from the old A/B/C/D branches or AC/BC task plans.
+
+The concrete next program is [Post-CC scientific program R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md): S0 contract/spec, S1 end-to-end learnability, S2 historical execution canary, S3 bounded historical learning, conditional S4 capacity, then S5 economic confirmation. Current next work is S0/S1; these new scientific stages have not been run by this documentation task.
 
 `docs/BRAIN_CAPACITY_ROADMAP_3700X_1060.md` is a future capacity-planning document, not a model-expansion authority.

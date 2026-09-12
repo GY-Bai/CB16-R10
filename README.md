@@ -17,6 +17,8 @@ CB16 的目标是在沙盒中训练一个单资产 Trader：读取市场和账�
 - **如何判断策略**：[EVALUATION_PRINCIPLES](docs/EVALUATION_PRINCIPLES.md)。
 - **组件分别负责什么**：[ARCHITECTURE_MAP](docs/ARCHITECTURE_MAP.md)。
 - **哪些已决定、哪些待定**：[DECISIONS](docs/DECISIONS.md) / [OPEN_QUESTIONS](docs/OPEN_QUESTIONS.md)。
+- **双基准与沙盒晋升决定**：[ECONOMIC_ORDERING_AND_PROMOTION](docs/ECONOMIC_ORDERING_AND_PROMOTION.md)。
+- **后 CC 科学执行路线**：[POST_CC_SCIENTIFIC_PROGRAM_R0](docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md)：契约 → 可学习性 → 历史执行/学习 → 条件性容量 → 经济确认。
 
 2026-09-12 最新文档核对快照为 `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2`：新链已包含目标动作、持仓调整/反转许可和目标数量映射，完整 Actor–Critic 训练闭环仍待接通与验证。提交前 AC-014 又新增了仓位执行适配，保留旧退出机制的理念差异已另行记录。此处是代码快照，不是实时 HEAD 或经济成功证明；详细证据和历史进展见 CURRENT_STATE。
 

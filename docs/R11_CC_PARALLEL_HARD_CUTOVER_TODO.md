@@ -7,7 +7,7 @@
 **Execution model:** four independent sub-agent task packages + one final integration pass  
 **Performance policy:** **hard cutover / performance first / no legacy performance compatibility layer**  
 
-> **Closure notice — 2026-09-12:** The four CC threads and final integration are complete. PR #99 was merged to `main` at `daa889d758ce80c7d1ce73ea37110937e1b146c0`. Current authority is `CB16_R11_CC_INTEGRATION_SPEC_V1.json` + `CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`; see `docs/CURRENT_STATE.md` and `docs/CC_INTEGRATION_HANDOFF.md`. The task/gap sections below are preserved as historical implementation provenance and must not be read as still-open work. The only current owner-open scientific decision is the B&H-vs-FLAT master precedence described in `docs/OPEN_QUESTIONS.md`.
+> **Closure notice — 2026-09-12:** The four CC threads and final integration are complete. PR #99 was merged to `main` at `daa889d758ce80c7d1ce73ea37110937e1b146c0`. Current authority is `CB16_R11_CC_INTEGRATION_SPEC_V1.json` + `CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`; see `docs/CURRENT_STATE.md` and `docs/CC_INTEGRATION_HANDOFF.md`. The task/gap sections below are historical implementation provenance, not still-open work. The later baseline design clarification is in `docs/ECONOMIC_ORDERING_AND_PROMOTION.md`; the next program is `docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md`. Preserve frozen receipt identity.
 
 CC replaced the serial execution shape of BC with four independently executable task packages. Each sub-agent started from the same frozen implementation baseline and completed its package without importing, cherry-picking, waiting for, or treating any sibling CC branch as authority.
 
@@ -461,13 +461,11 @@ This is not ECONOMIC or TRANSFER evidence. High throughput cannot upgrade a scie
 
 ---
 
-## 11. Current owner-open question
+## 11. Post-integration design clarification
 
-The historical planning list contained several future experiment parameters. After CC integration, the only current owner-open scientific decision is:
+The former B&H/FLAT precedence question is closed at the design level: no default baseline priority; comparable complete arithmetic returns order policies; adequately supported improvement may promote a sandbox champion without requiring both baseline deltas to be positive. See [Economic ordering and promotion](ECONOMIC_ORDERING_AND_PROMOTION.md).
 
-- master promotion precedence when Buy-and-Hold and FLAT component outcomes disagree.
-
-See `docs/OPEN_QUESTIONS.md`. Horizon/cohort/budget/replay/model-size choices are versioned future experiment parameters unless a future task makes them owner-semantic decisions.
+Historical C-20 code and receipts remain unchanged. Implement the successor evaluation semantics with new qualification under S0 of [Post-CC scientific program R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md), then proceed to actual learnability and historical science. This does not reopen completed CC threads. Horizon/cohort/budget/replay/model-size choices are versioned experiment parameters.
 
 ---
 

@@ -1,5 +1,7 @@
 # CC Thread C — Experience / Replay / Economic Evaluation
 
+> Historical task package: Thread C and integration are complete. The original C-16/C-20/C-22 unresolved-master wording below records the then-current contract. The 2026-09-12 successor design closes that question: [Economic ordering and promotion](../ECONOMIC_ORDERING_AND_PROMOTION.md). Follow [Post-CC scientific program R0](../POST_CC_SCIENTIFIC_PROGRAM_R0.md) for the new evaluation migration and qualification; do not rewrite old receipts or restart this thread.
+
 **Thread:** C  
 **Frozen base:** `89d62bf966f476e598f0e2f5c5e8e03c15a8db51`  
 **Branch:** `ai/r11-cc-thread-c-experience-r0`  
