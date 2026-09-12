@@ -1,0 +1,174 @@
+name: cb16-r11-cc-fast-scale128-smoke
+
+on:
+  push:
+    branches:
+      - ai/r11-cc-thread-d-fast-cutover-r0
+    paths:
+      - .github/workflows/cb16-r11-cc-fast-scale128-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-cc-fast-scale128-smoke
+  cancel-in-progress: false
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  scale128:
+    name: CC Thread D 128-account Shanxi Docker scaling smoke
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - name: Checkout exact workflow SHA
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cc_fast_scale128_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/cc_fast_scale128_python.json"
+          python3 - "$RUNNER_TEMP/cc_fast_scale128_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['python']['network_install_attempted'] is False, p
+          PY
+
+      - name: Re-run Thread D semantic qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_scale128_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" -m pytest -q tests/test_cc_fast_*.py tests/test_cc_thread_d_baseline_r0.py
+
+      - name: Run 64-to-128 account scaling matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_scale128_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          mkdir -p artifacts/cc_fast_scale128
+          for spec in '6 64' '6 128' '8 128' '10 128'; do
+            set -- $spec
+            w="$1"; a="$2"
+            GITHUB_SHA="$GITHUB_SHA" "$PY" -m cb16_local_opt.cc_fast_benchmark_runner_r0 \
+              --output "artifacts/cc_fast_scale128/candidate-w${w}-a${a}.json" \
+              --workers "$w" --accounts "$a" --market-steps 384 --chunk-facts 128 --policy-batch "$a"
+          done
+
+      - name: Compile scaling comparison and gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_scale128_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" - <<'PY'
+          import glob, json, os
+          from pathlib import Path
+          rows=[]
+          for path in sorted(glob.glob('artifacts/cc_fast_scale128/candidate-*.json')):
+              p=json.load(open(path,encoding='utf-8'))
+              r=p['collector_report']
+              assert p['accesses_final_or_fresh_data'] is False
+              assert r['code_identity'] == os.environ['GITHUB_SHA']
+              assert p['semantic']['verdict'] == 'PASS'
+              assert r['semantic_verdict'] == 'PASS'
+              assert all(v is False for v in p['collector_extra']['worker_cuda_initialized'])
+              assert int(r['swap_out_bytes']) == 0
+              assert int(r['pss_bytes']) < 12*1024**3
+              assert int(r['queue_bytes']) <= 8*1024**2
+              assert float(r['queue_oldest_age_s']) <= 30.0
+              stem=Path(path).stem
+              parts=stem.replace('candidate-w','').split('-a')
+              rows.append({
+                  'candidate_id':stem,
+                  'worker_count':int(parts[0]),
+                  'active_accounts':int(parts[1]),
+                  'compliant_transitions_per_s':float(r['compliant_transitions_per_s']),
+                  'policy_decisions_per_s':float(r['policy_decisions_per_s']),
+                  'wall_clock_s':float(r['wall_clock_s']),
+                  'pss_bytes':int(r['pss_bytes']),
+                  'cgroup_memory_bytes':int(r.get('cgroup_memory_bytes',0)),
+                  'queue_bytes':int(r['queue_bytes']),
+                  'queue_depth':int(r['queue_depth']),
+                  'swap_out_bytes':int(r['swap_out_bytes']),
+                  'selected_policy_microbenchmark':p['policy_mode_benchmark']['selected_for_policy_microbenchmark'],
+                  'semantic_pass':True,
+                  'memory_safety_pass':True,
+                  'queue_safety_pass':True,
+              })
+          assert len(rows)==4, rows
+          by={(x['worker_count'],x['active_accounts']):x for x in rows}
+          control=by[(6,64)]
+          doubled=by[(6,128)]
+          best128=max((x for x in rows if x['active_accounts']==128),key=lambda x:x['compliant_transitions_per_s'])
+          payload={
+              'schema_version':'CB16_R11_CC_FAST_SCALE128_SMOKE_V1',
+              'code_sha':os.environ['GITHUB_SHA'],
+              'science_scope':'SYNTHETIC_ONLY_NO_FINAL_NO_FRESH',
+              'candidates':rows,
+              'account_doubling_6w':{
+                  'from_accounts':64,
+                  'to_accounts':128,
+                  'throughput_ratio':doubled['compliant_transitions_per_s']/control['compliant_transitions_per_s'],
+                  'pss_ratio':doubled['pss_bytes']/control['pss_bytes'],
+                  'wall_clock_ratio':doubled['wall_clock_s']/control['wall_clock_s'],
+              },
+              'best_128_account_candidate':best128,
+              'performance_measured':True,
+          }
+          Path('artifacts/cc_fast_scale128/CC_FAST_SCALE128.json').write_text(json.dumps(payload,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(payload,sort_keys=True))
+          PY
+
+      - name: Upload scale128 evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-cc-fast-scale128-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/cc_fast_scale128_docker_preflight.json
+            ${{ runner.temp }}/cc_fast_scale128_python.json
+            artifacts/cc_fast_scale128/*.json
+          if-no-files-found: error
+          retention-days: 30
