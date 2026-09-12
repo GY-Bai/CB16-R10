@@ -13,7 +13,11 @@ from cb16_local_opt.cc_integration_contracts_r0 import (
     runtime_transition_to_experience_environment,
     immutable_experience_from_runtime,
 )
-from cb16_local_opt.cc_integration_fast_path_r0 import transport_facts_fast, decode_fast_chunks
+from cb16_local_opt.cc_integration_fast_path_r0 import (
+    transport_facts_fast,
+    decode_fast_chunks,
+    exact_semantic_equivalence,
+)
 from tests.cc_thread_a_support_r0 import acct, runtime, decision, fake_exec, static_exec
 
 
@@ -33,7 +37,7 @@ def _roundtrip_transition_through_c_and_d(transition, captured_decision, *, fail
             facts=[(
                 transition.account_lineage_id,
                 transition.decision_index,
-                int(captured_decision.policy_generation),
+                captured_decision.policy_generation,
                 semantic_id,
                 raw,
                 True,
@@ -43,7 +47,7 @@ def _roundtrip_transition_through_c_and_d(transition, captured_decision, *, fail
             chunk_facts=1,
         )
         decoded = decode_fast_chunks(report.receipts)
-    assert decoded[semantic_id] == raw
+    assert exact_semantic_equivalence({semantic_id: raw}, decoded)
     assert report.semantic_verdict == "PASS"
     return immutable
 
