@@ -1,0 +1,121 @@
+{
+  "schema": "CB16_R11_POST_CC_S1_RUN_SPEC_V1",
+  "status": "FROZEN_BEFORE_S1_EXECUTION",
+  "science_semantic_version": "CB16_R11_POST_CC_SCIENCE_SEMANTIC_V1",
+  "required_s0_receipt_status": "PASS",
+  "s1_base_rule": "EXACT_S0_QUALIFIED_HEAD_FROM_CB16_R11_POST_CC_S0_RECEIPT_V1",
+  "task_registry": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_TASK_REGISTRY_V1.json",
+  "data_scope": "SYNTHETIC_ONLY",
+  "model": {
+    "actor": {
+      "class": "CCCentralBrain",
+      "source_path": "cb16_local_opt/cc_policy_brain_r0.py",
+      "source_blob_at_s0_base": "9f63082aacc4c03c877996527465cabe28185e90",
+      "market_dim": 2,
+      "account_dim": 3,
+      "execution_dim": 2,
+      "hidden": 8,
+      "P_actor_trainable": 241,
+      "P_actor_frozen": 16,
+      "frozen_market_organ": true
+    },
+    "critic": {
+      "class": "SeparateCritic",
+      "source_path": "cb16_local_opt/cc_critic_value_r0.py",
+      "source_blob_at_s0_base": "3c6ed457913e45b431902b8ba00f98c00c6b526d",
+      "input_dim": 7,
+      "hidden": 8,
+      "P_critic_trainable": 73
+    },
+    "P_trainable_total": 314,
+    "P_frozen_total": 16,
+    "P_replica": 0,
+    "initialization": {
+      "torch_manual_seed": 1701,
+      "semantic_parameter_hash_codec": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+      "initial_checkpoint_semantic_sha256": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
+      "optimizer_step": 0
+    }
+  },
+  "policy_distribution": {
+    "source_path": "cb16_local_opt/cc_policy_distribution_r0.py",
+    "source_blob_at_s0_base": "3c97f6a548fbd0969a54ce1a0ec2823cb5d87f94",
+    "identity": "CC_DIRECTION_PLUS_CONDITIONAL_CONTINUOUS_RISK_R0",
+    "direction_order": ["SHORT", "FLAT", "LONG"],
+    "risk_endpoint_policy": "FLAT_ZERO_POINT_MASS_NONFLAT_ENDPOINT_MASSES_DISALLOWED_V1_R1",
+    "qualification_requires_joint_log_probability": true
+  },
+  "normalizer": {
+    "identity": "POST_CC_S1_SYNTHETIC_NORMALIZER_V1",
+    "rule": "Task generator must declare deterministic causal normalization; no future information and no per-result retuning."
+  },
+  "optimizer": {
+    "actor": {"type": "SGD", "learning_rate": 0.01},
+    "critic": {"type": "SGD", "learning_rate": 0.01},
+    "optimizer_change_after_results": false
+  },
+  "off_policy": {
+    "algorithm": "V_TRACE",
+    "true_behavior_log_mu_required": true,
+    "target_log_pi_recomputed_from_nominal_action": true,
+    "executed_action_substitution_for_policy_likelihood": false
+  },
+  "collection_and_learning": {
+    "behavior_checkpoint_fixed_within_collection_unit": true,
+    "persistent_replay_only_for_qualification": true,
+    "collector_in_memory_records_as_training_truth": false,
+    "child_checkpoint_committed_exactly_once": true,
+    "parent_checkpoint_mutated_in_place": false,
+    "generation_switch_at_explicit_runtime_boundary": true,
+    "same_logical_account_preserved_when_task_spans_generation": true
+  },
+  "seed_policy": {
+    "seeds": [1701, 1702, 1703, 1704, 1705],
+    "minimum_positive_seeds_passing": 4,
+    "best_seed_selection_forbidden": true
+  },
+  "budget": {
+    "maximum_policy_decisions_per_task_per_seed": 100000,
+    "budget_may_be_reduced_before_S1_execution_only_for_resource_reason": true,
+    "budget_change_requires_new_run_spec_hash_before_any_training_result": true,
+    "budget_may_not_be_changed_to_rescue_results": true
+  },
+  "evaluation": {
+    "primary_success_family": "PREREGISTERED_BEHAVIORAL_OR_ARITHMETIC_RETURN_KNOWN_ANSWER",
+    "common_oracle_gap_reduction_fraction_min": 0.5,
+    "training_loss_is_diagnostic_only": true,
+    "all_seeds_reported": true,
+    "failures_and_bankruptcies_remain_in_denominator": true
+  },
+  "reward_and_boundaries": {
+    "primary_orientation": "ARITHMETIC_EQUITY_DELTA",
+    "default_gamma_for_arithmetic_finite_horizon_tasks": 1.0,
+    "non_unit_gamma_allowed_only_for_explicit_algorithmic_control": true,
+    "computational_chunk_is_not_mechanical_terminal": true,
+    "bootstrap_semantics_must_be_explicit_per_task": true
+  },
+  "artifacts": {
+    "root": "artifacts/post_cc_s1",
+    "per_task_result_required": true,
+    "sample_and_source_hashes_required": true,
+    "checkpoint_lineage_required": true,
+    "raw_seed_failures_retained": true
+  },
+  "no_rescue": {
+    "change_seed": false,
+    "change_threshold": false,
+    "change_reward": false,
+    "change_model_size": false,
+    "change_task_difficulty": false,
+    "change_evaluation_population": false,
+    "required_action_if_hypothesis_changes": "OPEN_NEW_VERSIONED_PROGRAM"
+  },
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false,
+    "historical_market_corpus_access": false,
+    "economic_evidence_claimed": false,
+    "transfer_evidence_claimed": false
+  },
+  "expected_S1_evidence_if_all_gates_pass": "INTEGRATED_SYNTHETIC_END_TO_END_LEARNABILITY_KNOWN_ANSWER"
+}
