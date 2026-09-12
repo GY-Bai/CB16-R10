@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-"""Round-2 stochastic Actor policy interface and direction distribution.
+"""Round-2 stochastic Actor policy interface and action components.
 
-BC-034 freezes the API and compatibility boundary.  BC-035 adds only the
-categorical SHORT/FLAT/LONG direction distribution.  Bounded-risk
-distributions, endpoint masses, joint likelihood math, and RNG serialization
-remain owned by BC-036 through BC-039.
+BC-034 freezes the API and compatibility boundary. BC-035 adds the categorical
+SHORT/FLAT/LONG direction distribution. BC-036 adds a direction-conditioned
+sigmoid-squashed Normal risk component: LONG/SHORT use an interior continuous
+law on (0, 1), while FLAT is the exact zero-risk point contract. Endpoint point
+masses, joint likelihood math, and RNG serialization remain owned by BC-037
+through BC-039.
 """
 
 from abc import ABC, abstractmethod
@@ -13,6 +15,7 @@ from dataclasses import dataclass
 import hashlib
 import inspect
 import json
+import math
 import re
 from typing import Generic, TypeVar
 
@@ -31,6 +34,7 @@ ACTOR_POLICY_INTERFACE_VERSION_R1 = "CB16_R11_BC_ACTOR_POLICY_INTERFACE_V1_R1"
 ACTOR_POLICY_IDENTITY_SCHEMA_R1 = "CB16_R11_BC_ACTOR_POLICY_IDENTITY_V1_R1"
 POLICY_TENSOR_CONTRACT_SCHEMA_R1 = "CB16_R11_BC_POLICY_TENSOR_CONTRACT_V1_R1"
 DIRECTION_CATEGORICAL_SCHEMA_R1 = "CB16_R11_BC_DIRECTION_CATEGORICAL_V1_R1"
+CONDITIONAL_RISK_SCHEMA_R1 = "CB16_R11_BC_CONDITIONAL_SQUASHED_NORMAL_RISK_V1_R1"
 DIRECTION_ORDER_R1 = (SHORT, FLAT, LONG)
 _DIRECTION_INDEX_R1 = {direction: index for index, direction in enumerate(DIRECTION_ORDER_R1)}
 SUPPORTED_FLOAT_DTYPES_R1 = {
@@ -93,6 +97,18 @@ def _direction_index_r1(direction: object) -> int:
     if not isinstance(direction, str) or direction not in _DIRECTION_INDEX_R1:
         raise RuntimeError("ACPOL_R1_DIRECTION_INVALID")
     return _DIRECTION_INDEX_R1[direction]
+
+
+def _validate_generator_device_r1(generator: object, reference: torch.Tensor) -> torch.Generator:
+    if not isinstance(generator, torch.Generator):
+        raise RuntimeError("ACPOL_R1_GENERATOR_INVALID")
+    generator_device = torch.device(generator.device)
+    tensor_device = reference.device
+    if generator_device.type != tensor_device.type:
+        raise RuntimeError("ACPOL_R1_GENERATOR_DEVICE_MISMATCH")
+    if tensor_device.type != "cpu" and generator_device.index != tensor_device.index:
+        raise RuntimeError("ACPOL_R1_GENERATOR_DEVICE_MISMATCH")
+    return generator
 
 
 @dataclass(frozen=True)
@@ -274,19 +290,12 @@ class DirectionCategoricalR1:
         self.validate()
         if isinstance(count, bool) or not isinstance(count, int) or count <= 0:
             raise RuntimeError("ACPOL_R1_DIRECTION_SAMPLE_COUNT_INVALID")
-        if not isinstance(generator, torch.Generator):
-            raise RuntimeError("ACPOL_R1_DIRECTION_GENERATOR_INVALID")
-        generator_device = torch.device(generator.device)
-        logits_device = self.logits.device
-        if generator_device.type != logits_device.type:
-            raise RuntimeError("ACPOL_R1_DIRECTION_GENERATOR_DEVICE_MISMATCH")
-        if logits_device.type != "cpu" and generator_device.index != logits_device.index:
-            raise RuntimeError("ACPOL_R1_DIRECTION_GENERATOR_DEVICE_MISMATCH")
+        checked_generator = _validate_generator_device_r1(generator, self.logits)
         indices = torch.multinomial(
             self.probabilities,
             num_samples=count,
             replacement=True,
-            generator=generator,
+            generator=checked_generator,
         )
         return tuple(DIRECTION_ORDER_R1[int(index)] for index in indices.tolist())
 
@@ -308,14 +317,131 @@ def make_direction_categorical_r1(
     return distribution
 
 
+@dataclass(frozen=True)
+class ConditionalBoundedRiskR1:
+    """Direction-conditioned sigmoid-Normal continuous risk component.
+
+    SHORT and LONG use separate location/log-scale parameters and produce only
+    interior risk samples. FLAT is exactly the zero-risk point contract. Exact
+    LONG/SHORT endpoint semantics are intentionally unresolved until BC-037.
+    """
+
+    schema_version: str
+    short_location: torch.Tensor
+    short_log_scale: torch.Tensor
+    long_location: torch.Tensor
+    long_log_scale: torch.Tensor
+    tensor_contract: PolicyTensorContractR1
+
+    def _validated_scalar(self, tensor: torch.Tensor, *, code: str) -> torch.Tensor:
+        value = validate_policy_tensor_r1(tensor, self.tensor_contract)
+        if value.ndim != 0:
+            raise RuntimeError(code)
+        return value
+
+    def validate(self) -> None:
+        if self.schema_version != CONDITIONAL_RISK_SCHEMA_R1:
+            raise RuntimeError("ACPOL_R1_RISK_SCHEMA_MISMATCH")
+        self.tensor_contract.validate()
+        self._validated_scalar(self.short_location, code="ACPOL_R1_RISK_LOCATION_SHAPE_INVALID")
+        short_log_scale = self._validated_scalar(
+            self.short_log_scale,
+            code="ACPOL_R1_RISK_LOG_SCALE_SHAPE_INVALID",
+        )
+        self._validated_scalar(self.long_location, code="ACPOL_R1_RISK_LOCATION_SHAPE_INVALID")
+        long_log_scale = self._validated_scalar(
+            self.long_log_scale,
+            code="ACPOL_R1_RISK_LOG_SCALE_SHAPE_INVALID",
+        )
+        for log_scale in (short_log_scale, long_log_scale):
+            scale = torch.exp(log_scale)
+            if not bool(torch.isfinite(scale).item()) or not bool((scale > 0).item()):
+                raise RuntimeError("ACPOL_R1_RISK_SCALE_INVALID")
+
+    def _parameters(self, direction: str) -> tuple[torch.Tensor, torch.Tensor]:
+        _direction_index_r1(direction)
+        if direction == SHORT:
+            return self.short_location, self.short_log_scale
+        if direction == LONG:
+            return self.long_location, self.long_log_scale
+        raise RuntimeError("ACPOL_R1_FLAT_HAS_NO_CONTINUOUS_RISK_PARAMETERS")
+
+    def sample_risk(self, direction: str, *, generator: torch.Generator) -> torch.Tensor:
+        self.validate()
+        _direction_index_r1(direction)
+        checked_generator = _validate_generator_device_r1(generator, self.short_location)
+        if direction == FLAT:
+            return torch.zeros_like(self.short_location)
+        location, log_scale = self._parameters(direction)
+        epsilon = torch.randn(
+            (),
+            dtype=location.dtype,
+            device=location.device,
+            generator=checked_generator,
+        )
+        latent = location + torch.exp(log_scale) * epsilon
+        risk = torch.sigmoid(latent)
+        validate_policy_tensor_r1(risk, self.tensor_contract)
+        if not bool(((risk > 0) & (risk < 1)).item()):
+            raise RuntimeError("ACPOL_R1_RISK_NUMERIC_ENDPOINT_PENDING_BC037")
+        return risk
+
+    def log_prob(self, direction: str, risk: torch.Tensor) -> torch.Tensor:
+        self.validate()
+        _direction_index_r1(direction)
+        value = self._validated_scalar(risk, code="ACPOL_R1_RISK_VALUE_SHAPE_INVALID")
+        if direction == FLAT:
+            if value.item() != 0.0:
+                raise RuntimeError("ACPOL_R1_FLAT_RISK_MUST_BE_ZERO")
+            return torch.zeros_like(value)
+        if value.item() == 0.0 or value.item() == 1.0:
+            raise RuntimeError("ACPOL_R1_RISK_ENDPOINT_PENDING_BC037")
+        if not bool(((value > 0) & (value < 1)).item()):
+            raise RuntimeError("ACPOL_R1_RISK_OUT_OF_BOUNDS")
+
+        location, log_scale = self._parameters(direction)
+        latent = torch.log(value) - torch.log1p(-value)
+        standardized = (latent - location) * torch.exp(-log_scale)
+        normal_log_prob = (
+            -0.5 * standardized.square()
+            - log_scale
+            - 0.5 * math.log(2.0 * math.pi)
+        )
+        log_abs_det_inverse = -torch.log(value) - torch.log1p(-value)
+        result = normal_log_prob + log_abs_det_inverse
+        if not bool(torch.isfinite(result).item()):
+            raise RuntimeError("ACPOL_R1_RISK_LOG_PROB_NONFINITE")
+        return result
+
+
+def make_conditional_bounded_risk_r1(
+    *,
+    short_location: torch.Tensor,
+    short_log_scale: torch.Tensor,
+    long_location: torch.Tensor,
+    long_log_scale: torch.Tensor,
+    tensor_contract: PolicyTensorContractR1,
+) -> ConditionalBoundedRiskR1:
+    distribution = ConditionalBoundedRiskR1(
+        schema_version=CONDITIONAL_RISK_SCHEMA_R1,
+        short_location=short_location,
+        short_log_scale=short_log_scale,
+        long_location=long_location,
+        long_log_scale=long_log_scale,
+        tensor_contract=tensor_contract,
+    )
+    distribution.validate()
+    return distribution
+
+
 class ActorPolicyR1(ABC, Generic[ObservationT, SamplingRngT, LogProbT]):
     """Minimal stochastic Actor API for Round 2.
 
     ``sample`` owns stochastic behavior collection and receives an explicit RNG.
     ``log_prob`` scores a supplied action and must not consume sampling RNG.
     ``deterministic_action`` is a separate evaluation path and must not consume
-    sampling RNG.  BC-035 defines direction categorical math; bounded-risk and
-    joint action likelihood semantics remain deferred.
+    sampling RNG. BC-035/036 define direction and conditional-risk component
+    math; endpoint and joint action likelihood semantics remain deferred.
     """
 
     @property
