@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-"""Target-state action contract for the R11 Actor-Critic lane.
+"""Canonical target-state action contract for the R11 Actor-Critic lane.
 
-AC-005 introduces the datatype only.  AC-006 owns the stronger canonical
-invariants (including the final FLAT/risk rule), AC-007 owns the transition
-matrix, and AC-009 owns behavior-policy probability/log-probability binding.
+AC-005 introduces the datatype.  AC-006 freezes canonical encoding, FLAT risk
+semantics, and the fact that ``requested_target_risk`` is a target-exposure
+request rather than confidence.  AC-007 owns the transition matrix and AC-009
+owns behavior-policy probability/log-probability binding.
 """
 
 from dataclasses import dataclass
@@ -20,6 +21,7 @@ FLAT = "FLAT"
 LONG = "LONG"
 TARGET_DIRECTIONS_R0 = (SHORT, FLAT, LONG)
 TARGET_POSITION_SEMANTICS_R0 = "TARGET_POSITION_STATE"
+TARGET_RISK_SEMANTICS_R0 = "TARGET_EXPOSURE_REQUEST"
 ACTION_FIELDS_R0 = (
     "action_id",
     "schema_version",
@@ -28,6 +30,7 @@ ACTION_FIELDS_R0 = (
     "policy_version",
     "target_direction",
     "requested_target_risk",
+    "requested_target_risk_semantics",
 )
 
 
@@ -37,13 +40,15 @@ def _require_nonempty_string(value: object, *, code: str) -> str:
     return value
 
 
-def _require_risk(value: object) -> float:
+def _canonical_risk(value: object) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise RuntimeError("ACACT_TARGET_RISK_TYPE_INVALID")
     risk = float(value)
     if not math.isfinite(risk) or not 0.0 <= risk <= 1.0:
         raise RuntimeError("ACACT_TARGET_RISK_OUT_OF_RANGE")
-    return risk
+    # JSON distinguishes -0.0 from 0.0 even though the target exposure does not.
+    # Normalize the zero representation before hashing/receipt use downstream.
+    return 0.0 if risk == 0.0 else risk
 
 
 @dataclass(frozen=True)
@@ -57,6 +62,7 @@ class TargetPositionActionR0:
     policy_version: str
     target_direction: str
     requested_target_risk: float
+    requested_target_risk_semantics: str
 
     def validate(self) -> None:
         _require_nonempty_string(self.action_id, code="ACACT_ACTION_ID_INVALID")
@@ -66,9 +72,13 @@ class TargetPositionActionR0:
             raise RuntimeError("ACACT_SCHEMA_VERSION_MISMATCH")
         if self.action_semantics != TARGET_POSITION_SEMANTICS_R0:
             raise RuntimeError("ACACT_SEMANTICS_MISMATCH")
+        if self.requested_target_risk_semantics != TARGET_RISK_SEMANTICS_R0:
+            raise RuntimeError("ACACT_TARGET_RISK_SEMANTICS_MISMATCH")
         if self.target_direction not in TARGET_DIRECTIONS_R0:
             raise RuntimeError("ACACT_TARGET_DIRECTION_INVALID")
-        _require_risk(self.requested_target_risk)
+        risk = _canonical_risk(self.requested_target_risk)
+        if self.target_direction == FLAT and risk != 0.0:
+            raise RuntimeError("ACACT_FLAT_TARGET_RISK_MUST_BE_ZERO")
 
     def to_payload(self) -> dict[str, object]:
         self.validate()
@@ -79,7 +89,8 @@ class TargetPositionActionR0:
             "policy_id": self.policy_id,
             "policy_version": self.policy_version,
             "target_direction": self.target_direction,
-            "requested_target_risk": float(self.requested_target_risk),
+            "requested_target_risk": _canonical_risk(self.requested_target_risk),
+            "requested_target_risk_semantics": self.requested_target_risk_semantics,
         }
 
     def to_json(self) -> str:
@@ -121,7 +132,11 @@ class TargetPositionActionR0:
             target_direction=_require_nonempty_string(
                 payload["target_direction"], code="ACACT_TARGET_DIRECTION_INVALID"
             ),
-            requested_target_risk=_require_risk(payload["requested_target_risk"]),
+            requested_target_risk=_canonical_risk(payload["requested_target_risk"]),
+            requested_target_risk_semantics=_require_nonempty_string(
+                payload["requested_target_risk_semantics"],
+                code="ACACT_TARGET_RISK_SEMANTICS_INVALID",
+            ),
         )
         action.validate()
         return action
@@ -152,7 +167,8 @@ def make_target_position_action_r0(
         policy_id=policy_id,
         policy_version=policy_version,
         target_direction=target_direction,
-        requested_target_risk=requested_target_risk,
+        requested_target_risk=_canonical_risk(requested_target_risk),
+        requested_target_risk_semantics=TARGET_RISK_SEMANTICS_R0,
     )
     action.validate()
     return action

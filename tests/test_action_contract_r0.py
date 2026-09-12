@@ -9,14 +9,25 @@ from cb16_local_opt.action_contract_r0 import (
     LONG,
     SHORT,
     TARGET_POSITION_SEMANTICS_R0,
+    TARGET_RISK_SEMANTICS_R0,
     TargetPositionActionR0,
     make_target_position_action_r0,
 )
 from cb16_local_opt.actor_critic_contract_r0 import ACTION_VERSION_R0
 
 
-@pytest.mark.parametrize("direction", [SHORT, FLAT, LONG])
-@pytest.mark.parametrize("risk", [0.0, 0.25, 1.0])
+@pytest.mark.parametrize(
+    ("direction", "risk"),
+    [
+        (FLAT, 0.0),
+        (SHORT, 0.0),
+        (SHORT, 0.25),
+        (SHORT, 1.0),
+        (LONG, 0.0),
+        (LONG, 0.25),
+        (LONG, 1.0),
+    ],
+)
 def test_valid_target_position_actions_round_trip_canonically(
     direction: str,
     risk: float,
@@ -36,6 +47,7 @@ def test_valid_target_position_actions_round_trip_canonically(
     assert decoded.to_json() == encoded
     assert decoded.schema_version == ACTION_VERSION_R0
     assert decoded.action_semantics == TARGET_POSITION_SEMANTICS_R0
+    assert decoded.requested_target_risk_semantics == TARGET_RISK_SEMANTICS_R0
     assert decoded.target_direction == direction
     assert decoded.requested_target_risk == risk
 
@@ -54,6 +66,60 @@ def test_action_is_explicit_target_state_not_entry_signal() -> None:
     payload["action_semantics"] = "ONE_TIME_ENTRY_SIGNAL"
     with pytest.raises(RuntimeError, match="ACACT_SEMANTICS_MISMATCH"):
         TargetPositionActionR0.from_payload(payload)
+
+
+def test_requested_target_risk_is_exposure_request_not_confidence() -> None:
+    action = make_target_position_action_r0(
+        action_id="A:risk-semantics",
+        policy_id="policy-r0",
+        policy_version="policy-v1",
+        target_direction=LONG,
+        requested_target_risk=0.7,
+    )
+    payload = action.to_payload()
+    assert payload["requested_target_risk_semantics"] == "TARGET_EXPOSURE_REQUEST"
+
+    contradictory = dict(payload)
+    contradictory["requested_target_risk_semantics"] = "CONFIDENCE"
+    with pytest.raises(RuntimeError, match="ACACT_TARGET_RISK_SEMANTICS_MISMATCH"):
+        TargetPositionActionR0.from_payload(contradictory)
+
+    fabricated = dict(payload)
+    fabricated["confidence"] = 0.7
+    with pytest.raises(RuntimeError, match="ACACT_FIELDS_UNKNOWN:confidence"):
+        TargetPositionActionR0.from_payload(fabricated)
+
+
+@pytest.mark.parametrize("risk", [0.000001, 0.25, 1.0])
+def test_flat_requires_zero_target_risk(risk: float) -> None:
+    with pytest.raises(RuntimeError, match="ACACT_FLAT_TARGET_RISK_MUST_BE_ZERO"):
+        make_target_position_action_r0(
+            action_id="A:flat-risk",
+            policy_id="policy-r0",
+            policy_version="policy-v1",
+            target_direction=FLAT,
+            requested_target_risk=risk,
+        )
+
+
+def test_equivalent_zero_risk_payloads_have_identical_canonical_encoding() -> None:
+    base = {
+        "action_id": "A:canonical-zero",
+        "schema_version": ACTION_VERSION_R0,
+        "action_semantics": TARGET_POSITION_SEMANTICS_R0,
+        "policy_id": "policy-r0",
+        "policy_version": "policy-v1",
+        "target_direction": FLAT,
+        "requested_target_risk_semantics": TARGET_RISK_SEMANTICS_R0,
+    }
+    encoded = {
+        TargetPositionActionR0.from_payload(
+            {**base, "requested_target_risk": value}
+        ).to_json()
+        for value in (0, 0.0, -0.0)
+    }
+    assert len(encoded) == 1
+    assert '"requested_target_risk":0.0' in next(iter(encoded))
 
 
 @pytest.mark.parametrize("direction", ["BUY", "SELL", "long", "", "NEUTRAL"])
@@ -114,8 +180,8 @@ def test_missing_unknown_and_wrong_schema_fail_closed() -> None:
         TargetPositionActionR0.from_payload(missing)
 
     unknown = dict(valid)
-    unknown["confidence"] = 0.99
-    with pytest.raises(RuntimeError, match="ACACT_FIELDS_UNKNOWN:confidence"):
+    unknown["legacy_risk"] = 0.99
+    with pytest.raises(RuntimeError, match="ACACT_FIELDS_UNKNOWN:legacy_risk"):
         TargetPositionActionR0.from_payload(unknown)
 
     wrong_schema = dict(valid)
