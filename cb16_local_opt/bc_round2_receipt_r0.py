@@ -1,14 +1,5 @@
 from __future__ import annotations
 
-"""Machine-verifiable receipt compiler for CB16 R11 BC Round 2.
-
-The receipt is intentionally fail-closed. PASS is only legal when every declared
-required check completed, every declared dependency is known and PASS, FINAL was
-untouched, fresh-data download was false, and the evidence claim validates under
-BC-007. Non-PASS outcomes may preserve partial evidence without being laundered
-into a successful gate.
-"""
-
 from dataclasses import dataclass
 from enum import Enum
 import hashlib
@@ -20,8 +11,8 @@ from cb16_local_opt.evidence_level_r0 import (
     EvidenceLevel,
     EvidenceReceiptR0,
     make_evidence_receipt_r0,
+    parse_evidence_level,
 )
-
 
 RECEIPT_SCHEMA_R0 = "CB16_R11_BC_ROUND2_RECEIPT_V1_R0"
 _SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -37,18 +28,18 @@ class ResultClassification(str, Enum):
     UNRESOLVED_OWNER_DECISION = "UNRESOLVED_OWNER_DECISION"
 
 
-def _canonical_nonempty_strings(values: Iterable[object], *, code: str) -> tuple[str, ...]:
-    result: list[str] = []
+def _canon(values: Iterable[object], code: str) -> tuple[str, ...]:
+    out: list[str] = []
     for value in values:
         if not isinstance(value, str) or not value.strip():
             raise RuntimeError(code)
-        result.append(value)
-    if len(set(result)) != len(result):
+        out.append(value)
+    if len(set(out)) != len(out):
         raise RuntimeError(f"{code}_DUPLICATE")
-    return tuple(sorted(result))
+    return tuple(sorted(out))
 
 
-def _parse_result(value: object) -> ResultClassification:
+def _result(value: object) -> ResultClassification:
     if isinstance(value, ResultClassification):
         return value
     try:
@@ -68,7 +59,7 @@ class DependencyReceiptR0:
             raise RuntimeError("BCRECEIPT_R0_DEPENDENCY_TASK_ID_INVALID")
         if not _SHA64_RE.fullmatch(self.receipt_sha256):
             raise RuntimeError("BCRECEIPT_R0_DEPENDENCY_RECEIPT_SHA_INVALID")
-        _parse_result(self.result_classification)
+        _result(self.result_classification)
 
 
 @dataclass(frozen=True)
@@ -96,8 +87,8 @@ class BCRound2ReceiptR0:
         if not _SHA64_RE.fullmatch(self.science_hash):
             raise RuntimeError("BCRECEIPT_R0_SCIENCE_HASH_INVALID")
 
-        dep_ids = [dep.task_id for dep in self.dependencies]
-        if dep_ids != sorted(dep_ids) or len(set(dep_ids)) != len(dep_ids):
+        dep_ids = tuple(dep.task_id for dep in self.dependencies)
+        if dep_ids != tuple(sorted(dep_ids)) or len(set(dep_ids)) != len(dep_ids):
             raise RuntimeError("BCRECEIPT_R0_DEPENDENCIES_NONCANONICAL")
         for dep in self.dependencies:
             dep.validate()
@@ -112,17 +103,17 @@ class BCRound2ReceiptR0:
             raise RuntimeError("BCRECEIPT_R0_COMPLETED_CHECKS_NONCANONICAL")
         if len(set(self.completed_checks)) != len(self.completed_checks):
             raise RuntimeError("BCRECEIPT_R0_COMPLETED_CHECKS_DUPLICATE")
-        if not set(self.completed_checks).issubset(set(self.required_checks)):
+        if not set(self.completed_checks).issubset(self.required_checks):
             raise RuntimeError("BCRECEIPT_R0_UNKNOWN_COMPLETED_CHECK")
 
         self.evidence.validate()
-        self.evidence.serialize_claim(self.evidence_claim_level)
-        _parse_result(self.result_classification)
+        self.evidence.serialize_claim(parse_evidence_level(self.evidence_claim_level))
+        _result(self.result_classification)
 
         if self.result_classification is ResultClassification.PASS:
             if set(self.completed_checks) != set(self.required_checks):
                 raise RuntimeError("BCRECEIPT_R0_PASS_WITH_SKIPPED_REQUIRED_CHECK")
-            if any(dep.result_classification is not ResultClassification.PASS for dep in self.dependencies):
+            if any(d.result_classification is not ResultClassification.PASS for d in self.dependencies):
                 raise RuntimeError("BCRECEIPT_R0_PASS_WITH_NONPASS_DEPENDENCY")
             if not self.final_holdout_untouched:
                 raise RuntimeError("BCRECEIPT_R0_PASS_WITH_FINAL_HOLDOUT_TOUCHED")
@@ -137,12 +128,8 @@ class BCRound2ReceiptR0:
             "code_sha": self.code_sha,
             "science_hash": self.science_hash,
             "dependencies": [
-                {
-                    "task_id": dep.task_id,
-                    "result_classification": dep.result_classification.value,
-                    "receipt_sha256": dep.receipt_sha256,
-                }
-                for dep in self.dependencies
+                {"task_id": d.task_id, "result_classification": d.result_classification.value, "receipt_sha256": d.receipt_sha256}
+                for d in self.dependencies
             ],
             "required_checks": list(self.required_checks),
             "completed_checks": list(self.completed_checks),
@@ -153,26 +140,14 @@ class BCRound2ReceiptR0:
         }
 
     def canonical_json(self) -> str:
-        return json.dumps(
-            self.payload(),
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        )
+        return json.dumps(self.payload(), sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
 
     def receipt_sha256(self) -> str:
         return hashlib.sha256(self.canonical_json().encode("utf-8")).hexdigest()
 
 
-def make_dependency_receipt_r0(
-    *, task_id: str, result_classification: object, receipt_sha256: str
-) -> DependencyReceiptR0:
-    dep = DependencyReceiptR0(
-        task_id=task_id,
-        result_classification=_parse_result(result_classification),
-        receipt_sha256=receipt_sha256,
-    )
+def make_dependency_receipt_r0(*, task_id: str, result_classification: object, receipt_sha256: str) -> DependencyReceiptR0:
+    dep = DependencyReceiptR0(task_id, _result(result_classification), receipt_sha256)
     dep.validate()
     return dep
 
@@ -193,48 +168,37 @@ def compile_bc_round2_receipt_r0(
     fresh_data_download: bool,
     result_classification: object,
 ) -> BCRound2ReceiptR0:
-    required_ids = _canonical_nonempty_strings(
-        required_dependency_ids, code="BCRECEIPT_R0_REQUIRED_DEPENDENCY_INVALID"
-    )
-    if any(not _TASK_RE.fullmatch(dep_id) for dep_id in required_ids):
+    required_ids = _canon(required_dependency_ids, "BCRECEIPT_R0_REQUIRED_DEPENDENCY_INVALID")
+    if any(not _TASK_RE.fullmatch(x) for x in required_ids):
         raise RuntimeError("BCRECEIPT_R0_REQUIRED_DEPENDENCY_INVALID")
-    unknown = set(dependency_receipts) - set(required_ids)
-    if unknown:
+    if set(dependency_receipts) - set(required_ids):
         raise RuntimeError("BCRECEIPT_R0_UNKNOWN_DEPENDENCY")
-    missing = set(required_ids) - set(dependency_receipts)
-    if missing:
+    if set(required_ids) - set(dependency_receipts):
         raise RuntimeError("BCRECEIPT_R0_MISSING_DEPENDENCY")
-    dependencies = tuple(dependency_receipts[dep_id] for dep_id in required_ids)
-    for expected_id, dep in zip(required_ids, dependencies):
-        if dep.task_id != expected_id:
-            raise RuntimeError("BCRECEIPT_R0_DEPENDENCY_ID_MISMATCH")
+    dependencies = tuple(dependency_receipts[x] for x in required_ids)
+    if any(dep.task_id != expected for expected, dep in zip(required_ids, dependencies)):
+        raise RuntimeError("BCRECEIPT_R0_DEPENDENCY_ID_MISMATCH")
 
-    required = _canonical_nonempty_strings(
-        required_checks, code="BCRECEIPT_R0_REQUIRED_CHECK_INVALID"
-    )
-    completed = _canonical_nonempty_strings(
-        completed_checks, code="BCRECEIPT_R0_COMPLETED_CHECK_INVALID"
-    ) if tuple(completed_checks) else ()
-
+    required = _canon(tuple(required_checks), "BCRECEIPT_R0_REQUIRED_CHECK_INVALID")
+    completed_values = tuple(completed_checks)
+    completed = _canon(completed_values, "BCRECEIPT_R0_COMPLETED_CHECK_INVALID") if completed_values else ()
     evidence = make_evidence_receipt_r0(
         maximum_justified_level=maximum_justified_evidence_level,
         source_artifacts=source_artifacts,
     )
-    claim_level = EvidenceLevel[evidence_claim_level] if isinstance(evidence_claim_level, str) else evidence_claim_level
-
     receipt = BCRound2ReceiptR0(
-        schema_version=RECEIPT_SCHEMA_R0,
-        task_id=task_id,
-        code_sha=code_sha,
-        science_hash=science_hash,
-        dependencies=dependencies,
-        required_checks=required,
-        completed_checks=completed,
-        evidence=evidence,
-        evidence_claim_level=claim_level,
-        final_holdout_untouched=bool(final_holdout_untouched),
-        fresh_data_download=bool(fresh_data_download),
-        result_classification=_parse_result(result_classification),
+        RECEIPT_SCHEMA_R0,
+        task_id,
+        code_sha,
+        science_hash,
+        dependencies,
+        required,
+        completed,
+        evidence,
+        parse_evidence_level(evidence_claim_level),
+        final_holdout_untouched,
+        fresh_data_download,
+        _result(result_classification),
     )
     receipt.validate()
     return receipt
