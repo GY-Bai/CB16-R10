@@ -1,0 +1,29 @@
+{
+  "schema": "CB16_R11_CC_THREAD_B_BASELINE_V1",
+  "status": "FROZEN",
+  "thread": "B",
+  "base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "dependencies": [
+    {"path":"cb16_local_opt/actor_observation_r0.py","git_blob_sha":"bb9708f232240897dcc0ff71b88be63f47e3f6a9","role":"actor_observation_contract"},
+    {"path":"cb16_local_opt/critic_observation_r0.py","git_blob_sha":"b283a90b8a53871fc513c8b99b046e8f98cca8fb","role":"critic_observation_contract"},
+    {"path":"cb16_local_opt/observation_normalization_r0.py","git_blob_sha":"a546c30a072973469bf3c14a531648afbc5a17ed","role":"observation_normalization"},
+    {"path":"cb16_local_opt/policy_memory_r0.py","git_blob_sha":"e21287630187c7f46f9ae6db7a366e665461c651","role":"policy_memory"},
+    {"path":"cb16_local_opt/gradient_ownership_r0.py","git_blob_sha":"bd11992ee3ed0238ea27a4e7733a8feff8e4476f","role":"gradient_ownership"},
+    {"path":"cb16_local_opt/state_sufficiency_r0.py","git_blob_sha":"96b4a0cc74470419955f2f2eb5f8c3216d649f1e","role":"state_sufficiency"},
+    {"path":"cb16_local_opt/actor_policy_r1.py","git_blob_sha":"4cc953a178280ac7fc62f9ff3f1bb01ee50a2307","role":"actor_policy_r1"},
+    {"path":"cb16_local_opt/actor_critic_contract_r1.py","git_blob_sha":"c7be04ef1526c17546c73ae7b3768e58c9fc94dc","role":"r1_science_contract"}
+  ],
+  "actor_audit": {
+    "BC-034":"PRESENT_POLICY_API",
+    "BC-035":"PRESENT_STABLE_CATEGORICAL_DIRECTION",
+    "BC-036":"PRESENT_CONDITIONAL_SQUASHED_NORMAL_RISK",
+    "BC-037":"PRESENT_FLAT_ZERO_POINT_MASS_AND_NONFLAT_ENDPOINTS_DISALLOWED",
+    "joint_nominal_log_probability":"ABSENT_AT_BASE_THREAD_B_OWNS",
+    "serializable_rng_provenance":"ABSENT_AT_BASE_THREAD_B_OWNS",
+    "deterministic_evaluation_identity":"ABSENT_AT_BASE_THREAD_B_OWNS",
+    "complete_cc_brain_learner":"ABSENT_AT_BASE_THREAD_B_OWNS"
+  },
+  "final_holdout":"SEALED",
+  "fresh_market_data":"FORBIDDEN",
+  "sibling_cc_dependencies":[]
+}
