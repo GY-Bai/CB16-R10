@@ -28,7 +28,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
   cc-fast-benchmark:
+    needs: shanxi-preflight
     runs-on: [self-hosted, cb16-linux-x64]
     timeout-minutes: 15
     env:
@@ -45,7 +49,7 @@ jobs:
           [[ "${{ inputs.sha }}" =~ ^[0-9a-f]{40}$ ]]
 
       - name: Checkout exact SHA
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.sha }}
           persist-credentials: false
@@ -123,7 +127,7 @@ jobs:
           PY
 
       - name: Upload benchmark evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cb16-r11-cc-fast-benchmark-r0-${{ inputs.sha }}
           path: artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json
