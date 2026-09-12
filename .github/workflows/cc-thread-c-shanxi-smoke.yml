@@ -14,8 +14,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
   smoke:
     name: Thread C synthetic qualification
+    needs: shanxi-preflight
     runs-on: [self-hosted, shanxi-docker-r11]
     timeout-minutes: 20
     env:
@@ -28,6 +32,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cc_thread_c_docker_preflight.json"
 
       - name: Enforce frozen-base and owned-path firewall
         shell: bash
@@ -52,6 +62,8 @@ jobs:
           import json, sys
           x = json.load(open(sys.argv[1]))
           assert x["status"] == "READY", x
+          assert x["mode"] == "VERIFIED_CANONICAL_R104_VENV_REUSE", x
+          assert x["python"]["network_install_attempted"] is False, x
           print(x["python"]["venv"] + "/bin/python")
           PY
           echo "PYTHON=$(cat "$RUNNER_TEMP/python_path")" >> "$GITHUB_ENV"
@@ -98,5 +110,3 @@ jobs:
           path: cc-thread-c-pytest.txt
           if-no-files-found: warn
           retention-days: 14
-
-# dispatch-touch: first Shanxi Docker qualification
