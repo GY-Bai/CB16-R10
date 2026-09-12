@@ -4,11 +4,10 @@ from __future__ import annotations
 
 BC-034 freezes the API and compatibility boundary. BC-035 adds the categorical
 SHORT/FLAT/LONG direction distribution. BC-036 adds a direction-conditioned
-sigmoid-squashed Normal risk component. BC-037 freezes endpoint semantics:
-FLAT has an exact zero-risk point mass; LONG/SHORT have no point mass at risk 0
-or 1, so those exact points have probability zero while interior values use a
-continuous density. Joint action likelihood and RNG serialization remain owned
-by BC-038 and BC-039.
+sigmoid-squashed Normal risk component. BC-037 freezes endpoint semantics.
+BC-038 composes direction log mass with the exact conditional risk likelihood
+term and freezes sampled ``log_mu`` recomputation under the same behavior-policy
+checkpoint identity. RNG serialization remains BC-039 work.
 """
 
 from abc import ABC, abstractmethod
@@ -22,7 +21,13 @@ from typing import Generic, TypeVar
 
 import torch
 
-from .action_contract_r1 import FLAT, LONG, SHORT, TargetPositionActionR1
+from .action_contract_r1 import (
+    FLAT,
+    LONG,
+    SHORT,
+    TargetPositionActionR1,
+    make_target_position_action_r1,
+)
 from .actor_critic_contract_r1 import (
     ACTION_VERSION_R1,
     ACTOR_DISTRIBUTION_VERSION_R1,
@@ -37,6 +42,8 @@ POLICY_TENSOR_CONTRACT_SCHEMA_R1 = "CB16_R11_BC_POLICY_TENSOR_CONTRACT_V1_R1"
 DIRECTION_CATEGORICAL_SCHEMA_R1 = "CB16_R11_BC_DIRECTION_CATEGORICAL_V1_R1"
 CONDITIONAL_RISK_SCHEMA_R1 = "CB16_R11_BC_CONDITIONAL_SQUASHED_NORMAL_RISK_V1_R1"
 RISK_LIKELIHOOD_SCHEMA_R1 = "CB16_R11_BC_RISK_LIKELIHOOD_TERM_V1_R1"
+JOINT_NOMINAL_ACTION_LIKELIHOOD_SCHEMA_R1 = "CB16_R11_BC_JOINT_NOMINAL_ACTION_LIKELIHOOD_V1_R1"
+SAMPLED_NOMINAL_ACTION_SCHEMA_R1 = "CB16_R11_BC_SAMPLED_NOMINAL_ACTION_V1_R1"
 RISK_ENDPOINT_POLICY_R1 = "FLAT_ZERO_POINT_MASS_NONFLAT_ENDPOINT_MASSES_DISALLOWED_V1_R1"
 CONTINUOUS_DENSITY = "CONTINUOUS_DENSITY"
 POINT_MASS = "POINT_MASS"
@@ -162,6 +169,18 @@ def make_policy_tensor_contract_r1(
     )
     contract.validate()
     return contract
+
+
+def _require_same_tensor_contract_r1(
+    left: PolicyTensorContractR1,
+    right: PolicyTensorContractR1,
+    *,
+    code: str,
+) -> None:
+    left.validate()
+    right.validate()
+    if left.semantic_sha256 != right.semantic_sha256:
+        raise RuntimeError(code)
 
 
 @dataclass(frozen=True)
@@ -393,12 +412,7 @@ class RiskLikelihoodTermR1:
 
 @dataclass(frozen=True)
 class ConditionalBoundedRiskR1:
-    """Direction-conditioned sigmoid-Normal risk with explicit endpoint policy.
-
-    SHORT and LONG have a continuous density only on (0,1). Their exact 0/1
-    point masses are disallowed and therefore have probability zero. FLAT is
-    exactly the risk-zero point mass with conditional probability one.
-    """
+    """Direction-conditioned sigmoid-Normal risk with explicit endpoint policy."""
 
     schema_version: str
     short_location: torch.Tensor
@@ -518,11 +532,6 @@ class ConditionalBoundedRiskR1:
         return term
 
     def log_prob(self, direction: str, risk: torch.Tensor) -> torch.Tensor:
-        """Return the log likelihood under BC-037's explicit mixed measure.
-
-        Callers that need to distinguish density from point-mass likelihood must
-        consume ``likelihood_term`` rather than infer the reference measure.
-        """
         return self.likelihood_term(direction, risk).log_likelihood
 
 
@@ -546,14 +555,199 @@ def make_conditional_bounded_risk_r1(
     return distribution
 
 
+@dataclass(frozen=True)
+class JointNominalActionLikelihoodR1:
+    """Exact joint nominal-action likelihood decomposition for BC-038."""
+
+    schema_version: str
+    direction: str
+    requested_risk: torch.Tensor
+    direction_log_likelihood: torch.Tensor
+    risk_likelihood: RiskLikelihoodTermR1
+    joint_log_likelihood: torch.Tensor
+    tensor_contract: PolicyTensorContractR1
+
+    def validate(self) -> None:
+        if self.schema_version != JOINT_NOMINAL_ACTION_LIKELIHOOD_SCHEMA_R1:
+            raise RuntimeError("ACPOL_R1_JOINT_SCHEMA_MISMATCH")
+        _direction_index_r1(self.direction)
+        risk = validate_policy_tensor_r1(self.requested_risk, self.tensor_contract)
+        if risk.ndim != 0:
+            raise RuntimeError("ACPOL_R1_JOINT_RISK_SHAPE_INVALID")
+        direction_score = validate_policy_tensor_r1(
+            self.direction_log_likelihood,
+            self.tensor_contract,
+        )
+        if direction_score.ndim != 0:
+            raise RuntimeError("ACPOL_R1_JOINT_DIRECTION_SCORE_SHAPE_INVALID")
+        self.risk_likelihood.validate()
+        _require_same_tensor_contract_r1(
+            self.tensor_contract,
+            self.risk_likelihood.tensor_contract,
+            code="ACPOL_R1_JOINT_RISK_CONTRACT_MISMATCH",
+        )
+        if self.risk_likelihood.direction != self.direction:
+            raise RuntimeError("ACPOL_R1_JOINT_DIRECTION_MISMATCH")
+        if not torch.equal(self.risk_likelihood.risk, risk):
+            raise RuntimeError("ACPOL_R1_JOINT_RISK_VALUE_MISMATCH")
+        joint = _validate_scalar_tensor_allow_negative_infinity_r1(
+            self.joint_log_likelihood,
+            self.tensor_contract,
+            code="ACPOL_R1_JOINT_LOG_LIKELIHOOD_INVALID",
+        )
+        expected = direction_score + self.risk_likelihood.log_likelihood
+        if not torch.equal(joint, expected):
+            raise RuntimeError("ACPOL_R1_JOINT_LOG_LIKELIHOOD_MISMATCH")
+        if self.direction == FLAT:
+            if self.risk_likelihood.measure_kind != POINT_MASS:
+                raise RuntimeError("ACPOL_R1_JOINT_FLAT_POINT_MASS_REQUIRED")
+            if self.risk_likelihood.log_likelihood.item() != 0.0:
+                raise RuntimeError("ACPOL_R1_JOINT_FLAT_RISK_TERM_MUST_BE_ZERO")
+
+
+def joint_nominal_action_likelihood_r1(
+    *,
+    direction_distribution: DirectionCategoricalR1,
+    risk_distribution: ConditionalBoundedRiskR1,
+    action: TargetPositionActionR1,
+) -> JointNominalActionLikelihoodR1:
+    direction_distribution.validate()
+    risk_distribution.validate()
+    action.validate()
+    _require_same_tensor_contract_r1(
+        direction_distribution.tensor_contract,
+        risk_distribution.tensor_contract,
+        code="ACPOL_R1_JOINT_COMPONENT_CONTRACT_MISMATCH",
+    )
+    contract = direction_distribution.tensor_contract
+    risk = torch.tensor(
+        action.requested_target_risk,
+        dtype=SUPPORTED_FLOAT_DTYPES_R1[contract.dtype],
+        device=torch.device(contract.device_type, contract.device_index),
+    )
+    direction_score = direction_distribution.log_prob(action.target_direction)
+    risk_term = risk_distribution.likelihood_term(action.target_direction, risk)
+    result = JointNominalActionLikelihoodR1(
+        schema_version=JOINT_NOMINAL_ACTION_LIKELIHOOD_SCHEMA_R1,
+        direction=action.target_direction,
+        requested_risk=risk,
+        direction_log_likelihood=direction_score,
+        risk_likelihood=risk_term,
+        joint_log_likelihood=direction_score + risk_term.log_likelihood,
+        tensor_contract=contract,
+    )
+    result.validate()
+    return result
+
+
+@dataclass(frozen=True)
+class SampledNominalActionR1:
+    """Behavior sample with log_mu bound to one frozen behavior checkpoint hash."""
+
+    schema_version: str
+    action: TargetPositionActionR1
+    log_mu: torch.Tensor
+    behavior_policy_sha256: str
+    distribution_identity_sha256: str
+    tensor_contract: PolicyTensorContractR1
+
+    def validate(self) -> None:
+        if self.schema_version != SAMPLED_NOMINAL_ACTION_SCHEMA_R1:
+            raise RuntimeError("ACPOL_R1_SAMPLED_ACTION_SCHEMA_MISMATCH")
+        self.action.validate()
+        _sha256_hex(self.behavior_policy_sha256, code="ACPOL_R1_BEHAVIOR_POLICY_HASH_INVALID")
+        _sha256_hex(
+            self.distribution_identity_sha256,
+            code="ACPOL_R1_DISTRIBUTION_IDENTITY_HASH_INVALID",
+        )
+        score = validate_policy_tensor_r1(self.log_mu, self.tensor_contract)
+        if score.ndim != 0:
+            raise RuntimeError("ACPOL_R1_LOG_MU_SHAPE_INVALID")
+
+
+def sample_nominal_action_r1(
+    *,
+    identity: ActorPolicyDistributionIdentityR1,
+    direction_distribution: DirectionCategoricalR1,
+    risk_distribution: ConditionalBoundedRiskR1,
+    action_id: str,
+    generator: torch.Generator,
+) -> SampledNominalActionR1:
+    identity.validate()
+    _nonempty(action_id, code="ACPOL_R1_ACTION_ID_INVALID")
+    direction_distribution.validate()
+    risk_distribution.validate()
+    _require_same_tensor_contract_r1(
+        identity.tensor_contract,
+        direction_distribution.tensor_contract,
+        code="ACPOL_R1_IDENTITY_DIRECTION_CONTRACT_MISMATCH",
+    )
+    _require_same_tensor_contract_r1(
+        identity.tensor_contract,
+        risk_distribution.tensor_contract,
+        code="ACPOL_R1_IDENTITY_RISK_CONTRACT_MISMATCH",
+    )
+    direction = direction_distribution.sample_direction(generator=generator)
+    risk = risk_distribution.sample_risk(direction, generator=generator)
+    action = make_target_position_action_r1(
+        action_id=action_id,
+        policy_id=identity.policy_id,
+        policy_version=identity.policy_version,
+        target_direction=direction,
+        requested_target_risk=float(risk.detach().item()),
+    )
+    likelihood = joint_nominal_action_likelihood_r1(
+        direction_distribution=direction_distribution,
+        risk_distribution=risk_distribution,
+        action=action,
+    )
+    sample = SampledNominalActionR1(
+        schema_version=SAMPLED_NOMINAL_ACTION_SCHEMA_R1,
+        action=action,
+        log_mu=likelihood.joint_log_likelihood.detach().clone(),
+        behavior_policy_sha256=identity.policy_sha256,
+        distribution_identity_sha256=identity.semantic_sha256,
+        tensor_contract=identity.tensor_contract,
+    )
+    sample.validate()
+    return sample
+
+
+def recompute_sampled_log_mu_r1(
+    *,
+    sample: SampledNominalActionR1,
+    identity: ActorPolicyDistributionIdentityR1,
+    direction_distribution: DirectionCategoricalR1,
+    risk_distribution: ConditionalBoundedRiskR1,
+) -> torch.Tensor:
+    sample.validate()
+    identity.validate()
+    if sample.behavior_policy_sha256 != identity.policy_sha256:
+        raise RuntimeError("ACPOL_R1_BEHAVIOR_CHECKPOINT_HASH_MISMATCH")
+    if sample.distribution_identity_sha256 != identity.semantic_sha256:
+        raise RuntimeError("ACPOL_R1_DISTRIBUTION_IDENTITY_MISMATCH")
+    validate_policy_action_binding_r1(identity, sample.action)
+    _require_same_tensor_contract_r1(
+        sample.tensor_contract,
+        identity.tensor_contract,
+        code="ACPOL_R1_SAMPLED_ACTION_TENSOR_CONTRACT_MISMATCH",
+    )
+    likelihood = joint_nominal_action_likelihood_r1(
+        direction_distribution=direction_distribution,
+        risk_distribution=risk_distribution,
+        action=sample.action,
+    )
+    return likelihood.joint_log_likelihood.detach().clone()
+
+
 class ActorPolicyR1(ABC, Generic[ObservationT, SamplingRngT, LogProbT]):
     """Minimal stochastic Actor API for Round 2.
 
     ``sample`` owns stochastic behavior collection and receives an explicit RNG.
     ``log_prob`` scores a supplied action and must not consume sampling RNG.
     ``deterministic_action`` is a separate evaluation path and must not consume
-    sampling RNG. BC-035 through BC-037 define direction, conditional-risk, and
-    endpoint component math; joint action likelihood remains BC-038 work.
+    sampling RNG. BC-035 through BC-038 now define the nominal action component
+    likelihood; RNG stream serialization/provenance remains BC-039 work.
     """
 
     @property
