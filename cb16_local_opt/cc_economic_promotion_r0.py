@@ -1,14 +1,19 @@
+from __future__ import annotations
 from dataclasses import dataclass
-from enum import Enum
-from .cc_economic_cohort_r0 import EconomicCohort
-from .cc_economic_evaluator_r0 import EconomicEvaluation
-class PromotionDecision(str,Enum): PASS="PASS"; FAIL="FAIL"; UNRESOLVED_OWNER_DECISION="UNRESOLVED_OWNER_DECISION"
+from .cc_experience_wire_r0 import CCEconomicResultV1
+
+UNRESOLVED_OWNER_DECISION="UNRESOLVED_OWNER_DECISION"
 @dataclass(frozen=True)
-class PromotionArtifact: evaluation_id:str; expected_arithmetic_return:float; buy_hold_delta:float; flat_delta:float; decision:PromotionDecision; reason:str; evidence_level:str="COMPONENT_LOCAL_SYNTHETIC"
-def decide_promotion(e:EconomicEvaluation,c:EconomicCohort):
-    if not c.formal_horizon_owner_rule_resolved:return PromotionArtifact(e.evaluation_id,e.mean_arithmetic_return,e.buy_hold_delta,e.flat_delta,PromotionDecision.UNRESOLVED_OWNER_DECISION,"FORMAL_HORIZON_OR_MASTER_RANKING_OWNER_RULE_UNRESOLVED")
-    bh,fl=e.buy_hold_delta,e.flat_delta
-    if bh>0 and fl>0:d,r=PromotionDecision.PASS,"POSITIVE_VS_BOTH_DECLARED_BASELINES"
-    elif bh<=0 and fl<=0:d,r=PromotionDecision.FAIL,"NONPOSITIVE_VS_BOTH_DECLARED_BASELINES"
-    else:d,r=PromotionDecision.UNRESOLVED_OWNER_DECISION,"B_AND_H_FLAT_COMPARATOR_CONFLICT"
-    return PromotionArtifact(e.evaluation_id,e.mean_arithmetic_return,bh,fl,d,r)
+class PromotionAssessment:
+    status: str
+    mean_arithmetic_return: float
+    buy_hold_delta: float
+    flat_delta: float
+
+def assess(result: CCEconomicResultV1) -> PromotionAssessment:
+    result.validate()
+    if result.buy_hold_delta > 0 and result.flat_delta > 0: status="QUALIFIES_BOTH_BASELINES"
+    elif result.buy_hold_delta < 0 and result.flat_delta < 0: status="FAILS_BOTH_BASELINES"
+    elif result.buy_hold_delta == 0 and result.flat_delta == 0: status="TIED_BOTH_BASELINES"
+    else: status=UNRESOLVED_OWNER_DECISION
+    return PromotionAssessment(status,result.mean_arithmetic_return,result.buy_hold_delta,result.flat_delta)

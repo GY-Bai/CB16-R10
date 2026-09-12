@@ -1,40 +1,63 @@
 from __future__ import annotations
-import hashlib,json,os
+import json, os, sqlite3, tempfile
 from pathlib import Path
-from typing import Any,Mapping
-class FactStoreConflict(RuntimeError): pass
-class FactStoreCorruption(RuntimeError): pass
-def canonical_bytes(p:Mapping[str,Any])->bytes: return json.dumps(p,sort_keys=True,separators=(",",":"),ensure_ascii=False,allow_nan=False).encode()
-class ContentAddressedFactStore:
-    def __init__(self,root:str|Path):
-        self.root=Path(root); self.objects=self.root/"objects"; self.objects.mkdir(parents=True,exist_ok=True); self.index_path=self.root/"index.json"
-        if not self.index_path.exists(): self._write_index({})
-    def _read_index(self):
-        try:return json.loads(self.index_path.read_text())
-        except Exception as e: raise FactStoreCorruption("unreadable index") from e
-    def _write_index(self,index):
-        tmp=self.index_path.with_suffix(".tmp"); tmp.write_text(json.dumps(dict(index),sort_keys=True,separators=(",",":")))
-        with tmp.open("rb") as f: os.fsync(f.fileno())
-        os.replace(tmp,self.index_path)
-    def content_hash(self,p): return hashlib.sha256(canonical_bytes(p)).hexdigest()
-    def write_blob(self,p):
-        raw=canonical_bytes(p); d=hashlib.sha256(raw).hexdigest(); path=self.objects/f"{d}.json"
+from typing import Any, Mapping
+from .cc_experience_wire_r0 import canonical_json_bytes, content_sha256
+
+class SemanticConflict(RuntimeError): pass
+
+class RawFactStore:
+    def __init__(self, root: str | Path):
+        self.root = Path(root)
+        self.objects = self.root / "objects"
+        self.objects.mkdir(parents=True, exist_ok=True)
+        self.db_path = self.root / "index.sqlite3"
+        with sqlite3.connect(self.db_path) as db:
+            db.execute("CREATE TABLE IF NOT EXISTS facts (logical_id TEXT PRIMARY KEY, content_sha TEXT NOT NULL, object_path TEXT NOT NULL)")
+
+    def _object_path(self, digest: str) -> Path:
+        return self.objects / digest[:2] / f"{digest}.json"
+
+    def put(self, logical_id: str, fact: Mapping[str, Any], *, crash_after_object: bool = False) -> str:
+        if not logical_id:
+            raise ValueError("logical_id required")
+        digest = content_sha256(fact)
+        path = self._object_path(digest)
+        with sqlite3.connect(self.db_path) as db:
+            row = db.execute("SELECT content_sha FROM facts WHERE logical_id=?", (logical_id,)).fetchone()
+            if row:
+                if row[0] != digest:
+                    raise SemanticConflict("same logical ID with different content")
+                return digest
+        path.parent.mkdir(parents=True, exist_ok=True)
         if not path.exists():
-            tmp=path.with_suffix(".tmp"); tmp.write_bytes(raw)
-            with tmp.open("rb") as f: os.fsync(f.fileno())
-            os.replace(tmp,path)
-        elif path.read_bytes()!=raw: raise FactStoreCorruption("hash collision/corruption")
-        return d
-    def bind_object(self,object_id,d):
-        if not object_id: raise ValueError("object_id required")
-        if not (self.objects/f"{d}.json").exists(): raise FactStoreCorruption("missing blob")
-        idx=self._read_index(); existing=idx.get(object_id)
-        if existing is not None and existing!=d: raise FactStoreConflict("same ID/different content")
-        if existing==d:return d
-        idx[object_id]=d; self._write_index(idx); return d
-    def put(self,object_id,p): return self.bind_object(object_id,self.write_blob(p))
-    def get(self,object_id):
-        d=self._read_index()[object_id]; raw=(self.objects/f"{d}.json").read_bytes()
-        if hashlib.sha256(raw).hexdigest()!=d: raise FactStoreCorruption("blob hash mismatch")
-        return json.loads(raw)
-    def identities(self): return tuple(sorted(self._read_index()))
+            fd, tmp = tempfile.mkstemp(prefix=".cc-tmp-", dir=str(path.parent))
+            try:
+                with os.fdopen(fd, "wb") as f:
+                    f.write(canonical_json_bytes(fact)); f.flush(); os.fsync(f.fileno())
+                os.replace(tmp, path)
+                dirfd = os.open(path.parent, os.O_RDONLY)
+                try: os.fsync(dirfd)
+                finally: os.close(dirfd)
+            finally:
+                if os.path.exists(tmp): os.unlink(tmp)
+        if crash_after_object:
+            raise RuntimeError("FAULT_AFTER_DURABLE_OBJECT")
+        with sqlite3.connect(self.db_path) as db:
+            try:
+                db.execute("INSERT INTO facts(logical_id,content_sha,object_path) VALUES(?,?,?)", (logical_id,digest,str(path)))
+            except sqlite3.IntegrityError:
+                row = db.execute("SELECT content_sha FROM facts WHERE logical_id=?", (logical_id,)).fetchone()
+                if not row or row[0] != digest:
+                    raise SemanticConflict("concurrent semantic conflict")
+        return digest
+
+    def get(self, logical_id: str) -> Mapping[str, Any]:
+        with sqlite3.connect(self.db_path) as db:
+            row = db.execute("SELECT object_path FROM facts WHERE logical_id=?", (logical_id,)).fetchone()
+        if not row: raise KeyError(logical_id)
+        with open(row[0], "r", encoding="utf-8") as f: return json.load(f)
+
+    def count(self) -> int:
+        with sqlite3.connect(self.db_path) as db:
+            return int(db.execute("SELECT COUNT(*) FROM facts").fetchone()[0])
