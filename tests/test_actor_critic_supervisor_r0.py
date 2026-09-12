@@ -14,7 +14,13 @@ from cb16_local_opt.actor_critic_supervisor_r0 import (
     ACCEPT,
     CLAMP,
     REJECT,
+    CLOSE_TO_FLAT_LEG_R0,
+    DIRECT_TARGET_EXECUTION_R0,
+    OPEN_FROM_FLAT_LEG_R0,
+    REVERSAL_CLOSE_THEN_OPEN_R0,
     SupervisorAuthorityStateR0,
+    SupervisorExecutionContractR0,
+    SupervisorExecutionLegR0,
     make_supervisor_authority_state_r0,
     supervise_target_action_r0,
 )
@@ -69,6 +75,7 @@ def test_accept_within_all_hard_authority() -> None:
     assert result.reason_code == "WITHIN_ALL_HARD_AUTHORITY"
     assert result.permitted_target_direction == SHORT
     assert result.permitted_target_risk == 0.35
+    assert result.execution_contract.contract_kind == DIRECT_TARGET_EXECUTION_R0
 
 
 def test_clamp_cannot_exceed_external_target_risk_cap() -> None:
@@ -232,7 +239,7 @@ def test_hard_cap_can_clamp_held_request_to_lower_exposure(direction: str) -> No
     ("current_direction", "target_direction"),
     [(LONG, SHORT), (SHORT, LONG)],
 )
-def test_reversal_remains_fail_closed_until_ac012(
+def test_reversal_has_one_explicit_close_then_open_interpretation(
     current_direction: str,
     target_direction: str,
 ) -> None:
@@ -241,12 +248,116 @@ def test_reversal_remains_fail_closed_until_ac012(
         _authority(
             current_direction=current_direction,
             current_target_risk=0.5,
+            margin_available_for_new_exposure=True,
+        ),
+    )
+
+    assert result.outcome == ACCEPT
+    assert result.reason_code == "REVERSAL_CLOSE_THEN_OPEN_AUTHORIZED"
+    assert result.permitted_target_direction == target_direction
+    assert result.permitted_target_risk == 0.3
+    contract = result.execution_contract
+    assert contract.contract_kind == REVERSAL_CLOSE_THEN_OPEN_R0
+    assert contract.source_direction == current_direction
+    assert contract.source_target_risk == 0.5
+    assert len(contract.legs) == 2
+    assert contract.legs[0].leg_kind == CLOSE_TO_FLAT_LEG_R0
+    assert contract.legs[0].target_direction == FLAT
+    assert contract.legs[0].target_risk == 0.0
+    assert contract.legs[1].leg_kind == OPEN_FROM_FLAT_LEG_R0
+    assert contract.legs[1].target_direction == target_direction
+    assert contract.legs[1].target_risk == 0.3
+
+
+@pytest.mark.parametrize(
+    ("current_direction", "target_direction"),
+    [(LONG, SHORT), (SHORT, LONG)],
+)
+def test_reversal_new_exposure_requires_margin_authority(
+    current_direction: str,
+    target_direction: str,
+) -> None:
+    result = supervise_target_action_r0(
+        _action(target_direction, 0.3),
+        _authority(
+            current_direction=current_direction,
+            current_target_risk=0.5,
+            margin_available_for_new_exposure=False,
         ),
     )
     assert result.outcome == REJECT
-    assert result.reason_code == "REVERSAL_NOT_AUTHORIZED_R0"
+    assert result.reason_code == "REVERSAL_MARGIN_UNAVAILABLE_FOR_NEW_EXPOSURE"
     assert result.permitted_target_direction == current_direction
     assert result.permitted_target_risk == 0.5
+    assert result.execution_contract.contract_kind == DIRECT_TARGET_EXECUTION_R0
+
+
+def test_reversal_requires_legal_intermediate_flat_state() -> None:
+    result = supervise_target_action_r0(
+        _action(SHORT, 0.3),
+        _authority(
+            current_direction=LONG,
+            current_target_risk=0.5,
+            legal_target_directions=(SHORT, LONG),
+        ),
+    )
+    assert result.outcome == REJECT
+    assert result.reason_code == "REVERSAL_CLOSE_LEG_NOT_LEGAL"
+    assert result.permitted_target_direction == LONG
+    assert result.permitted_target_risk == 0.5
+
+
+def test_reversal_hard_cap_clamps_second_leg_without_implicit_flip() -> None:
+    result = supervise_target_action_r0(
+        _action(SHORT, 0.8),
+        _authority(
+            current_direction=LONG,
+            current_target_risk=0.5,
+            max_permitted_target_risk=0.2,
+            margin_available_for_new_exposure=True,
+        ),
+    )
+    assert result.outcome == CLAMP
+    assert result.reason_code == "REVERSAL_TARGET_RISK_CLAMPED_TO_HARD_AUTHORITY"
+    assert result.permitted_target_direction == SHORT
+    assert result.permitted_target_risk == 0.2
+    assert result.execution_contract.contract_kind == REVERSAL_CLOSE_THEN_OPEN_R0
+    assert result.execution_contract.legs[0].target_direction == FLAT
+    assert result.execution_contract.legs[1].target_direction == SHORT
+    assert result.execution_contract.legs[1].target_risk == 0.2
+
+
+def test_zero_exposure_reversal_does_not_require_new_margin() -> None:
+    result = supervise_target_action_r0(
+        _action(SHORT, 0.0),
+        _authority(
+            current_direction=LONG,
+            current_target_risk=0.5,
+            margin_available_for_new_exposure=False,
+        ),
+    )
+    assert result.outcome == ACCEPT
+    assert result.reason_code == "REVERSAL_CLOSE_THEN_OPEN_AUTHORIZED"
+    assert result.execution_contract.contract_kind == REVERSAL_CLOSE_THEN_OPEN_R0
+    assert result.execution_contract.legs[1].target_risk == 0.0
+
+
+def test_malformed_reversal_contract_fails_closed() -> None:
+    bad = SupervisorExecutionContractR0(
+        contract_kind=REVERSAL_CLOSE_THEN_OPEN_R0,
+        source_direction=LONG,
+        source_target_risk=0.5,
+        legs=(
+            SupervisorExecutionLegR0(
+                leg_index=0,
+                leg_kind=OPEN_FROM_FLAT_LEG_R0,
+                target_direction=SHORT,
+                target_risk=0.2,
+            ),
+        ),
+    )
+    with pytest.raises(RuntimeError, match="ACSUP_REVERSAL_EXECUTION_SHAPE_INVALID"):
+        bad.validate()
 
 
 def test_authority_direction_set_is_canonicalized() -> None:
