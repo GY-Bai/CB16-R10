@@ -1,0 +1,66 @@
+{
+  "schema": "CB16_R11_POST_CC_S0_BASELINE_V1",
+  "status": "FROZEN",
+  "stage": "S0_CONTRACT_MIGRATION",
+  "frozen_implementation_base_sha": "fc7102442e91a1c27cf705487c6d06bd64b8ea09",
+  "parent_cc": {
+    "integration_spec": {
+      "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json",
+      "blob_sha": "47f52f96dda1790cf7fca484d2e6516e0a44ca1a"
+    },
+    "integration_receipt": {
+      "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json",
+      "blob_sha": "3fea57a6c5d3a0a2ad5d88d99e6041b7fe9973e5",
+      "edit_target": false
+    },
+    "thread_c_receipt": {
+      "path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
+      "blob_sha": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc",
+      "edit_target": false
+    }
+  },
+  "legacy_economic_surfaces": {
+    "evaluator": {
+      "path": "cb16_local_opt/cc_economic_evaluator_r0.py",
+      "blob_sha": "3960ff7032735aa10e9bf03aefed82f80be34918"
+    },
+    "promotion": {
+      "path": "cb16_local_opt/cc_economic_promotion_r0.py",
+      "blob_sha": "a48a0beb320f2429a68b14a463a74cd18e27e76c",
+      "post_cc_authority": false
+    },
+    "promotion_test": {
+      "path": "tests/test_cc_economic_promotion_r0.py",
+      "blob_sha": "c38dfd630f2544cedb4f50ff8000d2c7a1da7da3"
+    }
+  },
+  "planning_authority": {
+    "economic_ordering_and_promotion": {
+      "path": "docs/ECONOMIC_ORDERING_AND_PROMOTION.md",
+      "blob_sha": "269815fd7ded9ec688525d27c1924af68b19abe5"
+    },
+    "post_cc_scientific_program": {
+      "path": "docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md",
+      "blob_sha": "c0f3d6f1b7b497321f063406de7a25ca2bf74e40"
+    }
+  },
+  "frozen_owner_decision": {
+    "buy_and_hold_and_flat_are_parallel_components": true,
+    "master_baseline_precedence": null,
+    "master_baseline_winner": null,
+    "model_ordering_is_separate": true,
+    "promotion_is_separate_and_versioned": true,
+    "historical_unresolved_owner_state_is_not_current_owner_uncertainty": true
+  },
+  "historical_receipt_rule": {
+    "rewrite_historical_cc_receipts": false,
+    "rewrite_legacy_promotion_semantics": false,
+    "successor_migration_required": true
+  },
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false,
+    "market_training_authorized": false,
+    "scientific_scope": "SYNTHETIC_CONTRACT_QUALIFICATION_ONLY"
+  }
+}

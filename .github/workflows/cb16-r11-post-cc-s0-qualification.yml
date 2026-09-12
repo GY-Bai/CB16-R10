@@ -1,0 +1,167 @@
+name: CB16 R11 Post-CC S0 Qualification
+
+on:
+  push:
+    branches:
+      - ai/r11-post-cc-s0-contract-migration-r0-impl
+    paths:
+      - cb16_local_opt/post_cc_*.py
+      - tests/test_post_cc_s0_*.py
+      - scripts/run_r11_post_cc_s0_qualification.py
+      - authority/rearchitecture_r11/CB16_R11_POST_CC_S0_*.json
+      - authority/rearchitecture_r11/CB16_R11_POST_CC_S1_TASK_REGISTRY_V1.json
+      - authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json
+      - artifacts/post_cc_s0/CONTRACT_MIGRATION_REPORT.json
+      - .github/workflows/cb16-r11-post-cc-s0-qualification.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  s0-qualification:
+    name: Post-CC S0 Contract Migration Qualification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout S0 implementation branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/post_cc_s0_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/post_cc_s0_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('POST_CC_S0_PYTHON_ENV_READY')
+          PY
+
+      - name: Verify frozen-base lineage and historical receipt immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=fc7102442e91a1c27cf705487c6d06bd64b8ea09
+          test "$(git merge-base HEAD "$BASE")" = "$BASE"
+          test "$(git hash-object authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json)" = "3fea57a6c5d3a0a2ad5d88d99e6041b7fe9973e5"
+          test "$(git hash-object authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json)" = "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
+          if git diff --name-only "$BASE" HEAD -- authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json | grep -q .; then
+            echo HISTORICAL_RECEIPT_MUTATION_DETECTED >&2
+            exit 1
+          fi
+          test ! -e data/2025-09
+          test ! -e final_holdout
+          echo POST_CC_S0_LINEAGE_IMMUTABILITY_FIREWALL_PASS
+
+      - name: Run focused S0 qualification tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/post_cc_s0_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" -m pytest -q \
+            tests/test_cc_economic_promotion_r0.py \
+            tests/test_cc_economic_evaluator_r0.py \
+            tests/test_post_cc_s0_*.py
+          PYTHONPATH=. "$PYTHON" -m compileall -q cb16_local_opt scripts tests
+
+      - name: Compile machine-readable S0 gate result
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/post_cc_s0_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/run_r11_post_cc_s0_qualification.py \
+            --output "$RUNNER_TEMP/S0_QUALIFICATION_RESULT.json"
+
+      - name: Emit execution receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/post_cc_s0_python.json"
+          RECEIPT="$RUNNER_TEMP/S0_EXECUTION_RECEIPT.json"
+          RESULT="$RUNNER_TEMP/S0_QUALIFICATION_RESULT.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" - "$RECEIPT" "$RESULT" <<'PY'
+          import json, os, platform, subprocess, sys, torch
+          receipt_path, result_path = sys.argv[1:]
+          result = json.load(open(result_path))
+          assert result['status'] == 'PASS', result
+          payload = {
+              'schema': 'CB16_R11_POST_CC_S0_EXECUTION_RECEIPT_V1',
+              'status': 'PASS',
+              'git_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'runner_name': os.environ.get('RUNNER_NAME'),
+              'runner_os': os.environ.get('RUNNER_OS'),
+              'python_version': platform.python_version(),
+              'torch_version': torch.__version__,
+              'all_hard_gates_pass': all(result['gates'].values()),
+              'evidence': result['evidence_if_pass'],
+              'historical_receipts_modified': False,
+              'FINAL_opened': False,
+              'fresh_data_used': False,
+              'ECONOMIC_evidence_claimed': False,
+              'TRANSFER_evidence_claimed': False,
+          }
+          with open(receipt_path, 'w', encoding='utf-8') as f:
+              json.dump(payload, f, indent=2, sort_keys=True)
+              f.write('\n')
+          print(json.dumps(payload, sort_keys=True))
+          PY
+
+      - name: Upload S0 qualification artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s0-qualification
+          path: |
+            ${{ runner.temp }}/S0_QUALIFICATION_RESULT.json
+            ${{ runner.temp }}/S0_EXECUTION_RECEIPT.json
+            ${{ runner.temp }}/post_cc_s0_docker_preflight.json
+            ${{ runner.temp }}/post_cc_s0_python.json
+          if-no-files-found: error
+          retention-days: 30

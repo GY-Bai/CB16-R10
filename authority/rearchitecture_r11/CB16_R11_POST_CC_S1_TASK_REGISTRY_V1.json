@@ -1,0 +1,131 @@
+{
+  "schema": "CB16_R11_POST_CC_S1_TASK_REGISTRY_V1",
+  "status": "FROZEN_BEFORE_S1_EXECUTION",
+  "science_semantic_version": "CB16_R11_POST_CC_SCIENCE_SEMANTIC_V1",
+  "scope": "SYNTHETIC_ONLY",
+  "common_seed_policy": {
+    "seed_root": 1701,
+    "seeds": [1701, 1702, 1703, 1704, 1705],
+    "minimum_positive_seeds_passing": 4,
+    "seed_selection_after_results": false
+  },
+  "common_learning_rule": {
+    "maximum_policy_decisions_per_task_per_seed": 100000,
+    "known_answer_oracle_gap_reduction_fraction": 0.5,
+    "training_loss_alone_is_success": false,
+    "parameter_change_alone_is_success": false,
+    "checkpoint_write_alone_is_success": false,
+    "behavioral_or_return_improvement_required": true,
+    "persistent_replay_only": true,
+    "no_rescue_after_results": true
+  },
+  "tasks": [
+    {
+      "task_id": "ACCOUNT_DEPENDENT_ACTION",
+      "environment_version": "POST_CC_S1_ACCOUNT_DEPENDENT_ACTION_V1",
+      "observation_semantics": "Same market observation is paired with distinct reachable account states that require distinct optimal joint actions.",
+      "action_semantics": "Canonical direction plus conditional target risk.",
+      "reward_semantics": "Finite-horizon arithmetic equity delta under declared initial-capital denominator.",
+      "horizon_semantics": "Finite synthetic episodes; no cross-episode account stitching.",
+      "known_answer": "Optimal action depends on Account input even when Market is identical.",
+      "success": {
+        "oracle_gap_reduction_fraction_min": 0.5,
+        "post_return_must_exceed_initial": true,
+        "minimum_passing_seeds": 4,
+        "market_only_account_ablation_must_not_match_full_model": true
+      },
+      "negative_controls": ["ACCOUNT_INPUT_ABLATION", "NO_SIGNAL_OR_ZERO_REWARD_CONTROL"]
+    },
+    {
+      "task_id": "DELAYED_CONSEQUENCE_CREDIT",
+      "environment_version": "POST_CC_S1_DELAYED_CONSEQUENCE_CREDIT_V1",
+      "observation_semantics": "Early decision has no direct label; consequence arrives only after later account transitions and at least one computational chunk boundary.",
+      "action_semantics": "Canonical joint action.",
+      "reward_semantics": "Arithmetic account consequence with the delayed loss/gain retained in the same logical account lineage.",
+      "horizon_semantics": "Task horizon exceeds the collection chunk used by the harness; chunk boundary is not terminal.",
+      "known_answer": "The early action maximizing complete-horizon arithmetic return.",
+      "success": {
+        "oracle_gap_reduction_fraction_min": 0.5,
+        "post_return_must_exceed_initial": true,
+        "minimum_passing_seeds": 4,
+        "positive_learning_must_exceed_shuffled_credit_control": true
+      },
+      "negative_controls": ["SHUFFLED_CREDIT_CONTROL", "NO_SIGNAL_OR_ZERO_REWARD_CONTROL"]
+    },
+    {
+      "task_id": "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION",
+      "environment_version": "POST_CC_S1_HIGH_BANKRUPTCY_HIGHER_EXPECTATION_V1",
+      "observation_semantics": "Synthetic outcomes expose no privileged winner label to the learner.",
+      "action_semantics": "At least two reachable canonical actions differ in full-sample arithmetic expectation and bankruptcy frequency.",
+      "reward_semantics": "Complete-sample arithmetic expected return; all failures remain in denominator; no log-wealth, Sharpe, survival, drawdown or survivor-only override.",
+      "horizon_semantics": "Finite episodes with mechanical terminal/failure retained as facts.",
+      "known_answer": "The action with higher complete-sample arithmetic expectation wins even when its bankruptcy frequency is higher.",
+      "success": {
+        "oracle_gap_reduction_fraction_min": 0.5,
+        "post_policy_moves_toward_higher_arithmetic_expectation_action": true,
+        "minimum_passing_seeds": 4
+      },
+      "negative_controls": ["OBJECTIVE_FIREWALL", "RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL"]
+    },
+    {
+      "task_id": "OFF_POLICY_VTRACE_CORRECTION",
+      "environment_version": "POST_CC_S1_OFF_POLICY_VTRACE_V1",
+      "observation_semantics": "Behavior-policy trajectories are replayed under a deliberately different target policy.",
+      "action_semantics": "Persisted nominal joint behavior action; executed action may appear only as consequence context.",
+      "reward_semantics": "Task-specific arithmetic reward frozen before collection.",
+      "horizon_semantics": "Finite sequence with explicit bootstrap/boundary fields.",
+      "known_answer": "Known target/behavior log-prob ratios and V-trace values plus learnable policy improvement.",
+      "success": {
+        "analytic_vtrace_tolerance": 1e-06,
+        "oracle_gap_reduction_fraction_min": 0.5,
+        "true_persisted_log_mu_required": true,
+        "minimum_passing_seeds": 4
+      },
+      "negative_controls": ["FABRICATED_LOG_MU_REJECTION", "SHUFFLED_CREDIT_CONTROL"]
+    },
+    {
+      "task_id": "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION",
+      "environment_version": "POST_CC_S1_ABA_RETENTION_V1",
+      "observation_semantics": "Synthetic recurring A then B then A conditions; no condition detector or rule switch identifies the regime for the policy.",
+      "action_semantics": "Canonical joint action learned through weights and replay.",
+      "reward_semantics": "Arithmetic task return under the active synthetic condition.",
+      "horizon_semantics": "A, B and returning-A phases are distinct finite segments within the preregistered task protocol.",
+      "known_answer": "Old A information remains available to weights/replay so returning A meets the frozen retention-or-relearning criterion without hand-coded activation.",
+      "success": {
+        "first_A_and_B_must_each_be_learned": true,
+        "returning_A_must_improve_over_pretraining_baseline": true,
+        "old_A_experience_may_not_expire_by_age_alone": true,
+        "manual_regime_activation_forbidden": true,
+        "minimum_passing_seeds": 4
+      },
+      "negative_controls": ["NO_SIGNAL_OR_ZERO_REWARD_CONTROL", "RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL"]
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "NO_SIGNAL_OR_ZERO_REWARD_CONTROL",
+      "rule": "Matched run has no learnable action-to-reward relation or zero reward as defined by the task generator.",
+      "expected_relation": "Must not satisfy the positive task's preregistered known-answer threshold merely from optimizer noise."
+    },
+    {
+      "control_id": "SHUFFLED_CREDIT_CONTROL",
+      "rule": "Break action-to-consequence alignment while preserving marginal distributions where feasible.",
+      "expected_relation": "Positive delayed/off-policy task must materially outperform the shuffled control under the task's preregistered metric."
+    },
+    {
+      "control_id": "RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL",
+      "rule": "Use a random or impossible target when the task admits one without altering the positive-task population.",
+      "expected_relation": "Control must not meet the positive known-answer qualification threshold."
+    }
+  ],
+  "prohibited_rescue": [
+    "change_seeds_after_results",
+    "change_success_threshold_after_results",
+    "change_reward_after_results",
+    "increase_model_size_after_results",
+    "simplify_task_after_results",
+    "select_best_seed_only",
+    "discard_failures_or_bankruptcies"
+  ],
+  "failure_classifications": ["PASS", "SCIENTIFIC_FAIL", "CONTRACT_MISMATCH", "EXECUTION_BLOCKED", "HARDWARE_LIMIT", "EVIDENCE_INSUFFICIENT"]
+}

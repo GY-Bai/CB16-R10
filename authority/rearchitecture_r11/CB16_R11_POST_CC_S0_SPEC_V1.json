@@ -1,0 +1,84 @@
+{
+  "schema": "CB16_R11_POST_CC_S0_SPEC_V1",
+  "science_semantic_version": "CB16_R11_POST_CC_SCIENCE_SEMANTIC_V1",
+  "parent_science_semantic_version": "CB16_R11_CC_SCIENCE_SEMANTIC_V1",
+  "frozen_base_sha": "fc7102442e91a1c27cf705487c6d06bd64b8ea09",
+  "evidence_ceiling": "POST_CC_CONTRACT_MIGRATION_QUALIFIED",
+  "contracts": {
+    "economic_ordering": "CB16_R11_POST_CC_ECONOMIC_ORDERING_V1",
+    "baseline_components": "CB16_R11_POST_CC_BASELINE_COMPONENTS_V1",
+    "promotion": "CB16_R11_POST_CC_PROMOTION_V1",
+    "economic_migration": "CB16_R11_POST_CC_ECONOMIC_MIGRATION_V1",
+    "w05_adapter": "CB16_R11_POST_CC_W05_ADAPTER_V1",
+    "observation_extension": "PostCCObservationFactV1",
+    "joint_replay_sample": "PostCCJointReplaySampleV1"
+  },
+  "wire_semantics": {
+    "W-01": "CCPolicyDecisionV1_UNCHANGED",
+    "W-02": "CCEnvironmentTransitionV1_UNCHANGED",
+    "W-03": "CCExperienceSequenceV1_UNCHANGED",
+    "W-04": "CCLearningUpdateV1_UNCHANGED",
+    "W-05": "CCEconomicResultV1_UNCHANGED_WITH_SUCCESSOR_ADAPTER"
+  },
+  "economic_semantics": {
+    "primary_model_ordering_statistic": "MEAN_COMPLETE_SAMPLE_ARITHMETIC_RETURN",
+    "buy_and_hold_role": "PARALLEL_BENCHMARK_COMPONENT",
+    "flat_role": "PARALLEL_BENCHMARK_COMPONENT",
+    "master_baseline": null,
+    "baseline_precedence": null,
+    "promotion_requires_explicit_rule_id": true,
+    "default_sandbox_candidate_rule": "CANDIDATE_OVER_INCUMBENT",
+    "default_sandbox_candidate_rule_note": "Candidate must be higher than incumbent under the same comparison contract and pass preregistered improvement evidence; B&H/FLAT remain diagnostics unless an explicitly selected rule says otherwise."
+  },
+  "migration": {
+    "legacy_promotion_contract": "CC_ECONOMIC_PROMOTION_R0",
+    "legacy_mixed_baseline_status": "UNRESOLVED_OWNER_DECISION",
+    "successor_interpretation": "PARALLEL_COMPONENT_VECTOR_PLUS_EXPLICIT_PROMOTION_RULE",
+    "legacy_code_and_receipts_remain_auditable": true,
+    "historical_receipts_modified": false,
+    "legacy_contract_permitted_as_post_cc_authority": false
+  },
+  "s1_preregistration": {
+    "task_registry": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_TASK_REGISTRY_V1.json",
+    "run_spec": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json",
+    "data_scope": "SYNTHETIC_ONLY",
+    "persistent_replay_only_for_qualification": true,
+    "rollout_memory_training_truth_forbidden": true,
+    "joint_direction_conditional_risk_required": true,
+    "true_behavior_log_mu_required": true,
+    "negative_controls_required": true,
+    "no_rescue": true
+  },
+  "failure_classifications": [
+    "PASS",
+    "SCIENTIFIC_FAIL",
+    "CONTRACT_MISMATCH",
+    "EXECUTION_BLOCKED",
+    "HARDWARE_LIMIT",
+    "EVIDENCE_INSUFFICIENT"
+  ],
+  "hard_gates": [
+    "S0_BASELINE_IDENTITY_PASS",
+    "NO_MASTER_BASELINE_PRECEDENCE_PASS",
+    "MODEL_ORDERING_SEPARATION_PASS",
+    "PARALLEL_BASELINE_COMPONENTS_PASS",
+    "PROMOTION_RULE_SEPARATION_PASS",
+    "LEGACY_MIGRATION_PASS",
+    "HISTORICAL_RECEIPT_IMMUTABILITY_PASS",
+    "W05_ADAPTER_PASS",
+    "S1_OBSERVATION_EXTENSION_CONTRACT_PASS",
+    "S1_JOINT_REPLAY_CONTRACT_PASS",
+    "S1_TASK_REGISTRY_FROZEN_PASS",
+    "S1_RUN_SPEC_FROZEN_PASS",
+    "S1_LEARNING_EVIDENCE_RULE_FROZEN_PASS",
+    "NEGATIVE_CONTROL_PREREGISTRATION_PASS",
+    "FINAL_FRESH_FIREWALL_PASS"
+  ],
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false,
+    "market_economic_qualification_authorized": false,
+    "economic_evidence_claimed": false,
+    "transfer_evidence_claimed": false
+  }
+}

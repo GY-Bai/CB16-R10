@@ -1,0 +1,55 @@
+{
+  "schema": "CB16_R11_POST_CC_S0_CONTRACT_MIGRATION_REPORT_V1",
+  "status": "QUALIFIED",
+  "frozen_base_sha": "fc7102442e91a1c27cf705487c6d06bd64b8ea09",
+  "qualified_head_sha": "5760061d6c274e9f8796e6608e86bb173018148f",
+  "receipt_path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json",
+  "qualification": {
+    "workflow_run_id": 34721332483,
+    "job_id": 103627664284,
+    "focused_tests_passed": 15,
+    "all_hard_gates_pass": true,
+    "artifact_id": 10305814294,
+    "artifact_sha256": "fd1413c316297ee871bf7259418302cc474391662936ed258f4d8905221fcd59",
+    "evidence": "POST_CC_CONTRACT_MIGRATION_QUALIFIED"
+  },
+  "historical_bytes_modified": false,
+  "records": [
+    {
+      "old_surface": "cb16_local_opt/cc_economic_promotion_r0.py::assess",
+      "old_meaning": "Mixed-sign B&H/FLAT deltas can return UNRESOLVED_OWNER_DECISION.",
+      "historical_authority": "CC Thread-C and CC integration receipts",
+      "successor_surface": "cb16_local_opt/post_cc_economic_migration_v1.py + post_cc_baseline_components_v1.py",
+      "successor_meaning": "Mixed B&H/FLAT outcomes are an ordinary parallel component vector; an explicit promotion rule is required and there is no current owner uncertainty.",
+      "reason": "Owner decision froze B&H and FLAT as sibling benchmark components with no master precedence.",
+      "compatibility_behavior": "Legacy assess remains importable and reproducible for historical provenance.",
+      "fail_closed_behavior": "Legacy promotion contract cannot be selected as canonical post-CC promotion authority."
+    },
+    {
+      "old_surface": "CCEconomicResultV1",
+      "old_meaning": "Frozen W-05 economic result with arithmetic mean, B&H delta, FLAT delta, failures and tail diagnostics.",
+      "historical_authority": "W-05 unchanged",
+      "successor_surface": "cb16_local_opt/post_cc_economic_adapter_v1.py",
+      "successor_meaning": "Deterministic adapter exposes model ordering measure and independent baseline components without inferring promotion.",
+      "reason": "Separate ordering, component diagnostics and promotion while preserving W-05 bytes and meaning.",
+      "compatibility_behavior": "All W-05 identity/economic fields used by the successor are preserved.",
+      "fail_closed_behavior": "Mixed comparison contracts are rejected by the successor ordering layer."
+    },
+    {
+      "old_surface": "CC integration canary in-memory rollout records",
+      "old_meaning": "Valid CC wiring evidence may assemble learner tensors from live rollout records.",
+      "historical_authority": "CC qualification remains valid at its original evidence level.",
+      "successor_surface": "PostCCObservationFactV1 + PostCCJointReplaySampleV1",
+      "successor_meaning": "S1 qualification training truth must be reconstructed from durable content-addressed observations and persistent replay with nominal joint action and true behavior log_mu.",
+      "reason": "S1 must prove durable end-to-end learnability rather than one-update wiring.",
+      "compatibility_behavior": "W-01..W-05 stay unchanged; post-CC contracts extend them by durable references/materialization.",
+      "fail_closed_behavior": "Observation hash corruption, future information, lineage mismatch and invalid nominal action semantics are rejected."
+    }
+  ],
+  "claims_not_made": [
+    "S1_LEARNABILITY",
+    "REAL_MARKET_ECONOMIC_EDGE",
+    "TRANSFER",
+    "FINAL_HOLDOUT_RESULT"
+  ]
+}
