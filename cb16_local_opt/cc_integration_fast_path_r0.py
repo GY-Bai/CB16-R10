@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import json
 from pathlib import Path
 import statistics
-import tempfile
 import time
 from typing import Any, Iterable, Mapping
 
@@ -23,6 +23,23 @@ class FastTransportReport:
     queue_max_bytes_seen: int
     queue_max_depth_seen: int
     receipts: tuple[ChunkReceipt, ...]
+
+
+def _scheduler_generation_token(value: int | str) -> int:
+    """Normalize generation representation only for D's scheduler metadata.
+
+    The authoritative generation string remains inside the semantic payload. This
+    token is never used to reconstruct policy identity or scientific provenance.
+    """
+    text = str(value)
+    try:
+        return int(text)
+    except ValueError:
+        return int(hashlib.sha256(text.encode("utf-8")).hexdigest()[:15], 16)
+
+
+def _canonical_json(value: Mapping[str, Any]) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
 class CCFastSemanticTransportR0:
@@ -72,7 +89,7 @@ class CCFastSemanticTransportR0:
         *,
         account_lineage_id: str,
         decision_index: int,
-        policy_generation: int,
+        policy_generation: int | str,
         semantic_id: str,
         payload: Mapping[str, Any],
         terminal_or_failure: bool,
@@ -80,7 +97,7 @@ class CCFastSemanticTransportR0:
         task = ScheduledAccountTask(
             account_lineage_id=account_lineage_id,
             decision_index=int(decision_index),
-            policy_generation=int(policy_generation),
+            policy_generation=_scheduler_generation_token(policy_generation),
             enqueue_tick=self._tick,
         )
         self.scheduler.submit(task, now_tick=self._tick)
@@ -123,12 +140,14 @@ def exact_semantic_equivalence(
 ) -> bool:
     if tuple(sorted(reference)) != tuple(sorted(fast)):
         return False
-    return all(reference[key] == fast[key] for key in reference)
+    # JSON is the frozen transport representation: tuple/list container identity is
+    # not scientific meaning, but every encoded key/value/number/string must match.
+    return all(_canonical_json(reference[key]) == _canonical_json(fast[key]) for key in reference)
 
 
 def transport_facts_fast(
     *,
-    facts: Iterable[tuple[str, int, int, str, Mapping[str, Any], bool]],
+    facts: Iterable[tuple[str, int, int | str, str, Mapping[str, Any], bool]],
     account_ids: Iterable[str],
     output_root: str | Path,
     chunk_facts: int = 128,
