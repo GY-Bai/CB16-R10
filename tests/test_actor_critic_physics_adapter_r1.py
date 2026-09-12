@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from cb16_local_opt.account_economics_r0 import make_account_economics_state_r0
 from cb16_local_opt.action_contract_r1 import FLAT, LONG, SHORT, make_target_position_action_r1
 from cb16_local_opt.actor_critic_environment_profile_r1 import policy_neutral_environment_profile_r1
@@ -61,11 +63,8 @@ def _config(**overrides):
     return Round2MechanicalExecutionConfigR1(**kwargs)
 
 
-def _execute(account=None, action=None, config=None, **overrides):
-    account = account or _account()
-    action = action or _action()
-    config = config or _config()
-    supervisor = make_supervisor_authority_r1(
+def _supervisor(account):
+    return make_supervisor_authority_r1(
         authority_id="sup",
         account_id=account.account_id,
         account_state_sha256=_state_sha(account),
@@ -74,10 +73,16 @@ def _execute(account=None, action=None, config=None, **overrides):
         legal_target_directions=(SHORT, FLAT, LONG),
         max_permitted_target_risk=1.0,
     )
+
+
+def _execute(account=None, action=None, config=None, **overrides):
+    account = account or _account()
+    action = action or _action()
+    config = config or _config()
     kwargs = dict(
         account=account,
         action=action,
-        supervisor_authority=supervisor,
+        supervisor_authority=_supervisor(account),
         profile=policy_neutral_environment_profile_r1(),
         taxonomy=TAXONOMY,
         mark_price=10.0,
@@ -101,12 +106,7 @@ def test_open_has_fee_margin_and_account_consequence() -> None:
 
 
 def test_same_nominal_risk_rebalances_when_equity_changes() -> None:
-    current = _account(
-        cash=20.0,
-        position_quantity=10.0,
-        position_cost_basis=10.0,
-        margin_collateral=50.0,
-    )
+    current = _account(cash=20.0, position_quantity=10.0, position_cost_basis=10.0, margin_collateral=50.0)
     result = _execute(account=current, action=_action(LONG, 0.5))
     assert result.status == EXECUTED
     assert result.target_quantity == 7.0
@@ -134,7 +134,6 @@ def test_close_is_reachable_and_releases_margin() -> None:
 
 def test_true_quantity_noop_has_no_fee_or_account_mutation() -> None:
     current = _account(cash=50.0, position_quantity=5.0, position_cost_basis=10.0, margin_collateral=25.0)
-    # equity=75 -> legal cap=150 -> risk=1/3 -> target notional=50 -> qty=5
     result = _execute(account=current, action=_action(LONG, 1.0 / 3.0))
     assert result.status == NO_POSITION_CHANGE
     assert result.delta_quantity == 0.0
@@ -144,12 +143,16 @@ def test_true_quantity_noop_has_no_fee_or_account_mutation() -> None:
 
 def test_reversal_second_leg_failure_leaves_flat_with_close_costs() -> None:
     current = _account(cash=-5.0, position_quantity=5.0, position_cost_basis=10.0, margin_collateral=25.0)
-    result = _execute(account=current, action=_action(SHORT, 0.5))
+    result = _execute(
+        account=current,
+        action=_action(SHORT, 1.0),
+        config=_config(maintenance_margin_rate=0.9),
+    )
     assert result.status == REVERSAL_OPEN_REJECTED
     assert result.account_after.position_quantity == 0.0
     assert result.account_after.margin_collateral == 0.0
     assert result.fee_paid > 0.0
-    assert result.second_leg_status is not None
+    assert result.second_leg_status == "REJECT_MAINTENANCE"
 
 
 def test_negative_equity_is_not_clamped_by_execution_adapter() -> None:
@@ -167,6 +170,13 @@ def test_negative_equity_is_not_clamped_by_execution_adapter() -> None:
     assert result.account_after.cash < 0.0
 
 
+def test_stale_supervisor_account_binding_fails_closed() -> None:
+    current = _account()
+    stale = _account(cash=99.0)
+    with pytest.raises(RuntimeError, match="SUPERVISOR_ACCOUNT_STATE_STALE"):
+        _execute(account=current, supervisor_authority=_supervisor(stale))
+
+
 def test_policy_neutral_path_has_no_inherited_strategy_exit_rule() -> None:
     profile = policy_neutral_environment_profile_r1()
     for rule in ("stop_loss", "take_profit", "max_hold", "cooldown", "finalize_behavior"):
@@ -177,6 +187,5 @@ def test_fee_conservation_on_close() -> None:
     current = _account(cash=50.0, position_quantity=5.0, position_cost_basis=8.0, margin_collateral=25.0)
     before_equity = current.equity
     result = _execute(account=current, action=_action(FLAT, 0.0))
-    # mark is 10 and no slippage: unrealized +10 becomes realized +10; only fee reduces equity.
     assert result.realized_pnl == 10.0
     assert abs(result.account_after.equity - (before_equity - result.fee_paid)) < 1e-12
