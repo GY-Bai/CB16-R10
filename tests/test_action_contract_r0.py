@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError, replace
 import math
 
 import pytest
@@ -21,11 +22,21 @@ from cb16_local_opt.action_contract_r0 import (
     SHORT,
     TARGET_POSITION_SEMANTICS_R0,
     TARGET_RISK_SEMANTICS_R0,
+    ActionBehaviorPolicyBindingR0,
     TargetPositionActionR0,
+    bind_action_behavior_policy_r0,
     classify_target_state_transition_r0,
     make_target_position_action_r0,
+    validate_action_behavior_binding_r0,
 )
-from cb16_local_opt.actor_critic_contract_r0 import ACTION_VERSION_R0
+from cb16_local_opt.actor_critic_contract_r0 import (
+    ACTION_VERSION_R0,
+    ACTOR_DISTRIBUTION_VERSION_R0,
+)
+from cb16_local_opt.execution_record_r0 import (
+    make_behavior_bound_nominal_actor_record_r0,
+    make_nominal_actor_record_r0,
+)
 
 
 @pytest.mark.parametrize(
@@ -296,3 +307,109 @@ def test_noncanonical_source_state_fails_closed_before_transition() -> None:
             source_target_risk=0.1,
             action=action,
         )
+
+
+def _behavior_bound_action():
+    action = make_target_position_action_r0(
+        action_id="A:behavior-bound",
+        policy_id="behavior-policy-r0",
+        policy_version="behavior-policy-v7",
+        target_direction=LONG,
+        requested_target_risk=0.35,
+    )
+    binding = bind_action_behavior_policy_r0(
+        action,
+        behavior_policy_hash="a" * 64,
+    )
+    return action, binding
+
+
+def test_sampled_action_binds_to_one_immutable_behavior_policy_identity() -> None:
+    action, binding = _behavior_bound_action()
+    payload = binding.to_payload()
+
+    assert payload == {
+        "action_id": action.action_id,
+        "behavior_policy_id": action.policy_id,
+        "behavior_policy_version": action.policy_version,
+        "behavior_policy_hash": "a" * 64,
+        "actor_distribution_version": ACTOR_DISTRIBUTION_VERSION_R0,
+    }
+    validate_action_behavior_binding_r0(action, binding)
+
+    with pytest.raises(FrozenInstanceError):
+        binding.behavior_policy_hash = "b" * 64  # type: ignore[misc]
+
+
+def test_behavior_bound_nominal_record_preserves_provenance_without_probability() -> None:
+    action, binding = _behavior_bound_action()
+    nominal = make_nominal_actor_record_r0(
+        record_id="nominal-behavior-bound",
+        action=action,
+    )
+    bound = make_behavior_bound_nominal_actor_record_r0(
+        record_id="bound-nominal-001",
+        nominal=nominal,
+        behavior_binding=binding,
+    )
+    payload = bound.to_payload()
+
+    assert payload["behavior_policy"] == binding.to_payload()
+    serialized = str(payload).lower()
+    assert "log_mu" not in serialized
+    assert "log_prob" not in serialized
+    assert "probability" not in serialized
+
+
+def test_behavior_binding_rejects_identity_mismatch() -> None:
+    action, binding = _behavior_bound_action()
+
+    with pytest.raises(RuntimeError, match="ACACT_BINDING_ACTION_MISMATCH"):
+        validate_action_behavior_binding_r0(
+            action,
+            replace(binding, action_id="another-action"),
+        )
+    with pytest.raises(RuntimeError, match="ACACT_BINDING_POLICY_ID_MISMATCH"):
+        validate_action_behavior_binding_r0(
+            action,
+            replace(binding, behavior_policy_id="another-policy"),
+        )
+    with pytest.raises(RuntimeError, match="ACACT_BINDING_POLICY_VERSION_MISMATCH"):
+        validate_action_behavior_binding_r0(
+            action,
+            replace(binding, behavior_policy_version="another-version"),
+        )
+
+
+@pytest.mark.parametrize(
+    "bad_hash",
+    ["", "a" * 63, "a" * 65, "A" * 64, "g" * 64, "not-a-hash"],
+)
+def test_behavior_policy_hash_must_be_canonical_sha256(bad_hash: str) -> None:
+    action, _ = _behavior_bound_action()
+    with pytest.raises(RuntimeError, match="ACACT_BINDING_POLICY_HASH_INVALID"):
+        bind_action_behavior_policy_r0(
+            action,
+            behavior_policy_hash=bad_hash,
+        )
+
+
+def test_behavior_distribution_version_is_frozen_and_no_log_mu_is_fabricated() -> None:
+    action, binding = _behavior_bound_action()
+    wrong = ActionBehaviorPolicyBindingR0(
+        action_id=binding.action_id,
+        behavior_policy_id=binding.behavior_policy_id,
+        behavior_policy_version=binding.behavior_policy_version,
+        behavior_policy_hash=binding.behavior_policy_hash,
+        actor_distribution_version="UNKNOWN_DISTRIBUTION",
+    )
+    with pytest.raises(RuntimeError, match="ACACT_BINDING_DISTRIBUTION_VERSION_MISMATCH"):
+        validate_action_behavior_binding_r0(action, wrong)
+
+    assert set(binding.to_payload()) == {
+        "action_id",
+        "behavior_policy_id",
+        "behavior_policy_version",
+        "behavior_policy_hash",
+        "actor_distribution_version",
+    }
