@@ -16,16 +16,19 @@
 
 这意味着 CC Thread D 可以建设新的数据布局、批处理、共享市场缓存、账户 worker、存储与原生热点实现，并在通过当前科学语义资格后直接成为 CC 的唯一高吞吐运行路径。旧 `gpu_inference_broker.py`、`multiprocess_trajectory_farm.py`、`vectorized_physics.py` 可以作为历史参考/benchmark baseline，但不是 CC runtime dependency。
 
-## 2. 对旧任务管理文字的替代范围
+## 2. 对旧任务管理与性能文字的替代范围
 
-本决定只替代旧文档中的**任务路由/实施组织**说明，不追溯修改历史实验、旧 authority 或已记录科学结果。
+本决定只替代旧文档中的**任务路由/实施组织和性能迁移方式**说明，不追溯修改历史实验、旧 authority 或已记录科学结果。
 
 下列旧表述从本决定起不再作为当前实施约束：
 
 - “继续沿 AC TODO，不建立新的平行任务编号”；
 - “BC Round 2 是当前唯一实施入口”；
-- “性能工作不重开另一套并行实施体系”；
+- `PERFORMANCE_STRATEGY_3700X_1060.md` 中“性能工作不重开另一套并行实施体系”的旧路由说明；
+- 将旧高吞吐模块作为需要兼容/适配后才能使用的默认路线；
 - 以 AC/BC 串行 Gate 作为新 sub-agent 必须逐项等待的唯一执行方式。
+
+`PERFORMANCE_STRATEGY_3700X_1060.md` 的测量方法、硬件约束、缓存/批量/并行/存储/Numba/Rust/Go 取舍原则继续有效；但其旧的 BC 路由与“不得新开并行系列”表述由本决定替代。Thread D 是这些性能原则的当前实施入口，并采用 hard cutover 而非兼容迁移。
 
 当前实现入口改为：
 
