@@ -1,12 +1,13 @@
 # CB16 R11 CC — Four-Thread Parallel Hard-Cutover TODO
 
 **Status:** OPEN / parallel execution handoff  
-**Frozen audit baseline:** `main@89d62bf966f476e598f0e2f5c5e8e03c15a8db51`  
+**Frozen implementation baseline:** `main@89d62bf966f476e598f0e2f5c5e8e03c15a8db51`  
+**Planning-doc note:** CC handoff documents are committed after this SHA so agents can read them from current main; implementation branches still start from the frozen baseline unless explicitly re-frozen.  
 **Audit date:** 2026-09-12  
 **Execution model:** four independent sub-agent task packages + one later integration pass  
 **Performance policy:** **hard cutover / performance first / no legacy performance compatibility layer**  
 
-CC replaces the serial execution shape of BC with four independently executable task packages. Each sub-agent starts from the same frozen baseline and must be able to finish its package without importing, cherry-picking, waiting for, or treating any sibling CC branch as authority.
+CC replaces the serial execution shape of BC with four independently executable task packages. Each sub-agent starts from the same frozen implementation baseline and must be able to finish its package without importing, cherry-picking, waiting for, or treating any sibling CC branch as authority.
 
 The four packages are:
 
@@ -19,7 +20,9 @@ The four packages are:
 4. **Thread D — Performance Hard Cutover / High-Throughput Spine**  
    `docs/cc/CC_THREAD_D_PERFORMANCE_HARD_CUTOVER.md`
 
-The old AC and BC TODO files remain design/history sources. A CC executor does **not** execute AC/BC task numbering. CC tasks may repair, supersede, or retire BC surfaces where the current baseline proves they are incomplete, stale, or structurally hostile to parallel/high-throughput execution.
+The old AC and BC TODO files remain design/history sources. A CC executor does **not** execute AC/BC task numbering. CC tasks may repair, supersede, or retire BC surfaces where the frozen baseline proves they are incomplete, stale, or structurally hostile to parallel/high-throughput execution.
+
+> **Implementation-branch rule:** read CC planning docs from current main, but create the four implementation branches from `89d62bf...`. Do not automatically absorb code commits after the frozen baseline.
 
 ---
 
@@ -27,7 +30,7 @@ The old AC and BC TODO files remain design/history sources. A CC executor does *
 
 At `89d62bf...` the repository is materially ahead of the BC document's creation snapshot.
 
-Observed implementation already on main includes the Round-2 R1 science lane, execution/account-economics repair, account lineage/observation, Actor/Critic observation firewalls, state-sufficiency machinery, optional policy memory, gradient ownership, and stochastic Actor work through BC-037. Gate BC-A has a machine-readable PASS receipt at COMPONENT evidence level. The current Actor implementation already contains categorical direction and conditional squashed-Normal risk semantics, with FLAT as an exact zero-risk point mass and non-FLAT endpoints disallowed.
+Observed implementation already on the frozen baseline includes the Round-2 R1 science lane, execution/account-economics repair, account lineage/observation, Actor/Critic observation firewalls, state-sufficiency machinery, optional policy memory, gradient ownership, and stochastic Actor work through BC-037. Gate BC-A has a machine-readable PASS receipt at COMPONENT evidence level. The current Actor implementation already contains categorical direction and conditional squashed-Normal risk semantics, with FLAT as an exact zero-risk point mass and non-FLAT endpoints disallowed.
 
 The live code therefore invalidates any plan that still assumes BC-001 or AC-001 is the current implementation start.
 
@@ -38,10 +41,10 @@ The following drift is itself a CC input:
 - `docs/CURRENT_STATE.md` still describes an AC-013/014-era snapshot and says the new Physics adapter / Actor / learner are absent in contexts where this is no longer true.
 - `docs/ARCHITECTURE_MAP.md` still describes the R0 incremental Actor-Critic surface and does not map the landed R1 Round-2 modules through BC-037.
 - `docs/R11_BC_ROUND2_CODE_ALIGNMENT_TODO.md` still ends with a creation-state sentence saying `MAIN c373d23 / BC-A NOT YET STARTED`, even though BC-A is now qualified and main has advanced through BC-037.
-- `docs/README.md` and `AGENTS.md` still direct implementation agents to BC as the current execution plan. CC will become the current handoff after this planning change lands.
+- prior `docs/README.md` and `AGENTS.md` routing directed implementation agents to BC; the CC planning change replaces that routing.
 - `docs/PERFORMANCE_STRATEGY_3700X_1060.md` is design guidance, not an implementation series. CC Thread D converts that design into an explicit hard-cutover implementation package.
 
-Shared management docs are intentionally **not edited by the four sub-agents**. Their updates are reserved for the later integration pass to avoid merge conflicts.
+Shared management docs are intentionally **not edited by the four implementation sub-agents**. Their implementation-state updates are reserved for the later integration pass to avoid merge conflicts.
 
 ### 1.2 Current performance-code mismatch
 
@@ -89,7 +92,7 @@ Within those constraints Thread D is free to change data layout, process topolog
 
 ## 3. How four CC threads remain independent
 
-All four threads start from the exact frozen baseline `89d62bf...`.
+All four implementation threads start from the exact frozen baseline `89d62bf...`.
 
 ### 3.1 Forbidden sibling dependencies
 
@@ -106,8 +109,8 @@ A CC sub-agent must not:
 
 Every thread may rely on:
 
-- `main@89d62bf...` and files already present there;
-- the design documents present at that SHA;
+- the code tree at `main@89d62bf...`;
+- the design documents present at that SHA plus the later CC planning/handoff documents;
 - this CC master file and its frozen cross-thread payload definitions;
 - its own local fixtures/mocks that implement those payload definitions;
 - repository-frozen non-FINAL data already allowed for component qualification;
@@ -361,15 +364,11 @@ Four independently built components need a later integration gate that verifies 
 
 Goal: build a semantically correct single-account/multi-account reference runtime using current R1 execution/account truth, independent of the learner, storage engine, and performance spine.
 
-It consumes/emits W-01/W-02 semantics through thread-local fixtures. It does not depend on Thread B's Actor implementation, Thread C's storage, or Thread D's fast runtime.
-
 Detailed tasks: `docs/cc/CC_THREAD_A_RUNTIME_ACCOUNT.md`.
 
 ### Thread B — Policy / Critic / Learner / Retention
 
 Goal: complete stochastic policy probability/RNG semantics, Brain/Critic/reward/V-trace/learner/checkpoint logic and known-answer learning using synthetic in-memory W-01/W-03/W-04 fixtures.
-
-It does not require a real collector, lake or fast runtime to complete.
 
 Detailed tasks: `docs/cc/CC_THREAD_B_POLICY_LEARNING.md`.
 
@@ -377,15 +376,11 @@ Detailed tasks: `docs/cc/CC_THREAD_B_POLICY_LEARNING.md`.
 
 Goal: define immutable experience and data views, replay compatibility/support health, raw-fact durability, failure retention, generation attribution and full economic evaluation using synthetic W-02/W-03/W-05 fixtures.
 
-It does not import Thread A runtime, Thread B learner, or Thread D performance modules.
-
 Detailed tasks: `docs/cc/CC_THREAD_C_EXPERIENCE_ECONOMICS.md`.
 
 ### Thread D — Performance Hard Cutover / High-Throughput Spine
 
 Goal: implement the new single active CC high-throughput path for 3700X/GTX1060 with shared market reuse, stochastic batching, account-parallel CPU execution, bounded IO and benchmark-driven native optimization.
-
-It uses fake/synthetic policy and account kernels that honor W-01/W-02 for thread-local qualification. It does not depend on A/B/C code.
 
 Detailed tasks: `docs/cc/CC_THREAD_D_PERFORMANCE_HARD_CUTOVER.md`.
 
@@ -402,6 +397,8 @@ ai/r11-cc-thread-c-experience-r0
 ai/r11-cc-thread-d-fast-cutover-r0
 ```
 
+The sub-agent may read CC documents from current main, but implementation code must remain based on the frozen baseline unless explicitly re-frozen.
+
 Within a thread, commits may be incremental, but sibling branches are never dependencies.
 
 Each thread must finish with:
@@ -410,19 +407,7 @@ Each thread must finish with:
 authority/rearchitecture_r11/CB16_R11_CC_THREAD_<A|B|C|D>_RECEIPT_V1.json
 ```
 
-The receipt must include:
-
-- frozen base SHA `89d62bf...`;
-- thread head SHA;
-- exact owned file list;
-- tests executed and result counts;
-- strongest evidence level actually supported;
-- FINAL/fresh-data firewall statement;
-- unresolved items;
-- any intentional deviation from the master wire contracts (deviation means integration BLOCKED until explicitly reconciled);
-- Thread D additionally records benchmark workload and hardware identity when a Shanxi run is performed.
-
-A sub-agent may merge its own branch independently after review because no sibling branch is a prerequisite. Final CC integration begins only after all four receipts exist on main.
+The receipt must include frozen base/head SHA, owned file list, tests, evidence level, FINAL/fresh firewall, unresolved items, wire deviations, and for Thread D benchmark/hardware identity when measured.
 
 ---
 
@@ -441,7 +426,7 @@ After all four packages land, a later integration agent performs only these acti
 9. mark old `gpu_inference_broker.py`, `multiprocess_trajectory_farm.py`, and `vectorized_physics.py` as non-CC runtime paths; no compatibility fallback;
 10. update shared management docs (`CURRENT_STATE`, `ARCHITECTURE_MAP`, `README`, `AGENTS`, BC status/history) from actual merged evidence.
 
-The integration agent is not allowed to repair a thread by silently changing its scientific semantics. A wire mismatch returns `INTEGRATION_BLOCKED` and is sent back to the owning thread scope.
+A wire mismatch returns `INTEGRATION_BLOCKED` and is sent back to the owning thread scope.
 
 ---
 
@@ -462,11 +447,9 @@ Preferred investigation order:
 9. Rust coarse-grained extension if it wins end-to-end after boundary cost;
 10. Go only for a measured service/orchestration bottleneck, not numeric Actor/Critic replacement.
 
-Unlike the old compatibility-oriented interpretation, a faster new layout does **not** need to expose old broker/farm APIs. It needs to satisfy W-01/W-02/W-03 semantics and the current R1 science meaning.
+A faster new layout does **not** need to expose old broker/farm APIs. It needs to satisfy W-01/W-02/W-03 semantics and current R1 science meaning.
 
 ### Required performance metrics
-
-At minimum:
 
 ```text
 compliant_transitions_per_second
@@ -489,15 +472,15 @@ No implementation wins solely because one microkernel is faster.
 
 ### Correctness checks that remain mandatory under performance-first policy
 
-- same W-01 nominal decisions produce the same required probability/provenance meaning;
-- account economics conserves the defined signed ledger;
+- W-01 probability/provenance meaning remains correct;
+- signed account economics conserve the defined ledger;
 - no account transition reordering;
 - no failure fact loss;
 - no unauthorized strategy exit rule;
 - no FINAL/fresh access;
 - no hidden capital reset;
-- policy generation remains fixed within a registered collection unit;
-- batching/reordering must not silently alter per-account RNG identity.
+- fixed behavior policy within a registered collection unit;
+- batching/reordering does not silently alter per-account RNG identity.
 
 Floating-point execution may use a preregistered tolerance where exact bit identity is neither required nor meaningful; liquidation/min-quantity boundaries need stronger discrete agreement tests.
 
@@ -505,7 +488,7 @@ Floating-point execution may use a preregistered tolerance where exact bit ident
 
 ## 10. CC evidence levels
 
-Use the existing evidence distinction but scope it per thread:
+Use:
 
 - `CONTRACT`
 - `COMPONENT`
@@ -513,21 +496,19 @@ Use the existing evidence distinction but scope it per thread:
 - `KNOWN_ANSWER`
 - `ECONOMIC`
 - `TRANSFER`
-- Thread D additionally reports `PERFORMANCE_MEASURED`, which is **not above** ECONOMIC; it is an orthogonal engineering evidence tag.
+- Thread D additionally may report orthogonal `PERFORMANCE_MEASURED`.
 
-A high throughput result cannot upgrade a scientific claim.
+High throughput cannot upgrade a scientific claim.
 
 ---
 
 ## 11. Owner-open questions that do not block parallel CC work
 
-The four threads must proceed without re-asking already closed principles. The following remain open only where they become material:
-
 - exact formal market-evaluation horizon/cohort weighting;
 - master promotion rule when B&H and FLAT comparisons disagree;
-- strategic (not exchange/resource) leverage cap;
+- strategic leverage cap not dictated by resource/exchange mechanics;
 - future simulated-account deployment promotion authority;
-- whether policy memory is ultimately required beyond current observation, subject to state-sufficiency evidence.
+- whether policy memory beyond current causal observation is ultimately required.
 
 Synthetic/component/known-answer work must not stop on these questions.
 
@@ -537,32 +518,30 @@ Synthetic/component/known-answer work must not stop on these questions.
 
 A thread is DONE only if:
 
-- based on exact `89d62bf...`;
+- implementation is based on exact `89d62bf...`;
 - no sibling-branch dependency exists;
 - only owned paths were modified, except thread-specific authority receipts/workflows;
-- positive and negative/fail-closed tests exist for each critical contract;
-- wire semantics W-01..W-05 are obeyed where applicable;
+- positive and negative/fail-closed tests exist;
+- W-01..W-05 semantics are obeyed where applicable;
 - historical authority and FINAL boundary remain intact;
-- strongest evidence claim is explicit;
+- evidence claim is explicit;
 - thread receipt is machine-readable;
 - no shared state/navigation doc was opportunistically edited;
-- Thread D has no compatibility wrapper/fallback to old performance runtime and clearly identifies old runtime as non-CC.
+- Thread D has no compatibility wrapper/fallback to old performance runtime.
 
 ---
 
 ## 13. Immediate handoff
 
-Give each sub-agent exactly one thread document plus this master document.
+Give each sub-agent exactly one thread document plus this master document. No sub-agent needs the other three thread files.
 
-No sub-agent needs the other three thread files.
-
-All four can begin immediately from:
+All four implementation branches start from:
 
 ```text
 89d62bf966f476e598f0e2f5c5e8e03c15a8db51
 ```
 
-The desired concurrency model is therefore:
+The concurrency model is:
 
 ```text
                      ┌─ Thread A: runtime/account ─────────┐
