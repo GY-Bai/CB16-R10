@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import fields, replace
 import inspect
+import math
 
 import pytest
 import torch
@@ -17,8 +18,10 @@ from cb16_local_opt.actor_policy_r1 import (
     DIRECTION_ORDER_R1,
     ActorPolicyDistributionIdentityR1,
     ActorPolicyR1,
+    ConditionalBoundedRiskR1,
     DirectionCategoricalR1,
     make_actor_policy_distribution_identity_r1,
+    make_conditional_bounded_risk_r1,
     make_direction_categorical_r1,
     make_policy_tensor_contract_r1,
     validate_actor_policy_interface_r1,
@@ -68,7 +71,7 @@ def _observation():
 def _identity(*, device_type="cpu", device_index=None, dtype="float32"):
     return make_actor_policy_distribution_identity_r1(
         distribution_id="round2-actor-distribution",
-        distribution_version="CATEGORICAL_DIRECTION_BC035",
+        distribution_version="CONDITIONAL_RISK_BC036",
         policy_id="behavior-policy",
         policy_version="v1",
         policy_sha256="a" * 64,
@@ -86,8 +89,25 @@ def _direction_distribution(probabilities=(0.2, 0.3, 0.5)) -> DirectionCategoric
     return make_direction_categorical_r1(logits=torch.log(probs), tensor_contract=contract)
 
 
+def _conditional_risk(
+    *,
+    short_location: float = -0.75,
+    short_log_scale: float = math.log(0.5),
+    long_location: float = 0.75,
+    long_log_scale: float = math.log(0.5),
+) -> ConditionalBoundedRiskR1:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    return make_conditional_bounded_risk_r1(
+        short_location=torch.tensor(short_location, dtype=torch.float32),
+        short_log_scale=torch.tensor(short_log_scale, dtype=torch.float32),
+        long_location=torch.tensor(long_location, dtype=torch.float32),
+        long_log_scale=torch.tensor(long_log_scale, dtype=torch.float32),
+        tensor_contract=contract,
+    )
+
+
 class StubPolicy(ActorPolicyR1):
-    """Interface fixture; BC-035 still does not define bounded-risk action math."""
+    """Interface fixture; BC-038 still owns joint nominal-action likelihood."""
 
     def __init__(self, identity: ActorPolicyDistributionIdentityR1 | None = None) -> None:
         self._identity = _identity() if identity is None else identity
@@ -120,7 +140,6 @@ class StubPolicy(ActorPolicyR1):
     def log_prob(self, observation, action):
         self._tensorize(observation)
         validate_policy_action_binding_r1(self._identity, action)
-        # Interface fixture only. BC-038 owns real joint nominal-action likelihood.
         value = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         return validate_policy_tensor_r1(value, self._identity.tensor_contract)
 
@@ -409,7 +428,7 @@ def test_direction_categorical_rejects_bad_shape_direction_count_and_generator()
     generator = torch.Generator(device="cpu")
     with pytest.raises(RuntimeError, match="DIRECTION_SAMPLE_COUNT_INVALID"):
         distribution.sample_directions(0, generator=generator)
-    with pytest.raises(RuntimeError, match="DIRECTION_GENERATOR_INVALID"):
+    with pytest.raises(RuntimeError, match="GENERATOR_INVALID"):
         distribution.sample_directions(1, generator=object())
 
 
@@ -424,3 +443,147 @@ def test_bc035_direction_distribution_does_not_predefine_bc036_risk_math() -> No
         "endpoint_mass_one",
     }
     assert forbidden.isdisjoint(distribution_fields)
+
+
+def test_conditional_risk_samples_are_strictly_bounded_and_direction_conditioned() -> None:
+    distribution = _conditional_risk()
+    short_generator = torch.Generator(device="cpu")
+    long_generator = torch.Generator(device="cpu")
+    short_generator.manual_seed(1234)
+    long_generator.manual_seed(1234)
+
+    short_first = distribution.sample_risk(SHORT, generator=short_generator)
+    long_first = distribution.sample_risk(LONG, generator=long_generator)
+    assert 0.0 < short_first.item() < 1.0
+    assert 0.0 < long_first.item() < 1.0
+    assert long_first.item() > short_first.item()
+
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(20260912)
+    for direction in (SHORT, LONG):
+        for _ in range(256):
+            sample = distribution.sample_risk(direction, generator=generator)
+            assert bool(torch.isfinite(sample).item())
+            assert 0.0 < sample.item() < 1.0
+
+
+def test_flat_risk_is_exact_zero_and_consumes_no_random_draw() -> None:
+    distribution = _conditional_risk()
+    with_flat = torch.Generator(device="cpu")
+    direct = torch.Generator(device="cpu")
+    with_flat.manual_seed(777)
+    direct.manual_seed(777)
+
+    flat = distribution.sample_risk(FLAT, generator=with_flat)
+    after_flat = distribution.sample_risk(LONG, generator=with_flat)
+    direct_long = distribution.sample_risk(LONG, generator=direct)
+    assert flat.item() == 0.0
+    assert torch.equal(after_flat, direct_long)
+    assert distribution.log_prob(FLAT, torch.tensor(0.0, dtype=torch.float32)).item() == 0.0
+    with pytest.raises(RuntimeError, match="FLAT_RISK_MUST_BE_ZERO"):
+        distribution.log_prob(FLAT, torch.tensor(0.1, dtype=torch.float32))
+
+
+def test_conditional_risk_known_answer_log_density_is_reconstructable() -> None:
+    distribution = _conditional_risk(
+        short_location=0.0,
+        short_log_scale=0.0,
+        long_location=0.0,
+        long_log_scale=0.0,
+    )
+    risk = torch.tensor(0.5, dtype=torch.float32)
+    expected = math.log(4.0) - 0.5 * math.log(2.0 * math.pi)
+    for direction in (SHORT, LONG):
+        score = distribution.log_prob(direction, risk)
+        assert score.item() == pytest.approx(expected, rel=1e-6, abs=1e-6)
+        assert torch.equal(score, distribution.log_prob(direction, risk))
+
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(99)
+    sampled = distribution.sample_risk(LONG, generator=generator)
+    reconstructed_a = distribution.log_prob(LONG, sampled)
+    reconstructed_b = distribution.log_prob(LONG, sampled)
+    assert torch.equal(reconstructed_a, reconstructed_b)
+
+
+def test_conditional_risk_endpoint_semantics_are_deferred_to_bc037() -> None:
+    distribution = _conditional_risk()
+    for direction in (SHORT, LONG):
+        for endpoint in (0.0, 1.0):
+            with pytest.raises(RuntimeError, match="ENDPOINT_PENDING_BC037"):
+                distribution.log_prob(direction, torch.tensor(endpoint, dtype=torch.float32))
+
+    distribution_fields = {field.name for field in fields(ConditionalBoundedRiskR1)}
+    assert "endpoint_mass_zero" not in distribution_fields
+    assert "endpoint_mass_one" not in distribution_fields
+    assert "endpoint_policy" not in distribution_fields
+
+
+def test_conditional_risk_rejects_bad_shapes_scale_overflow_and_generator() -> None:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    scalar = torch.tensor(0.0, dtype=torch.float32)
+    with pytest.raises(RuntimeError, match="RISK_LOCATION_SHAPE_INVALID"):
+        make_conditional_bounded_risk_r1(
+            short_location=torch.tensor([0.0], dtype=torch.float32),
+            short_log_scale=scalar,
+            long_location=scalar,
+            long_log_scale=scalar,
+            tensor_contract=contract,
+        )
+    with pytest.raises(RuntimeError, match="RISK_LOG_SCALE_SHAPE_INVALID"):
+        make_conditional_bounded_risk_r1(
+            short_location=scalar,
+            short_log_scale=torch.tensor([0.0], dtype=torch.float32),
+            long_location=scalar,
+            long_log_scale=scalar,
+            tensor_contract=contract,
+        )
+    with pytest.raises(RuntimeError, match="RISK_SCALE_INVALID"):
+        make_conditional_bounded_risk_r1(
+            short_location=scalar,
+            short_log_scale=torch.tensor(1000.0, dtype=torch.float32),
+            long_location=scalar,
+            long_log_scale=scalar,
+            tensor_contract=contract,
+        )
+
+    distribution = _conditional_risk()
+    with pytest.raises(RuntimeError, match="GENERATOR_INVALID"):
+        distribution.sample_risk(LONG, generator=object())
+    with pytest.raises(RuntimeError, match="DIRECTION_INVALID"):
+        distribution.sample_risk("HOLD", generator=torch.Generator(device="cpu"))
+    with pytest.raises(RuntimeError, match="RISK_OUT_OF_BOUNDS"):
+        distribution.log_prob(LONG, torch.tensor(-0.1, dtype=torch.float32))
+
+
+def test_conditional_risk_log_prob_retains_gradient_paths() -> None:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    short_location = torch.tensor(-0.4, dtype=torch.float32, requires_grad=True)
+    short_log_scale = torch.tensor(-0.2, dtype=torch.float32, requires_grad=True)
+    long_location = torch.tensor(0.6, dtype=torch.float32, requires_grad=True)
+    long_log_scale = torch.tensor(-0.3, dtype=torch.float32, requires_grad=True)
+    distribution = make_conditional_bounded_risk_r1(
+        short_location=short_location,
+        short_log_scale=short_log_scale,
+        long_location=long_location,
+        long_log_scale=long_log_scale,
+        tensor_contract=contract,
+    )
+    loss = -distribution.log_prob(LONG, torch.tensor(0.7, dtype=torch.float32))
+    loss.backward()
+    assert long_location.grad is not None
+    assert long_log_scale.grad is not None
+    assert bool(torch.isfinite(long_location.grad).item())
+    assert bool(torch.isfinite(long_log_scale.grad).item())
+    assert long_location.grad.item() != 0.0
+    assert long_log_scale.grad.item() != 0.0
+    assert short_location.grad is None
+    assert short_log_scale.grad is None
+
+
+def test_bc036_does_not_predefine_bc037_endpoint_masses_or_bc038_joint_likelihood() -> None:
+    source = inspect.getsource(ConditionalBoundedRiskR1)
+    assert "endpoint_mass_zero" not in source
+    assert "endpoint_mass_one" not in source
+    assert "joint_log_prob" not in source
+    assert "log_mu" not in source
