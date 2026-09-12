@@ -1,83 +1,117 @@
 # 设计决策与修订关系
 
-本记录用于防止不同 agent 各自从旧聊天或旧实验推导不同目标。日期是本次设计对齐日期；“已确认”只表示用户明确表达的理念，不表示运行协议已迁移。
+本记录用于防止不同 Agent 从旧聊天、旧 TODO 或历史实验推导出互相冲突的目标。日期：2026-09-12。
 
-来源：2026-09-12 项目所有者在当前设计对话中陈述愿景、回答风险/时域/换代问题，并明确授权把文档写入 main。未公开整段私人聊天；以下为必要的项目决策摘要。
+当前机器可读 authority：
+
+- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
+- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
+
+当前 CC integration 已通过资格并由 PR #99 合入 `main`；历史 AC/BC/Stage-4/Teacher/demonstration authority 与 verdict 继续保留原身份，不追溯改写。
 
 ## D-01 单资产账户 Trader — 已确认
 
-人决定资产、资金配置和宏观方向；模型负责该账户的交易与风险取舍。模型根据市场、账户与必要历史行动，不以资产名称或绝对资金身份为决策捷径。执行层仍掌握真实规格和资金。
-
-替代的误解：把 CB16 视为纯市场预测、宏观资产配置器或仅有 K 线的静态分类器。详见 [VISION](VISION.md)。
+人决定资产、资金配置和宏观方向；模型负责该账户的交易与风险取舍。模型根据市场、账户与必要历史作动作，执行层掌握真实规格、资金、费用、保证金与合法数量。
 
 ## D-02 经验来自闭环与反复练习 — 已确认
 
-历史市场是可重复环境，动作形成账户后果，后果参与下一步决策。可以反复复习已有经验并从新行为中产生经历。
+历史市场是可重复环境。完整经验来自 Market + Account + nominal action + permission/execution + subsequent account consequence。可以反复学习已有经验，新政策也应产生新的合法账户轨迹。
 
-替代的误解：每次只用未见静态片段、独立空仓初始化，就能代表全部交易学习；或认为改变账户历史就永远不可能过拟合。
+重复市场不等于增加独立市场未来；示范拟合不等于自主连续 rollout。
 
-已有分支修订：[LEARNING_PARADIGM_CORRECTION_V1](https://github.com/GY-Bai/CB16-R10/blob/b299be68a9bd9cc041900db75586ed5667407f8a/authority/rearchitecture_r11/CB16_R11_LEARNING_PARADIGM_CORRECTION_V1.json) 在新 foundation 中替代旧 50+10 preseason 数据划分，允许单 corpus 回放；仍明确限制独立 Arena 证据重复使用。它尚未合并到本轮文档的 main 代码基线。
+## D-03 长期账户，计算边界不是生命边界 — 已确认并由 CC qualification 接线
 
-## D-03 长期账户，计算边界不是生命边界 — 已确认
+Chunk、暂停、进程恢复、learner update、checkpoint generation switch 不得自动重置逻辑账户。真实终止、目标时域结束、数据耗尽和计算边界分别记录。
 
-用户希望尽可能持续运行直至爆仓等真实终止；不是固定 72 小时后重置。分片、学习窗口、观察时点、checkpoint 换代分别定义。
+CC integrated closed-loop 已证明同一逻辑账户跨 generation switch 保持连续，child policy 实际继续行动。
 
-与现有协议差异：冻结 H72 utility 与固定续行仍在代码中。新愿景不追溯改写它们；需要另行迁移，而不是把所有 H72 名称换成长轨迹。
+## D-04 高风险可因更高算术期望收益获胜 — 已确认
 
-## D-04 允许高风险换取更高长期期望收益 — 已确认
+完整计入失败后，如果高爆仓概率策略的长期算术期望收益更高，用户允许其获胜。不得静默替换为最少爆仓、最大 Sharpe、最大 log-growth 或回撤最小化目标。
 
-用户明确回答：高爆仓概率、少数暴赚的策略，如果完整计入失败后的长期期望收益更高，仍希望它赢。
+## D-05 Buy-and-Hold 与 FLAT baseline — 部分明确，master precedence 仍未决
 
-替代的先前助手建议：生存必须压倒收益、低风险策略理应胜出、默认采用风险厌恶或对数效用。不得将这些建议固化为用户偏好。
+两种 baseline 均正式保留并分别计算。当前唯一 owner-open 科学决策是：当 Buy-and-Hold 与 FLAT component outcomes 冲突时，哪个拥有 master precedence，或采用什么显式组合规则。
 
-用户认为更长时间可能使冒险策略落后；此为待检验判断，不是已证明事实。见 [评价原则](EVALUATION_PRINCIPLES.md)。
+在 owner 决定前，系统不得自行制造 master winner。
 
-## D-05 超额收益基准 — 部分明确，公式待定
+## D-06 失败经验 — 原则已关闭
 
-用户提出 buy-and-hold 至共同终点及全程不开仓两种比较。尚未决定二者怎样组合、主排序、净值/收益变换和跨时期加权。不能把助手推荐的并列报告或主次顺序写成已批准奖励函数。
+成功、普通、失败和终态事实均完整保留。优胜示范可另外筛选，失败可以参与长期后果学习；不能把失败轨迹每一步统一标成错误，也不能用 survivor-only 结果估计整体策略期望。
 
-## D-06 失败经验 — 原则已确认，具体方法进入设计
+## D-07 分代更新与历史知识 — 已确认并已接线
 
-整体期望的评价应包含所属失败，不能只保留幸存者；这是 D-04 的统计含义。
+运行策略在注册 collection unit 内保持固定；learner 在副本上更新并产生下一代 checkpoint。换代不重置账户。旧兼容经验可复习，新经验可校准当前行为；不通过时间到期或手工周期/共振开关删除历史知识。
 
-首次文档提交时，用户尚未决定失败经验的训练用途。2026-09-12 后续用户明确回复“允许的”，确认保留成功与失败的完整经历、优胜示范另筛，并允许失败参与长期后果学习，要求继续具体算法设计。
+## D-08 文档与 authority 分层 — 已确认
 
-该确认替代旧的“失败是否可以参与学习待定”。它不等于某个 loss、采样比例或 critic 已被实验验证。无需再次请求同一原则的许可。
+用户目标、版本化 authority、代码、run receipt、文档建议回答不同问题。新目标不追溯改写历史 verdict；旧 authority 也不能否认后续已明确的新目标。语义改变必须版本化。
 
-## D-07 分代更新与历史知识 — 已确认
+## D-09 V-trace Actor–Critic 路线 — 从设计候选推进为 CC synthetic-qualified implementation
 
-真实模拟账户中 checkpoint 固定，先积累经历再训练下一代。账户不因模型更换自动清零。近期经验用于适应，历史经验不能被简单按时间过期清除；不引入复杂的手工周期规则。
+最初 `TRAINING_ALGORITHM_R0.md` 中的序列回放 Actor–Critic + V-trace 是设计候选。CC 已实现 stochastic Actor、true joint `log_mu`、Critic、V-trace learner、exactly-once learner transaction、checkpoint/generation switch，并在 synthetic known-answer closed loop 中通过 qualification。
 
-切换批准方式、更新节奏、策略记忆和 optimizer 继承待工程设计。
+这不等于已获得真实市场 ECONOMIC 或 TRANSFER 证据。
 
-## D-08 文档建设 — 已授权
+## D-10 执行语义迁移 — 已由 CC canonical runtime 落地
 
-用户授权在 main 建立 AGENTS.md 和系列文档。沿用 `docs/`，完善 README。此次只建设解释和交接层，不合并示范分支，不修改 immutable authority、运行代码、workflow 或实验结果。
+旧冻结链中的持仓 FORCED_NOOP、固定退出规则和 H72/log-utility 语义继续作为历史协议存在，但不再概括 canonical CC Trader。
 
-## D-09 训练算法候选 — 设计已形成，未实施
+Canonical CC 将 nominal action、permission、target sizing、execution 与 account consequence 分离；允许合法减仓/平仓/反转；signed account economics 保留负净值/负债；reject/NOOP 不冻结环境时钟；固定 SL/TP/max-hold/cooldown 不作为隐藏自主策略默认规则。
 
-在用户要求下，助手推荐 V-trace 序列回放 Actor–Critic，保留 PPO+GAE 对照；奖励提案采用固定初始资本归一化的净值增量，有界比较内 gamma=1。具体见 [TRAINING_ALGORITHM_R0](TRAINING_ALGORITHM_R0.md) 和 [资格计划](TRAINING_QUALIFICATION_R0.md)。这是算法提案，不是用户已经批准的全部超参数或运行 authority。
+## D-11 CC 四线程并行实施与最终 join — 已完成
 
-接口核查确认：冻结 Supervisor 对持仓动作返回 FORCED_NOOP；冻结 kernel 禁止主动 resize/close/reverse。完整风险管理目标需要显式行动权限设计；本轮没有修改它们，也不把此事实宣称为所有历史失败的唯一原因。
+用户明确将后续工作重组为四个独立线程：
 
-## D-10 理念文档与实现分工 — 已确认
+- A：Runtime / Account / Continuous Interaction
+- B：Policy / Critic / Learner / Retention
+- C：Experience / Replay / Economic Evaluation
+- D：Performance Hard Cutover / High-Throughput Spine
 
-2026-09-12 用户明确要求本对话继续文档建设、不负责代码，只负责理念和文档向最高理念对齐；GPT-5.6 sol 据此拆解 TODO 并实现。用户原有 main 文档授权继续适用。
+四线程共同 implementation base 为 `89d62bf966f476e598f0e2f5c5e8e03c15a8db51`，随后由单一 integration branch 完成 W-01..W-05 binding、closed-loop wiring、equivalence、performance selection 和 canonical handoff。
 
-本轮建立 [理念对齐规则](PRINCIPLE_ALIGNMENT.md) 和 [组件要求](COMPONENT_REQUIREMENTS.md)，沿用已有 AC-001–AC-058 实施清单，不由文档角色重新拆解或执行。该分工不新增通用审批步骤；已授权常规工作继续推进。
+PR #99 已合入 `main`；merge commit 为 `daa889d758ce80c7d1ce73ea37110937e1b146c0`。
 
-### D-09 的后续实现状态说明
+## D-12 性能优先 + Hard Cutover — 已确认并完成
 
-D-09 记录的是算法最初提出时的状态。随后 main 在 `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2` 已包含新动作协议、Supervisor 和目标数量映射（AC-001–AC-013 对应代码）；不能继续将“持仓一律 FORCED_NOOP”概括为新链的语义。旧冻结链仍保留原行为。代码推进不等于完整 Actor–Critic 已训练，也不将算法超参数追认为用户确认的最高理念。细节见 [CURRENT_STATE](CURRENT_STATE.md)。
+用户明确选择：`PERFORMANCE FIRST AMONG SEMANTICALLY QUALIFIED IMPLEMENTATIONS`，不做旧性能 runtime 的兼容层或 fallback。
+
+最终选择：
+
+`CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER`
+
+职责仍严格分离：Thread A 保持 runtime/account/execution science authority；Thread D 只负责 performance implementation。Canonical CC 不依赖或回退到：
+
+- `gpu_inference_broker.py`
+- `multiprocess_trajectory_farm.py`
+- `vectorized_physics.py`
+
+新 fast path 失败时 fail closed。
+
+首次冻结资格 benchmark：16 accounts × 64 market steps，reference/fast 各 7 次交替运行；receipt 记录 reference median 7.535366 transitions/s、fast median 638.765768 transitions/s、median speedup 84.769×。
+
+后续 PR head `5d236e9d2368a79e830bec1971b949de88c032df` 又完整重复 qualification，仍选择同一 topology；重复 run 只作为确认，不覆盖 receipt 中首个冻结 benchmark 数值。
+
+## D-13 CC 最终 evidence ceiling — 已冻结
+
+当前最强证据：
+
+`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`
+
+它证明 integrated synthetic closed loop、known-answer、recovery、exactly-once update、reference-vs-fast semantic equivalence、hard cutover 和 Shanxi measured performance。
+
+它**不证明**真实历史市场 ECONOMIC edge，也不证明 TRANSFER。FINAL 仍封存，fresh data 未使用。
 
 ## 运行语义迁移登记
 
-| 现有材料/字段 | 与新目标的关系 | 本轮处理 |
-|---|---|---|
-| [SEMANTIC_FREEZE_V1](../authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json)：72h net log-equity growth | 不等于长期期望超额收益 | 保留原字节，记录待迁移 |
-| 同文件：validation Teacher loss 晋升 | 不能直接作为新经济排行榜定义 | 保留原协议，未来明确新判据 |
-| [LOCAL_AGENT_EXECUTION_R10_2](LOCAL_AGENT_EXECUTION_R10_2.md)：非正净值的有限 Teacher 排除 | 不能继承成整体策略评价删除爆仓 | 保留历史说明，标明适用范围 |
-| 冻结 Supervisor / Physics 风险与退出规则 | 哪些属于市场机制、哪些是人工策略尚需分类 | 不借文档任务移除 |
-| 示例分支 flat 母状态与固定 E6R2 续行 | 示范组件，非连续账户全覆盖 | 明确实现边界，不改其历史证据 |
+| 历史材料/字段 | 当前地位 |
+|---|---|
+| `SEMANTIC_FREEZE_V1` 的 72h net log-equity growth | 历史冻结语义；不等于当前算术期望收益方向 |
+| validation Teacher loss 晋升 | 历史协议；不能作为 canonical CC economic promotion master rule |
+| 旧 Teacher 对非正净值的有限排除 | 不得扩展为整体策略评价删除失败 |
+| 旧固定 SL/TP/max-hold/cooldown | 历史/受限策略行为；不属于 canonical autonomous CC 默认执行策略 |
+| AC/BC TODO | 设计与实施 provenance/history；不是当前 execution authority |
+| CC 四线程 TODO | 已完成的实施 provenance；当前入口转为 integration receipt/handoff |
+| CC integration receipt/spec | 当前 canonical CC authority |
 
-任何后续迁移记录应包含：用户确认的问题、适用范围、旧版本、替代版本、验证方式及保留的历史结论。不能只因为新分支较新就默认所有旧约束失效。
+任何后续科学迁移仍需记录旧版本、替代版本、验证方式和证据上限；不得只因分支更新就自动抬高 scientific claim。
