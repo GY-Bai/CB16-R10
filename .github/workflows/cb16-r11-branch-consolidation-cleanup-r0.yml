@@ -1,0 +1,93 @@
+name: CB16 R11 Branch Consolidation Cleanup R0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cb16-r11-branch-consolidation-cleanup-r0.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cb16-r11-branch-consolidation-cleanup-r0
+  cancel-in-progress: false
+
+jobs:
+  delete-consolidated-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete consolidated and obsolete branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          protected=("main" "ci-results")
+          branches=(
+            "ai/r11-continuous-generation-qualification-r0"
+            "ai/r11-demonstration-foundation-r0"
+            "ai/r11-formal-league-contestant-g0-r0"
+            "ai/r11-formal-science-league-r0"
+            "ai/r11-formal-science-league-season-r0"
+            "ai/v63-activation-r0"
+            "ai/r11-ac-branch-consolidation-r0"
+          )
+
+          is_protected() {
+            local candidate="$1"
+            for keep in "${protected[@]}"; do
+              if [[ "$candidate" == "$keep" ]]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          for branch in "${branches[@]}"; do
+            if is_protected "$branch"; then
+              echo "REFUSING_TO_DELETE_PROTECTED_BRANCH:$branch" >&2
+              exit 1
+            fi
+
+            encoded="${branch//\//%2F}"
+            if gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${encoded}" >/dev/null 2>&1; then
+              echo "Deleting $branch"
+              gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${encoded}"
+            else
+              echo "Already absent: $branch"
+            fi
+          done
+
+      - name: Verify protected branches survive and cleanup targets are gone
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for keep in main ci-results; do
+            encoded="${keep//\//%2F}"
+            gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${encoded}" >/dev/null
+            echo "Protected branch present: $keep"
+          done
+
+          branches=(
+            "ai/r11-continuous-generation-qualification-r0"
+            "ai/r11-demonstration-foundation-r0"
+            "ai/r11-formal-league-contestant-g0-r0"
+            "ai/r11-formal-science-league-r0"
+            "ai/r11-formal-science-league-season-r0"
+            "ai/v63-activation-r0"
+            "ai/r11-ac-branch-consolidation-r0"
+          )
+          for branch in "${branches[@]}"; do
+            encoded="${branch//\//%2F}"
+            if gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${encoded}" >/dev/null 2>&1; then
+              echo "CLEANUP_TARGET_STILL_PRESENT:$branch" >&2
+              exit 1
+            fi
+            echo "Cleanup target absent: $branch"
+          done
