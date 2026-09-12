@@ -25,6 +25,21 @@ def _nonnegative(value: float) -> float:
     return value
 
 
+def _optional_positive(value: float | None) -> float | None:
+    return None if value is None else _positive(value)
+
+
+def _optional_nonnegative(value: float | None) -> float | None:
+    return None if value is None else _nonnegative(value)
+
+
+def _quantize_toward_zero(quantity: float, step: float | None) -> float:
+    if step is None:
+        return quantity
+    units = math.floor(abs(quantity) / step + 1e-12)
+    return 0.0 if units == 0 else math.copysign(units * step, quantity)
+
+
 @dataclass(frozen=True)
 class TargetExposureAuthorityR1:
     authority_id: str
@@ -37,11 +52,15 @@ class TargetExposureAuthorityR1:
     max_gross_leverage: float
     initial_margin_rate: float
     declared_max_legal_notional: float | None = None
+    lot_step_size: float | None = None
+    lot_min_qty: float | None = None
+    lot_max_qty: float | None = None
+    min_notional: float | None = None
 
     def validate(self) -> None:
         if not self.authority_id or not self.account_id or not self.legal_envelope_id:
             raise RuntimeError("ACTGT_R1_AUTHORITY_IDENTITY_INVALID")
-        if len(self.account_state_sha256) != 64:
+        if len(self.account_state_sha256) != 64 or any(c not in "0123456789abcdef" for c in self.account_state_sha256):
             raise RuntimeError("ACTGT_R1_ACCOUNT_STATE_HASH_INVALID")
         _nonnegative(self.equity)
         _positive(self.current_price)
@@ -50,8 +69,13 @@ class TargetExposureAuthorityR1:
         rate = _positive(self.initial_margin_rate)
         if rate > 1.0:
             raise RuntimeError("ACTGT_R1_MARGIN_RATE_INVALID")
-        if self.declared_max_legal_notional is not None:
-            _nonnegative(self.declared_max_legal_notional)
+        _optional_nonnegative(self.declared_max_legal_notional)
+        _optional_positive(self.lot_step_size)
+        _optional_positive(self.lot_min_qty)
+        _optional_positive(self.lot_max_qty)
+        _optional_nonnegative(self.min_notional)
+        if self.lot_min_qty is not None and self.lot_max_qty is not None and self.lot_min_qty > self.lot_max_qty:
+            raise RuntimeError("ACTGT_R1_LOT_RANGE_INVALID")
 
     @property
     def semantic_sha256(self) -> str:
@@ -72,9 +96,10 @@ class TargetExposureResultR1:
     legal_notional_cap: float
     target_quantity: float
     target_notional: float
+    status: str
 
 
-def make_target_exposure_authority_r1(*, authority_id: str, account_id: str, account_state_sha256: str, legal_envelope_id: str, equity: float, current_price: float, margin_capacity: float, max_gross_leverage: float, initial_margin_rate: float | None, declared_max_legal_notional: float | None = None) -> TargetExposureAuthorityR1:
+def make_target_exposure_authority_r1(*, authority_id: str, account_id: str, account_state_sha256: str, legal_envelope_id: str, equity: float, current_price: float, margin_capacity: float, max_gross_leverage: float, initial_margin_rate: float | None, declared_max_legal_notional: float | None = None, lot_step_size: float | None = None, lot_min_qty: float | None = None, lot_max_qty: float | None = None, min_notional: float | None = None) -> TargetExposureAuthorityR1:
     leverage = _positive(max_gross_leverage)
     authority = TargetExposureAuthorityR1(
         authority_id=authority_id,
@@ -86,7 +111,11 @@ def make_target_exposure_authority_r1(*, authority_id: str, account_id: str, acc
         margin_capacity=_nonnegative(margin_capacity),
         max_gross_leverage=leverage,
         initial_margin_rate=(1.0 / leverage if initial_margin_rate is None else _positive(initial_margin_rate)),
-        declared_max_legal_notional=declared_max_legal_notional,
+        declared_max_legal_notional=_optional_nonnegative(declared_max_legal_notional),
+        lot_step_size=_optional_positive(lot_step_size),
+        lot_min_qty=_optional_positive(lot_min_qty),
+        lot_max_qty=_optional_positive(lot_max_qty),
+        min_notional=_optional_nonnegative(min_notional),
     )
     authority.validate()
     return authority
@@ -95,17 +124,29 @@ def make_target_exposure_authority_r1(*, authority_id: str, account_id: str, acc
 def map_action_to_target_exposure_r1(action: TargetPositionActionR1, authority: TargetExposureAuthorityR1) -> TargetExposureResultR1:
     action.validate()
     authority.validate()
-    caps = [
-        authority.equity * authority.max_gross_leverage,
-        authority.margin_capacity / authority.initial_margin_rate,
-    ]
+    caps = [authority.equity * authority.max_gross_leverage, authority.margin_capacity / authority.initial_margin_rate]
     if authority.declared_max_legal_notional is not None:
         caps.append(authority.declared_max_legal_notional)
+    if authority.lot_max_qty is not None:
+        caps.append(authority.lot_max_qty * authority.current_price)
     legal_cap = min(caps)
     sign = 1 if action.target_direction == LONG else -1 if action.target_direction == SHORT else 0
     risk = float(action.requested_target_risk)
-    target_notional = risk * legal_cap if sign else 0.0
-    target_quantity = sign * target_notional / authority.current_price if sign else 0.0
+    raw_quantity = 0.0 if sign == 0 else sign * (risk * legal_cap) / authority.current_price
+    target_quantity = _quantize_toward_zero(raw_quantity, authority.lot_step_size)
+    target_notional = abs(target_quantity) * authority.current_price
+
+    if sign == 0:
+        target_quantity, target_notional, status = 0.0, 0.0, "FLAT_ZERO"
+    elif risk == 0.0:
+        target_quantity, target_notional, status = 0.0, 0.0, "ZERO_RISK"
+    elif target_quantity == 0.0:
+        status = "QUANTIZED_TO_ZERO"
+    elif (authority.lot_min_qty is not None and abs(target_quantity) < authority.lot_min_qty - 1e-12) or (authority.min_notional is not None and target_notional < authority.min_notional - 1e-9):
+        target_quantity, target_notional, status = 0.0, 0.0, "BELOW_MINIMUM"
+    else:
+        status = "ACTIVE"
+
     return TargetExposureResultR1(
         schema_version=TARGET_EXPOSURE_RESULT_SCHEMA_R1,
         action_sha256=hashlib.sha256(action.to_json().encode()).hexdigest(),
@@ -118,4 +159,5 @@ def map_action_to_target_exposure_r1(action: TargetPositionActionR1, authority: 
         legal_notional_cap=legal_cap,
         target_quantity=target_quantity,
         target_notional=target_notional,
+        status=status,
     )
