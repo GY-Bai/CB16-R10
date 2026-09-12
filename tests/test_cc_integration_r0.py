@@ -15,6 +15,11 @@ from cb16_local_opt.cc_integration_contracts_r0 import (
 )
 from cb16_local_opt.cc_integration_fast_path_r0 import transport_facts_fast, decode_fast_chunks
 from cb16_local_opt.cc_integration_runtime_r0 import run_closed_loop_canary_temp
+from cb16_local_opt.cc_integration_benchmark_r0 import (
+    run_reference_benchmark,
+    run_fast_benchmark,
+    assert_reference_fast_equivalence,
+)
 from tests.cc_thread_a_support_r0 import runtime, decision
 
 
@@ -44,6 +49,28 @@ def test_joined_closed_loop_canary_reaches_child_policy_on_same_account():
     assert result.raw_fact_count >= result.replay_transition_count * 2
     assert result.parent_checkpoint_sha256 != result.child_checkpoint_sha256
     assert result.child_action_policy_id == "cc-integrated-policy-g1"
+
+
+def test_reference_and_fast_use_identical_thread_a_semantics_on_small_workload():
+    with tempfile.TemporaryDirectory(prefix="cc-integration-bench-test-") as td:
+        reference = run_reference_benchmark(
+            output_root=Path(td) / "reference",
+            account_count=2,
+            market_steps=4,
+            seed=441,
+        )
+        fast = run_fast_benchmark(
+            output_root=Path(td) / "fast",
+            account_count=2,
+            market_steps=4,
+            seed=441,
+            chunk_facts=3,
+        )
+    assert_reference_fast_equivalence(reference, fast)
+    assert reference.semantic_checksum == fast.semantic_checksum
+    assert reference.final_account_checksum == fast.final_account_checksum
+    assert reference.accesses_final_or_fresh_data is False
+    assert fast.accesses_final_or_fresh_data is False
 
 
 def test_thread_d_transport_is_exact_for_thread_a_semantic_payloads():
@@ -79,7 +106,6 @@ def test_writer_backpressure_fails_closed_without_dropping_existing_failure_or_t
     too_large = encode_fact({"kind": "TERMINAL", "payload": "y" * 1000}, semantic_id="terminal-2", terminal_or_failure=True)
     with pytest.raises(BackpressureRequired):
         q.put(too_large, block=False)
-    # Backpressure is explicit; the already accepted failure fact remains present and unchanged.
     retained = q.get()
     assert retained.semantic_id == "failure-1" and retained.terminal_or_failure is True
 
