@@ -3,9 +3,9 @@ from __future__ import annotations
 """Deterministic hard-authority Supervisor contract for Actor-Critic R0.
 
 AC-010 freezes the permission contract without quantity sizing or Physics.
-AC-011 additionally authorizes mechanically legal held-position same-direction
-resize and close operations without inheriting the legacy POSITION_ALREADY_OPEN
-forced no-op. Reversal remains fail-closed until AC-012.
+AC-011 authorizes mechanically legal held-position resize and close operations.
+AC-012 freezes reversal as an explicit CLOSE_TO_FLAT -> OPEN_FROM_FLAT execution
+contract. No implicit signed-position flip is representable at this layer.
 """
 
 from dataclasses import dataclass
@@ -31,6 +31,22 @@ PERMISSION_OUTCOMES_R0 = (ACCEPT, CLAMP, REJECT)
 SUPERVISOR_AUTHORITY_SCHEMA_R0 = "CB16_R11_AC_SUPERVISOR_AUTHORITY_V1_R0"
 SUPERVISOR_PERMISSION_SCHEMA_R0 = "CB16_R11_AC_SUPERVISOR_PERMISSION_V1_R0"
 
+DIRECT_TARGET_EXECUTION_R0 = "DIRECT_TARGET_EXECUTION_R0"
+REVERSAL_CLOSE_THEN_OPEN_R0 = "REVERSAL_CLOSE_THEN_OPEN_R0"
+EXECUTION_CONTRACT_KINDS_R0 = (
+    DIRECT_TARGET_EXECUTION_R0,
+    REVERSAL_CLOSE_THEN_OPEN_R0,
+)
+
+DIRECT_TARGET_LEG_R0 = "DIRECT_TARGET"
+CLOSE_TO_FLAT_LEG_R0 = "CLOSE_TO_FLAT"
+OPEN_FROM_FLAT_LEG_R0 = "OPEN_FROM_FLAT"
+EXECUTION_LEG_KINDS_R0 = (
+    DIRECT_TARGET_LEG_R0,
+    CLOSE_TO_FLAT_LEG_R0,
+    OPEN_FROM_FLAT_LEG_R0,
+)
+
 
 def _require_nonempty_string(value: object, *, code: str) -> str:
     if not isinstance(value, str) or not value.strip():
@@ -47,7 +63,12 @@ def _canonical_risk(value: object, *, code: str) -> float:
     return 0.0 if risk == 0.0 else risk
 
 
-def _validate_direction_risk(direction: object, risk: object, *, prefix: str) -> tuple[str, float]:
+def _validate_direction_risk(
+    direction: object,
+    risk: object,
+    *,
+    prefix: str,
+) -> tuple[str, float]:
     if not isinstance(direction, str) or direction not in TARGET_DIRECTIONS_R0:
         raise RuntimeError(f"{prefix}_DIRECTION_INVALID")
     canonical_risk = _canonical_risk(risk, code=f"{prefix}_RISK_INVALID")
@@ -58,7 +79,10 @@ def _validate_direction_risk(direction: object, risk: object, *, prefix: str) ->
 
 def _canonical_direction_subset(values: Iterable[object]) -> tuple[str, ...]:
     raw = tuple(values)
-    if any(not isinstance(value, str) or value not in TARGET_DIRECTIONS_R0 for value in raw):
+    if any(
+        not isinstance(value, str) or value not in TARGET_DIRECTIONS_R0
+        for value in raw
+    ):
         raise RuntimeError("ACSUP_LEGAL_DIRECTION_INVALID")
     if len(set(raw)) != len(raw):
         raise RuntimeError("ACSUP_LEGAL_DIRECTION_DUPLICATE")
@@ -78,6 +102,104 @@ def _canonical_json(payload: dict[str, object]) -> str:
 
 def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class SupervisorExecutionLegR0:
+    leg_index: int
+    leg_kind: str
+    target_direction: str
+    target_risk: float
+
+    def validate(self) -> None:
+        if isinstance(self.leg_index, bool) or not isinstance(self.leg_index, int):
+            raise RuntimeError("ACSUP_EXECUTION_LEG_INDEX_INVALID")
+        if self.leg_index < 0:
+            raise RuntimeError("ACSUP_EXECUTION_LEG_INDEX_INVALID")
+        if self.leg_kind not in EXECUTION_LEG_KINDS_R0:
+            raise RuntimeError("ACSUP_EXECUTION_LEG_KIND_INVALID")
+        _validate_direction_risk(
+            self.target_direction,
+            self.target_risk,
+            prefix="ACSUP_EXECUTION_LEG_TARGET",
+        )
+        if self.leg_kind == CLOSE_TO_FLAT_LEG_R0:
+            if self.target_direction != FLAT or self.target_risk != 0.0:
+                raise RuntimeError("ACSUP_CLOSE_LEG_MUST_TARGET_FLAT")
+        if self.leg_kind == OPEN_FROM_FLAT_LEG_R0 and self.target_direction == FLAT:
+            raise RuntimeError("ACSUP_OPEN_LEG_MUST_TARGET_NONFLAT")
+
+    def to_payload(self) -> dict[str, object]:
+        self.validate()
+        return {
+            "leg_index": self.leg_index,
+            "leg_kind": self.leg_kind,
+            "target_direction": self.target_direction,
+            "target_risk": _canonical_risk(
+                self.target_risk,
+                code="ACSUP_EXECUTION_LEG_TARGET_RISK_INVALID",
+            ),
+        }
+
+
+@dataclass(frozen=True)
+class SupervisorExecutionContractR0:
+    contract_kind: str
+    source_direction: str
+    source_target_risk: float
+    legs: tuple[SupervisorExecutionLegR0, ...]
+
+    def validate(self) -> None:
+        if self.contract_kind not in EXECUTION_CONTRACT_KINDS_R0:
+            raise RuntimeError("ACSUP_EXECUTION_CONTRACT_KIND_INVALID")
+        source_direction, source_risk = _validate_direction_risk(
+            self.source_direction,
+            self.source_target_risk,
+            prefix="ACSUP_EXECUTION_SOURCE",
+        )
+        if not isinstance(self.legs, tuple) or not self.legs:
+            raise RuntimeError("ACSUP_EXECUTION_LEGS_INVALID")
+        for expected_index, leg in enumerate(self.legs):
+            if not isinstance(leg, SupervisorExecutionLegR0):
+                raise RuntimeError("ACSUP_EXECUTION_LEG_TYPE_INVALID")
+            leg.validate()
+            if leg.leg_index != expected_index:
+                raise RuntimeError("ACSUP_EXECUTION_LEG_ORDER_INVALID")
+
+        if self.contract_kind == DIRECT_TARGET_EXECUTION_R0:
+            if len(self.legs) != 1 or self.legs[0].leg_kind != DIRECT_TARGET_LEG_R0:
+                raise RuntimeError("ACSUP_DIRECT_EXECUTION_SHAPE_INVALID")
+            return
+
+        if source_direction not in (LONG, SHORT) or source_risk < 0.0:
+            raise RuntimeError("ACSUP_REVERSAL_SOURCE_INVALID")
+        if len(self.legs) != 2:
+            raise RuntimeError("ACSUP_REVERSAL_EXECUTION_SHAPE_INVALID")
+        close_leg, open_leg = self.legs
+        if close_leg.leg_kind != CLOSE_TO_FLAT_LEG_R0:
+            raise RuntimeError("ACSUP_REVERSAL_CLOSE_LEG_INVALID")
+        if open_leg.leg_kind != OPEN_FROM_FLAT_LEG_R0:
+            raise RuntimeError("ACSUP_REVERSAL_OPEN_LEG_INVALID")
+        expected_target = SHORT if source_direction == LONG else LONG
+        if open_leg.target_direction != expected_target:
+            raise RuntimeError("ACSUP_REVERSAL_DIRECTION_INVALID")
+
+    @property
+    def final_leg(self) -> SupervisorExecutionLegR0:
+        self.validate()
+        return self.legs[-1]
+
+    def to_payload(self) -> dict[str, object]:
+        self.validate()
+        return {
+            "contract_kind": self.contract_kind,
+            "source_direction": self.source_direction,
+            "source_target_risk": _canonical_risk(
+                self.source_target_risk,
+                code="ACSUP_EXECUTION_SOURCE_RISK_INVALID",
+            ),
+            "legs": [leg.to_payload() for leg in self.legs],
+        }
 
 
 @dataclass(frozen=True)
@@ -151,7 +273,7 @@ class SupervisorAuthorityStateR0:
 
 @dataclass(frozen=True)
 class SupervisorPermissionResultR0:
-    """Auditable permission output; REJECT means no policy-driven state change."""
+    """Auditable permission output with an explicit execution contract."""
 
     schema_version: str
     permission_execution_version: str
@@ -162,6 +284,7 @@ class SupervisorPermissionResultR0:
     reason_code: str
     permitted_target_direction: str
     permitted_target_risk: float
+    execution_contract: SupervisorExecutionContractR0
 
     def validate(self) -> None:
         if self.schema_version != SUPERVISOR_PERMISSION_SCHEMA_R0:
@@ -179,11 +302,17 @@ class SupervisorPermissionResultR0:
         if self.outcome not in PERMISSION_OUTCOMES_R0:
             raise RuntimeError("ACSUP_OUTCOME_INVALID")
         _require_nonempty_string(self.reason_code, code="ACSUP_REASON_CODE_INVALID")
-        _validate_direction_risk(
+        direction, risk = _validate_direction_risk(
             self.permitted_target_direction,
             self.permitted_target_risk,
             prefix="ACSUP_PERMITTED_TARGET",
         )
+        if not isinstance(self.execution_contract, SupervisorExecutionContractR0):
+            raise RuntimeError("ACSUP_EXECUTION_CONTRACT_TYPE_INVALID")
+        self.execution_contract.validate()
+        final_leg = self.execution_contract.final_leg
+        if final_leg.target_direction != direction or final_leg.target_risk != risk:
+            raise RuntimeError("ACSUP_EXECUTION_FINAL_TARGET_MISMATCH")
 
     def to_payload(self) -> dict[str, object]:
         self.validate()
@@ -200,6 +329,7 @@ class SupervisorPermissionResultR0:
                 self.permitted_target_risk,
                 code="ACSUP_PERMITTED_TARGET_RISK_INVALID",
             ),
+            "execution_contract": self.execution_contract.to_payload(),
         }
 
     @property
@@ -247,6 +377,64 @@ def _action_sha256(action: TargetPositionActionR0) -> str:
     return _sha256_text(action.to_json())
 
 
+def _direct_execution_contract(
+    *,
+    authority: SupervisorAuthorityStateR0,
+    target_direction: str,
+    target_risk: float,
+) -> SupervisorExecutionContractR0:
+    contract = SupervisorExecutionContractR0(
+        contract_kind=DIRECT_TARGET_EXECUTION_R0,
+        source_direction=authority.current_direction,
+        source_target_risk=authority.current_target_risk,
+        legs=(
+            SupervisorExecutionLegR0(
+                leg_index=0,
+                leg_kind=DIRECT_TARGET_LEG_R0,
+                target_direction=target_direction,
+                target_risk=_canonical_risk(
+                    target_risk,
+                    code="ACSUP_EXECUTION_TARGET_RISK_INVALID",
+                ),
+            ),
+        ),
+    )
+    contract.validate()
+    return contract
+
+
+def _reversal_execution_contract(
+    *,
+    authority: SupervisorAuthorityStateR0,
+    target_direction: str,
+    target_risk: float,
+) -> SupervisorExecutionContractR0:
+    contract = SupervisorExecutionContractR0(
+        contract_kind=REVERSAL_CLOSE_THEN_OPEN_R0,
+        source_direction=authority.current_direction,
+        source_target_risk=authority.current_target_risk,
+        legs=(
+            SupervisorExecutionLegR0(
+                leg_index=0,
+                leg_kind=CLOSE_TO_FLAT_LEG_R0,
+                target_direction=FLAT,
+                target_risk=0.0,
+            ),
+            SupervisorExecutionLegR0(
+                leg_index=1,
+                leg_kind=OPEN_FROM_FLAT_LEG_R0,
+                target_direction=target_direction,
+                target_risk=_canonical_risk(
+                    target_risk,
+                    code="ACSUP_EXECUTION_TARGET_RISK_INVALID",
+                ),
+            ),
+        ),
+    )
+    contract.validate()
+    return contract
+
+
 def _result(
     *,
     action: TargetPositionActionR0,
@@ -255,7 +443,20 @@ def _result(
     reason_code: str,
     permitted_target_direction: str,
     permitted_target_risk: float,
+    reversal: bool = False,
 ) -> SupervisorPermissionResultR0:
+    if reversal:
+        execution_contract = _reversal_execution_contract(
+            authority=authority,
+            target_direction=permitted_target_direction,
+            target_risk=permitted_target_risk,
+        )
+    else:
+        execution_contract = _direct_execution_contract(
+            authority=authority,
+            target_direction=permitted_target_direction,
+            target_risk=permitted_target_risk,
+        )
     result = SupervisorPermissionResultR0(
         schema_version=SUPERVISOR_PERMISSION_SCHEMA_R0,
         permission_execution_version=PERMISSION_EXECUTION_VERSION_R0,
@@ -269,6 +470,7 @@ def _result(
             permitted_target_risk,
             code="ACSUP_PERMITTED_TARGET_RISK_INVALID",
         ),
+        execution_contract=execution_contract,
     )
     result.validate()
     return result
@@ -326,14 +528,50 @@ def supervise_target_action_r0(
     )
 
     if current_direction != FLAT:
-        if action.target_direction not in (current_direction, FLAT):
+        is_reversal = action.target_direction in (LONG, SHORT) and (
+            action.target_direction != current_direction
+        )
+        if is_reversal:
+            if FLAT not in authority.legal_target_directions:
+                return _result(
+                    action=action,
+                    authority=authority,
+                    outcome=REJECT,
+                    reason_code="REVERSAL_CLOSE_LEG_NOT_LEGAL",
+                    permitted_target_direction=current_direction,
+                    permitted_target_risk=current_risk,
+                )
+            permitted_risk = min(requested, cap)
+            if (
+                permitted_risk > 0.0
+                and not authority.margin_available_for_new_exposure
+            ):
+                return _result(
+                    action=action,
+                    authority=authority,
+                    outcome=REJECT,
+                    reason_code="REVERSAL_MARGIN_UNAVAILABLE_FOR_NEW_EXPOSURE",
+                    permitted_target_direction=current_direction,
+                    permitted_target_risk=current_risk,
+                )
+            if permitted_risk < requested:
+                return _result(
+                    action=action,
+                    authority=authority,
+                    outcome=CLAMP,
+                    reason_code="REVERSAL_TARGET_RISK_CLAMPED_TO_HARD_AUTHORITY",
+                    permitted_target_direction=action.target_direction,
+                    permitted_target_risk=permitted_risk,
+                    reversal=True,
+                )
             return _result(
                 action=action,
                 authority=authority,
-                outcome=REJECT,
-                reason_code="REVERSAL_NOT_AUTHORIZED_R0",
-                permitted_target_direction=current_direction,
-                permitted_target_risk=current_risk,
+                outcome=ACCEPT,
+                reason_code="REVERSAL_CLOSE_THEN_OPEN_AUTHORIZED",
+                permitted_target_direction=action.target_direction,
+                permitted_target_risk=permitted_risk,
+                reversal=True,
             )
 
         if action.target_direction == FLAT:
