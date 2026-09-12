@@ -1,0 +1,21 @@
+{
+  "active_route": "CC_FAST_R0",
+  "benchmark_identity": {
+    "benchmark_schema": "CB16_R11_CC_FAST_BENCHMARK_REPORT_V1",
+    "topology_matrix": {"active_accounts": [16, 32, 64], "policy_mode": ["CPU", "GPU_BROKER"], "prefetch_depth": [0, 2], "worker_count": [2, 4, 6], "writer_chunk_facts": [64, 256]},
+    "workload_version": "CB16_R11_CC_FAST_SYNTHETIC_WORKLOAD_V1"
+  },
+  "compatibility_layer": false,
+  "component_default_topology": {"active_accounts": 16, "market_reuse": true, "policy_mode": "CPU", "prefetch_depth": 0, "status": "QUALIFICATION_DEFAULT_NOT_PERFORMANCE_WINNER", "worker_count": 2, "writer_chunk_facts": 128},
+  "fallback": false,
+  "final_data_access": "FORBIDDEN",
+  "fresh_market_download": "FORBIDDEN",
+  "hard_cutover": true,
+  "legacy_runtime_status": {"gpu_inference_broker.py": "REFERENCE_ONLY_FOR_CC", "market_runtime_cache_r11.py": "REFERENCE_IDEA_ONLY_FOR_CC", "multiprocess_trajectory_farm.py": "REFERENCE_ONLY_FOR_CC", "vectorized_physics.py": "REFERENCE_ONLY_FOR_CC"},
+  "performance_winner": null,
+  "schema_version": "CB16_R11_CC_FAST_CUTOVER_V1",
+  "selected_runtime_language": {"go": "NOT_TRIGGERED_WITHOUT_MEASURED_SERVICE_OR_SCHEDULING_HOTSPOT", "numba": "PROFILE_GATED_OPTIONAL_CANDIDATE", "numeric_layout": "NumPy", "orchestration": "Python", "rust": "NOT_TRIGGERED_WITHOUT_MEASURED_REMAINING_HOTSPOT"},
+  "semantic_harness": {"numeric_tolerance": 1e-10, "status": "RUN_LOCALLY_BEFORE_RECEIPT"},
+  "shanxi_measurement": {"hardware_identity": null, "performance_metrics": null, "reason": "SELF_HOSTED_SHANXI_WORKFLOW_NOT_YET_RUN_FROM_THIS_BRANCH", "status": "EXECUTION_BLOCKED/HARDWARE_LIMIT"},
+  "thread": "D"
+}

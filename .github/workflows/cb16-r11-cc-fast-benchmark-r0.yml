@@ -1,0 +1,131 @@
+name: cb16-r11-cc-fast-benchmark-r0
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact commit SHA to benchmark
+        required: true
+        type: string
+      workers:
+        description: Persistent account workers
+        required: true
+        default: "2"
+        type: choice
+        options: ["2", "4", "6"]
+      accounts:
+        description: Active synthetic accounts
+        required: true
+        default: "16"
+        type: choice
+        options: ["16", "32", "64"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-cc-fast-benchmark-r0
+  cancel-in-progress: false
+
+jobs:
+  cc-fast-benchmark:
+    runs-on: [self-hosted, cb16-linux-x64]
+    timeout-minutes: 15
+    env:
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - name: Reject non-SHA input
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "${{ inputs.sha }}" =~ ^[0-9a-f]{40}$ ]]
+
+      - name: Checkout exact SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.sha }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install bounded benchmark dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check "numpy>=1.23,<3" "pytest>=7,<9" "psutil>=5.9,<8" "numba>=0.57,<1"
+
+      - name: Enforce CC Thread D scope and no legacy fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          forbidden = (
+              "cb16_local_opt.gpu_inference_broker",
+              "cb16_local_opt.multiprocess_trajectory_farm",
+              "cb16_local_opt.vectorized_physics",
+          )
+          for path in Path("cb16_local_opt").glob("cc_fast_*.py"):
+              text = path.read_text(encoding="utf-8")
+              bad = [x for x in forbidden if x in text]
+              if bad:
+                  raise SystemExit(f"legacy import forbidden in {path}: {bad}")
+          print("CC_FAST_IMPORT_FIREWALL_PASS")
+          PY
+
+      - name: Run Thread D qualification tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_cc_fast_*.py tests/test_cc_thread_d_baseline_r0.py
+
+      - name: Run measured synthetic benchmark
+        shell: bash
+        env:
+          GITHUB_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/cc_fast_benchmark
+          python -m cb16_local_opt.cc_fast_benchmark_runner_r0 \
+            --output artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json \
+            --workers "${{ inputs.workers }}" \
+            --accounts "${{ inputs.accounts }}" \
+            --market-steps 1024 \
+            --chunk-facts 128 \
+            --policy-batch "${{ inputs.accounts }}"
+
+      - name: Assert benchmark semantics and exact code identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p = json.load(open("artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json", encoding="utf-8"))
+          assert p["semantic"]["verdict"] == "PASS"
+          assert p["accesses_final_or_fresh_data"] is False
+          assert p["collector_report"]["code_identity"] == "${{ inputs.sha }}"
+          assert all(v is False for v in p["collector_extra"]["worker_cuda_initialized"])
+          print("CC_FAST_BENCHMARK_QUALIFIED")
+          PY
+
+      - name: Upload benchmark evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cb16-r11-cc-fast-benchmark-r0-${{ inputs.sha }}
+          path: artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json
+          if-no-files-found: error
+          retention-days: 14
