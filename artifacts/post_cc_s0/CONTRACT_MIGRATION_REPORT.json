@@ -1,7 +1,18 @@
 {
   "schema": "CB16_R11_POST_CC_S0_CONTRACT_MIGRATION_REPORT_V1",
-  "status": "IMPLEMENTED_PENDING_QUALIFICATION",
+  "status": "QUALIFIED",
   "frozen_base_sha": "fc7102442e91a1c27cf705487c6d06bd64b8ea09",
+  "qualified_head_sha": "5760061d6c274e9f8796e6608e86bb173018148f",
+  "receipt_path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json",
+  "qualification": {
+    "workflow_run_id": 34721332483,
+    "job_id": 103627664284,
+    "focused_tests_passed": 15,
+    "all_hard_gates_pass": true,
+    "artifact_id": 10305814294,
+    "artifact_sha256": "fd1413c316297ee871bf7259418302cc474391662936ed258f4d8905221fcd59",
+    "evidence": "POST_CC_CONTRACT_MIGRATION_QUALIFIED"
+  },
   "historical_bytes_modified": false,
   "records": [
     {
@@ -36,7 +47,6 @@
     }
   ],
   "claims_not_made": [
-    "S0_QUALIFICATION_PASS_BEFORE_EXECUTION",
     "S1_LEARNABILITY",
     "REAL_MARKET_ECONOMIC_EDGE",
     "TRANSFER",
