@@ -1,0 +1,123 @@
+{
+  "schema": "CB16_R11_BC_ROUND2_BASELINE_V1",
+  "status": "FROZEN",
+  "task_id": "BC-001",
+  "captured_date_utc": "2026-09-12",
+  "base": {
+    "branch": "main",
+    "commit_sha": "c7938070d2a00c7f2898ebcd95ba55fac3a4736a",
+    "todo_audit_baseline_sha": "c373d230e218e2fb83064d3a7fed529e174482b6",
+    "rule": "LIVE_MAIN_AT_TASK_START_IS_AUTHORITY",
+    "relationship": "LIVE_MAIN_ADVANCED_ONLY_BY_ROUND2_HANDOFF_DOCUMENTATION_AFTER_TODO_AUDIT_BASELINE"
+  },
+  "guarded_semantic_surfaces": {
+    "critical_r0_files": [
+      {
+        "path": "cb16_local_opt/actor_critic_contract_r0.py",
+        "git_blob_sha": "ae76cd299be73ea822dea9adc54babc999833e16"
+      },
+      {
+        "path": "cb16_local_opt/actor_critic_runtime_router_r0.py",
+        "git_blob_sha": "e1ed865672766443dad4b3fa2928b0513df53a9d"
+      },
+      {
+        "path": "cb16_local_opt/action_contract_r0.py",
+        "git_blob_sha": "e978391559f55076fc1369e6e337395695d5361d"
+      },
+      {
+        "path": "cb16_local_opt/execution_record_r0.py",
+        "git_blob_sha": "ee9f6fbae6cdf291646163d0558570fcac53659e"
+      },
+      {
+        "path": "cb16_local_opt/actor_critic_supervisor_r0.py",
+        "git_blob_sha": "25846b96fb33140b8e80d9f22ef417cea86b1272"
+      },
+      {
+        "path": "cb16_local_opt/target_exposure_r0.py",
+        "git_blob_sha": "817705a041c8c9a59aedf6dcd68bb90e6adba5a2"
+      },
+      {
+        "path": "cb16_local_opt/actor_critic_physics_adapter_r0.py",
+        "git_blob_sha": "51a28efca8f592946ae2a69aec1291f8cac5e1f7"
+      }
+    ],
+    "frozen_authorities": [
+      {
+        "path": "authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json",
+        "git_blob_sha": "3c401a0a350984381912f7860181e3e96eb8d7cf"
+      },
+      {
+        "path": "authority/rearchitecture_r11/CB16_R11_STAGE4_GATEWORK_V1.json",
+        "git_blob_sha": "da8a5aa932eaa357280cb5e2a90c91c3e1301c54"
+      },
+      {
+        "path": "authority/rearchitecture_r11/CB16_R11_STAGE4_INTEGRATION_GATEWORK_V1.json",
+        "git_blob_sha": "31bf4152a027f0a9c7fe5f4c184b3f9f43d302c4"
+      },
+      {
+        "path": "authority/rearchitecture_r11/CB16_R11_STAGE4_STATE_ROOT_CONTRACT_V1.json",
+        "git_blob_sha": "7d975a0dfc66720628a461fa818866142b532ecd"
+      }
+    ]
+  },
+  "snapshot_observations": {
+    "current_docs": [
+      {
+        "path": "AGENTS.md",
+        "git_blob_sha": "223cd9208fd2ce017f43c79189c69ee9a654dd7d"
+      },
+      {
+        "path": "docs/VISION.md",
+        "git_blob_sha": "6991f42974d51db93fd19570b40e946a33672f49"
+      },
+      {
+        "path": "docs/PRINCIPLE_ALIGNMENT.md",
+        "git_blob_sha": "77012d60cb8fc3d34f58b865813e07ca9e81d2f3"
+      },
+      {
+        "path": "docs/COMPONENT_REQUIREMENTS.md",
+        "git_blob_sha": "8543bacecfdd6b929b9f404184725b75b7000648"
+      },
+      {
+        "path": "docs/CURRENT_STATE.md",
+        "git_blob_sha": "d714e14d8d0b9e2af931034a026851e3f9c9085f"
+      },
+      {
+        "path": "docs/R11_BC_ROUND2_CODE_ALIGNMENT_TODO.md",
+        "git_blob_sha": "d513b4be29eca4caed7d03e0b909d87d8bfa15f3"
+      }
+    ],
+    "unmerged_branches": [
+      {
+        "name": "ai/r11-ac-015-actor-policy-interface-r0",
+        "head_sha": "b21d826104830ecd80d4cbd096d86e012f4ec16f",
+        "parent_sha": "c373d230e218e2fb83064d3a7fed529e174482b6",
+        "authority": false,
+        "dependency": false,
+        "note": "Observed legacy AC candidate only; it is not a BC dependency and must not override live main."
+      }
+    ],
+    "note": "Documentation blobs are a provenance snapshot, not permanent byte-stability guards; later BC tasks may legitimately update documentation while preserving this frozen record."
+  },
+  "closed_boundaries": {
+    "final_holdout": {
+      "status": "SEALED",
+      "unopened_holdout_start": "2025-09-01T00:00:00Z",
+      "payload_open_without_separate_authorization": "FORBIDDEN",
+      "source": "authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json"
+    },
+    "fresh_market_data": {
+      "network_repair_or_redownload_during_scientific_runtime": "FORBIDDEN",
+      "fresh_download_for_bc_round2": "FORBIDDEN",
+      "source": "authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json"
+    },
+    "round2_execution": {
+      "canonical_scientific_replay_before_bc_a": "FORBIDDEN",
+      "source": "docs/R11_BC_ROUND2_CODE_ALIGNMENT_TODO.md"
+    }
+  },
+  "dependency_policy": {
+    "unmerged_branch_dependencies": "FORBIDDEN",
+    "declared_dependencies": []
+  }
+}
