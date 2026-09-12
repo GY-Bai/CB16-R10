@@ -98,3 +98,5 @@ jobs:
           path: cc-thread-c-pytest.txt
           if-no-files-found: warn
           retention-days: 14
+
+# dispatch-touch: first Shanxi Docker qualification
