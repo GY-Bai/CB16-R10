@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-"""Round-2 stochastic Actor policy interface.
+"""Round-2 stochastic Actor policy interface and direction distribution.
 
-BC-034 freezes only the API and compatibility boundary.  It deliberately does
-not define categorical direction probabilities, bounded-risk distributions,
-endpoint masses, joint likelihood math, or RNG serialization; those belong to
-BC-035 through BC-039.
+BC-034 freezes the API and compatibility boundary.  BC-035 adds only the
+categorical SHORT/FLAT/LONG direction distribution.  Bounded-risk
+distributions, endpoint masses, joint likelihood math, and RNG serialization
+remain owned by BC-036 through BC-039.
 """
 
 from abc import ABC, abstractmethod
@@ -18,7 +18,7 @@ from typing import Generic, TypeVar
 
 import torch
 
-from .action_contract_r1 import TargetPositionActionR1
+from .action_contract_r1 import FLAT, LONG, SHORT, TargetPositionActionR1
 from .actor_critic_contract_r1 import (
     ACTION_VERSION_R1,
     ACTOR_DISTRIBUTION_VERSION_R1,
@@ -30,6 +30,9 @@ from .actor_observation_r0 import ACTOR_OBSERVATION_SCHEMA_R0, ActorObservationR
 ACTOR_POLICY_INTERFACE_VERSION_R1 = "CB16_R11_BC_ACTOR_POLICY_INTERFACE_V1_R1"
 ACTOR_POLICY_IDENTITY_SCHEMA_R1 = "CB16_R11_BC_ACTOR_POLICY_IDENTITY_V1_R1"
 POLICY_TENSOR_CONTRACT_SCHEMA_R1 = "CB16_R11_BC_POLICY_TENSOR_CONTRACT_V1_R1"
+DIRECTION_CATEGORICAL_SCHEMA_R1 = "CB16_R11_BC_DIRECTION_CATEGORICAL_V1_R1"
+DIRECTION_ORDER_R1 = (SHORT, FLAT, LONG)
+_DIRECTION_INDEX_R1 = {direction: index for index, direction in enumerate(DIRECTION_ORDER_R1)}
 SUPPORTED_FLOAT_DTYPES_R1 = {
     "float16": torch.float16,
     "bfloat16": torch.bfloat16,
@@ -84,6 +87,12 @@ def _dtype_name(value: object) -> str:
     if text not in SUPPORTED_FLOAT_DTYPES_R1:
         raise RuntimeError("ACPOL_R1_DTYPE_INVALID")
     return text
+
+
+def _direction_index_r1(direction: object) -> int:
+    if not isinstance(direction, str) or direction not in _DIRECTION_INDEX_R1:
+        raise RuntimeError("ACPOL_R1_DIRECTION_INVALID")
+    return _DIRECTION_INDEX_R1[direction]
 
 
 @dataclass(frozen=True)
@@ -216,13 +225,97 @@ def make_actor_policy_distribution_identity_r1(
     return identity
 
 
+@dataclass(frozen=True)
+class DirectionCategoricalR1:
+    """Stable categorical law over the canonical SHORT/FLAT/LONG order."""
+
+    schema_version: str
+    logits: torch.Tensor
+    tensor_contract: PolicyTensorContractR1
+
+    def validate(self) -> None:
+        if self.schema_version != DIRECTION_CATEGORICAL_SCHEMA_R1:
+            raise RuntimeError("ACPOL_R1_DIRECTION_SCHEMA_MISMATCH")
+        logits = validate_policy_tensor_r1(self.logits, self.tensor_contract)
+        if logits.ndim != 1 or logits.numel() != len(DIRECTION_ORDER_R1):
+            raise RuntimeError("ACPOL_R1_DIRECTION_LOGITS_SHAPE_INVALID")
+        log_probs = torch.log_softmax(logits, dim=0)
+        probs = torch.softmax(logits, dim=0)
+        if not bool(torch.isfinite(log_probs).all().item()):
+            raise RuntimeError("ACPOL_R1_DIRECTION_LOG_PROB_NONFINITE")
+        if not bool(torch.isfinite(probs).all().item()):
+            raise RuntimeError("ACPOL_R1_DIRECTION_PROB_NONFINITE")
+        if bool((probs < 0).any().item()):
+            raise RuntimeError("ACPOL_R1_DIRECTION_PROB_NEGATIVE")
+        one = torch.ones((), dtype=probs.dtype, device=probs.device)
+        if not bool(torch.isclose(probs.sum(), one, rtol=1e-4, atol=1e-6).item()):
+            raise RuntimeError("ACPOL_R1_DIRECTION_PROB_NOT_NORMALIZED")
+
+    @property
+    def probabilities(self) -> torch.Tensor:
+        self.validate()
+        return torch.softmax(self.logits, dim=0)
+
+    @property
+    def log_probabilities(self) -> torch.Tensor:
+        self.validate()
+        return torch.log_softmax(self.logits, dim=0)
+
+    def log_prob(self, direction: str) -> torch.Tensor:
+        index = _direction_index_r1(direction)
+        return self.log_probabilities[index]
+
+    def sample_directions(
+        self,
+        count: int,
+        *,
+        generator: torch.Generator,
+    ) -> tuple[str, ...]:
+        self.validate()
+        if isinstance(count, bool) or not isinstance(count, int) or count <= 0:
+            raise RuntimeError("ACPOL_R1_DIRECTION_SAMPLE_COUNT_INVALID")
+        if not isinstance(generator, torch.Generator):
+            raise RuntimeError("ACPOL_R1_DIRECTION_GENERATOR_INVALID")
+        generator_device = torch.device(generator.device)
+        logits_device = self.logits.device
+        if generator_device.type != logits_device.type:
+            raise RuntimeError("ACPOL_R1_DIRECTION_GENERATOR_DEVICE_MISMATCH")
+        if logits_device.type != "cpu" and generator_device.index != logits_device.index:
+            raise RuntimeError("ACPOL_R1_DIRECTION_GENERATOR_DEVICE_MISMATCH")
+        indices = torch.multinomial(
+            self.probabilities,
+            num_samples=count,
+            replacement=True,
+            generator=generator,
+        )
+        return tuple(DIRECTION_ORDER_R1[int(index)] for index in indices.tolist())
+
+    def sample_direction(self, *, generator: torch.Generator) -> str:
+        return self.sample_directions(1, generator=generator)[0]
+
+
+def make_direction_categorical_r1(
+    *,
+    logits: torch.Tensor,
+    tensor_contract: PolicyTensorContractR1,
+) -> DirectionCategoricalR1:
+    distribution = DirectionCategoricalR1(
+        schema_version=DIRECTION_CATEGORICAL_SCHEMA_R1,
+        logits=logits,
+        tensor_contract=tensor_contract,
+    )
+    distribution.validate()
+    return distribution
+
+
 class ActorPolicyR1(ABC, Generic[ObservationT, SamplingRngT, LogProbT]):
     """Minimal stochastic Actor API for Round 2.
 
     ``sample`` owns stochastic behavior collection and receives an explicit RNG.
     ``log_prob`` scores a supplied action and must not consume sampling RNG.
     ``deterministic_action`` is a separate evaluation path and must not consume
-    sampling RNG.  Exact distribution mathematics is intentionally deferred.
+    sampling RNG.  BC-035 defines direction categorical math; bounded-risk and
+    joint action likelihood semantics remain deferred.
     """
 
     @property
