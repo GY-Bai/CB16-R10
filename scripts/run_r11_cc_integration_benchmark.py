@@ -5,6 +5,14 @@ import json
 import os
 from pathlib import Path
 import platform
+import sys
+
+# Direct script execution puts scripts/ rather than the repository root on
+# sys.path. Qualification intentionally runs the checked-out source tree without
+# installing the package or using the network, so bind the repo root explicitly.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 import torch
 
