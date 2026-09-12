@@ -1,3 +1,4 @@
+import pytest
 from cb16_local_opt.cc_environment_advance_r0 import CCEnvironmentIntervalR0,advance_environment_r0
 from tests.cc_thread_a_support_r0 import acct,runtime,decision,static_exec
 
@@ -14,3 +15,7 @@ def test_negative_cash_settlement_is_explicit_and_equity_preserving():
     a=replace(acct(),cash=-10); before=a.equity
     b=advance_environment_r0(a,CCEnvironmentIntervalR0(100,settle_negative_cash_to_liability=True))
     assert b.cash==0 and b.liabilities==10 and b.equity==before
+
+def test_environment_interval_rejects_unknown_boundary_and_bad_boolean_flags():
+    with pytest.raises(RuntimeError): CCEnvironmentIntervalR0(100,boundary_type='UNKNOWN').validate()
+    with pytest.raises(RuntimeError): CCEnvironmentIntervalR0(100,force_liquidate=1).validate()

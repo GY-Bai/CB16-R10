@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, replace
 from .account_economics_r0 import AccountEconomicsStateR0
-from .cc_runtime_boundary_r0 import CONTINUE
+from .cc_runtime_boundary_r0 import CONTINUE, BOUNDARIES
 
 @dataclass(frozen=True)
 class CCEnvironmentIntervalR0:
@@ -19,6 +19,8 @@ class CCEnvironmentIntervalR0:
         import math
         vals=(self.mark_price_after,self.funding_cashflow,self.mechanical_fee,self.liability_delta,self.external_capital_flow)
         if any(not math.isfinite(float(v)) for v in vals) or self.mark_price_after<=0 or self.mechanical_fee<0: raise RuntimeError("CCENV_INTERVAL_INVALID")
+        if not isinstance(self.settle_negative_cash_to_liability,bool) or not isinstance(self.force_liquidate,bool): raise RuntimeError("CCENV_BOOLEAN_INVALID")
+        if self.boundary_type not in BOUNDARIES: raise RuntimeError("CCENV_BOUNDARY_INVALID")
         if self.external_capital_flow and (not self.external_capital_flow_ref or not self.next_account_lineage_id): raise RuntimeError("CCENV_CAPITAL_FLOW_IDENTITY_REQUIRED")
         if not self.external_capital_flow and self.next_account_lineage_id is not None: raise RuntimeError("CCENV_LINEAGE_SWITCH_REQUIRES_CAPITAL_FLOW")
 

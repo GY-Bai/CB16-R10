@@ -40,6 +40,7 @@ class CCPolicyDecisionV1:
 class CCEnvironmentTransitionV1:
     account_lineage_id:str; decision_index:int; environment_time_before:int; environment_time_after:int; pre_account_truth_hash:str; policy_decision_ref:str|None; permission_status:str; permission_reason:str; permitted_target_direction:str; permitted_target_risk:float; target_quantity:float; execution_legs:tuple[CCExecutionLegV1,...]; fees:float; funding:float; realized_pnl:float; unrealized_pnl_delta:float; liability_delta:float; post_account_truth_hash:str; post_equity:float; boundary_type:str; mechanical_terminal:bool; external_capital_flow_ref_or_null:str|None
     def validate(self):
+        from .cc_runtime_boundary_r0 import BOUNDARIES
         _nonempty(self.account_lineage_id,"CCW02_ACCOUNT_ID_INVALID")
         if isinstance(self.decision_index,bool) or self.decision_index<0 or self.environment_time_after<=self.environment_time_before: raise RuntimeError("CCW02_CLOCK_INVALID")
         _hash(self.pre_account_truth_hash,"CCW02_PRE_HASH_INVALID"); _hash(self.post_account_truth_hash,"CCW02_POST_HASH_INVALID")
@@ -53,6 +54,6 @@ class CCEnvironmentTransitionV1:
             if leg.leg_index!=i: raise RuntimeError("CCW02_LEGS_UNORDERED")
         for v,c in ((self.target_quantity,"CCW02_TARGET_QTY_INVALID"),(self.fees,"CCW02_FEES_INVALID"),(self.funding,"CCW02_FUNDING_INVALID"),(self.realized_pnl,"CCW02_REALIZED_INVALID"),(self.unrealized_pnl_delta,"CCW02_UNREALIZED_INVALID"),(self.liability_delta,"CCW02_LIABILITY_INVALID"),(self.post_equity,"CCW02_EQUITY_INVALID")): _finite(v,c)
         if self.fees<0: raise RuntimeError("CCW02_FEES_INVALID")
-        _nonempty(self.boundary_type,"CCW02_BOUNDARY_INVALID")
+        if self.boundary_type not in BOUNDARIES: raise RuntimeError("CCW02_BOUNDARY_INVALID")
         if not isinstance(self.mechanical_terminal,bool): raise RuntimeError("CCW02_TERMINAL_INVALID")
         if self.external_capital_flow_ref_or_null is not None: _nonempty(self.external_capital_flow_ref_or_null,"CCW02_CAPITAL_FLOW_REF_INVALID")
