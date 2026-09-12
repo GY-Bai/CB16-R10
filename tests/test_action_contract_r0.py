@@ -5,12 +5,24 @@ import math
 import pytest
 
 from cb16_local_opt.action_contract_r0 import (
+    CLOSE_LONG,
+    CLOSE_SHORT,
+    DECREASE_LONG,
+    DECREASE_SHORT,
     FLAT,
+    INCREASE_LONG,
+    INCREASE_SHORT,
     LONG,
+    OPEN_LONG,
+    OPEN_SHORT,
+    REVERSE_LONG_TO_SHORT,
+    REVERSE_SHORT_TO_LONG,
+    SAME_TARGET_NOOP,
     SHORT,
     TARGET_POSITION_SEMANTICS_R0,
     TARGET_RISK_SEMANTICS_R0,
     TargetPositionActionR0,
+    classify_target_state_transition_r0,
     make_target_position_action_r0,
 )
 from cb16_local_opt.actor_critic_contract_r0 import ACTION_VERSION_R0
@@ -195,3 +207,92 @@ def test_json_must_decode_to_exact_action_object() -> None:
         TargetPositionActionR0.from_json("{")
     with pytest.raises(RuntimeError, match="ACACT_JSON_OBJECT_REQUIRED"):
         TargetPositionActionR0.from_json("[]")
+
+
+def _transition(
+    source_direction: str,
+    source_risk: float,
+    target_direction: str,
+    target_risk: float,
+):
+    action = make_target_position_action_r0(
+        action_id=f"T:{source_direction}:{source_risk}->{target_direction}:{target_risk}",
+        policy_id="policy-r0",
+        policy_version="policy-v1",
+        target_direction=target_direction,
+        requested_target_risk=target_risk,
+    )
+    return classify_target_state_transition_r0(
+        source_direction=source_direction,
+        source_target_risk=source_risk,
+        action=action,
+    )
+
+
+@pytest.mark.parametrize(
+    ("source_direction", "source_risk", "target_direction", "target_risk", "kind"),
+    [
+        (FLAT, 0.0, FLAT, 0.0, SAME_TARGET_NOOP),
+        (FLAT, 0.0, LONG, 0.4, OPEN_LONG),
+        (FLAT, 0.0, SHORT, 0.4, OPEN_SHORT),
+        (LONG, 0.4, LONG, 0.4, SAME_TARGET_NOOP),
+        (LONG, 0.4, LONG, 0.8, INCREASE_LONG),
+        (LONG, 0.8, LONG, 0.4, DECREASE_LONG),
+        (LONG, 0.4, FLAT, 0.0, CLOSE_LONG),
+        (LONG, 0.4, SHORT, 0.3, REVERSE_LONG_TO_SHORT),
+        (SHORT, 0.4, SHORT, 0.4, SAME_TARGET_NOOP),
+        (SHORT, 0.4, SHORT, 0.8, INCREASE_SHORT),
+        (SHORT, 0.8, SHORT, 0.4, DECREASE_SHORT),
+        (SHORT, 0.4, FLAT, 0.0, CLOSE_SHORT),
+        (SHORT, 0.4, LONG, 0.3, REVERSE_SHORT_TO_LONG),
+    ],
+)
+def test_full_target_state_transition_matrix(
+    source_direction: str,
+    source_risk: float,
+    target_direction: str,
+    target_risk: float,
+    kind: str,
+) -> None:
+    transition = _transition(
+        source_direction,
+        source_risk,
+        target_direction,
+        target_risk,
+    )
+    assert transition.transition_kind == kind
+    assert transition.target_direction == target_direction
+    assert transition.requested_target_risk == target_risk
+    assert transition.is_noop is (kind == SAME_TARGET_NOOP)
+    assert transition.is_reversal is (
+        kind in (REVERSE_LONG_TO_SHORT, REVERSE_SHORT_TO_LONG)
+    )
+
+
+def test_reversal_encoding_is_unambiguous_before_physics() -> None:
+    long_to_short = _transition(LONG, 0.6, SHORT, 0.2)
+    short_to_long = _transition(SHORT, 0.6, LONG, 0.2)
+
+    assert long_to_short.transition_kind == REVERSE_LONG_TO_SHORT
+    assert long_to_short.source_direction == LONG
+    assert long_to_short.target_direction == SHORT
+    assert short_to_long.transition_kind == REVERSE_SHORT_TO_LONG
+    assert short_to_long.source_direction == SHORT
+    assert short_to_long.target_direction == LONG
+    assert long_to_short.transition_kind != short_to_long.transition_kind
+
+
+def test_noncanonical_source_state_fails_closed_before_transition() -> None:
+    action = make_target_position_action_r0(
+        action_id="T:bad-source",
+        policy_id="policy-r0",
+        policy_version="policy-v1",
+        target_direction=LONG,
+        requested_target_risk=0.5,
+    )
+    with pytest.raises(RuntimeError, match="ACACT_FLAT_TARGET_RISK_MUST_BE_ZERO"):
+        classify_target_state_transition_r0(
+            source_direction=FLAT,
+            source_target_risk=0.1,
+            action=action,
+        )
