@@ -1,21 +1,122 @@
 {
+  "schema_version": "CB16_R11_CC_FAST_CUTOVER_V1",
+  "thread": "D",
   "active_route": "CC_FAST_R0",
-  "benchmark_identity": {
-    "benchmark_schema": "CB16_R11_CC_FAST_BENCHMARK_REPORT_V1",
-    "topology_matrix": {"active_accounts": [16, 32, 64], "policy_mode": ["CPU", "GPU_BROKER"], "prefetch_depth": [0, 2], "worker_count": [2, 4, 6], "writer_chunk_facts": [64, 256]},
-    "workload_version": "CB16_R11_CC_FAST_SYNTHETIC_WORKLOAD_V1"
-  },
+  "hard_cutover": true,
   "compatibility_layer": false,
-  "component_default_topology": {"active_accounts": 16, "market_reuse": true, "policy_mode": "CPU", "prefetch_depth": 0, "status": "QUALIFICATION_DEFAULT_NOT_PERFORMANCE_WINNER", "worker_count": 2, "writer_chunk_facts": 128},
   "fallback": false,
   "final_data_access": "FORBIDDEN",
   "fresh_market_download": "FORBIDDEN",
-  "hard_cutover": true,
-  "legacy_runtime_status": {"gpu_inference_broker.py": "REFERENCE_ONLY_FOR_CC", "market_runtime_cache_r11.py": "REFERENCE_IDEA_ONLY_FOR_CC", "multiprocess_trajectory_farm.py": "REFERENCE_ONLY_FOR_CC", "vectorized_physics.py": "REFERENCE_ONLY_FOR_CC"},
-  "performance_winner": null,
-  "schema_version": "CB16_R11_CC_FAST_CUTOVER_V1",
-  "selected_runtime_language": {"go": "NOT_TRIGGERED_WITHOUT_MEASURED_SERVICE_OR_SCHEDULING_HOTSPOT", "numba": "PROFILE_GATED_OPTIONAL_CANDIDATE", "numeric_layout": "NumPy", "orchestration": "Python", "rust": "NOT_TRIGGERED_WITHOUT_MEASURED_REMAINING_HOTSPOT"},
-  "semantic_harness": {"numeric_tolerance": 1e-10, "status": "RUN_LOCALLY_BEFORE_RECEIPT"},
-  "shanxi_measurement": {"hardware_identity": null, "performance_metrics": null, "reason": "SELF_HOSTED_SHANXI_WORKFLOW_NOT_YET_RUN_FROM_THIS_BRANCH", "status": "EXECUTION_BLOCKED/HARDWARE_LIMIT"},
-  "thread": "D"
+  "qualified_implementation_head_sha": "089031a935e58100f3a0dbfec34c16fa5f272915",
+  "benchmark_identity": {
+    "benchmark_schema": "CB16_R11_CC_FAST_BENCHMARK_REPORT_V1",
+    "runner_schema": "CB16_R11_CC_FAST_BENCHMARK_RUN_V1",
+    "matrix_schema": "CB16_R11_CC_FAST_SHANXI_SMOKE_MATRIX_V1",
+    "science_identity": "CB16_R11_CC_SCIENCE_SEMANTIC_V1",
+    "workload_version": "CB16_R11_CC_FAST_SYNTHETIC_WORKLOAD_V1",
+    "science_scope": "SYNTHETIC_ONLY_NO_FINAL_NO_FRESH",
+    "market_steps": 384,
+    "writer_chunk_facts": 128,
+    "candidate_topologies": [
+      {"worker_count": 2, "active_accounts": 16},
+      {"worker_count": 4, "active_accounts": 32},
+      {"worker_count": 6, "active_accounts": 64}
+    ]
+  },
+  "performance_winner": {
+    "candidate_id": "candidate-w6-a64",
+    "collector_topology": {
+      "worker_count": 6,
+      "active_accounts": 64,
+      "market_reuse": true,
+      "policy_execution": "CPU_COLLECTOR",
+      "spawn_workers": true,
+      "writer_chunk_facts": 128
+    },
+    "compliant_transitions_per_s": 1113.2595725336419,
+    "policy_decisions_per_s": 1113.2595725336419,
+    "wall_clock_s": 11.054924029973336,
+    "pss_bytes": 610390016,
+    "cgroup_memory_bytes": 2556362752,
+    "swap_in_bytes": 0,
+    "swap_out_bytes": 0,
+    "queue_bytes": 167659,
+    "queue_depth": 156,
+    "queue_oldest_age_s": 0.0,
+    "gpu_vram_bytes": 80740352,
+    "correctness_checksum": "71ffed3261fc784b5c1a960e519e690f5afcf8e092e952337138cc5510d2be92",
+    "semantic_verdict": "PASS"
+  },
+  "policy_microbenchmark": {
+    "selected_mode": "GPU_BROKER",
+    "batch_size": 64,
+    "cpu_decisions_per_s": 53499.28695563903,
+    "gpu_decisions_per_s": 1508642.4474957332,
+    "semantic_checksum": "79f2e28c56c46b0681d0466917c439a874c6113a2797394a0e7b2ce5a670c063",
+    "transfer_queue_included": true,
+    "end_to_end_collector_adoption": false,
+    "interpretation": "GPU_BROKER won the isolated policy microbenchmark but was not the end-to-end collector execution mode in this qualification run."
+  },
+  "market_reuse_measurement": {
+    "account_count": 16,
+    "market_bytes": 320000,
+    "repeated_materialized_bytes": 5120000,
+    "shared_materialized_bytes": 320000,
+    "repeated_compute_s": 0.042108871974051,
+    "shared_compute_s": 0.004293908015824854,
+    "speedup_ratio": 9.8066544087256,
+    "memory_reduction_ratio": 16.0
+  },
+  "semantic_harness": {
+    "status": "PASS",
+    "numeric_tolerance": 1e-10,
+    "checksum": "46aab3f2cfcc702a46da7fbc3a991bee5e97ee0fb403454c697e8e9b865942ae"
+  },
+  "qualification_tests": {
+    "status": "PASS",
+    "passed": 56,
+    "failed": 0,
+    "elapsed_s": 7.95
+  },
+  "selected_runtime_language": {
+    "orchestration": "Python",
+    "numeric_layout": "NumPy_SoA",
+    "numba": "CANDIDATE_PRESENT_NOT_SELECTED_AS_END_TO_END_WINNER",
+    "rust": "NOT_TRIGGERED_NO_MEASURED_REMAINING_CPU_HOTSPOT_JUSTIFICATION",
+    "go": "NOT_TRIGGERED_NO_MEASURED_SERVICE_OR_SCHEDULING_BOTTLENECK_JUSTIFICATION"
+  },
+  "legacy_runtime_status": {
+    "gpu_inference_broker.py": "REFERENCE_ONLY_FOR_CC",
+    "multiprocess_trajectory_farm.py": "REFERENCE_ONLY_FOR_CC",
+    "vectorized_physics.py": "REFERENCE_ONLY_FOR_CC",
+    "market_runtime_cache_r11.py": "REFERENCE_IDEA_ONLY_FOR_CC"
+  },
+  "shanxi_measurement": {
+    "status": "PERFORMANCE_MEASURED",
+    "workflow_run_id": 34708099369,
+    "job_id": 103591741836,
+    "artifact_id": 10302677437,
+    "artifact_name": "cb16-r11-cc-fast-benchmark-r0-089031a935e58100f3a0dbfec34c16fa5f272915",
+    "artifact_sha256": "b89201b51721197c1ed965f49d00095e631d1cdb692bbd56972cba7da7dab6c4",
+    "hardware_identity": {
+      "runner_name": "shanxi-docker-r11",
+      "machine_name": "26fb170773b8",
+      "logical_cpu_count": 16,
+      "physical_memory_bytes": 16674205696,
+      "gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "python": "3.10.21",
+      "torch": "2.8.0+cu126",
+      "torch_cuda": "12.6"
+    },
+    "safety": {
+      "docker_preflight": "PASS",
+      "raw_root_read_only": true,
+      "final_holdout_payload_opened": false,
+      "scientific_payload_opened": false,
+      "training_started": false,
+      "fresh_market_downloaded": false,
+      "worker_cuda_initialized": false
+    }
+  },
+  "strongest_evidence": "PERFORMANCE_MEASURED"
 }
