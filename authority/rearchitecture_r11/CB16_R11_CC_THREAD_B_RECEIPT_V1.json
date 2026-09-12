@@ -11,13 +11,19 @@
     "rng_provenance": "COMPLETED_BY_THREAD_B"
   },
   "branch": "ai/r11-cc-thread-b-learning-r0",
-  "claim_scope": "SYNTHETIC_AND_COMPONENT_ONLY_NO_REAL_MARKET_EDGE",
+  "claim_scope": "SYNTHETIC_KNOWN_ANSWER_PLUS_SHANXI_DOCKER_EXECUTION_SMOKE_NO_REAL_MARKET_EDGE",
+  "core_implementation_commit_sha": "d7369fa324fc0176154da3a752331d0c77ef9a78",
   "evidence_level": "KNOWN_ANSWER",
   "exact_tests": {
-    "command": "PYTHONPATH=. pytest -q",
-    "compile_command": "PYTHONPATH=. python -m compileall -q cb16_local_opt tests",
-    "compile_result": "PASS",
-    "result": "33 passed"
+    "local_command": "PYTHONPATH=. pytest -q",
+    "local_compile_command": "PYTHONPATH=. python -m compileall -q cb16_local_opt tests",
+    "local_compile_result": "PASS",
+    "local_result": "33 passed",
+    "shanxi_command": "PYTHONPATH=. /cb16/venv/bin/python -m pytest -q tests/test_cc_*.py",
+    "shanxi_compile_command": "PYTHONPATH=. /cb16/venv/bin/python -m compileall -q cb16_local_opt tests",
+    "shanxi_compile_result": "PASS",
+    "shanxi_result": "33 passed in 2.51s",
+    "shanxi_warning_count": 0
   },
   "firewalls": {
     "final_holdout": "SEALED_NOT_OPENED",
@@ -25,9 +31,12 @@
     "real_market_economic_claim": "NOT_MADE",
     "sibling_branch_import_or_cherrypick": "NONE"
   },
+  "initial_receipt_commit_sha": "c60e007100fb303fbf7e8ec13f401c4f310486e7",
   "outcome_classification": "PASS",
   "owned_files": [
     "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_BASELINE_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json",
+    ".github/workflows/cb16-r11-cc-thread-b-shanxi-smoke.yml",
     "cb16_local_opt/cc_continual_retention_r0.py",
     "cb16_local_opt/cc_critic_bootstrap_r0.py",
     "cb16_local_opt/cc_critic_value_r0.py",
@@ -68,11 +77,43 @@
     "tests/test_cc_policy_rng_r0.py",
     "tests/test_cc_policy_wire_r0.py",
     "tests/test_cc_thread_b_baseline_r0.py",
-    "tests/test_cc_vtrace_r0.py",
-    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json"
+    "tests/test_cc_vtrace_r0.py"
   ],
-  "qualified_implementation_head_sha": "d7369fa324fc0176154da3a752331d0c77ef9a78",
   "schema": "CB16_R11_CC_THREAD_B_RECEIPT_V1",
+  "shanxi_docker_smoke": {
+    "artifact_id": 10302746616,
+    "artifact_retention_until_utc": "2026-10-12T17:18:18Z",
+    "artifact_sha256": "51bacc084332b28fbf66fa1f75ffa361550bf9f55aa207c3250fe94f5645ba5c",
+    "artifact_size_bytes": 528,
+    "claim_scope": "SHANXI_DOCKER_EXECUTION_SMOKE_ONLY_NO_REAL_MARKET_EDGE",
+    "compileall_result": "PASS",
+    "cuda_available": true,
+    "cuda_device": "NVIDIA GeForce GTX 1060 6GB",
+    "docker_preflight": "PASS",
+    "final_fresh_firewall": "PASS",
+    "final_holdout_accessed": false,
+    "fresh_market_data_used": false,
+    "frozen_base_lineage": "PASS",
+    "head_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
+    "job_id": 103590741906,
+    "machine_name": "26fb170773b8",
+    "network_install_attempted": false,
+    "preflight": "PASS",
+    "pytest_result": "33 passed in 2.51s",
+    "python_version": "3.10.21",
+    "runner_name": "shanxi-docker-r11",
+    "runner_os": "Linux",
+    "status": "PASS",
+    "torch_cuda_version": "12.6",
+    "torch_version": "2.8.0+cu126",
+    "training_started": false,
+    "verified_canonical_python": "PASS",
+    "warnings": 0,
+    "workflow_path": ".github/workflows/cb16-r11-cc-thread-b-shanxi-smoke.yml",
+    "workflow_run_id": 34707730815,
+    "workflow_run_url": "https://github.com/GY-Bai/CB16-R10/actions/runs/34707730815"
+  },
+  "shanxi_qualified_head_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
   "shared_docs_modified": [],
   "sibling_cc_dependencies": [],
   "status": "PASS",
@@ -154,6 +195,13 @@
       "evaluation_rng_consumption": false,
       "exact_next_sequence_after_restore": true,
       "status": "PASS"
+    },
+    "shanxi_docker_execution": {
+      "compileall": "PASS",
+      "cuda_device": "NVIDIA GeForce GTX 1060 6GB",
+      "pytest": "33 passed in 2.51s",
+      "status": "PASS",
+      "warnings": 0
     },
     "vtrace_math": {
       "ppo_or_gae_stacking": false,
