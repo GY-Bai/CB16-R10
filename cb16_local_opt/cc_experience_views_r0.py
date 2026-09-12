@@ -1,13 +1,21 @@
-from dataclasses import dataclass
-from typing import Mapping
-class ViewIntegrityError(ValueError): pass
-@dataclass(frozen=True)
+from __future__ import annotations
+from dataclasses import dataclass, field
+
+VALID_VIEWS = {"raw", "replay", "demonstration", "economic"}
+
+@dataclass
 class ExperienceViews:
-    raw_fact_ids:frozenset[str]; replay_admissible_ids:frozenset[str]; demonstration_ids:frozenset[str]; evaluation_cohort_ids:frozenset[str]; preregistered_evaluation_ids:frozenset[str]; replay_weights:Mapping[str,float]; evaluation_weights:Mapping[str,float]
-    def __post_init__(self):
-        for n,v in (("replay",self.replay_admissible_ids),("demonstration",self.demonstration_ids),("evaluation",self.evaluation_cohort_ids)):
-            if not v.issubset(self.raw_fact_ids): raise ViewIntegrityError(f"{n} contains non-raw fact")
-        if self.evaluation_cohort_ids!=self.preregistered_evaluation_ids: raise ViewIntegrityError("survivor-filtered evaluation cohort")
-        if set(self.evaluation_weights)!=set(self.evaluation_cohort_ids): raise ViewIntegrityError("evaluation weight mismatch")
-        if not set(self.replay_weights).issubset(self.replay_admissible_ids): raise ViewIntegrityError("replay weight mismatch")
-        if any(float(x)<0 for x in (*self.replay_weights.values(),*self.evaluation_weights.values())): raise ViewIntegrityError("negative weight")
+    raw_ids: set[str] = field(default_factory=set)
+    replay_ids: set[str] = field(default_factory=set)
+    demonstration_ids: set[str] = field(default_factory=set)
+    economic_ids: set[str] = field(default_factory=set)
+
+    def ingest_raw(self, fact_id: str) -> None: self.raw_ids.add(fact_id)
+    def set_membership(self, fact_id: str, view: str, included: bool) -> None:
+        if view not in VALID_VIEWS - {"raw"}: raise ValueError("invalid derived view")
+        if fact_id not in self.raw_ids: raise KeyError("derived membership requires raw fact")
+        target = getattr(self, f"{view}_ids")
+        (target.add if included else target.discard)(fact_id)
+    def assert_economic_cohort(self, preregistered_ids: set[str]) -> None:
+        if self.economic_ids != preregistered_ids:
+            raise ValueError("economic cohort differs from preregistration; survivor filtering forbidden")
