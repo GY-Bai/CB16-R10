@@ -6,7 +6,7 @@
   "parent_cc": {
     "integration_spec": {
       "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json",
-      "blob_sha": "47f52bcc75b3ed980e10f63010dcdec60f20122a"
+      "blob_sha": "47f52f96dda1790cf7fca484d2e6516e0a44ca1a"
     },
     "integration_receipt": {
       "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json",
@@ -22,22 +22,22 @@
   "legacy_economic_surfaces": {
     "evaluator": {
       "path": "cb16_local_opt/cc_economic_evaluator_r0.py",
-      "blob_sha": "396ac8537c85bc3a35fec9a0fb4d0993174dd23d"
+      "blob_sha": "3960ff7032735aa10e9bf03aefed82f80be34918"
     },
     "promotion": {
       "path": "cb16_local_opt/cc_economic_promotion_r0.py",
-      "blob_sha": "a48b3af035cba9dc97724b07f9c2a7fbaa75fa25",
+      "blob_sha": "a48a0beb320f2429a68b14a463a74cd18e27e76c",
       "post_cc_authority": false
     },
     "promotion_test": {
       "path": "tests/test_cc_economic_promotion_r0.py",
-      "blob_sha": "c38bb06fdd9321d3ff97fdedf57bc9f0c1766e83"
+      "blob_sha": "c38dfd630f2544cedb4f50ff8000d2c7a1da7da3"
     }
   },
   "planning_authority": {
     "economic_ordering_and_promotion": {
       "path": "docs/ECONOMIC_ORDERING_AND_PROMOTION.md",
-      "blob_sha": "26981542f5b507317fdbadaabc8f474c9ad23a18"
+      "blob_sha": "269815fd7ded9ec688525d27c1924af68b19abe5"
     },
     "post_cc_scientific_program": {
       "path": "docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md",
