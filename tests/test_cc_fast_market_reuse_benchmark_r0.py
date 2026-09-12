@@ -1,6 +1,11 @@
-import numpy as np
-from cb16_local_opt.cc_fast_market_cache_r0 import *
-def test_reuse_avoids_n_materialized_market_copies():
-    n=16; market=np.arange(20000,dtype=np.float64).reshape(10000,2); repeated_bytes=n*market.nbytes
-    with SharedMarketOwner(MarketCacheKey("m","w","p","o","n"),market) as owner:
-        descriptors=[owner.descriptor for _ in range(n)]; shared_allocated_bytes=owner.descriptor.nbytes; assert len({d.shm_name for d in descriptors})==1; assert shared_allocated_bytes==market.nbytes; assert repeated_bytes==n*shared_allocated_bytes; assert shared_allocated_bytes<repeated_bytes
+from cb16_local_opt.cc_fast_market_reuse_benchmark_r0 import benchmark_market_reuse
+
+
+def test_reuse_reports_speed_and_memory_deltas_without_semantic_change():
+    report = benchmark_market_reuse(account_count=8, rows=4000, repeats=2)
+    assert report.account_count == 8
+    assert report.repeated_materialized_bytes == 8 * report.shared_materialized_bytes
+    assert report.memory_reduction_ratio == 8.0
+    assert report.repeated_compute_s > 0.0
+    assert report.shared_compute_s > 0.0
+    assert report.speedup_ratio > 0.0

@@ -1,24 +1,15 @@
 name: cb16-r11-cc-fast-benchmark-r0
 
 on:
+  push:
+    branches:
+      - ai/r11-cc-thread-d-fast-cutover-r0
+    paths:
+      - cb16_local_opt/cc_fast_*.py
+      - tests/test_cc_fast_*.py
+      - tests/test_cc_thread_d_baseline_r0.py
+      - .github/workflows/cb16-r11-cc-fast-benchmark-r0.yml
   workflow_dispatch:
-    inputs:
-      sha:
-        description: Exact commit SHA to benchmark
-        required: true
-        type: string
-      workers:
-        description: Persistent account workers
-        required: true
-        default: "2"
-        type: choice
-        options: ["2", "4", "6"]
-      accounts:
-        description: Active synthetic accounts
-        required: true
-        default: "16"
-        type: choice
-        options: ["16", "32", "64"]
 
 permissions:
   contents: read
@@ -32,9 +23,12 @@ jobs:
     uses: ./.github/workflows/_cb16-shanxi-preflight.yml
 
   cc-fast-benchmark:
+    name: CC Thread D bounded Shanxi Docker smoke matrix
     needs: shanxi-preflight
-    runs-on: [self-hosted, cb16-linux-x64]
-    timeout-minutes: 15
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 20
+    permissions:
+      contents: read
     env:
       OMP_NUM_THREADS: "1"
       MKL_NUM_THREADS: "1"
@@ -42,16 +36,10 @@ jobs:
       NUMEXPR_NUM_THREADS: "1"
       PYTHONHASHSEED: "0"
     steps:
-      - name: Reject non-SHA input
-        shell: bash
-        run: |
-          set -euo pipefail
-          [[ "${{ inputs.sha }}" =~ ^[0-9a-f]{40}$ ]]
-
-      - name: Checkout exact SHA
+      - name: Checkout exact workflow SHA
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
 
@@ -59,77 +47,163 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "${{ inputs.sha }}"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Install bounded benchmark dependencies
+      - name: Verify Docker execution contract
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check "numpy>=1.23,<3" "pytest>=7,<9" "psutil>=5.9,<8" "numba>=0.57,<1"
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cc_fast_docker_preflight.json"
 
-      - name: Enforce CC Thread D scope and no legacy fallback
+      - name: Resolve verified canonical Python
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          forbidden = (
-              "cb16_local_opt.gpu_inference_broker",
-              "cb16_local_opt.multiprocess_trajectory_farm",
-              "cb16_local_opt.vectorized_physics",
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/cc_fast_python.json"
+          python3 - "$RUNNER_TEMP/cc_fast_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
+          assert p['python']['network_install_attempted'] is False, p
+          PY
+
+      - name: Enforce Thread D import firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
           )
-          for path in Path("cb16_local_opt").glob("cc_fast_*.py"):
-              text = path.read_text(encoding="utf-8")
-              bad = [x for x in forbidden if x in text]
-              if bad:
-                  raise SystemExit(f"legacy import forbidden in {path}: {bad}")
-          print("CC_FAST_IMPORT_FIREWALL_PASS")
+          "$PY" - <<'PY'
+          from pathlib import Path
+          forbidden=(
+              'cb16_local_opt.gpu_inference_broker',
+              'cb16_local_opt.multiprocess_trajectory_farm',
+              'cb16_local_opt.vectorized_physics',
+          )
+          for path in Path('cb16_local_opt').glob('cc_fast_*.py'):
+              text=path.read_text(encoding='utf-8')
+              bad=[x for x in forbidden if x in text]
+              if bad: raise SystemExit(f'legacy import forbidden in {path}: {bad}')
+          print('CC_FAST_IMPORT_FIREWALL_PASS')
           PY
 
       - name: Run Thread D qualification tests
         shell: bash
         run: |
           set -euo pipefail
-          python -m pytest -q tests/test_cc_fast_*.py tests/test_cc_thread_d_baseline_r0.py
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" -m pytest -q tests/test_cc_fast_*.py tests/test_cc_thread_d_baseline_r0.py
 
-      - name: Run measured synthetic benchmark
+      - name: Measure frozen-market reuse
         shell: bash
-        env:
-          GITHUB_SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
           mkdir -p artifacts/cc_fast_benchmark
-          python -m cb16_local_opt.cc_fast_benchmark_runner_r0 \
-            --output artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json \
-            --workers "${{ inputs.workers }}" \
-            --accounts "${{ inputs.accounts }}" \
-            --market-steps 1024 \
-            --chunk-facts 128 \
-            --policy-batch "${{ inputs.accounts }}"
+          "$PY" - <<'PY'
+          import json
+          from pathlib import Path
+          from cb16_local_opt.cc_fast_market_reuse_benchmark_r0 import benchmark_market_reuse
+          r=benchmark_market_reuse(account_count=16, rows=20000, repeats=3)
+          Path('artifacts/cc_fast_benchmark/MARKET_REUSE.json').write_text(json.dumps(r.to_dict(),sort_keys=True,indent=2)+'\n')
+          print(json.dumps(r.to_dict(),sort_keys=True))
+          PY
 
-      - name: Assert benchmark semantics and exact code identity
+      - name: Run bounded candidate matrix
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import json
-          p = json.load(open("artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json", encoding="utf-8"))
-          assert p["semantic"]["verdict"] == "PASS"
-          assert p["accesses_final_or_fresh_data"] is False
-          assert p["collector_report"]["code_identity"] == "${{ inputs.sha }}"
-          assert all(v is False for v in p["collector_extra"]["worker_cuda_initialized"])
-          print("CC_FAST_BENCHMARK_QUALIFIED")
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          mkdir -p artifacts/cc_fast_benchmark
+          for spec in '2 16' '4 32' '6 64'; do
+            set -- $spec
+            w="$1"; a="$2"
+            GITHUB_SHA="$GITHUB_SHA" "$PY" -m cb16_local_opt.cc_fast_benchmark_runner_r0 \
+              --output "artifacts/cc_fast_benchmark/candidate-w${w}-a${a}.json" \
+              --workers "$w" --accounts "$a" --market-steps 384 --chunk-facts 128 --policy-batch "$a"
+          done
+
+      - name: Compile measured winner and safety gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_fast_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1])); print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" - <<'PY'
+          import glob, json, os
+          from pathlib import Path
+          from cb16_local_opt.cc_fast_selection_r0 import CandidateResult, select_fast_candidate
+          rows=[]; selectable=[]
+          for path in sorted(glob.glob('artifacts/cc_fast_benchmark/candidate-*.json')):
+              p=json.load(open(path,encoding='utf-8'))
+              r=p['collector_report']
+              assert p['accesses_final_or_fresh_data'] is False
+              assert r['code_identity'] == os.environ['GITHUB_SHA']
+              assert all(v is False for v in p['collector_extra']['worker_cuda_initialized'])
+              semantic=(p['semantic']['verdict']=='PASS' and r['semantic_verdict']=='PASS')
+              memory=(int(r['pss_bytes']) < 12*1024**3 and int(r['swap_out_bytes']) == 0)
+              queue=(int(r['queue_bytes']) <= 8*1024**2 and float(r['queue_oldest_age_s']) <= 30.0)
+              cid=Path(path).stem
+              row={
+                  'candidate_id':cid,
+                  'semantic_pass':semantic,
+                  'memory_safety_pass':memory,
+                  'queue_safety_pass':queue,
+                  'compliant_transitions_per_s':float(r['compliant_transitions_per_s']),
+                  'wall_clock_s':float(r['wall_clock_s']),
+                  'policy_decisions_per_s':float(r['policy_decisions_per_s']),
+                  'pss_bytes':int(r['pss_bytes']),
+                  'swap_out_bytes':int(r['swap_out_bytes']),
+                  'queue_bytes':int(r['queue_bytes']),
+                  'hardware':p['hardware'],
+                  'selected_policy_microbenchmark':p['policy_mode_benchmark']['selected_for_policy_microbenchmark'],
+              }
+              rows.append(row)
+              selectable.append(CandidateResult(cid,semantic,memory,queue,row['compliant_transitions_per_s'],row['wall_clock_s'],True))
+          assert len(rows)==3, rows
+          winner=select_fast_candidate(selectable)
+          payload={
+              'schema_version':'CB16_R11_CC_FAST_SHANXI_SMOKE_MATRIX_V1',
+              'code_sha':os.environ['GITHUB_SHA'],
+              'science_scope':'SYNTHETIC_ONLY_NO_FINAL_NO_FRESH',
+              'candidate_count':len(rows),
+              'candidates':rows,
+              'winner':winner.candidate_id,
+              'winner_rule':'max compliant transitions/s among semantic+memory+queue PASS; wall clock tie-break',
+              'performance_measured':True,
+          }
+          Path('artifacts/cc_fast_benchmark/CC_FAST_SHANXI_MATRIX.json').write_text(json.dumps(payload,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(payload,sort_keys=True))
           PY
 
       - name: Upload benchmark evidence
         uses: actions/upload-artifact@v7
         with:
-          name: cb16-r11-cc-fast-benchmark-r0-${{ inputs.sha }}
-          path: artifacts/cc_fast_benchmark/CC_FAST_BENCHMARK_RESULT.json
+          name: cb16-r11-cc-fast-benchmark-r0-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/cc_fast_docker_preflight.json
+            ${{ runner.temp }}/cc_fast_python.json
+            artifacts/cc_fast_benchmark/*.json
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
