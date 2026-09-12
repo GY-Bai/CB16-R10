@@ -12,6 +12,7 @@ CB16 的目标是在沙盒中训练一个单资产 Trader：读取市场和账�
 - **文档导航**：[docs/README.md](docs/README.md)。
 - **当前做到哪里**：[CURRENT_STATE](docs/CURRENT_STATE.md)，包含 main 与未合并分支的区别。
 - **如何学习**：[LEARNING_CONTRACT](docs/LEARNING_CONTRACT.md)。
+- **具体算法设计**：[TRAINING_ALGORITHM_R0](docs/TRAINING_ALGORITHM_R0.md) / [资格计划](docs/TRAINING_QUALIFICATION_R0.md)，目前为设计提案。
 - **如何判断策略**：[EVALUATION_PRINCIPLES](docs/EVALUATION_PRINCIPLES.md)。
 - **组件分别负责什么**：[ARCHITECTURE_MAP](docs/ARCHITECTURE_MAP.md)。
 - **哪些已决定、哪些待定**：[DECISIONS](docs/DECISIONS.md) / [OPEN_QUESTIONS](docs/OPEN_QUESTIONS.md)。

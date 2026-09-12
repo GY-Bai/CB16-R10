@@ -7,7 +7,7 @@
 1. 阅读 [README](README.md) 与 [文档入口](docs/README.md)。
 2. 阅读 [最高理念](docs/VISION.md)、[学习规则](docs/LEARNING_CONTRACT.md)、[评价规则](docs/EVALUATION_PRINCIPLES.md)。
 3. 阅读 [当前状态](docs/CURRENT_STATE.md)；现场核对目标分支 SHA、相关 Actions、authority 和 receipt。状态文档是带日期的快照，不是实时数据库。
-4. 按本次任务阅读 [组件职责](docs/ARCHITECTURE_MAP.md)、[决策记录](docs/DECISIONS.md)、[未决问题](docs/OPEN_QUESTIONS.md)，再查对应实现。
+4. 按本次任务阅读 [组件职责](docs/ARCHITECTURE_MAP.md)、[决策记录](docs/DECISIONS.md)、[未决问题](docs/OPEN_QUESTIONS.md)，再查对应实现。训练设计另读 [算法候选 R0](docs/TRAINING_ALGORITHM_R0.md) 和 [资格计划](docs/TRAINING_QUALIFICATION_R0.md)。
 5. 不要求通读全部历史文件。沿当前任务的调用链和证据索引读取必要材料。
 
 ## 必须保持的项目含义
@@ -18,7 +18,7 @@
 - 复习不等于已覆盖全部可达账户状态；拟合固定示范不等于实现自主连续 rollout。复用经验也不增加独立市场证据数量。
 - 账户承担后续后果。计算片段、checkpoint 换代和账户终止是不同事件；72 小时不是用户规定的账户寿命。
 - 风险取舍由模型学习。用户接受在完整计入失败后、长期期望收益更高的高风险策略获胜。不得私自改成“最少爆仓优先”、Sharpe 优先或对数效用优先。
-- 已发生的失败必须计入所声称的整体策略评价；是否及怎样使用失败轨迹产生梯度，见未决问题，不能假定已有批准的方法。
+- 已发生的失败必须计入所声称的整体策略评价。用户已批准保留成功与失败完整经历、优胜示范另筛，并允许失败参与长期后果学习；不要重复请求这一原则的确认。具体算法候选不等于已执行或已资格认定。
 - 冻结器官和可训练 Brain stems 不同。当前 nominal Brain 的结构以版本化合同为准；“central brain / decoder”不意味着代码必然是 Transformer decoder。
 - Truth != Belief != Decision != Permission。requested_risk != confidence。观察投影不是完整账本；一次实现收益不是正确动作标签。
 

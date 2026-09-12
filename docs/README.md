@@ -8,6 +8,8 @@
 |---|---|
 | 项目所有者想培养怎样的 Trader？ | [VISION](VISION.md) |
 | 经验怎样生成、复习、更新模型？ | [LEARNING_CONTRACT](LEARNING_CONTRACT.md) |
+| 哪个具体算法、如何奖励、回放和归因？ | [TRAINING_ALGORITHM_R0](TRAINING_ALGORITHM_R0.md) |
+| 如何验证算法与接口？ | [TRAINING_QUALIFICATION_R0](TRAINING_QUALIFICATION_R0.md) |
 | 超额收益、风险、排行榜意味着什么？ | [EVALUATION_PRINCIPLES](EVALUATION_PRINCIPLES.md) |
 | 每个组件负责什么，现有实现在哪里？ | [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md) |
 | main 与开发分支分别做到哪里？ | [CURRENT_STATE](CURRENT_STATE.md) |
