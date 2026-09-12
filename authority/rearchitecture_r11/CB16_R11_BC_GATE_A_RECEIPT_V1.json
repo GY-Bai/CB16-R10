@@ -1,0 +1,94 @@
+{
+  "schema": "CB16_R11_BC_GATE_A_RECEIPT_V1",
+  "gate": "BC-A",
+  "task_id": "BC-020",
+  "result_classification": "PASS",
+  "evidence_level": {
+    "maximum_justified_level": "COMPONENT",
+    "claimed_level": "COMPONENT"
+  },
+  "science_contract_sha256": "b91e834a59d81df9b34f40d18ab60826cdd1bf6001e24e0ab3f11546c231ef09",
+  "tested_implementation_head_sha": "0b8d617a6adb682ace11280bac53a291f1a3b5e7",
+  "tested_pull_request_merge_sha": "9f87083d7a99ae3ef134fddf892ccc92f573c131",
+  "receipt_metadata_commit_is_not_science_identity": true,
+  "prerequisite_tasks": [
+    "BC-001",
+    "BC-002",
+    "BC-003",
+    "BC-004",
+    "BC-005",
+    "BC-006",
+    "BC-007",
+    "BC-008",
+    "BC-009",
+    "BC-010",
+    "BC-011",
+    "BC-012",
+    "BC-013",
+    "BC-014",
+    "BC-015",
+    "BC-016",
+    "BC-017",
+    "BC-018",
+    "BC-019",
+    "BC-020"
+  ],
+  "checks": {
+    "bc_001_through_bc_020_pytest": {
+      "status": "PASS",
+      "tests_passed": 157,
+      "tests_failed": 0,
+      "duration_seconds": 0.54
+    },
+    "final_holdout_firewall": {
+      "status": "PASS",
+      "final_holdout_touched": false,
+      "assertion": "data/2025-09 and final_holdout absent"
+    },
+    "fresh_data_firewall": {
+      "status": "PASS",
+      "fresh_market_data_downloaded": false,
+      "assertion": "test execution performed against repository-frozen inputs only"
+    },
+    "working_tree_integrity": {
+      "status": "PASS",
+      "assertion": "git diff --exit-code"
+    }
+  },
+  "execution_evidence": {
+    "workflow_name": "CB16 R11 BC Gate A Temporary",
+    "workflow_run_id": 34699292657,
+    "job_id": 103568084514,
+    "runner": "github-hosted ubuntu-24.04",
+    "python": "3.12.14",
+    "pytest": "9.1.1",
+    "run_started_utc": "2026-09-12T14:26:35Z",
+    "pytest_completed_utc": "2026-09-12T14:26:42Z"
+  },
+  "source_artifacts": [
+    "cb16_local_opt/actor_critic_physics_adapter_r1.py",
+    "tests/test_actor_critic_physics_adapter_r1.py",
+    "authority/rearchitecture_r11/CB16_R11_BC_EXECUTION_RULE_TAXONOMY_V1.json",
+    "cb16_local_opt/actor_critic_environment_profile_r1.py",
+    "cb16_local_opt/action_contract_r1.py",
+    "cb16_local_opt/target_exposure_r1.py",
+    "cb16_local_opt/actor_critic_supervisor_r1.py",
+    "cb16_local_opt/execution_feasibility_r0.py",
+    "cb16_local_opt/reversal_execution_r1.py",
+    "cb16_local_opt/account_economics_r0.py",
+    "cb16_local_opt/account_terminal_r0.py"
+  ],
+  "claim_scope": {
+    "contract": true,
+    "component": true,
+    "closed_loop": false,
+    "known_answer": false,
+    "economic": false,
+    "transfer": false
+  },
+  "notes": [
+    "Gate BC-A qualifies corrected Round-2 component semantics only.",
+    "This receipt does not claim closed-loop learning, economic edge, or transfer evidence.",
+    "R11 Main Smoke is not used as evidence for this gate."
+  ]
+}
