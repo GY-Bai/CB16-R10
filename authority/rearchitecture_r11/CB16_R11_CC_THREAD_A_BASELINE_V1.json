@@ -1,0 +1,21 @@
+{
+  "schema": "CB16_R11_CC_THREAD_A_BASELINE_V1",
+  "thread": "A",
+  "implementation_base": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "planning_authority": {"path":"docs/R11_CC_PARALLEL_HARD_CUTOVER_TODO.md","ref":"current-main-at-thread-start","blob_sha":"b84ad753a2400062e1f3f785f511105b9d25b66a"},
+  "thread_authority": {"path":"docs/cc/CC_THREAD_A_RUNTIME_ACCOUNT.md","ref":"current-main-at-thread-start","blob_sha":"88beeceb5b81a29a28d5a8d59ffee70e0de96442"},
+  "wire_contracts": ["CCPolicyDecisionV1","CCEnvironmentTransitionV1"],
+  "consumed_frozen_blobs": {
+    "cb16_local_opt/account_economics_r0.py":"85067735bdad56b1942e1ba41930fc446dc57db3",
+    "cb16_local_opt/action_contract_r1.py":"69d2a4109657447c038bddb36285d0fbe2289e12",
+    "cb16_local_opt/actor_critic_contract_r1.py":"c7be04ef1526c17546c73ae7b3768e58c9fc94dc",
+    "cb16_local_opt/actor_critic_environment_profile_r1.py":"fa6ebcdaf94d40975a5d0ae35c695ca232abf8e5",
+    "cb16_local_opt/actor_critic_supervisor_r1.py":"e55b9c8dd498213de882aecccec6e50c09517118",
+    "cb16_local_opt/actor_critic_physics_adapter_r1.py":"237be61b65a69ab9bead5238f1326337725f403b",
+    "cb16_local_opt/execution_feasibility_r0.py":"5b7b240e6c1ffa1384e8f05dacc1a749aaf40fd7",
+    "cb16_local_opt/target_exposure_r1.py":"ccc0baa57b7f65b5e11c877d7aebbb84d8bb0fd5"
+  },
+  "forbidden_cc_dependencies":["ai/r11-cc-thread-b-policy-r0","ai/r11-cc-thread-c-experience-r0","ai/r11-cc-thread-d-performance-r0"],
+  "final_firewall":"SEALED",
+  "fresh_data_download":"FORBIDDEN"
+}

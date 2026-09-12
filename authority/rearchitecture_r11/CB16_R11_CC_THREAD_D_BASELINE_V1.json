@@ -1,0 +1,31 @@
+{
+  "final_data_access": "FORBIDDEN",
+  "fresh_market_download": "FORBIDDEN",
+  "frozen_implementation_base": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "implementation_branch": "ai/r11-cc-thread-d-fast-cutover-r0",
+  "legacy_performance_reference_blobs_at_frozen_base": {
+    "cb16_local_opt/gpu_inference_broker.py": "4b90ced80be2916882501001c63d20b573e6279b",
+    "cb16_local_opt/market_runtime_cache_r11.py": "780787c986ddbf2ad769d3e2cfc3390f911e81c1",
+    "cb16_local_opt/multiprocess_trajectory_farm.py": "072aad0d74e075d2d320dd18a1bd2183de9b134d",
+    "cb16_local_opt/vectorized_physics.py": "804694a0232088eda90f4874287b30ebbebba8cb"
+  },
+  "planning_docs_read_from_main": {
+    "docs/R11_CC_PARALLEL_HARD_CUTOVER_TODO.md": "b84ad753a2400062e1f3f785f511105b9d25b66a",
+    "docs/cc/CC_THREAD_A_RUNTIME_ACCOUNT.md": "88beeceb5b81a29a28d5a8d59ffee70e0de96442",
+    "docs/cc/CC_THREAD_B_POLICY_LEARNING.md": "def4d8698cd95bedf6c55f8047429c2d85d2f8db",
+    "docs/cc/CC_THREAD_C_EXPERIENCE_ECONOMICS.md": "322d629fc1eaa5a3ba64c1d408253997b4967285",
+    "docs/cc/CC_THREAD_D_PERFORMANCE_HARD_CUTOVER.md": "748290ac8eb4342d7d8ae6136e0e536aa0b0bece"
+  },
+  "schema_version": "CB16_R11_CC_THREAD_D_BASELINE_V1",
+  "semantic_reference_blobs_at_frozen_base": {
+    "cb16_local_opt/action_contract_r1.py": "69d2a4109657447c038bddb36285d0fbe2289e12",
+    "cb16_local_opt/actor_critic_contract_r1.py": "c7be04ef1526c17546c73ae7b3768e58c9fc94dc",
+    "cb16_local_opt/actor_critic_physics_adapter_r1.py": "237be61b65a69ab9bead5238f1326337725f403b",
+    "cb16_local_opt/actor_policy_r1.py": "4cc953a178280ac7fc62f9ff3f1bb01ee50a2307",
+    "docs/PERFORMANCE_STRATEGY_3700X_1060.md": "dc5990331906e8b1513d87eb56fa2d38fa0dd07e"
+  },
+  "shared_management_docs_modification_forbidden": ["docs/CURRENT_STATE.md", "docs/ARCHITECTURE_MAP.md", "README.md", "AGENTS.md"],
+  "sibling_branch_dependencies": [],
+  "sibling_code_consumption_forbidden": true,
+  "thread": "D"
+}

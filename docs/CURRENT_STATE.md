@@ -1,62 +1,70 @@
 # 当前状态与接手断点
 
-核对日期：2026-09-12 UTC。**本轮代码快照：main `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2`**。提交前补核对：`7c412ee264c463e8f9f28c707c02eccfa4ab055c` 新增 AC-014 执行适配器，具体增量见下节。main 正由实现 agent 持续推进，接手必须核对 live SHA；以下不是强制 checkout 命令，也不是后续提交的完成证明。
+核对日期：2026-09-12 UTC。当前 CC canonical handoff 由 PR #99 `ai/r11-cc-integration-r0` 提供；**经过 Shanxi 完整资格测试的代码 head 为 `fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2`**。最终机器可读 authority 见：
 
-## 1. 当前分工和目标
+- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
+- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
 
-用户要求本设计对话只负责最高理念和文档；GPT-5.6 sol 负责 TODO 拆解和代码实现。已发布 [理念对齐规则](PRINCIPLE_ALIGNMENT.md) 与 [组件要求](COMPONENT_REQUIREMENTS.md)，实施沿用 [AC-001–AC-058 TODO](R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md)，本轮未修改其任务依赖或实现。
+不要再从移动的 A/B/C/D branch 名恢复 authority；四线程 frozen heads、qualified implementation SHAs 和 receipt blob hashes 已写入 integration receipt。
 
-用户已确认保留成功与失败完整经历，优胜示范另筛，失败可参与长期后果学习。主候选为 [V-trace 序列回放 Actor–Critic](TRAINING_ALGORITHM_R0.md)；候选、接口实现和完整训练资格是不同状态。
+## 1. CC 已完成什么
 
-## 2. 新链已推进到哪些接口
+CC 四线程已经完成独立实现、integration join、closed-loop qualification、reference-vs-fast equivalence、hostile/recovery qualification、Shanxi 性能选择和 hard cutover。
 
-本轮核对 main 历史、新增文件、Supervisor 与数量映射代码，以及快照对应 Actions 状态；没有重新运行每项 AC 专项 gate 或独立下载其 artifact。
+当前闭环已经在一个合成资格 canary 中实际接通：
 
-| 已观察的实现 | 证据入口 | 尚不能据此断言 |
-|---|---|---|
-| AC-001–AC-004 对应科学版本、哈希、新旧路由和 legacy sentinel | [science contract](../cb16_local_opt/actor_critic_contract_r0.py)、[router](../cb16_local_opt/actor_critic_runtime_router_r0.py)、[sentinel](../tests/test_actor_critic_legacy_freeze_r0.py) | 新链已有生产级完整调度 |
-| AC-005–AC-009 对应目标动作、转换、记录和行为身份 | [action](../cb16_local_opt/action_contract_r0.py)、[execution record](../cb16_local_opt/execution_record_r0.py) | 已有随机 Actor 或真实行为概率采集 |
-| AC-010–AC-012 对应持仓调整许可与显式先平后开反转契约 | [Supervisor](../cb16_local_opt/actor_critic_supervisor_r0.py) | 已经成交、反转两腿已完整计账 |
-| AC-013 对应 risk 到合法名义额度比例及目标数量映射 | [target exposure](../cb16_local_opt/target_exposure_r0.py)、[commit](https://github.com/GY-Bai/CB16-R10/commit/2da90a0b4577ad7d950641fe0a1bcd81f08d58e2) | 目标数量已经被 Physics 执行 |
-| 部分原分支通用组件已整合 | [consolidation commit](https://github.com/GY-Bai/CB16-R10/commit/25d5df8337905232ca76b7d334c390d5deeb1a07) | 所有旧示范分支内容或 71 块生产均已完成 |
+`Market + same Account -> stochastic Actor -> nominal action + true log_mu -> permission -> target sizing -> execution -> signed account consequence -> environment advance -> next Actor decision -> immutable experience -> replay -> Critic/V-trace update -> committed child checkpoint -> generation switch -> SAME LOGICAL ACCOUNT -> child policy acts`
 
-此快照中未找到新链计划的 Physics adapter、随机 Actor、连续 Collector 与 V-trace learner 实现文件。因此最高目标尚需真实执行、连续经验、学习更新和下一代使用的连接证据。不能用组件数量或 commit 标题证明这些连接已完成。
+资格 canary 保留了 policy/RNG/generation provenance、真实 `log_mu`、失败事实、同账户连续性，并验证 exactly-once learner commit。它是 **synthetic closed-loop/known-answer evidence**，不是市场盈利证据。
 
-旧 `risk_supervisor_r1.py` 与冻结 kernel 的持仓 FORCED_NOOP 仍属于旧链。新链已实现持仓调整许可和反转契约；**不再把旧限制概括为整个项目目前无法表达这些动作**。
+## 2. 四线程 authority
 
-### 提交前增量：AC-014 与最高理念的剩余差异
+所有线程原始 implementation base：`89d62bf966f476e598f0e2f5c5e8e03c15a8db51`。
 
-随后 main [`7c412ee`](https://github.com/GY-Bai/CB16-R10/commit/7c412ee264c463e8f9f28c707c02eccfa4ab055c) 新增 [目标仓位执行适配器](https://github.com/GY-Bai/CB16-R10/blob/7c412ee264c463e8f9f28c707c02eccfa4ab055c/cb16_local_opt/actor_critic_physics_adapter_r0.py) 与对应测试；本轮读取了适配器代码。因此上述“尚无 adapter”只适用于 AC-013 快照，不能作为最新 main 的缺口继续转述。
+| Thread | Frozen head | Qualified implementation | Integration 中的 authority |
+|---|---|---|---|
+| A | `d904fa67f66026fc2bc9c320fe5a888ff5f98db6` | `b1ebbc45482f2b10c49bbd9c521f831020558a04` | runtime/account/execution correctness oracle |
+| B | `f06babb485daee0a2f7e978c51d6263b03fc2fea` | `87a37398d75c9fb644de31d94595db66a49fafbc` | stochastic policy, true joint `log_mu`, Critic/V-trace learner, checkpoint/retention |
+| C | `626241fc1043e10326e538f93cf08d9cfac75b67` | `2a909fe0ba9a55d0540a5c93c034bae7db131cf4` | immutable experience, replay, arithmetic-economic evaluation contracts |
+| D | `26742447af209d52943085e9d37996eae522b93c` | `089031a935e58100f3a0dbfec34c16fa5f272915` | performance implementation only; no new scientific semantics |
 
-该函数实现目标数量到开仓、增减仓、退出和先平后开反转的仓位操作，并记录实际 legs；函数明确不推进市场 bar。随机 Actor、连续 Collector 与 learner 的完整连接仍需后续证据。本轮未独立复跑 AC-014 专项测试或下载产物。
+W contracts are frozen as W-01 `CCPolicyDecisionV1`, W-02 `CCEnvironmentTransitionV1`, W-03 `CCExperienceSequenceV1`, W-04 `CCLearningUpdateV1`, W-05 `CCEconomicResultV1`. Science identity is `CB16_R11_CC_SCIENCE_SEMANTIC_V1`.
 
-**理念审阅的具体未闭合项**：模块说明明确将 intrabar SL/TP 与 max-hold 留给旧 `step_account`；开仓继续调用 `_entry_risk_prices`，增仓许可仍检查止损与清算价关系。保留这些行为可以构成版本明确的受限环境实验，但不能宣称已消除人为退出策略、完全实现 P-05。
+## 3. 最终资格结果
 
-sol 应在后续执行设计中列出这些规则的来源、策略影响和新链适用范围；沿已有任务记录差异，不改写旧证据。仅仅保持历史文件字节不变，并不要求新链永远继承其交易偏好。具体是否复用同一内核或增加版本化模式属于工程选择，本页不指定代码方案。
+Shanxi workflow run `34710702090`, qualification job `103598868269`：
 
-另有需对账验证的审阅点：`_partial_reduce` 将 cash 夹到非负。是否可能在该路径抹去经济损失，取决于可达状态及完整账本定义；本轮未运行反例，不先判为已证 bug。实现者应给出守恒证据，不能让数值保护替代真实损失记录。
+- Repo/Docker/Python/import firewalls: PASS.
+- Joined CC tests: **155 passed, 1 deselected**。唯一 deselected 项是 Thread A 在独立分支阶段使用的 “no sibling CC module dependency” isolation assertion；A/B/C/D 合法 join 后它不再适用，没有 deselect 科学行为测试。
+- Closed-loop + provenance audit: PASS。
+- Hostile/recovery: PASS，包括 negative equity/liability、REJECT 后 world continuation、reversal second-leg failure、process crash/recovery、failure-fact retention、writer backpressure、same-account generation switch、exactly-once update。
+- Reference-vs-fast semantic equivalence: PASS；canonical semantic checksum `c864052eab1c107ab73a88d96ddb527bfc60819a41165b1495ecc74d56644988`，final account checksum `29d33e7639029f40c6edfb1c7fe9fff26e4af3f418cf5109a066a55de13e282e`。
+- FINAL remained sealed；fresh market data was not used。
 
-## 3. 已读取的自动检查
+资格 artifact ID `10303497599`，artifact SHA256 `9b0be77738e680de071e92d622f9fc25539373ec4c49a54714f471cafde4b903`。
 
-- 算法文档提交 [875ab16](https://github.com/GY-Bai/CB16-R10/commit/875ab16f92c6504a2bdd5fcc12d5ea6172464990)：[repo-guard 34674613980](https://github.com/GY-Bai/CB16-R10/actions/runs/34674613980) 与 [Main Smoke 34674614161](https://github.com/GY-Bai/CB16-R10/actions/runs/34674614161) 均 success；当时 10 个发布文件 blob 与本地内容相符。
-- AC-013 快照：[repo-guard 34686788794](https://github.com/GY-Bai/CB16-R10/actions/runs/34686788794) 与 [Main Smoke 34686788897](https://github.com/GY-Bai/CB16-R10/actions/runs/34686788897) 的状态以本页更新时核对值为准，见下行。
+## 4. Canonical 性能路径
 
-AC-013 核对结果：repo-guard 与 Main Smoke 均 completed / success。CI success 不是 Actor–Critic 的科学资格或盈利证明；专项 gate 的独立产物复核不在本轮文档任务内。
+预注册 workload：16 accounts × 64 market steps = 1024 transitions/run，reference 与 fast 各 7 次并交替执行顺序。
 
-## 4. 下一次理念审阅关注什么
+- Reference median: **7.535366 transitions/s**；median wall clock **135.892535 s**。
+- Integrated fast median: **638.765768 transitions/s**；median wall clock **1.603092 s**。
+- Median speedup: **84.769×**。
 
-沿既有实施计划推进时，优先看三个可观察问题：
+因此按冻结规则 `PERFORMANCE FIRST AMONG SEMANTICALLY QUALIFIED IMPLEMENTATIONS`，canonical topology 是：
 
-1. 许可目标是否真正变成仓位与账本变化，包括减仓、退出、反转失败和费用。
-2. 该账户后果是否进入下一次政策决策，并跨切片、恢复、模型换代接续。
-3. 普通及失败经历是否进入合规后果学习，更新后的政策是否被实际使用；受控任务与经济比较分别给结论。
+`CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER`
 
-其中包括 risk 比例与真实数量的区别、保证金来源、终态负净值以及暂停恢复语义，详见 [组件要求](COMPONENT_REQUIREMENTS.md)。这些是审阅方向，不是本轮已发现 bug 的定论。
+含义不是把 Thread D 的 synthetic account kernel 升格为科学 authority。账户/执行科学语义仍由 Thread A 定义；D 在 integrated canonical runtime 中负责 same-account scheduling、bounded fact transport 和 durable chunk writing。
 
-精确经济时域、比较人群/权重、基准组合和未来模拟账户晋升规则仍见 [OPEN_QUESTIONS](OPEN_QUESTIONS.md)。常规任务拆解不必因此停下；依赖该科学选择的正式比较须先形成具体方案。不得重复请求失败学习等已确认原则的许可。
+CC 已 hard cutover：canonical CC runtime 不得 import、兼容或 fallback 到 `gpu_inference_broker.py`、`multiprocess_trajectory_farm.py`、`vectorized_physics.py`。新 fast path 失败时 fail closed。
 
-## 5. 历史记录与维护
+## 5. 证据边界与下一断点
 
-最初的示范分支、manifest、第一块生产分片及当时运行核对保留在 [首次文档阶段历史快照](HISTORICAL_STATE_20260912_INITIAL.md)。其中“未合并”“下一步”是历史状态，不代表当前分支仍存在，也不覆盖后续 consolidation。历史 FAIL、authority 和产物保持原身份。
+**最强已证 evidence：`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`。**
 
-后续实现 agent 更新本页时写明：精确 SHA、所读代码/receipt/run、证据类型、实际接通处、剩余缺口。只核对代码时不要写成实验通过；只看到 receipt 哈希时不要写成独立重算产物。当前 FINAL 封存、fresh download 与实验权限不因文档更新自动变化。
+这不能被写成 ECONOMIC 或 TRANSFER evidence；本轮没有打开 FINAL，也没有用 fresh data，没有证明真实市场 edge、盈利性或跨数据迁移。
+
+当前唯一保留的 owner-open 科学决策来自 Thread C：当 buy-and-hold 与 FLAT component outcomes 冲突时，尚未指定一个 master precedence/winner rule。Integration 没有替用户发明规则。
+
+后续工作若开始真实 historical science，应从本 receipt 指定的 canonical CC runtime 出发；不要重新打开四线程 implementation，也不要恢复 legacy performance fallback。历史 AC/BC TODO、Stage-4 和 demonstration 文档仍保留为 provenance/history，而不是当前 execution authority。

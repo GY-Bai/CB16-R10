@@ -1,0 +1,152 @@
+{
+  "schema": "CB16_R11_CC_INTEGRATION_SPEC_V1",
+  "status": "QUALIFIED_AND_FROZEN",
+  "integration_branch": "ai/r11-cc-integration-r0",
+  "integration_seed_sha": "68ab5881a3ff0e43a0291c2f1406b534ab85a965",
+  "frozen_implementation_base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "qualified_integration_head_sha": "fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2",
+  "frozen_threads": {
+    "A": {
+      "head_sha": "d904fa67f66026fc2bc9c320fe5a888ff5f98db6",
+      "qualified_implementation_sha": "b1ebbc45482f2b10c49bbd9c521f831020558a04",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_A_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "32499bf8e0c515762bf0e7c100d9f9c3f4770e30"
+    },
+    "B": {
+      "head_sha": "f06babb485daee0a2f7e978c51d6263b03fc2fea",
+      "qualified_implementation_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "ac976274953c7d8f48200e0c750be4944c88cd10"
+    },
+    "C": {
+      "head_sha": "626241fc1043e10326e538f93cf08d9cfac75b67",
+      "qualified_implementation_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
+    },
+    "D": {
+      "head_sha": "26742447af209d52943085e9d37996eae522b93c",
+      "qualified_implementation_sha": "089031a935e58100f3a0dbfec34c16fa5f272915",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_D_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "cae9b31ae490cec348485e60feffb4d27bdc8812"
+    }
+  },
+  "science_contract": {
+    "identity": "CB16_R11_CC_SCIENCE_SEMANTIC_V1",
+    "planning_authority": "docs/R11_CC_PARALLEL_HARD_CUTOVER_TODO.md",
+    "protected_meanings": [
+      "account_continuity",
+      "signed_account_economics",
+      "negative_equity_and_explicit_liability",
+      "nominal_action_distinct_from_permission_and_execution",
+      "true_log_mu",
+      "policy_rng_generation_provenance",
+      "failure_and_terminal_fact_retention",
+      "frozen_organ_trainable_brain_ownership",
+      "arithmetic_expected_return_orientation",
+      "FINAL_firewall",
+      "fresh_data_firewall",
+      "no_hidden_fixed_SL_TP_max_hold_cooldown_policy",
+      "same_account_temporal_serialization"
+    ]
+  },
+  "wire_contracts": {
+    "W-01": "CCPolicyDecisionV1",
+    "W-02": "CCEnvironmentTransitionV1",
+    "W-03": "CCExperienceSequenceV1",
+    "W-04": "CCLearningUpdateV1",
+    "W-05": "CCEconomicResultV1"
+  },
+  "adapter_rules": {
+    "storage_type_normalization": "ALLOWED_ONLY_WHEN_FIELD_MEANING_IS_UNCHANGED",
+    "no_decision_mechanical_advance": "PERSIST_AS_RAW_FACT_BUT_DO_NOT_FABRICATE_POLICY_DECISION_OR_LOG_MU_AND_DO_NOT_ADMIT_TO_VTRACE_REPLAY",
+    "thread_a_account_execution": "CORRECTNESS_ORACLE",
+    "thread_d_role": "SCHEDULING_TRANSPORT_STORAGE_PERFORMANCE_ONLY",
+    "legacy_performance_adapters": "FORBIDDEN"
+  },
+  "closed_loop_required_chain": [
+    "market_plus_account",
+    "thread_b_stochastic_actor",
+    "nominal_action_plus_true_log_mu",
+    "thread_a_permission_target_sizing_execution",
+    "signed_account_consequence",
+    "environment_advance",
+    "next_actor_decision",
+    "thread_c_immutable_experience",
+    "thread_c_replay_sequence",
+    "thread_b_vtrace_learner_update",
+    "child_checkpoint",
+    "thread_a_generation_switch",
+    "same_logical_account",
+    "child_policy_actually_acts"
+  ],
+  "known_answer_equivalence": {
+    "discrete_fields": "EXACT_BY_CANONICAL_FACT_AND_FINAL_ACCOUNT_CHECKSUM",
+    "floating_atol": 1e-10,
+    "floating_rtol": 1e-10,
+    "oracle": "Thread_A_reference_semantics",
+    "fast_path_may_not_change_scientific_semantics": true
+  },
+  "selected_runtime_topology": "CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER",
+  "selected_runtime_definition": {
+    "runtime_account_execution_semantics": "THREAD_A",
+    "policy_critic_learner": "THREAD_B",
+    "immutable_experience_replay_evaluation": "THREAD_C",
+    "performance_spine": "THREAD_D_SAME_ACCOUNT_SCHEDULER_BOUNDED_QUEUE_DURABLE_CHUNK_WRITER",
+    "thread_d_synthetic_account_kernel_promoted_to_science_authority": false,
+    "legacy_performance_fallback": false,
+    "failure_mode": "FAIL_CLOSED"
+  },
+  "shanxi_benchmark": {
+    "runner_labels": ["self-hosted", "shanxi-docker-r11"],
+    "workflow_run_id": 34710702090,
+    "job_id": 103598868269,
+    "artifact_id": 10303497599,
+    "artifact_sha256": "9b0be77738e680de071e92d622f9fc25539373ec4c49a54714f471cafde4b903",
+    "repetitions_per_topology": 7,
+    "ordering": "ALTERNATE_REFERENCE_FAST_AND_FAST_REFERENCE",
+    "selection_rule": "MAX_MEDIAN_END_TO_END_COMPLIANT_TRANSITIONS_PER_SECOND_AMONG_SEMANTIC_PASS_IMPLEMENTATIONS",
+    "workload_identity": "CB16_R11_CC_INTEGRATED_SYNTHETIC_WORKLOAD_V1",
+    "accounts": 16,
+    "market_steps": 64,
+    "transitions_per_run": 1024,
+    "reference_median_transitions_per_s": 7.535366092751262,
+    "fast_median_transitions_per_s": 638.7657684067791,
+    "fast_over_reference_median_ratio": 84.76904247840694,
+    "semantic_checksum": "c864052eab1c107ab73a88d96ddb527bfc60819a41165b1495ecc74d56644988",
+    "final_account_checksum": "29d33e7639029f40c6edfb1c7fe9fff26e4af3f418cf5109a066a55de13e282e",
+    "semantic_equivalence": "PASS"
+  },
+  "mandatory_gates": {
+    "CLOSED_LOOP_PASS": true,
+    "KNOWN_ANSWER_PASS": true,
+    "REFERENCE_FAST_EQUIVALENCE_PASS": true,
+    "HOSTILE_RECOVERY_PASS": true,
+    "SHANXI_BENCHMARK_PASS": true,
+    "HARD_CUTOVER_PASS": true,
+    "LEGACY_IMPORT_FIREWALL_PASS": true,
+    "FINAL_FRESH_FIREWALL_PASS": true
+  },
+  "docs_update_policy": "SHARED_CANONICAL_DOCS_MAY_CHANGE_ONLY_AFTER_ALL_MANDATORY_GATES_PASS",
+  "economic_evidence_policy": "NO_ECONOMIC_OR_TRANSFER_CLAIM_FROM_INTEGRATION_MECHANICAL_OR_PERFORMANCE_QUALIFICATION",
+  "strongest_justified_evidence_level": "INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE",
+  "owner_open_decisions": [
+    {
+      "owner": "OWNER",
+      "topic": "conflicting_buy_and_hold_and_flat_component_outcomes",
+      "source_thread": "C",
+      "status": "UNRESOLVED_OWNER_DECISION",
+      "integration_must_not_invent_precedence": true
+    }
+  ],
+  "evidence_limit": {
+    "economic_evidence_claimed": false,
+    "transfer_evidence_claimed": false,
+    "FINAL_opened": false,
+    "fresh_data_used": false
+  }
+}

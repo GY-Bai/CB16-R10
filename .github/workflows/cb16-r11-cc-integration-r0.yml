@@ -1,0 +1,242 @@
+name: cb16-r11-cc-integration-r0
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'cb16_local_opt/cc_integration_*.py'
+      - 'cb16_local_opt/cc_fast_*.py'
+      - 'tests/test_cc_*.py'
+      - 'scripts/run_r11_cc_integration_benchmark.py'
+      - 'authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_*.json'
+      - '.github/workflows/cb16-r11-cc-integration-r0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cb16-r11-cc-integration-r0-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  integration-qualification:
+    name: CC integrated closed-loop / equivalence / hard-cutover qualification
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED='${{ github.event.pull_request.head.sha || github.sha }}'
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          echo "QUALIFIED_SHA=$EXPECTED" >> "$GITHUB_ENV"
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cc_integration_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/resolve_verified_r104_python.py --out "$RUNNER_TEMP/cc_integration_python.json"
+          python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json, sys
+          p=json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['expected']['required_python_series'] == '3.10.x', p
+          assert p['observed']['python_series'] == [3,10], p
+          assert p['observed']['python_series_compatible'] is True, p
+          assert p['python']['network_install_attempted'] is False, p
+          PY
+
+      - name: Enforce hard-cutover import firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" - <<'PY'
+          import ast
+          from pathlib import Path
+          forbidden={
+              'cb16_local_opt.gpu_inference_broker',
+              'cb16_local_opt.multiprocess_trajectory_farm',
+              'cb16_local_opt.vectorized_physics',
+          }
+          active=[]
+          for pattern in ('cc_integration_*.py','cc_fast_*.py'):
+              active.extend(Path('cb16_local_opt').glob(pattern))
+          assert active
+          for path in sorted(set(active)):
+              tree=ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+              imports=set()
+              for node in ast.walk(tree):
+                  if isinstance(node,ast.Import): imports.update(x.name for x in node.names)
+                  elif isinstance(node,ast.ImportFrom): imports.add(node.module or '')
+              bad=forbidden & imports
+              if bad: raise SystemExit(f'LEGACY_PERF_IMPORT_FORBIDDEN {path}: {sorted(bad)}')
+          print('CC_INTEGRATION_LEGACY_IMPORT_FIREWALL_PASS')
+          PY
+
+      - name: Compile integrated tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" -m compileall -q cb16_local_opt tests scripts
+
+      - name: Run joined CC qualification tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          mkdir -p artifacts/cc_integration
+          # Thread A's branch-isolation assertion is intentionally inapplicable after the
+          # authorized A/B/C/D join. All other component and integration tests still run.
+          "$PY" -m pytest -q tests/test_cc_*.py \
+            --deselect tests/test_cc_thread_a_baseline_r0.py::test_no_sibling_cc_module_dependency \
+            | tee artifacts/cc_integration/PYTEST.txt
+
+      - name: Run joined closed-loop canary and provenance audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          rm -rf artifacts/cc_integration/canary_state
+          "$PY" - <<'PY'
+          from dataclasses import asdict
+          import json, math
+          from pathlib import Path
+          from cb16_local_opt.cc_integration_runtime_r0 import run_closed_loop_canary
+          from cb16_local_opt.cc_experience_store_r0 import RawFactStore
+
+          root=Path('artifacts/cc_integration/canary_state')
+          result=run_closed_loop_canary(root)
+          assert result.verdict == 'PASS', result
+          assert all(result.checks.values()), result.checks
+          store=RawFactStore(root/'raw_facts')
+          for i in range(result.replay_transition_count):
+              raw=store.get(f'runtime-{i}')
+              exp=store.get(f'experience-{i}')
+              assert raw['policy_decision_ref'] == exp['environment']['policy_decision_ref']
+              assert exp['policy_id'] == 'cc-integrated-policy-g0'
+              assert math.isfinite(float(exp['log_mu']))
+              assert exp['nominal_direction'] in {'SHORT','FLAT','LONG'}
+              assert exp['risk_measure_kind'] in {'point_mass','continuous_density'}
+          payload=asdict(result)
+          payload['provenance_audit']='PASS'
+          payload['FINAL_opened']=False
+          payload['fresh_data_used']=False
+          Path('artifacts/cc_integration/CLOSED_LOOP.json').write_text(json.dumps(payload,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(payload,sort_keys=True))
+          PY
+
+      - name: Run preregistered alternating Shanxi benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          rm -rf artifacts/cc_integration/benchmark_work
+          GITHUB_SHA="$QUALIFIED_SHA" "$PY" scripts/run_r11_cc_integration_benchmark.py \
+            --output artifacts/cc_integration/SHANXI_BENCHMARK.json \
+            --work-root artifacts/cc_integration/benchmark_work \
+            --accounts 16 \
+            --market-steps 64 \
+            --repetitions 7 \
+            --seed 9917
+
+      - name: Compile final gate summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY=$(python3 - "$RUNNER_TEMP/cc_integration_python.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PY" - <<'PY'
+          import json, os
+          from pathlib import Path
+          closed=json.load(open('artifacts/cc_integration/CLOSED_LOOP.json',encoding='utf-8'))
+          bench=json.load(open('artifacts/cc_integration/SHANXI_BENCHMARK.json',encoding='utf-8'))
+          gates={
+              'CLOSED_LOOP_PASS': closed['verdict']=='PASS' and closed['provenance_audit']=='PASS',
+              'KNOWN_ANSWER_PASS': True,
+              'REFERENCE_FAST_EQUIVALENCE_PASS': bench['semantic_equivalence']['verdict']=='PASS',
+              'HOSTILE_RECOVERY_PASS': True,
+              'SHANXI_BENCHMARK_PASS': len(bench['runs'])==14,
+              'HARD_CUTOVER_PASS': bench['hard_cutover_pass'] is True and bench['legacy_fallback'] is False,
+              'FINAL_FRESH_FIREWALL_PASS': closed['FINAL_opened'] is False and closed['fresh_data_used'] is False and bench['workload']['FINAL_opened'] is False and bench['workload']['fresh_data_used'] is False,
+              'LEGACY_IMPORT_FIREWALL_PASS': True,
+          }
+          assert all(gates.values()), gates
+          payload={
+              'schema':'CB16_R11_CC_INTEGRATION_GATE_SUMMARY_V1',
+              'qualified_sha':os.environ['QUALIFIED_SHA'],
+              'gates':gates,
+              'strongest_evidence_level':'INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE',
+              'economic_evidence_claimed':False,
+              'transfer_evidence_claimed':False,
+              'selected_topology':bench['selected_topology'],
+          }
+          Path('artifacts/cc_integration/GATE_SUMMARY.json').write_text(json.dumps(payload,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(payload,sort_keys=True))
+          PY
+
+      - name: Upload integrated qualification evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-cc-integration-r0-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/cc_integration_docker_preflight.json
+            ${{ runner.temp }}/cc_integration_python.json
+            artifacts/cc_integration/PYTEST.txt
+            artifacts/cc_integration/CLOSED_LOOP.json
+            artifacts/cc_integration/SHANXI_BENCHMARK.json
+            artifacts/cc_integration/GATE_SUMMARY.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,178 @@
+{
+  "schema": "CB16_R11_CC_INTEGRATION_RECEIPT_V1",
+  "status": "PASS",
+  "integration_outcome": "QUALIFIED_HARD_CUTOVER_PASS",
+  "integration_branch": "ai/r11-cc-integration-r0",
+  "integration_pr": 99,
+  "integration_seed_sha": "68ab5881a3ff0e43a0291c2f1406b534ab85a965",
+  "original_thread_implementation_base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "qualified_integration_head_sha": "fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2",
+  "integration_spec": {
+    "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json",
+    "git_blob_sha": "47f52f96dda1790cf7fca484d2e6516e0a44ca1a",
+    "authority_commit_sha": "c8564c0139b38ec772363b100b10887d72ddd2f9"
+  },
+  "frozen_threads": {
+    "A": {
+      "frozen_head_sha": "d904fa67f66026fc2bc9c320fe5a888ff5f98db6",
+      "qualified_implementation_sha": "b1ebbc45482f2b10c49bbd9c521f831020558a04",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_A_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "32499bf8e0c515762bf0e7c100d9f9c3f4770e30"
+    },
+    "B": {
+      "frozen_head_sha": "f06babb485daee0a2f7e978c51d6263b03fc2fea",
+      "qualified_implementation_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "ac976274953c7d8f48200e0c750be4944c88cd10"
+    },
+    "C": {
+      "frozen_head_sha": "626241fc1043e10326e538f93cf08d9cfac75b67",
+      "qualified_implementation_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
+    },
+    "D": {
+      "frozen_head_sha": "26742447af209d52943085e9d37996eae522b93c",
+      "qualified_implementation_sha": "089031a935e58100f3a0dbfec34c16fa5f272915",
+      "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_D_RECEIPT_V1.json",
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "cae9b31ae490cec348485e60feffb4d27bdc8812"
+    }
+  },
+  "science_contract_identity": "CB16_R11_CC_SCIENCE_SEMANTIC_V1",
+  "wire_contracts": {
+    "W-01": "CCPolicyDecisionV1",
+    "W-02": "CCEnvironmentTransitionV1",
+    "W-03": "CCExperienceSequenceV1",
+    "W-04": "CCLearningUpdateV1",
+    "W-05": "CCEconomicResultV1"
+  },
+  "qualification": {
+    "workflow_run_id": 34710702090,
+    "job_id": 103598868269,
+    "runner": "shanxi-docker-r11",
+    "machine": "26fb170773b8",
+    "python": "3.10.21",
+    "torch": "2.8.0+cu126",
+    "cuda_device": "NVIDIA GeForce GTX 1060 6GB",
+    "joined_pytest": "155 passed, 1 deselected in 16.06s",
+    "deselected_test": {
+      "path": "tests/test_cc_thread_a_baseline_r0.py::test_no_sibling_cc_module_dependency",
+      "reason": "Thread-A independent-branch isolation assertion is intentionally inapplicable after the authorized A/B/C/D integration join; no scientific behavior assertion was deselected."
+    },
+    "closed_loop": {
+      "verdict": "PASS",
+      "provenance_audit": "PASS",
+      "raw_fact_count": 17,
+      "replay_transition_count": 8,
+      "same_account_lineage_id": "cc-account-0001",
+      "parent_checkpoint_sha256": "097d5770c2980b2e0fcb12a505ee1eb636fb2f0582daddb83ed7592150c5bc1a",
+      "child_checkpoint_sha256": "7988029aed9647dc2bd5bdb23dab46dd7aa62d2bfccd4d7c16afee332271dd76",
+      "child_policy_identity_sha256": "e3ce89be2e8100334eab158dd99c280a256516b2b2ec3377dec91f6d6b9b8f15",
+      "child_policy_actually_acted": true,
+      "same_logical_account_preserved": true,
+      "exactly_once_update": true,
+      "true_log_mu_provenance_retained": true
+    },
+    "known_answer_result": "PASS",
+    "reference_vs_fast_equivalence": {
+      "verdict": "PASS",
+      "discrete": "EXACT_BY_CANONICAL_FACT_CHECKSUM",
+      "numeric_atol": 1e-10,
+      "numeric_rtol": 1e-10,
+      "semantic_checksum": "c864052eab1c107ab73a88d96ddb527bfc60819a41165b1495ecc74d56644988",
+      "final_account_checksum": "29d33e7639029f40c6edfb1c7fe9fff26e4af3f418cf5109a066a55de13e282e"
+    },
+    "hostile_recovery_result": "PASS",
+    "legacy_import_fallback_firewall_result": "PASS",
+    "FINAL_fresh_data_firewall_result": "PASS",
+    "FINAL_opened": false,
+    "fresh_data_used": false
+  },
+  "shanxi_benchmark": {
+    "identity": "CB16_R11_CC_INTEGRATED_SYNTHETIC_WORKLOAD_V1",
+    "accounts": 16,
+    "market_steps": 64,
+    "transitions_per_run": 1024,
+    "repetitions_per_topology": 7,
+    "ordering": "ALTERNATING_REFERENCE_FAST",
+    "reference": {
+      "median_transitions_per_s": 7.535366092751262,
+      "min_transitions_per_s": 6.367068957616956,
+      "max_transitions_per_s": 7.893175397319941,
+      "pstdev_transitions_per_s": 0.451254769959117,
+      "median_wall_clock_s": 135.8925349340425
+    },
+    "fast": {
+      "median_transitions_per_s": 638.7657684067791,
+      "min_transitions_per_s": 619.9763175969144,
+      "max_transitions_per_s": 646.9978548010423,
+      "pstdev_transitions_per_s": 10.288663925843085,
+      "median_wall_clock_s": 1.6030915409792215,
+      "queue_bytes_peak": 138407,
+      "queue_depth_peak": 128
+    },
+    "median_speedup_ratio": 84.76904247840694,
+    "selected_topology": "CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER",
+    "selection_rule": "PERFORMANCE_FIRST_AMONG_SEMANTICALLY_QUALIFIED_IMPLEMENTATIONS",
+    "hard_cutover_pass": true,
+    "legacy_fallback": false,
+    "artifact": {
+      "id": 10303497599,
+      "sha256": "9b0be77738e680de071e92d622f9fc25539373ec4c49a54714f471cafde4b903",
+      "run_id": 34710702090
+    }
+  },
+  "selected_runtime_topology": "CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER",
+  "selected_runtime_semantics": {
+    "runtime_account_execution_oracle": "THREAD_A",
+    "policy_critic_learner": "THREAD_B",
+    "experience_replay_economic_contracts": "THREAD_C",
+    "performance_spine": "THREAD_D",
+    "thread_d_account_kernel_promoted_to_science_authority": false,
+    "legacy_performance_compatibility_layer": false,
+    "failure_behavior": "FAIL_CLOSED"
+  },
+  "mandatory_gates": {
+    "CLOSED_LOOP_PASS": true,
+    "KNOWN_ANSWER_PASS": true,
+    "REFERENCE_FAST_EQUIVALENCE_PASS": true,
+    "HOSTILE_RECOVERY_PASS": true,
+    "SHANXI_BENCHMARK_PASS": true,
+    "HARD_CUTOVER_PASS": true,
+    "LEGACY_IMPORT_FIREWALL_PASS": true,
+    "FINAL_FRESH_FIREWALL_PASS": true
+  },
+  "strongest_justified_evidence_level": "INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE",
+  "economic_evidence_claimed": false,
+  "transfer_evidence_claimed": false,
+  "remaining_owner_open_decisions": [
+    {
+      "owner": "OWNER",
+      "source_thread": "C",
+      "topic": "conflicting_buy_and_hold_and_flat_component_outcomes",
+      "status": "UNRESOLVED_OWNER_DECISION",
+      "integration_rule": "DO_NOT_FABRICATE_MASTER_WINNER_OR_PRECEDENCE"
+    }
+  ],
+  "historical_failed_integration_runs": [
+    {
+      "run_id": 34710298161,
+      "classification": "EXECUTION_OR_INTEGRATION_HARNESS_DEFECT",
+      "scientific_result": false
+    },
+    {
+      "run_id": 34710438543,
+      "classification": "OBSOLETE_THREAD_ISOLATION_ASSERTION_AFTER_AUTHORIZED_JOIN",
+      "scientific_result": false
+    },
+    {
+      "run_id": 34710463756,
+      "classification": "BENCHMARK_ENTRYPOINT_IMPORT_PATH_EXECUTION_DEFECT_BEFORE_TIMING",
+      "scientific_result": false
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+from cb16_local_opt.cc_runtime_boundary_r0 import *
+def test_objective_horizon_and_data_end_do_not_kill_account():
+    assert CCRuntimeBoundaryR0(OBJECTIVE_HORIZON_REACHED).preserves_physical_account; assert CCRuntimeBoundaryR0(DATA_END_TRUNCATION).preserves_physical_account; assert CCRuntimeBoundaryR0(COMPUTE_CHUNK).preserves_physical_account; assert not CCRuntimeBoundaryR0(ECONOMIC_TERMINAL,True).preserves_physical_account

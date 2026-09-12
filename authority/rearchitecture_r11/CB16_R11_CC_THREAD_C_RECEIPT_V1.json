@@ -1,0 +1,177 @@
+{
+  "schema": "CB16_R11_CC_THREAD_C_RECEIPT_V1",
+  "thread": "C",
+  "status": "PASS",
+  "scope": "EXPERIENCE_REPLAY_ECONOMICS",
+  "branch": "ai/r11-cc-thread-c-experience-r0",
+  "implementation_base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "head_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+  "qualified_head_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+  "receipt_parent_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+  "planning_docs": {
+    "read_from": "main",
+    "thread_c_path": "docs/cc/CC_THREAD_C_EXPERIENCE_ECONOMICS.md",
+    "thread_c_blob_sha": "322d629fc1eaa5a3ba64c1d408253997b4967285",
+    "implementation_remained_based_on_frozen_sha": true
+  },
+  "wire_contract_versions": {
+    "W-02": "CCEnvironmentTransitionV1",
+    "W-03": "CCExperienceSequenceV1",
+    "W-05": "CCEconomicResultV1"
+  },
+  "evidence_level": "SYNTHETIC_LOCAL_PLUS_SHANXI_DOCKER_COMPONENT",
+  "qualification": {
+    "local": {
+      "status": "PASS",
+      "pytest_passed": 29,
+      "compile": "PASS"
+    },
+    "shanxi_docker": {
+      "status": "PASS",
+      "workflow": ".github/workflows/cc-thread-c-shanxi-smoke.yml",
+      "workflow_run_id": 34708740168,
+      "job_id": 103593502310,
+      "tested_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+      "runner_labels": ["self-hosted", "shanxi-docker-r11"],
+      "preflight": "PASS",
+      "docker_contract": "PASS",
+      "frozen_base_owned_path_firewall": "PASS",
+      "verified_r104_python": "PASS",
+      "compile": "PASS",
+      "pytest": {
+        "status": "PASS",
+        "passed": 29,
+        "failed": 0,
+        "duration_seconds": 2.13
+      },
+      "artifact": {
+        "id": 10302228834,
+        "name": "cc-thread-c-smoke-2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
+        "digest": "sha256:d5b0276a46aa0bfa0b6fd829b7c0facf4b5c67216cfd2a6d9991375a5b17537b",
+        "pytest_output": "29 passed in 2.13s"
+      }
+    }
+  },
+  "exact_test_files": [
+    "tests/test_cc_thread_c_baseline_r0.py",
+    "tests/test_cc_experience_wire_r0.py",
+    "tests/test_cc_experience_transition_r0.py",
+    "tests/test_cc_experience_sequence_r0.py",
+    "tests/test_cc_experience_store_r0.py",
+    "tests/test_cc_experience_failure_persistence_r0.py",
+    "tests/test_cc_experience_views_r0.py",
+    "tests/test_cc_experience_source_r0.py",
+    "tests/test_cc_replay_compatibility_r0.py",
+    "tests/test_cc_replay_support_r0.py",
+    "tests/test_cc_replay_selection_r0.py",
+    "tests/test_cc_experience_transaction_r0.py",
+    "tests/test_cc_economic_cohort_r0.py",
+    "tests/test_cc_economic_baselines_r0.py",
+    "tests/test_cc_economic_capital_r0.py",
+    "tests/test_cc_economic_evaluator_r0.py",
+    "tests/test_cc_economic_policy_identity_r0.py",
+    "tests/test_cc_economic_promotion_r0.py",
+    "tests/test_cc_economic_freeze_r0.py",
+    "tests/test_cc_economic_toys_r0.py",
+    "tests/test_cc_experience_economic_qualification_r0.py"
+  ],
+  "owned_files": [
+    ".github/workflows/cc-thread-c-shanxi-smoke.yml",
+    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_BASELINE_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
+    "cb16_local_opt/cc_economic_baselines_r0.py",
+    "cb16_local_opt/cc_economic_capital_r0.py",
+    "cb16_local_opt/cc_economic_cohort_r0.py",
+    "cb16_local_opt/cc_economic_evaluator_r0.py",
+    "cb16_local_opt/cc_economic_freeze_r0.py",
+    "cb16_local_opt/cc_economic_policy_identity_r0.py",
+    "cb16_local_opt/cc_economic_promotion_r0.py",
+    "cb16_local_opt/cc_economic_toys_r0.py",
+    "cb16_local_opt/cc_experience_economic_qualification_r0.py",
+    "cb16_local_opt/cc_experience_sequence_r0.py",
+    "cb16_local_opt/cc_experience_source_r0.py",
+    "cb16_local_opt/cc_experience_store_r0.py",
+    "cb16_local_opt/cc_experience_transaction_r0.py",
+    "cb16_local_opt/cc_experience_transition_r0.py",
+    "cb16_local_opt/cc_experience_views_r0.py",
+    "cb16_local_opt/cc_experience_wire_r0.py",
+    "cb16_local_opt/cc_replay_compatibility_r0.py",
+    "cb16_local_opt/cc_replay_selection_r0.py",
+    "cb16_local_opt/cc_replay_support_r0.py",
+    "tests/cc_thread_c_fixtures.py",
+    "tests/test_cc_economic_baselines_r0.py",
+    "tests/test_cc_economic_capital_r0.py",
+    "tests/test_cc_economic_cohort_r0.py",
+    "tests/test_cc_economic_evaluator_r0.py",
+    "tests/test_cc_economic_freeze_r0.py",
+    "tests/test_cc_economic_policy_identity_r0.py",
+    "tests/test_cc_economic_promotion_r0.py",
+    "tests/test_cc_economic_toys_r0.py",
+    "tests/test_cc_experience_economic_qualification_r0.py",
+    "tests/test_cc_experience_failure_persistence_r0.py",
+    "tests/test_cc_experience_sequence_r0.py",
+    "tests/test_cc_experience_source_r0.py",
+    "tests/test_cc_experience_store_r0.py",
+    "tests/test_cc_experience_transaction_r0.py",
+    "tests/test_cc_experience_transition_r0.py",
+    "tests/test_cc_experience_views_r0.py",
+    "tests/test_cc_experience_wire_r0.py",
+    "tests/test_cc_replay_compatibility_r0.py",
+    "tests/test_cc_replay_selection_r0.py",
+    "tests/test_cc_replay_support_r0.py",
+    "tests/test_cc_thread_c_baseline_r0.py"
+  ],
+  "firewall": {
+    "final_holdout_opened": false,
+    "fresh_data_downloaded": false,
+    "sibling_cc_branches_consumed": [],
+    "shared_files_modified": [],
+    "forbidden_shared_paths": ["CURRENT_STATE", "ARCHITECTURE_MAP", "README", "AGENTS"]
+  },
+  "completion_gate": {
+    "immutable_raw_facts_include_failures": true,
+    "sequence_identity_and_continuity_checked": true,
+    "four_views_distinct": true,
+    "historical_sources_classified": true,
+    "vtrace_requires_true_behavior_likelihood": true,
+    "replay_support_health_exposed": true,
+    "age_alone_does_not_invalidate_replay": true,
+    "mixed_generation_attribution_explicit": true,
+    "raw_persistence_idempotent": true,
+    "economic_statistic_is_arithmetic_expectation": true,
+    "fixed_cohort_capital_horizon": true,
+    "identical_cohort_buy_and_hold_and_flat_baselines": true,
+    "known_answer_toys_pass": true
+  },
+  "known_answer_toys": [
+    "high_bankruptcy_higher_arithmetic_expectation_can_win",
+    "survivor_only_mean_is_rejected",
+    "new_capital_injection_changes_denominator_and_identity",
+    "mixed_generation_chain_cannot_be_credited_to_final_checkpoint",
+    "buy_and_hold_and_flat_can_disagree_without_fabricated_master_winner"
+  ],
+  "unresolved_owner_decisions": [
+    {
+      "topic": "conflicting_buy_and_hold_and_flat_component_outcomes",
+      "status": "UNRESOLVED_OWNER_DECISION",
+      "fabricated_rule_added": false
+    }
+  ],
+  "superseded_execution_failures": [
+    {
+      "workflow_run_id": 34708371091,
+      "classification": "EXECUTION_BLOCKED",
+      "reason": "initial workflow/materialization mismatch; not a scientific result"
+    },
+    {
+      "workflow_run_id": 34708615346,
+      "classification": "EXECUTION_BLOCKED",
+      "reason": "remaining remote module API materialization mismatch; not a scientific result"
+    }
+  ],
+  "claims_not_made": [
+    "learner_improvement",
+    "real_market_profitability",
+    "final_holdout_result"
+  ]
+}

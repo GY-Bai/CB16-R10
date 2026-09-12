@@ -1,0 +1,214 @@
+{
+  "base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "baseline_actor_audit": {
+    "BC-034": "PRESENT_AT_BASE",
+    "BC-035": "PRESENT_AT_BASE",
+    "BC-036": "PRESENT_AT_BASE",
+    "BC-037": "PRESENT_AT_BASE",
+    "cc_brain_critic_vtrace_learner_retention": "COMPLETED_BY_THREAD_B",
+    "deterministic_evaluation_identity": "COMPLETED_BY_THREAD_B",
+    "joint_nominal_log_probability": "COMPLETED_BY_THREAD_B",
+    "rng_provenance": "COMPLETED_BY_THREAD_B"
+  },
+  "branch": "ai/r11-cc-thread-b-learning-r0",
+  "claim_scope": "SYNTHETIC_KNOWN_ANSWER_PLUS_SHANXI_DOCKER_EXECUTION_SMOKE_NO_REAL_MARKET_EDGE",
+  "core_implementation_commit_sha": "d7369fa324fc0176154da3a752331d0c77ef9a78",
+  "evidence_level": "KNOWN_ANSWER",
+  "exact_tests": {
+    "local_command": "PYTHONPATH=. pytest -q",
+    "local_compile_command": "PYTHONPATH=. python -m compileall -q cb16_local_opt tests",
+    "local_compile_result": "PASS",
+    "local_result": "33 passed",
+    "shanxi_command": "PYTHONPATH=. /cb16/venv/bin/python -m pytest -q tests/test_cc_*.py",
+    "shanxi_compile_command": "PYTHONPATH=. /cb16/venv/bin/python -m compileall -q cb16_local_opt tests",
+    "shanxi_compile_result": "PASS",
+    "shanxi_result": "33 passed in 2.51s",
+    "shanxi_warning_count": 0
+  },
+  "firewalls": {
+    "final_holdout": "SEALED_NOT_OPENED",
+    "fresh_market_data": "FORBIDDEN_NOT_USED",
+    "real_market_economic_claim": "NOT_MADE",
+    "sibling_branch_import_or_cherrypick": "NONE"
+  },
+  "initial_receipt_commit_sha": "c60e007100fb303fbf7e8ec13f401c4f310486e7",
+  "outcome_classification": "PASS",
+  "owned_files": [
+    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_BASELINE_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json",
+    ".github/workflows/cb16-r11-cc-thread-b-shanxi-smoke.yml",
+    "cb16_local_opt/cc_continual_retention_r0.py",
+    "cb16_local_opt/cc_critic_bootstrap_r0.py",
+    "cb16_local_opt/cc_critic_value_r0.py",
+    "cb16_local_opt/cc_learner_batch_r0.py",
+    "cb16_local_opt/cc_learner_checkpoint_r0.py",
+    "cb16_local_opt/cc_learner_r0.py",
+    "cb16_local_opt/cc_learner_transaction_r0.py",
+    "cb16_local_opt/cc_learning_qualification_r0.py",
+    "cb16_local_opt/cc_learning_toys_r0.py",
+    "cb16_local_opt/cc_policy_brain_r0.py",
+    "cb16_local_opt/cc_policy_distribution_r0.py",
+    "cb16_local_opt/cc_policy_evaluation_r0.py",
+    "cb16_local_opt/cc_policy_generation_r0.py",
+    "cb16_local_opt/cc_policy_loss_r0.py",
+    "cb16_local_opt/cc_policy_probability_firewall_r0.py",
+    "cb16_local_opt/cc_policy_reward_r0.py",
+    "cb16_local_opt/cc_policy_rng_r0.py",
+    "cb16_local_opt/cc_policy_wire_r0.py",
+    "cb16_local_opt/cc_vtrace_r0.py",
+    "tests/test_cc_continual_retention_r0.py",
+    "tests/test_cc_critic_bootstrap_r0.py",
+    "tests/test_cc_critic_value_r0.py",
+    "tests/test_cc_learner_batch_r0.py",
+    "tests/test_cc_learner_checkpoint_r0.py",
+    "tests/test_cc_learner_r0.py",
+    "tests/test_cc_learner_transaction_r0.py",
+    "tests/test_cc_learning_qualification_r0.py",
+    "tests/test_cc_learning_toys_r0.py",
+    "tests/test_cc_no_handcrafted_regime_activation_r0.py",
+    "tests/test_cc_policy_brain_r0.py",
+    "tests/test_cc_policy_distribution_r0.py",
+    "tests/test_cc_policy_evaluation_r0.py",
+    "tests/test_cc_policy_generation_r0.py",
+    "tests/test_cc_policy_gradient_ownership_r0.py",
+    "tests/test_cc_policy_loss_r0.py",
+    "tests/test_cc_policy_probability_firewall_r0.py",
+    "tests/test_cc_policy_reward_r0.py",
+    "tests/test_cc_policy_rng_r0.py",
+    "tests/test_cc_policy_wire_r0.py",
+    "tests/test_cc_thread_b_baseline_r0.py",
+    "tests/test_cc_vtrace_r0.py"
+  ],
+  "schema": "CB16_R11_CC_THREAD_B_RECEIPT_V1",
+  "shanxi_docker_smoke": {
+    "artifact_id": 10302746616,
+    "artifact_retention_until_utc": "2026-10-12T17:18:18Z",
+    "artifact_sha256": "51bacc084332b28fbf66fa1f75ffa361550bf9f55aa207c3250fe94f5645ba5c",
+    "artifact_size_bytes": 528,
+    "claim_scope": "SHANXI_DOCKER_EXECUTION_SMOKE_ONLY_NO_REAL_MARKET_EDGE",
+    "compileall_result": "PASS",
+    "cuda_available": true,
+    "cuda_device": "NVIDIA GeForce GTX 1060 6GB",
+    "docker_preflight": "PASS",
+    "final_fresh_firewall": "PASS",
+    "final_holdout_accessed": false,
+    "fresh_market_data_used": false,
+    "frozen_base_lineage": "PASS",
+    "head_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
+    "job_id": 103590741906,
+    "machine_name": "26fb170773b8",
+    "network_install_attempted": false,
+    "preflight": "PASS",
+    "pytest_result": "33 passed in 2.51s",
+    "python_version": "3.10.21",
+    "runner_name": "shanxi-docker-r11",
+    "runner_os": "Linux",
+    "status": "PASS",
+    "torch_cuda_version": "12.6",
+    "torch_version": "2.8.0+cu126",
+    "training_started": false,
+    "verified_canonical_python": "PASS",
+    "warnings": 0,
+    "workflow_path": ".github/workflows/cb16-r11-cc-thread-b-shanxi-smoke.yml",
+    "workflow_run_id": 34707730815,
+    "workflow_run_url": "https://github.com/GY-Bai/CB16-R10/actions/runs/34707730815"
+  },
+  "shanxi_qualified_head_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
+  "shared_docs_modified": [],
+  "sibling_cc_dependencies": [],
+  "status": "PASS",
+  "strongest_evidence": {
+    "account_dependent_toy": {
+      "same_market_different_account_optimal_action": true,
+      "status": "PASS"
+    },
+    "actor_critic_firewall": {
+      "actor_tau_free_by_cc_surface": true,
+      "critic_separate_parameters": true,
+      "frozen_market_organ_gradient": false,
+      "status": "PASS"
+    },
+    "checkpoint_recovery": {
+      "same_next_committed_gradient_transaction": true,
+      "same_next_learner_rng": true,
+      "same_next_policy_rng": true,
+      "status": "PASS"
+    },
+    "delayed_horizon_toy": {
+      "long_horizon_preference": "B",
+      "long_horizon_prob_b": 0.9763597846031189,
+      "short_horizon_preference": "A",
+      "short_horizon_prob_a": 0.9486335515975952,
+      "status": "PASS"
+    },
+    "exactly_once_update": {
+      "crash_windows": [
+        "before_gradient",
+        "after_gradient_before_commit",
+        "after_commit_before_ack"
+      ],
+      "status": "PASS"
+    },
+    "fixed_behavior_generation": {
+      "in_place_behavior_mutation": false,
+      "status": "PASS"
+    },
+    "gradient_ownership": {
+      "frozen_path_negative_poison_detected": true,
+      "status": "PASS"
+    },
+    "high_bankruptcy_toy": {
+      "learned_preference": "risky",
+      "learned_risky_probability": 0.7480408549308777,
+      "risky_bankruptcy_frequency": 0.8,
+      "risky_expectation": 0.4,
+      "safe_expectation": 0.2,
+      "status": "PASS"
+    },
+    "joint_probability": {
+      "expected": -0.6312564607528917,
+      "known_answer_logprob": -0.6312564607528919,
+      "status": "PASS"
+    },
+    "offpolicy_toy": {
+      "correct_vtrace": 0.2575,
+      "mu_pi_ratio": 0.125,
+      "same_policy_reduction": 1.36,
+      "status": "PASS",
+      "uncorrected_replay": 1.36
+    },
+    "retention": {
+      "a_after_b_no_replay": 0.0,
+      "a_after_b_with_compatible_replay": 0.5,
+      "a_after_revisit": 1.0,
+      "a_initial": 1.0,
+      "b_after_adapt": 1.0,
+      "handcrafted_activation": false,
+      "status": "PASS"
+    },
+    "reward_telescoping": {
+      "signed_negative_equity_fixture": true,
+      "status": "PASS"
+    },
+    "rng_recovery": {
+      "account_stream_isolation": true,
+      "evaluation_rng_consumption": false,
+      "exact_next_sequence_after_restore": true,
+      "status": "PASS"
+    },
+    "shanxi_docker_execution": {
+      "compileall": "PASS",
+      "cuda_device": "NVIDIA GeForce GTX 1060 6GB",
+      "pytest": "33 passed in 2.51s",
+      "status": "PASS",
+      "warnings": 0
+    },
+    "vtrace_math": {
+      "ppo_or_gae_stacking": false,
+      "rho_c_clipping": true,
+      "same_policy_reduction": true,
+      "status": "PASS"
+    }
+  },
+  "thread": "B"
+}

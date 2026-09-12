@@ -1,0 +1,14 @@
+{
+  "active_route": "CC_FAST_R0",
+  "compatibility_layer": false,
+  "fallback": false,
+  "hard_cutover": true,
+  "modules": {
+    "cb16_local_opt/gpu_inference_broker.py": {"active_runtime_import_forbidden": true, "blob_sha": "4b90ced80be2916882501001c63d20b573e6279b", "status": "REFERENCE_ONLY_FOR_CC"},
+    "cb16_local_opt/market_runtime_cache_r11.py": {"active_api_import_discouraged": true, "blob_sha": "780787c986ddbf2ad769d3e2cfc3390f911e81c1", "status": "REFERENCE_IDEA_ONLY_FOR_CC"},
+    "cb16_local_opt/multiprocess_trajectory_farm.py": {"active_runtime_import_forbidden": true, "blob_sha": "072aad0d74e075d2d320dd18a1bd2183de9b134d", "status": "REFERENCE_ONLY_FOR_CC"},
+    "cb16_local_opt/vectorized_physics.py": {"active_runtime_import_forbidden": true, "blob_sha": "804694a0232088eda90f4874287b30ebbebba8cb", "status": "REFERENCE_ONLY_FOR_CC"}
+  },
+  "schema_version": "CB16_R11_CC_LEGACY_PERF_RETIREMENT_V1",
+  "thread": "D"
+}
