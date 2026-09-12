@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import fields, replace
 import inspect
 
@@ -9,13 +10,16 @@ import torch
 import cb16_local_opt.actor_policy_r1 as actor_policy_module
 from cb16_local_opt.account_economics_r0 import make_account_economics_state_r0
 from cb16_local_opt.account_observation_r0 import project_account_observation_r0
-from cb16_local_opt.action_contract_r1 import FLAT, make_target_position_action_r1
+from cb16_local_opt.action_contract_r1 import FLAT, LONG, SHORT, make_target_position_action_r1
 from cb16_local_opt.actor_observation_r0 import build_actor_observation_r0
 from cb16_local_opt.actor_policy_r1 import (
     ACTOR_POLICY_INTERFACE_VERSION_R1,
+    DIRECTION_ORDER_R1,
     ActorPolicyDistributionIdentityR1,
     ActorPolicyR1,
+    DirectionCategoricalR1,
     make_actor_policy_distribution_identity_r1,
+    make_direction_categorical_r1,
     make_policy_tensor_contract_r1,
     validate_actor_policy_interface_r1,
     validate_actor_policy_observation_r1,
@@ -64,7 +68,7 @@ def _observation():
 def _identity(*, device_type="cpu", device_index=None, dtype="float32"):
     return make_actor_policy_distribution_identity_r1(
         distribution_id="round2-actor-distribution",
-        distribution_version="INTERFACE_ONLY_BC034",
+        distribution_version="CATEGORICAL_DIRECTION_BC035",
         policy_id="behavior-policy",
         policy_version="v1",
         policy_sha256="a" * 64,
@@ -76,8 +80,14 @@ def _identity(*, device_type="cpu", device_index=None, dtype="float32"):
     )
 
 
+def _direction_distribution(probabilities=(0.2, 0.3, 0.5)) -> DirectionCategoricalR1:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    probs = torch.tensor(probabilities, dtype=torch.float32)
+    return make_direction_categorical_r1(logits=torch.log(probs), tensor_contract=contract)
+
+
 class StubPolicy(ActorPolicyR1):
-    """Interface fixture only; BC-034 intentionally has no probability math."""
+    """Interface fixture; BC-035 still does not define bounded-risk action math."""
 
     def __init__(self, identity: ActorPolicyDistributionIdentityR1 | None = None) -> None:
         self._identity = _identity() if identity is None else identity
@@ -110,7 +120,7 @@ class StubPolicy(ActorPolicyR1):
     def log_prob(self, observation, action):
         self._tensorize(observation)
         validate_policy_action_binding_r1(self._identity, action)
-        # Placeholder interface value only. BC-035–038 own real likelihood math.
+        # Interface fixture only. BC-038 owns real joint nominal-action likelihood.
         value = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         return validate_policy_tensor_r1(value, self._identity.tensor_contract)
 
@@ -242,9 +252,9 @@ def test_distribution_identity_is_versioned_and_semantically_hashed() -> None:
         replace(identity, policy_sha256="not-a-sha").validate()
 
 
-def test_bc034_identity_does_not_predefine_bc035_or_bc036_distribution_math() -> None:
+def test_bc034_identity_does_not_predefine_distribution_parameters() -> None:
     identity_fields = {field.name for field in fields(ActorPolicyDistributionIdentityR1)}
-    premature_fields = {
+    parameter_fields = {
         "logits",
         "direction_logits",
         "direction_probs",
@@ -256,7 +266,7 @@ def test_bc034_identity_does_not_predefine_bc035_or_bc036_distribution_math() ->
         "endpoint_mass_zero",
         "endpoint_mass_one",
     }
-    assert premature_fields.isdisjoint(identity_fields)
+    assert parameter_fields.isdisjoint(identity_fields)
 
 
 def test_incompatible_actor_observation_version_fails_closed() -> None:
@@ -318,3 +328,99 @@ def test_r1_policy_module_does_not_depend_on_unmerged_r0_candidate() -> None:
     source = inspect.getsource(actor_policy_module)
     assert "actor_policy_r0" not in source
     assert "AC-015" not in source
+
+
+def test_direction_categorical_has_exact_canonical_order_and_known_probabilities() -> None:
+    distribution = _direction_distribution()
+    assert DIRECTION_ORDER_R1 == (SHORT, FLAT, LONG)
+    expected = torch.tensor([0.2, 0.3, 0.5], dtype=torch.float32)
+    assert torch.allclose(distribution.probabilities, expected, rtol=1e-6, atol=1e-7)
+    for direction, probability in zip(DIRECTION_ORDER_R1, expected):
+        assert torch.allclose(
+            distribution.log_prob(direction),
+            torch.log(probability),
+            rtol=1e-6,
+            atol=1e-7,
+        )
+
+
+def test_direction_categorical_extreme_logits_keep_probabilities_and_log_probs_finite() -> None:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    distribution = make_direction_categorical_r1(
+        logits=torch.tensor([1000.0, 0.0, -1000.0], dtype=torch.float32),
+        tensor_contract=contract,
+    )
+    probabilities = distribution.probabilities
+    log_probabilities = distribution.log_probabilities
+    assert bool(torch.isfinite(probabilities).all().item())
+    assert bool(torch.isfinite(log_probabilities).all().item())
+    assert torch.isclose(probabilities.sum(), torch.tensor(1.0, dtype=torch.float32))
+    assert probabilities[0].item() == 1.0
+    assert log_probabilities.tolist() == [0.0, -1000.0, -2000.0]
+
+
+def test_direction_categorical_log_prob_retains_gradient_path_to_logits() -> None:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    logits = torch.tensor([-0.5, 0.1, 0.7], dtype=torch.float32, requires_grad=True)
+    distribution = make_direction_categorical_r1(logits=logits, tensor_contract=contract)
+    loss = -distribution.log_prob(LONG)
+    loss.backward()
+    assert logits.grad is not None
+    assert bool(torch.isfinite(logits.grad).all().item())
+    assert bool((logits.grad != 0).any().item())
+
+
+def test_direction_categorical_sampled_frequencies_match_known_probabilities() -> None:
+    distribution = _direction_distribution()
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(20260912)
+    sample_count = 50_000
+    samples = distribution.sample_directions(sample_count, generator=generator)
+    counts = Counter(samples)
+    expected = {SHORT: 0.2, FLAT: 0.3, LONG: 0.5}
+    assert len(samples) == sample_count
+    assert set(counts) == set(DIRECTION_ORDER_R1)
+    for direction, probability in expected.items():
+        frequency = counts[direction] / sample_count
+        assert abs(frequency - probability) < 0.01
+
+
+def test_direction_categorical_rejects_bad_shape_direction_count_and_generator() -> None:
+    contract = make_policy_tensor_contract_r1(device_type="cpu", dtype="float32")
+    with pytest.raises(RuntimeError, match="DIRECTION_LOGITS_SHAPE_INVALID"):
+        make_direction_categorical_r1(
+            logits=torch.tensor([0.0, 1.0], dtype=torch.float32),
+            tensor_contract=contract,
+        )
+    with pytest.raises(RuntimeError, match="DIRECTION_LOGITS_SHAPE_INVALID"):
+        make_direction_categorical_r1(
+            logits=torch.zeros((1, 3), dtype=torch.float32),
+            tensor_contract=contract,
+        )
+    with pytest.raises(RuntimeError, match="TENSOR_NONFINITE"):
+        make_direction_categorical_r1(
+            logits=torch.tensor([0.0, float("inf"), 1.0], dtype=torch.float32),
+            tensor_contract=contract,
+        )
+
+    distribution = _direction_distribution()
+    with pytest.raises(RuntimeError, match="DIRECTION_INVALID"):
+        distribution.log_prob("HOLD")
+    generator = torch.Generator(device="cpu")
+    with pytest.raises(RuntimeError, match="DIRECTION_SAMPLE_COUNT_INVALID"):
+        distribution.sample_directions(0, generator=generator)
+    with pytest.raises(RuntimeError, match="DIRECTION_GENERATOR_INVALID"):
+        distribution.sample_directions(1, generator=object())
+
+
+def test_bc035_direction_distribution_does_not_predefine_bc036_risk_math() -> None:
+    distribution_fields = {field.name for field in fields(DirectionCategoricalR1)}
+    forbidden = {
+        "risk",
+        "risk_alpha",
+        "risk_beta",
+        "risk_logits",
+        "endpoint_mass_zero",
+        "endpoint_mass_one",
+    }
+    assert forbidden.isdisjoint(distribution_fields)
