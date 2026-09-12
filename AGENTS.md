@@ -17,17 +17,19 @@
 
 ## 当前任务组织
 
-2026-09-12 用户明确建立 **CC 四线程并行执行**。冻结基线是：
+2026-09-12 用户明确建立 **CC 四线程并行执行**。冻结实现基线是：
 
 `main@89d62bf966f476e598f0e2f5c5e8e03c15a8db51`
 
-四个 sub-agent 从同一个 SHA 独立开工，不互相等待、不依赖 sibling branch、不互相 import、不 cherry-pick 对方代码。跨线程只共享 CC 总控文档冻结的 W-01..W-05 wire 语义。
+CC 规划/导航文档为了方便交接会在该 SHA 之后提交到 main；这不改变四线程的代码基线。Sub-agent 应从当前 main/交接上下文读取 CC 文档，但从 `89d62bf...` 创建 implementation branch，除非用户或 integration owner 明确重新冻结新的代码基线。
+
+四个 sub-agent 不互相等待、不依赖 sibling branch、不互相 import、不 cherry-pick 对方代码。跨线程只共享 CC 总控文档冻结的 W-01..W-05 wire 语义。
 
 AC/BC/R10/R11 历史代码、authority、receipt 和 scientific verdict 仍保留原身份。AC/BC TODO 现在是设计/实现历史和追溯材料，不是 CC sub-agent 必须串行执行的任务清单。
 
 ## CC branch 纪律
 
-四个主分支建议固定为：
+四个主分支固定建议为：
 
 ```text
 ai/r11-cc-thread-a-runtime-r0
@@ -38,7 +40,7 @@ ai/r11-cc-thread-d-fast-cutover-r0
 
 每个 thread：
 
-- 从 `89d62bf...` 开始；
+- implementation code 从 `89d62bf...` 开始；
 - 只修改自己 thread 文档声明的文件族；
 - 不修改其他 thread 模块；
 - 不修改共享 `CURRENT_STATE` / `ARCHITECTURE_MAP` / `README` / `AGENTS`；这些由四线程结束后的 integration 更新；
@@ -88,7 +90,7 @@ CC thread 的 CONTRACT/COMPONENT/CLOSED_LOOP/KNOWN_ANSWER/ECONOMIC/TRANSFER 证�
 ## 执行与证据纪律
 
 - 开始时说明 thread、冻结 base、目标、owned files、预期证据。
-- 发现 frozen base 之后 main 又有别的 agent 更新，不自动吸收；CC thread 仍按 frozen base 执行，除非用户/集成负责人重新冻结基线。
+- 发现冻结基线之后 main 又有别的 agent 更新，不自动吸收；CC thread 仍按 frozen base 执行，除非用户/集成负责人重新冻结基线。
 - 不碰 FINAL，不下载 fresh market data。
 - 不因性能删除失败、缩短后果窗口、重置账户、伪造 log_mu 或改变样本分布。
 - 科学 run 开始后不通过改 T、seed、预算、sampling、E_ref、执行语义来救结果；新方法开新版本。
