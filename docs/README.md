@@ -13,6 +13,7 @@
 | AC-001–AC-058 现在是什么地位？ | [AC TODO](R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md) 保留为第一轮设计/任务历史与追溯材料；新的 BC Agent 不需要逐项恢复 AC 历史才能执行 |
 | 经验怎样生成、复习、更新模型？ | [LEARNING_CONTRACT](LEARNING_CONTRACT.md) |
 | 哪个具体算法、如何奖励、回放和归因？ | [TRAINING_ALGORITHM_R0](TRAINING_ALGORITHM_R0.md) |
+| 3700X / 1060 上怎样优化性能，何时考虑 Rust/Go？ | [PERFORMANCE_STRATEGY_3700X_1060](PERFORMANCE_STRATEGY_3700X_1060.md)，设计与测量建议 |
 | 如何验证算法与接口？ | [TRAINING_QUALIFICATION_R0](TRAINING_QUALIFICATION_R0.md) |
 | 超额收益、风险、排行榜意味着什么？ | [EVALUATION_PRINCIPLES](EVALUATION_PRINCIPLES.md) |
 | 每个组件负责什么，现有实现在哪里？ | [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md) |
