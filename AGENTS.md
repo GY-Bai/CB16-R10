@@ -1,82 +1,112 @@
 # CB16 agent 工作约定
 
-本文件适用于整个仓库。先理解项目目标和当前断点，再执行用户本次指定的任务。主要交流语言为中文，代码标识和已有协议名称保持原样。
+本文件适用于整个仓库。主要交流语言为中文，代码标识和已有协议名称保持原样。
 
 ## 接手顺序
 
 1. 阅读 [README](README.md) 与 [文档入口](docs/README.md)。
 2. 阅读 [最高理念](docs/VISION.md)、[学习规则](docs/LEARNING_CONTRACT.md)、[评价规则](docs/EVALUATION_PRINCIPLES.md)。
-3. 阅读 [当前状态](docs/CURRENT_STATE.md)；现场核对目标分支 SHA、相关 Actions、authority 和 receipt。状态文档是带日期的快照，不是实时数据库。
-4. 按本次任务阅读 [组件职责](docs/ARCHITECTURE_MAP.md)、[决策记录](docs/DECISIONS.md)、[未决问题](docs/OPEN_QUESTIONS.md)，再查对应实现。训练设计另读 [算法候选 R0](docs/TRAINING_ALGORITHM_R0.md) 和 [资格计划](docs/TRAINING_QUALIFICATION_R0.md)。
-5. 当前 Round-2 实施对齐时，阅读 [理念对齐规则](docs/PRINCIPLE_ALIGNMENT.md) 与 [组件要求](docs/COMPONENT_REQUIREMENTS.md)，然后进入 **[BC Round 2 TODO](docs/R11_BC_ROUND2_CODE_ALIGNMENT_TODO.md)**。该文档是当前自包含实施计划；[AC TODO](docs/R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md) 保留为第一轮设计/任务历史和追溯资料，不是新的 BC Agent 必须逐项恢复的依赖清单。
-6. 不要求通读全部历史文件。沿当前 BC 任务的调用链、理念 P 编号和证据索引读取必要材料。
+3. 阅读 [CC 并行执行决策](docs/CC_PARALLEL_EXECUTION_DECISION.md) 与 [CC 四线程总控 TODO](docs/R11_CC_PARALLEL_HARD_CUTOVER_TODO.md)。
+4. 只读取分配给你的 CC thread 包：
+   - [Thread A — Runtime / Account](docs/cc/CC_THREAD_A_RUNTIME_ACCOUNT.md)
+   - [Thread B — Policy / Learning](docs/cc/CC_THREAD_B_POLICY_LEARNING.md)
+   - [Thread C — Experience / Economics](docs/cc/CC_THREAD_C_EXPERIENCE_ECONOMICS.md)
+   - [Thread D — Performance Hard Cutover](docs/cc/CC_THREAD_D_PERFORMANCE_HARD_CUTOVER.md)
+5. 按任务需要再读 [理念对齐规则](docs/PRINCIPLE_ALIGNMENT.md)、[组件要求](docs/COMPONENT_REQUIREMENTS.md)、[算法候选](docs/TRAINING_ALGORITHM_R0.md)、[资格计划](docs/TRAINING_QUALIFICATION_R0.md)、[性能策略](docs/PERFORMANCE_STRATEGY_3700X_1060.md)、[决策](docs/DECISIONS.md)、[未决问题](docs/OPEN_QUESTIONS.md)。
+6. `CURRENT_STATE.md` 与 `ARCHITECTURE_MAP.md` 在 CC 冻结点仍含较早 AC/BC 状态描述；不要把其中的旧 SHA/“尚无某组件”句子当实时 authority。CC 总控文档已经把该文档漂移登记为待 integration 修复项。
 
-## 当前协作与任务命名
+## 当前任务组织
 
-2026-09-12 用户明确建立 **BC Round 2** 作为新的实施任务系列。BC 以 live main 已落地的 AC R0 代码作为待审计、可复用、也允许被版本化修复的输入；新执行 Agent 可以按 BC 自己的 Gate 和依赖工作，不需要先掌握 AC-001–AC-058 每个任务的历史细节。
+2026-09-12 用户明确建立 **CC 四线程并行执行**。冻结基线是：
 
-AC/R10/R11 的历史代码、authority、receipt 和 scientific verdict 仍保持其原身份。BC 不追溯把旧结果改成 PASS，也不能为了实现方便静默改变旧 science identity。若当前理念要求与 R0 实现冲突，优先通过版本化 successor / compatibility adapter / 新 qualification 解决，并保留 R0 regression。
+`main@89d62bf966f476e598f0e2f5c5e8e03c15a8db51`
 
-理念要求、算法候选、实现事实和运行证据分别记录。模型名称或对话分工不自动授予权限；用户当前任务授权和适用 authority 仍是工作边界。
+四个 sub-agent 从同一个 SHA 独立开工，不互相等待、不依赖 sibling branch、不互相 import、不 cherry-pick 对方代码。跨线程只共享 CC 总控文档冻结的 W-01..W-05 wire 语义。
+
+AC/BC/R10/R11 历史代码、authority、receipt 和 scientific verdict 仍保留原身份。AC/BC TODO 现在是设计/实现历史和追溯材料，不是 CC sub-agent 必须串行执行的任务清单。
+
+## CC branch 纪律
+
+四个主分支建议固定为：
+
+```text
+ai/r11-cc-thread-a-runtime-r0
+ai/r11-cc-thread-b-learning-r0
+ai/r11-cc-thread-c-experience-r0
+ai/r11-cc-thread-d-fast-cutover-r0
+```
+
+每个 thread：
+
+- 从 `89d62bf...` 开始；
+- 只修改自己 thread 文档声明的文件族；
+- 不修改其他 thread 模块；
+- 不修改共享 `CURRENT_STATE` / `ARCHITECTURE_MAP` / `README` / `AGENTS`；这些由四线程结束后的 integration 更新；
+- thread receipt 必须记录 base/head SHA、测试、证据等级、owned files、FINAL/fresh firewall 和未决项；
+- sibling branch 永远不是 authority。
+
+## 性能硬切换
+
+用户最新明确：**性能优先，CC 性能路径硬切换，不做旧性能运行时兼容，不保留 fallback。**
+
+Thread D 的新 CC fast path 不得 import / wrap / fallback 到：
+
+```text
+cb16_local_opt.gpu_inference_broker
+cb16_local_opt.multiprocess_trajectory_farm
+cb16_local_opt.vectorized_physics
+```
+
+这些文件可作为历史参考或 benchmark baseline，但不是 CC runtime dependency。新的数据布局、缓存、批处理、CPU worker、IO、Numba/Rust/Go 局部实现不需要维持旧性能 API。
+
+性能优先不能通过改变科学问题获得：账户连续、signed economics、真实 log_mu、失败记录、时序、FINAL/fresh firewall、当前 R1 action/economic semantics 仍必须守住。
 
 ## 必须保持的项目含义
 
-- Trader 在单资产账户上根据 Market、Account 和必要历史作出动作。Account 是核心状态，不能把任务缩成纯市场预测。
-- Market 历史是可重放环境；完整经验通过动作、执行和账户演化产生。既要反复学习已有经验，也要让行为产生新的连续轨迹。
-- 同一批经验反复训练、重复历史市场、重叠片段，均可属于学习。不能擅自用静态训练/测试划分取代整个学习闭环。
-- 复习不等于已覆盖全部可达账户状态；拟合固定示范不等于实现自主连续 rollout。复用经验也不增加独立市场证据数量。
-- 账户承担后续后果。计算片段、checkpoint 换代和账户终止是不同事件；72 小时不是用户规定的账户寿命。
-- 风险取舍由模型学习。用户接受在完整计入失败后、长期期望收益更高的高风险策略获胜。不得私自改成“最少爆仓优先”、Sharpe 优先或对数效用优先。
-- 已发生的失败必须计入所声称的整体策略评价。用户已批准保留成功与失败完整经历、优胜示范另筛，并允许失败参与长期后果学习；不要重复请求这一原则的确认。具体算法候选不等于已执行或已资格认定。
-- 冻结器官和可训练 Brain stems 不同。当前 nominal Brain 的结构以版本化合同为准；“central brain / decoder”不意味着代码必然是 Transformer decoder。
-- Truth != Belief != Decision != Permission != Execution。requested_risk != confidence。观察投影不是完整账本；一次实现收益不是正确动作标签。
-- 新经验可以校准当前行为，但不能通过简单的时间过期规则永久抹除仍有用的历史知识；也不得为此加入复杂手工周期/共振/规则激活系统。
+- Trader 管理单资产账户，根据 Market、Account 和必要因果历史行动；不是纯市场预测器。
+- 历史 Market 是可重复环境；完整经验来自动作、执行、账户演化和后续反馈。
+- 允许反复学习同一批经验，也要求新政策继续产生新账户轨迹；复习不等于增加独立市场证据。
+- 账户承担后续后果。chunk、暂停、checkpoint 换代和账户终止是不同事件。
+- 风险取舍由模型学习。完整计入失败后，高爆仓但更高算术期望收益的策略允许获胜。
+- 成功、普通、失败和终态事实都保留；优胜示范另筛；不得用幸存者池估计整体策略期望。
+- 冻结市场器官与可训练 Brain stems 不同；梯度归属必须实际验证。
+- Truth != Belief != Decision != Permission != Execution；requested_risk != confidence；观察投影 != 完整账本。
+- 新经验可校准行为，但不能仅按年龄清除历史知识；禁止为此加入复杂手工周期/共振/规则激活系统。
 
 ## 目标、实现、证据与权限
 
-这几类材料回答不同问题，不能机械地以“最新文件胜出”处理：
-
 | 材料 | 用途 |
 |---|---|
-| 用户当前明确指令和已确认理念 | 本次工作范围、目标与偏好；明确的后续修订优先于旧的项目意图描述 |
-| 对当前任务适用的版本化 authority | 当前执行语义、冻结参数、数据范围和准入条件 |
-| 精确 SHA 下的代码 | 实际实现了什么 |
-| 同一版本的运行日志、receipt 和产物 | 实际运行了什么、证明了什么 |
-| 文档中的建议和未决项 | 供后续设计讨论，不能冒充已授权实现 |
+| 用户当前明确指令 | 当前目标与授权，后续明确修订优先于旧任务管理文字 |
+| 版本化 authority | 当前执行语义、数据范围和准入条件 |
+| 精确 SHA 的代码 | 实际实现 |
+| 同版本运行日志/receipt | 实际运行证据 |
+| 设计建议/未决问题 | 不得冒充已授权科学结果 |
 
-发现用户新目标与旧 authority 冲突时，具体记录字段、版本和影响，按已授权任务推进。不要静默改冻结文件来让检查变绿，也不要用旧协议否认用户的新目标。新实验如需改奖励、时域、Teacher/Critic、执行语义或晋升规则，应有明确版本与验证范围。
-
-用户已授权的工作继续完成；不要对同一授权反复请求确认。尚未决定的科学选择写入 OPEN_QUESTIONS，只在它实际影响当前任务时提问。不得将本文件解释为额外的通用审批流程。
-
-## BC Round 2 执行纪律
-
-- 每个 BC 任务开始时现场核对 live main；不得把 `c373d23` 或任何文档快照永久当作 HEAD。
-- 推荐分支 `ai/r11-bc-<NNN>-<short-name>-r0`；只依赖已合并到 main 的显式前置 BC 任务。
-- 未合并 AC/BC sibling branch 不是 authority，也不得作为隐藏依赖。可以参考候选实现，但必须重新审查并绑定当前 main。
-- 语义变化必须 bump science identity 或使用显式版本化 successor；不要在同一 semantic version 下悄悄换含义。
-- 当前 BC TODO 把组件/closed-loop/known-answer/economic/transfer 证据分层；不得把单元测试 PASS 或 workflow success 直接写成经济能力改善。
-- BC 的第一阻塞目标是正确执行与完整账户经济后果；在 BC-A 未通过前，不生成或承认 canonical Round-2 replay 经验。
+CC thread 的 CONTRACT/COMPONENT/CLOSED_LOOP/KNOWN_ANSWER/ECONOMIC/TRANSFER 证据必须分开。Thread D 另可报告 `PERFORMANCE_MEASURED`，但吞吐不是更高科学证据层级。
 
 ## 执行与证据纪律
 
-- 开始时简要说明：目标、分支/SHA、已知完成项、缺口、本轮范围、完成证据。
-- 精确区分 main、未合并开发分支、计划和已运行产物；发现其他 agent 更新时先核对再写，保留其无关改动。
-- 只提交本任务涉及的内容，不为无关任务顺手合并其他分支或重写冻结 authority。
-- 代码仓库保存源代码、文档和脱敏小型证据；不提交数据、权重、checkpoint、密钥或运行缓存。遵循现有仓库检查。
-- 当前 FINAL 自 2025-09 起的封存及运行时禁止 fresh download 的边界继续适用；用户设想的未来模拟账户阶段不自动开放这些边界。
-- 冻结实验的问题、输入、指标和判据后再运行。发现新方法开新版本，保留原结果，不用改阈值挽救已观察的 FAIL。
-- 区分执行失败、有效执行下的科学失败、硬件限制、未决 owner decision 和未验证。workflow success、训练 loss 下降、权重变化均不单独证明交易能力。
-- 崩溃恢复幂等与跨代计划内回放是不同要求；不得用“允许复习”为重复提交同一事务辩护。
-- 不在缺少产物时声称已下载或独立验证哈希。引用 receipt 的哈希与自行验证字节应分别表述。
+- 开始时说明 thread、冻结 base、目标、owned files、预期证据。
+- 发现 frozen base 之后 main 又有别的 agent 更新，不自动吸收；CC thread 仍按 frozen base 执行，除非用户/集成负责人重新冻结基线。
+- 不碰 FINAL，不下载 fresh market data。
+- 不因性能删除失败、缩短后果窗口、重置账户、伪造 log_mu 或改变样本分布。
+- 科学 run 开始后不通过改 T、seed、预算、sampling、E_ref、执行语义来救结果；新方法开新版本。
+- 区分 `PASS`、`SCIENTIFIC_FAIL`、`EXECUTION_BLOCKED`、`HARDWARE_LIMIT`、`UNRESOLVED_OWNER_DECISION`。
+- workflow success、loss 下降、权重变化或高 GPU 利用率均不能单独证明经济能力。
+- 崩溃恢复幂等与跨代计划内重复学习是不同概念。
 
-## 文档维护与完成条件
+## 四线程后的 integration
 
-- 行为或状态发生实质变化时，同步更新相关文档；CURRENT_STATE 写检查日期、代码 SHA、证据和剩余缺口。
-- 新决定记录确认来源和替代范围；未得到确认的建议保留状态。历史 authority 和 verdict 保持可追溯。
-- 文件名、内部链接与实际路径一致。既有目录为 `docs/`，不另建重复的 `doc/` 导航树。
-- 文档改动检查链接、措辞、diff 和仓库策略；不为低风险文字修改编写镜像测试或启动科学训练。
-- 最终报告实际改动、提交/分支、验证结果、未完成事项。给出代码或文档链接；不只交付计划。
+四个 thread receipt 全部进入 main 后才进行 integration join。integration 负责：
 
-## 性能改动的理念边界
+- 统一 W-01..W-05 typed contract；
+- B policy → A runtime；
+- A facts → C store/replay/evaluator；
+- 用 D fast spine 替换 reference transport/scheduling；
+- 对照 A semantic oracle 证明 D fast path 正确；
+- 运行 closed-loop/known-answer/performance qualification；
+- 将 CC lane 硬路由到 fast path；
+- 更新 `CURRENT_STATE`、`ARCHITECTURE_MAP`、`README`、`AGENTS`、BC 历史状态。
 
-涉及性能阻塞时参考 [3700X / 1060 性能策略](docs/PERFORMANCE_STRATEGY_3700X_1060.md)：先测量，再按重复计算、批量/缓存、并行和编译热点逐项处理。不能以提速为由改变账户连续性、失败记账、动作概率、后果时域或当前科学版本。Rust/Go 是有实测依据时的局部实现选择，不是默认全仓库重写路线；性能文档本身不启动新的实施系列。
+若 wire 语义冲突，integration 返回 `INTEGRATION_BLOCKED`，不能静默重解释某个 thread 的已通过结果。
