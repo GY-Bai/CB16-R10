@@ -5,11 +5,14 @@
 ## 接手顺序
 
 1. 阅读 `docs/CURRENT_STATE.md`。
-2. 阅读 `docs/CC_INTEGRATION_HANDOFF.md`。
-3. 读取机器可读 authority：
+2. 阅读当前可执行总控 `docs/R11_POST_CC_S0_S1_TODO.md`。
+3. 若任务是 S0，继续读 `docs/post_cc/S0_CONTRACT_MIGRATION_TODO.md`；若任务是 S1，必须先读取已经 PASS 的 S0 receipt，再读 `docs/post_cc/S1_END_TO_END_LEARNABILITY_TODO.md`。
+4. 阅读 `docs/CC_INTEGRATION_HANDOFF.md` 与机器可读 CC authority：
    - `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
    - `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
-4. 再按当前任务需要阅读 `docs/VISION.md`、`PRINCIPLE_ALIGNMENT.md`、`COMPONENT_REQUIREMENTS.md`、`TRAINING_ALGORITHM_R0.md`、`EVALUATION_PRINCIPLES.md`、`docs/BRAIN_CAPACITY_ROADMAP_3700X_1060.md` 以及历史 AC/BC/Stage-4/CC thread 文档。
+5. 再按任务需要阅读 `docs/ECONOMIC_ORDERING_AND_PROMOTION.md`、`docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md`、`docs/VISION.md`、`docs/PRINCIPLE_ALIGNMENT.md`、`docs/COMPONENT_REQUIREMENTS.md`、`docs/TRAINING_ALGORITHM_R0.md`、`docs/EVALUATION_PRINCIPLES.md`、`docs/BRAIN_CAPACITY_ROADMAP_3700X_1060.md` 以及历史 AC/BC/Stage-4/CC thread 文档。
+
+**不要重新拆一套 S0/S1。** 当前 task numbering、hard gates、建议 successor surfaces 和 receipts 已由 `R11_POST_CC_S0_S1_TODO.md` 及两个 `docs/post_cc/` 任务包冻结为执行入口。
 
 CC R11 integration 已通过 PR #99 合入 `main`。Merge commit：
 
@@ -104,13 +107,20 @@ Receipt 冻结 benchmark：
 
 不得把 workflow PASS、性能 PASS、loss 下降或 checkpoint 变化升级为 ECONOMIC/TRANSFER evidence。FINAL 未打开，fresh market data 未使用。
 
-## 经济排序与下一科学阶段
+## 经济排序与 S0/S1 当前任务
 
-2026-09-12 用户要求对双基准和下一科学阶段表态并落实，当前设计见 [经济排序与晋升](docs/ECONOMIC_ORDERING_AND_PROMOTION.md) 和 [后 CC 科学计划 R0](docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md)。
+B&H/FLAT 是两个并列 benchmark components，**没有 master precedence，也没有 master baseline winner**。模型间排序、单模型 baseline component 结果、promotion decision 是三个独立对象。此原则已经关闭，不再提交 owner。
 
-B&H/FLAT 分别诊断，不设 master precedence。共同合同下按完整算术收益比较候选；满足预登记改善证据的候选可晋升沙盒学习冠军，不额外要求同时超过两个基准。排序、证据充分性与晋升分开，不能从沙盒冠军推定真实账户部署权限。O-01 原则问题关闭，不重复提交 owner。
+旧 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍保留其历史 unresolved 身份；S0 必须通过 successor contract/routing 显式迁移，禁止改写 frozen receipt 或假装历史语义从未存在。
 
-旧 C-20/receipt 的 unresolved 保留历史身份；新行为先作后继评价语义迁移并验证，不静默改写 frozen receipt。下一任务是 S0 契约/spec 与 S1 实际端到端学习资格，其后按 S2 历史 canary、S3 历史学习、条件性 S4 容量、S5 经济确认推进。
+当前执行顺序：
+
+1. `S0_CONTRACT_MIGRATION_TODO.md`：关闭经济语义迁移，冻结 successor contract、S1 task registry/run spec/evidence rule，输出 S0 receipt；
+2. S0 PASS 后才冻结 S1 base；
+3. `S1_END_TO_END_LEARNABILITY_TODO.md`：消灭 rollout-memory learner side channel，建立 durable observation/replay materialization、joint direction+risk learner，并通过多 seed known-answer + negative controls；
+4. S1 结束即停，不自动进入 S2/S3/S4/S5。
+
+S1 的核心资格要求是：learner 的训练真值必须可以从持久化 experience + observation facts 重建；不能只从 collector 内存里的 `records` 喂训练。Canonical policy likelihood 必须使用 nominal `direction + target_risk` 与真实 persisted `log_mu`，不能拿 executed action 重构。
 
 ## 后续执行
 
