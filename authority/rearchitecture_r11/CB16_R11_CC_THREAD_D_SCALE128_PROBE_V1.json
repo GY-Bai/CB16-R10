@@ -1,0 +1,87 @@
+{
+  "schema_version": "CB16_R11_CC_THREAD_D_SCALE128_PROBE_V1",
+  "thread": "D",
+  "status": "PASS",
+  "probe_only": true,
+  "active_runtime_contract_modified": false,
+  "active_route": "CC_FAST_R0",
+  "measured_head_sha": "837314f806e2e7f8d266573cde266132616d4e36",
+  "workflow_run_id": 34708988921,
+  "job_id": 103594169863,
+  "artifact_id": 10302337715,
+  "artifact_sha256": "d549b7121d49a66777848cda534c262631ef072deb5b4d72fa958794e6705a46",
+  "science_scope": "SYNTHETIC_ONLY_NO_FINAL_NO_FRESH",
+  "qualification": {
+    "pytest_passed": 56,
+    "pytest_failed": 0,
+    "semantic_pass": true,
+    "memory_safety_pass": true,
+    "queue_safety_pass": true,
+    "swap_out_bytes": 0,
+    "worker_cuda_initialized": false
+  },
+  "matrix": [
+    {
+      "worker_count": 6,
+      "active_accounts": 64,
+      "compliant_transitions_per_s": 1107.7298369640891,
+      "wall_clock_s": 11.110109694011044,
+      "pss_bytes": 611418112,
+      "cgroup_memory_bytes": 2564890624,
+      "queue_bytes": 167659,
+      "queue_depth": 156,
+      "swap_out_bytes": 0
+    },
+    {
+      "worker_count": 6,
+      "active_accounts": 128,
+      "compliant_transitions_per_s": 1169.0267818298664,
+      "wall_clock_s": 21.600018402037676,
+      "pss_bytes": 617308160,
+      "cgroup_memory_bytes": 2589696000,
+      "queue_bytes": 271599,
+      "queue_depth": 254,
+      "swap_out_bytes": 0
+    },
+    {
+      "worker_count": 8,
+      "active_accounts": 128,
+      "compliant_transitions_per_s": 1167.7241646883044,
+      "wall_clock_s": 21.62411360797705,
+      "pss_bytes": 617652224,
+      "cgroup_memory_bytes": 2591105024,
+      "queue_bytes": 271599,
+      "queue_depth": 254,
+      "swap_out_bytes": 0
+    },
+    {
+      "worker_count": 10,
+      "active_accounts": 128,
+      "compliant_transitions_per_s": 1151.7281894278187,
+      "wall_clock_s": 21.92444383300608,
+      "pss_bytes": 616800256,
+      "cgroup_memory_bytes": 2592485376,
+      "queue_bytes": 271599,
+      "queue_depth": 254,
+      "swap_out_bytes": 0
+    }
+  ],
+  "account_doubling_6_workers": {
+    "from_accounts": 64,
+    "to_accounts": 128,
+    "throughput_ratio": 1.0553356448660545,
+    "throughput_gain_percent": 5.533564486605447,
+    "pss_ratio": 1.0096334208692856,
+    "wall_clock_ratio": 1.9441768800609833
+  },
+  "best_128_account_candidate": {
+    "worker_count": 6,
+    "active_accounts": 128,
+    "compliant_transitions_per_s": 1169.0267818298664
+  },
+  "worker_scaling_at_128": {
+    "eight_vs_six_percent": -0.1114274849651431,
+    "ten_vs_six_percent": -1.479743036765191
+  },
+  "interpretation": "At 128 active accounts, 6 workers remains the measured winner. Increasing from 6 to 8 workers is effectively flat within this single-run smoke, while 10 workers is slower. Doubling accounts from 64 to 128 at 6 workers increases compliant throughput by about 5.53% while PSS rises by only about 0.96%, indicating additional batching/amortization benefit without memory pressure. This is probe-only evidence and does not widen the active CC_FAST_R0 runtime contract or replace the D-37 receipt."
+}
