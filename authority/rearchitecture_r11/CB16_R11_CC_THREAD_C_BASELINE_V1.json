@@ -1,0 +1,54 @@
+{
+  "schema": "CB16_R11_CC_THREAD_C_BASELINE_V1",
+  "status": "FROZEN",
+  "thread": "C",
+  "implementation_base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "branch": "ai/r11-cc-thread-c-experience-r0",
+  "planning_docs_source": {
+    "ref": "current main at Thread-C execution start",
+    "path": "docs/cc/CC_THREAD_C_EXPERIENCE_ECONOMICS.md",
+    "blob_sha": "322d629fc1eaa5a3ba64c1d408253997b4967285"
+  },
+  "sibling_cc_dependencies": [],
+  "frozen_inputs": {
+    "semantic_freeze": {
+      "path": "authority/rearchitecture_r11/CB16_SEMANTIC_FREEZE_V1.json",
+      "blob_sha": "3c401a0a350984381912f7860181e3e96eb8d7cf"
+    },
+    "r1_science_identity": {
+      "path": "authority/rearchitecture_r11/CB16_R11_FULL_MINUTE_LONG_TRAJECTORY_R1_SPEC_V1.json",
+      "blob_sha": "a0433af7ed0e3ab22772a873e60dbc811136e6a9"
+    },
+    "bc_round2_baseline": {
+      "path": "authority/rearchitecture_r11/CB16_R11_BC_ROUND2_BASELINE_V1.json",
+      "blob_sha": "9aec8635dd087d2e5c451c4d115ab257e8a2b973"
+    },
+    "raw_store_reference": {
+      "path": "cb16_local_opt/sharded_experience_lake.py",
+      "blob_sha": "bb3b72950cb39bdc64de490505490aee4404b6a5"
+    },
+    "demonstration_store_reference": {
+      "path": "cb16_local_opt/demonstration_shard_store_r11.py",
+      "blob_sha": "581518d6cdcc1466a8bd7d6553730090262a693c"
+    }
+  },
+  "science_identity": {
+    "semantic_freeze_schema": "CB16_R11_SEMANTIC_FREEZE_V1",
+    "historical_recurrence_policy": "NO_HAND_ENGINEERED_AGE_EXPIRY",
+    "primary_economic_statistic": "ARITHMETIC_EXPECTED_RETURN",
+    "missing_true_behavior_likelihood_policy": "FACT_DEMO_DIAGNOSTIC_ONLY__NO_FABRICATED_VTRACE"
+  },
+  "wire_contracts": {
+    "W-02": "CCEnvironmentTransitionV1",
+    "W-03": "CCExperienceSequenceV1",
+    "W-05": "CCEconomicResultV1"
+  },
+  "formal_owner_decisions": {
+    "conflicting_buy_hold_vs_flat_master_ranking": "UNRESOLVED_OWNER_DECISION"
+  },
+  "firewall": {
+    "final_holdout_opened": false,
+    "fresh_data_downloaded": false
+  },
+  "evidence_scope": "SYNTHETIC_LOCAL_COMPONENT"
+}
