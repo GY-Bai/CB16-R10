@@ -1,10 +1,6 @@
 name: CB16 R11 Main Smoke
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main, ai/r11-docker-runner-r0]
   workflow_dispatch:
 
 permissions:
