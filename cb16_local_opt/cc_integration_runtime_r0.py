@@ -114,6 +114,9 @@ def run_closed_loop_canary(root: str | Path) -> IntegratedCanaryResult:
     bindings = BrainBindings("1" * 64, "2" * 64, "3" * 64, "4" * 64)
     behavior_brain = CCCentralBrain(2, 3, 2, 8, bindings)
     behavior_brain.assert_gradient_ownership()
+    # Keep the bounded canary stochastic while avoiding an accidental all-FLAT path.
+    with torch.no_grad():
+        behavior_brain.direction_head.bias.copy_(torch.tensor([-0.25, -1.0, 0.35]))
     critic = SeparateCritic(7, hidden=8)
     assert_disjoint_parameters(behavior_brain, critic)
 
@@ -160,13 +163,12 @@ def run_closed_loop_canary(root: str | Path) -> IntegratedCanaryResult:
     fact_store = RawFactStore(root / "raw_facts")
     records: list[dict[str, Any]] = []
     immutable_refs: list[str] = []
+    immutable_items = []
     equities = [runtime.account.equity]
     behavior_identities: list[str] = []
     normalizers: list[str] = []
-    last_decision = None
 
     def callback(account_state, clocks):
-        nonlocal last_decision
         market, account_obs, execution_obs = _policy_inputs(account_state)
         logits, loc, log_scale = behavior_brain(market, account_obs, execution_obs)
         nominal = sample_nominal(logits, loc, log_scale, policy_rng)
@@ -192,7 +194,6 @@ def run_closed_loop_canary(root: str | Path) -> IntegratedCanaryResult:
             "log_mu": nominal.log_prob,
             "decision": decision,
         })
-        last_decision = decision
         return decision
 
     prices = (102.0, 98.0, 105.0, 97.0, 110.0, 90.0, 108.0, 101.0)
@@ -215,6 +216,7 @@ def run_closed_loop_canary(root: str | Path) -> IntegratedCanaryResult:
         )
         digest = fact_store.put(f"experience-{i}", asdict(immutable))
         immutable_refs.append(digest)
+        immutable_items.append(immutable)
         behavior_identities.append(f"{decision.policy_id}:{decision.policy_sha256}:{decision.policy_generation}")
         normalizers.append(decision.normalizer_id)
         equities.append(runtime.account.equity)
@@ -336,10 +338,19 @@ def run_closed_loop_canary(root: str | Path) -> IntegratedCanaryResult:
     )
     fact_store.put("runtime-child-acts", runtime_transition_raw_fact(child_transition))
 
+    provenance_retained = all(
+        immutable.nominal_direction == record["decision"].nominal_direction
+        and immutable.nominal_target_risk == record["decision"].nominal_target_risk
+        and immutable.log_mu == record["decision"].log_mu
+        and immutable.risk_measure_kind == record["decision"].risk_measure_kind
+        and immutable.rng_stream_id == record["decision"].rng_stream_id
+        and immutable.environment.policy_decision_ref == record["decision"].ref
+        for immutable, record in zip(immutable_items, records)
+    )
     checks = {
         "market_account_to_stochastic_actor": len(records) == len(prices),
         "true_log_mu_finite": all(torch.isfinite(torch.tensor(x["log_mu"])).item() for x in records),
-        "nominal_distinct_from_execution_provenance": all(x["decision"].ref in immutable_refs or True for x in records),
+        "nominal_action_log_mu_rng_provenance_retained": provenance_retained,
         "signed_account_consequences_present": any(abs(b - a) > 0 for a, b in zip(equities[:-1], equities[1:])),
         "immutable_experience_persisted": fact_store.count() >= len(prices) * 2,
         "c_sequence_reaches_b_learner": learner_sequence.sequence_id == sequence.sequence_id,
