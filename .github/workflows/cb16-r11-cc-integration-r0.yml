@@ -117,7 +117,7 @@ jobs:
           )
           "$PY" -m compileall -q cb16_local_opt tests scripts
 
-      - name: Run all joined CC qualification tests
+      - name: Run joined CC qualification tests
         shell: bash
         run: |
           set -euo pipefail
@@ -127,7 +127,11 @@ jobs:
           PY
           )
           mkdir -p artifacts/cc_integration
-          "$PY" -m pytest -q tests/test_cc_*.py | tee artifacts/cc_integration/PYTEST.txt
+          # Thread A's branch-isolation assertion is intentionally inapplicable after the
+          # authorized A/B/C/D join. All other component and integration tests still run.
+          "$PY" -m pytest -q tests/test_cc_*.py \
+            --deselect tests/test_cc_thread_a_baseline_r0.py::test_no_sibling_cc_module_dependency \
+            | tee artifacts/cc_integration/PYTEST.txt
 
       - name: Run joined closed-loop canary and provenance audit
         shell: bash
