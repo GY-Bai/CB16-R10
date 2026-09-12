@@ -1,20 +1,20 @@
 # CB16 R11 Actor–Critic Code Alignment TODO
 
-**Status:** OPEN / implementation not authorized by this document alone  
+**Status:** OPEN / planning authority only; this document does not itself authorize scientific implementation or final-holdout access  
 **Target branch:** `main`  
-**Review baseline:** `875ab16f92c6504a2bdd5fcc12d5ea6172464990`  
-**Purpose:** turn the latest autonomous-Trader / continuous-account / Actor–Critic / V-trace design into an explicit file-level implementation plan without rewriting the frozen historical R10/R11 scientific runtime.
+**Review baseline:** `4d47062585578e66b7fc47eb244d7aa0c0ccb7cf`  
+**Expanded decomposition:** `AC-001` through `AC-058`  
+**Purpose:** convert the autonomous-Trader / continuous-account / stochastic Actor–Critic / V-trace design into independently implementable, independently testable code tasks while preserving the historical R10/R11 scientific lane.
 
 ---
 
-## 0. Executive verdict
+# 0. Executive verdict
 
-The current repository is **not yet code-aligned** with the new learning design, but the infrastructure is largely reusable.
+The current repository is **not yet scientifically aligned** with the new learning design, but the existing infrastructure remains largely reusable.
 
-The main mismatch is scientific, not infrastructural:
+The current historical lane is approximately:
 
 ```text
-current historical lane
 Market + Account
     -> deterministic Brain
     -> one nominal action
@@ -22,947 +22,1608 @@ Market + Account
     -> H72 continuation with FLAT/0 after the first step
     -> terminal H72 log-equity utility
     -> Teacher-target CE + SmoothL1 Student training
+```
 
-required new lane
+The required new lane is:
+
+```text
 Market_t + Account_t
     -> stochastic Actor_t
+    -> nominal target-position action + log_mu
     -> Permission / execution authority
     -> Physics
     -> Account_t+1
-    -> reward_t
+    -> arithmetic-equity reward_t
     -> Actor_t+1 ...
     -> immutable continuous trajectory
     -> Critic + V-trace replay learning
-    -> economic evaluation on a common finite objective horizon
+    -> common-horizon economic evaluation
 ```
 
-The implementation must therefore add a **new versioned scientific lane** rather than silently changing historical files whose existing tests encode legacy semantics.
+This is therefore a **new versioned scientific lane**, not an in-place rewrite of the legacy H72 / Teacher–Student runtime.
+
+The key ordering rule is:
+
+> **Do not implement V-trace first.** Action semantics, execution semantics, continuous rollout semantics, reward semantics, and trajectory semantics must be frozen and qualified before off-policy learning is allowed to consume the generated experience.
 
 ---
 
 # 1. Non-negotiable migration rules
 
-## 1.1 Historical runtime must remain reproducible
+## 1.1 Preserve the historical lane
 
-The following files are historical/frozen compatibility surfaces and must **not** be converted in-place into the new Actor–Critic runtime:
+The following surfaces remain historical compatibility authorities and must not be converted in place:
 
 - `[KEEP/FROZEN] cb16_local_opt/trace_runtime_r11.py`
 - `[KEEP/FROZEN] cb16_local_opt/training_runtime_r11.py`
 - `[KEEP/FROZEN] cb16_local_opt/typed_central_brain_r10.py`
 - `[KEEP/FROZEN] cb16_local_opt/r102_physics.py`
 - `[KEEP/FROZEN] tests/test_r11_trace_runtime.py`
+- `[KEEP/FROZEN] authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/**`
+- `[KEEP/FROZEN] authority/control_plane_r1/risk_supervisor_r1.py`
 
-Reason: the existing H72 tests intentionally require the optimized R11 trace runtime to reproduce the legacy H72 branch, snapshot sequence, supervisor decisions, utility, termination and finalize behavior exactly. The new scientific semantics must not invalidate that oracle.
+Existing regression/oracle behavior must remain reproducible.
 
-## 1.2 Reuse infrastructure; do not reimplement it unless a concrete blocker appears
+## 1.2 Reuse infrastructure instead of rebuilding it
 
-The following should remain infrastructure authorities and be reused through adapters:
+Prefer adapters over replacement for:
 
 - `[REUSE] cb16_local_opt/market_runtime_cache_r11.py`
 - `[REUSE] cb16_local_opt/sharded_experience_lake.py`
 - `[REUSE] cb16_local_opt/checkpoint_store_r11.py`
+- `[REUSE] cb16_local_opt/minute_physics_binding_r2.py` where its generic snapshot/transition utilities remain valid
+- `[REUSE] existing Stage-4 state roots, fencing, recovery, async orchestration and authority-adoption infrastructure where scientifically compatible`
 
-New RL semantics should live above these files. If a generic capability is missing, add only the smallest backward-compatible extension; do not put Actor–Critic semantics directly into generic storage code.
+Generic infrastructure must not silently acquire Actor–Critic-specific meaning.
 
-## 1.3 No fake behavior-policy likelihoods
+## 1.3 No fabricated behavior likelihood
 
-Historical H72 / Teacher demonstrations that do not contain a valid behavior-policy probability must not be assigned fabricated `log_mu` values and then treated as ordinary V-trace replay.
+Historical demonstrations without valid behavior-policy probability information must not be assigned fake `log_mu` and inserted into ordinary V-trace replay.
 
-## 1.4 Failure is experience
+## 1.4 Failure remains first-class experience
 
-Liquidation, account death, very negative return and other failed trajectories must remain first-class training/evaluation observations. They must not disappear through censoring simply because terminal equity is non-positive.
+Liquidation, account death, large negative return and other failed trajectories remain valid experience. They must not disappear through positive-equity censoring or survivorship filtering.
 
 ## 1.5 Account continuity is authoritative
 
-The post-step account state is the next decision's account state unless a true terminal/reset contract explicitly says otherwise. Chunk boundaries, learner updates, generation switches and process restarts must not silently reset the account.
+`AccountState_{t+1}` is the next decision's account state unless a true terminal/reset contract explicitly says otherwise. Chunk boundaries, learner updates, generation switches, checkpoint/restart and process scheduling must not silently reset the logical account.
 
-## 1.6 Final holdout and fresh-data restrictions remain unchanged
+## 1.6 Objective remains expected arithmetic return
 
-This TODO does not authorize final-holdout access, new-data download, or any weakening of existing fail-closed market-data authority.
+The primary objective must not silently become log-growth, Sharpe, drawdown minimization, sign reward, clipped reward, bankruptcy avoidance, pessimistic value, or another risk-adjusted surrogate.
+
+Risk/tail statistics are diagnostics unless separately authorized as decision criteria.
+
+## 1.7 Final holdout and fresh-data restrictions remain unchanged
+
+This TODO authorizes neither final-holdout access nor fresh-data download. Existing fail-closed data authority remains in force.
 
 ---
 
-# 2. Existing files: disposition matrix
+# 2. Hard gates
 
-| File | Disposition | Required action |
+The new lane has four explicit blocking gates.
+
+## Gate A — Semantic execution gate
+
+Requires `AC-001` through `AC-014` PASS.
+
+No trajectory generated before this gate may be presumed replay-compatible with the final execution semantics.
+
+## Gate B — Experience-production gate
+
+Requires `AC-015` through `AC-035` PASS.
+
+Until then, no collected trajectory is admitted as canonical Actor–Critic training evidence.
+
+## Gate C — Learner qualification gate
+
+Requires `AC-036` through `AC-050` PASS.
+
+> **AC-050 must PASS before any real historical market scale-up.**
+
+Failure of a known-answer toy is a scientific blocker, not a throughput problem.
+
+## Gate D — Economic evaluation gate
+
+Requires `AC-051` through `AC-054` PASS before Champion/Challenger promotion can rely on the new economic evaluator.
+
+`AC-055` through `AC-058` then complete migration/infrastructure/CI/documentation closure.
+
+---
+
+# 3. T0–T17 to AC task mapping
+
+The earlier T0–T17 workstreams remain the high-level authority. The AC tasks below are their implementation decomposition.
+
+| Existing workstream | Meaning | Decomposed tasks |
 |---|---|---|
-| `cb16_local_opt/trace_runtime_r11.py` | KEEP/FROZEN | Preserve legacy H72 behavior. Do not retrofit continuous Actor calls into `_simulate_h72_branch_r11`. |
-| `cb16_local_opt/training_runtime_r11.py` | KEEP/FROZEN | Preserve Teacher soft-target CE + risk SmoothL1 historical training. New Actor–Critic learner goes in a new file. |
-| `cb16_local_opt/typed_central_brain_r10.py` | KEEP/FROZEN | Preserve deterministic `compose_action()` behavior for historical experiments. Do not change it into stochastic sampling. |
-| `cb16_local_opt/r102_physics.py` | KEEP/FROZEN | Preserve frozen R10.2/H72 authority. New target-position semantics must enter through a versioned adapter/new execution contract. |
-| `cb16_local_opt/market_runtime_cache_r11.py` | REUSE | Use as the market-array source for the new continuous collector. |
-| `cb16_local_opt/sharded_experience_lake.py` | REUSE | Keep generic CAS/immutable-object semantics. Add RL payloads through `trajectory_lake_r0.py`. |
-| `cb16_local_opt/checkpoint_store_r11.py` | REUSE | Keep semantic tensor-object CAS. Composite Actor/Critic/optimizer/RNG state goes through a new adapter. |
-| `tests/test_r11_trace_runtime.py` | KEEP/FROZEN | Historical regression guard; it must remain green after the new lane is added. |
+| T0 | versioned scientific protocol/runtime lane | AC-001–AC-004 |
+| T1 | target-position Action semantics | AC-005–AC-009 |
+| T2 | requested risk -> permission -> executable exposure | AC-010–AC-014 |
+| T3 | stochastic Actor | AC-015–AC-022 |
+| T4 | true continuous policy collector | AC-023–AC-027 |
+| T5 | arithmetic-equity reward | AC-028–AC-030 |
+| T6 | boundary/terminal/bootstrap semantics | AC-031–AC-033 |
+| T7 | Transition/Sequence experience schema | AC-034–AC-035 |
+| T8 | separate Critic | AC-036–AC-039 |
+| T9 | V-trace Actor–Critic | AC-040–AC-043 |
+| T10 | replay compatibility | AC-044–AC-045 |
+| T11 | full generation checkpoint/recovery | AC-046 |
+| T12 | training qualification math/contracts | AC-047 |
+| T13 | known-answer toy environments | AC-048–AC-050 |
+| T14 | economic evaluator | AC-051–AC-054 |
+| T15 | old demo/new replay boundary | AC-055 |
+| T16 | generation switch/account continuity | AC-056 |
+| T17 | infrastructure adoption/CI/docs closure | AC-057–AC-058 |
 
 ---
 
-# 3. P0 — semantic and experience-production blockers
+# 4. Branch and receipt discipline
 
-## T0 — Create a versioned Actor–Critic scientific contract
+Each AC task should be independently reviewable.
 
-**Priority:** P0 / must be first
+Recommended branch form:
 
-### Files
+```text
+ai/r11-ac-<NNN>-<short-name>-r0
+```
+
+Rules:
+
+1. One task owns only its declared files unless an authority blocker requires a documented expansion.
+2. No undeclared dependency on an unmerged sibling branch.
+3. A task may depend only on earlier AC tasks explicitly listed below.
+4. Every task must leave a machine-readable or test-visible PASS/FAIL condition.
+5. `EXECUTION_BLOCKED` / `HARDWARE_LIMIT` must not be reported as `SCIENTIFIC_FAIL`.
+6. A scientific failure must be preserved rather than rescued by changing objective, seed, horizon or semantics inside the same task.
+7. Historical regression tests remain mandatory throughout the migration.
+
+---
+
+# 5. Detailed implementation tasks
+
+## Phase A — Authority, Action and execution semantics
+
+### AC-001 — Actor–Critic science version registry
+
+**Maps to:** T0  
+**Priority:** P0  
+**Branch:** `ai/r11-ac-001-science-contract-r0`
+
+**Files**
 
 - `[NEW] cb16_local_opt/actor_critic_contract_r0.py`
 - `[NEW] tests/test_actor_critic_contract_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Define immutable version identifiers for:
-  - observation schema;
-  - action schema;
-  - permission/execution schema;
-  - reward schema;
-  - trajectory schema;
-  - policy distribution schema;
-  - critic/value schema;
-  - replay compatibility schema.
-- [ ] Define canonical hashing/serialization helpers for science-level identities where the existing generic helpers are insufficient.
-- [ ] Encode invariants:
-  - nominal action != permission != executed action;
-  - requested target risk != confidence;
-  - outcome != correct-action label;
-  - account state at `t+1` must descend from executed state at `t`;
-  - failure trajectories remain admissible experience;
-  - no final-holdout access;
-  - no fresh-data authority.
-- [ ] Provide fail-closed validators used by all new Actor–Critic modules.
+- Freeze explicit version IDs for observation, action, permission/execution, reward, trajectory, Actor distribution, Critic/value, replay compatibility and checkpoint bundle.
+- Provide fail-closed validation helpers.
+- Distinguish scientific semantic version from code/git revision.
 
-### Acceptance tests
-
-- [ ] Same semantic object => same hash independent of dict insertion order.
-- [ ] Schema/version mismatch fails closed.
-- [ ] Missing required lineage/version fields fails closed.
-- [ ] Historical R11 modules import and run without depending on this new contract.
+**Dependencies:** none.  
+**Gate:** unknown/missing/mixed versions fail closed; same declared contract validates deterministically.
 
 ---
 
-## T1 — Introduce a target-position action contract
+### AC-002 — Canonical science serialization and semantic hashing
 
+**Maps to:** T0  
 **Priority:** P0
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_critic_contract_r0.py`
+- `[MODIFY] tests/test_actor_critic_contract_r0.py`
+
+**Implement**
+
+- Canonical serialization for science identities.
+- Stable hashes independent of dict insertion order or incidental process state.
+- Required lineage fields for account, policy, execution and data source.
+
+**Dependencies:** AC-001.  
+**Gate:** semantically identical objects hash identically; changed semantic field changes hash; absent lineage fails closed.
+
+---
+
+### AC-003 — Legacy freeze regression sentinel
+
+**Maps to:** T0  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] tests/test_actor_critic_legacy_freeze_r0.py`
+- `[KEEP/FROZEN] tests/test_r11_trace_runtime.py`
+
+**Implement**
+
+- Explicit regression test that imports/runs legacy deterministic Brain, H72 path and historical training surfaces unchanged.
+- Record expected separation between historical and Actor–Critic lanes.
+
+**Dependencies:** AC-001.  
+**Gate:** any accidental semantic mutation of frozen legacy behavior blocks the new lane.
+
+---
+
+### AC-004 — Runtime lane router and fail-closed protocol selection
+
+**Maps to:** T0  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_runtime_router_r0.py`
+- `[NEW] tests/test_actor_critic_runtime_router_r0.py`
+
+**Implement**
+
+- Explicitly select `LEGACY_R11` versus `ACTOR_CRITIC_R0`.
+- Forbid implicit fallback from the new lane to legacy semantics or vice versa.
+- Emit selected science-contract hash into receipts.
+
+**Dependencies:** AC-001–AC-003.  
+**Gate:** unknown lane or contract mismatch fails closed.
+
+---
+
+### AC-005 — `TargetPositionActionR0` datatype
+
+**Maps to:** T1  
+**Priority:** P0
+
+**Files**
 
 - `[NEW] cb16_local_opt/action_contract_r0.py`
 - `[NEW] tests/test_action_contract_r0.py`
-- `[KEEP/FROZEN] cb16_local_opt/typed_central_brain_r10.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Define `TargetPositionActionR0` (exact class name may change once frozen) containing at minimum:
-  - direction target: `SHORT / FLAT / LONG`;
-  - requested target risk/exposure in `[0,1]`;
-  - policy/version identity;
-  - optional sampling metadata needed to reconstruct behavior likelihood.
-- [ ] Make action semantics **target state**, not "one-time entry command".
-- [ ] Support the required transitions:
-  - FLAT -> LONG;
-  - FLAT -> SHORT;
-  - LONG -> smaller LONG;
-  - LONG -> FLAT;
-  - LONG -> SHORT through the authorized execution transition;
-  - SHORT -> smaller SHORT;
-  - SHORT -> FLAT;
-  - SHORT -> LONG through the authorized execution transition.
-- [ ] Add canonical serialization and validation.
-- [ ] Explicitly separate `requested_target_risk` from realized executable quantity.
-- [ ] Do not modify `typed_central_brain_r10.py`; old deterministic action composition remains historical.
+- Direction target: `SHORT / FLAT / LONG`.
+- `requested_target_risk` in `[0,1]`.
+- Action/schema/policy identity fields.
+- Target-state semantics, not one-time-entry semantics.
 
-### Acceptance tests
-
-- [ ] All legal target-state transitions serialize deterministically.
-- [ ] Invalid direction/risk values fail closed.
-- [ ] LONG->FLAT and LONG->SHORT are representable before any Physics call.
+**Dependencies:** AC-001–AC-002.  
+**Gate:** all valid actions round-trip canonically; invalid direction/risk fails closed.
 
 ---
 
-## T2 — Add permission and Physics adaptation for target-state actions
+### AC-006 — Action canonicalization and invariant validation
 
+**Maps to:** T1  
 **Priority:** P0
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/action_contract_r0.py`
+- `[MODIFY] tests/test_action_contract_r0.py`
+
+**Implement**
+
+- Canonical encoding of direction/risk.
+- Freeze `FLAT` target-risk semantics.
+- Forbid `requested_target_risk` from being interpreted as confidence.
+
+**Dependencies:** AC-005.  
+**Gate:** equivalent action payloads serialize identically; contradictory fields fail closed.
+
+---
+
+### AC-007 — Full target-state transition matrix
+
+**Maps to:** T1  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/action_contract_r0.py`
+- `[MODIFY] tests/test_action_contract_r0.py`
+
+**Implement/test**
+
+- FLAT -> LONG / SHORT.
+- LONG -> larger/smaller LONG / FLAT / SHORT.
+- SHORT -> larger/smaller SHORT / FLAT / LONG.
+- Same-target no-op representation.
+
+**Dependencies:** AC-005–AC-006.  
+**Gate:** every intended transition is representable before Physics; no ambiguous reversal encoding.
+
+---
+
+### AC-008 — Nominal / permitted / executed action record separation
+
+**Maps to:** T1  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/execution_record_r0.py`
+- `[NEW] tests/test_execution_record_r0.py`
+
+**Implement**
+
+- Immutable records for nominal Actor output, Supervisor permission result and actual executed delta.
+- Prevent downstream learner/evaluator from conflating them.
+
+**Dependencies:** AC-005–AC-007.  
+**Gate:** one record can show Actor request != permission != execution without losing any field.
+
+---
+
+### AC-009 — Action behavior metadata contract
+
+**Maps to:** T1  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/action_contract_r0.py`
+- `[MODIFY] cb16_local_opt/execution_record_r0.py`
+- `[MODIFY] tests/test_action_contract_r0.py`
+
+**Implement**
+
+- Fields required to link sampled action to behavior-policy version/hash and later `log_mu` verification.
+- No probability fabrication at this layer.
+
+**Dependencies:** AC-005–AC-008.  
+**Gate:** sampled-action provenance can be bound to one immutable behavior policy identity.
+
+---
+
+### AC-010 — Supervisor permission result contract
+
+**Maps to:** T2  
+**Priority:** P0
+
+**Files**
 
 - `[NEW] cb16_local_opt/actor_critic_supervisor_r0.py`
-- `[NEW] cb16_local_opt/actor_critic_physics_adapter_r0.py`
 - `[NEW] tests/test_actor_critic_supervisor_r0.py`
-- `[NEW] tests/test_actor_critic_physics_adapter_r0.py`
-- `[KEEP/FROZEN] cb16_local_opt/r102_physics.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] `actor_critic_supervisor_r0.py` must consume nominal target action + current AccountState and produce a permission result:
-  - ACCEPT;
-  - CLAMP;
-  - REJECT;
-  - explicit reason code;
-  - permitted target exposure.
-- [ ] Permission must remain external authority; the Actor cannot bypass legality, margin or risk limits.
-- [ ] `actor_critic_physics_adapter_r0.py` must translate the permitted target into the smallest legal executable delta against the current position.
-- [ ] Freeze the mapping from `requested_target_risk in [0,1]` to target exposure/quantity.
-- [ ] Include exchange/physics constraints in the executable conversion:
-  - available equity/margin;
-  - maximum authorized exposure;
-  - quantity precision;
-  - minimum quantity/notional if applicable;
-  - fees/funding through existing Physics authority;
-  - liquidation/termination state.
-- [ ] Reverse-position behavior must be deterministic and explicitly specified. Do not allow an ambiguous implicit flip.
-- [ ] Preserve `r102_physics.py` byte/semantic behavior for historical callers.
+- Permission outcomes: `ACCEPT / CLAMP / REJECT` plus reason code and permitted target exposure.
+- Preserve external legality/risk authority.
+- Actor cannot bypass margin/legality/termination constraints.
 
-### Acceptance tests
-
-- [ ] Known account + same action always produces the same executable quantity.
-- [ ] Reduce / close / reverse tests exist for both LONG and SHORT.
-- [ ] Clamp/reject reason is recorded and reproducible.
-- [ ] Model cannot create quantity beyond permission authority.
-- [ ] Legacy `tests/test_r11_trace_runtime.py` remains green.
+**Dependencies:** AC-005–AC-009.  
+**Gate:** permission output is deterministic for identical state/action/authority.
 
 ---
 
-## T3 — Add a stochastic Actor policy contract
+### AC-011 — Held-position reduce/close permission
 
+**Maps to:** T2  
 **Priority:** P0
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_critic_supervisor_r0.py`
+- `[MODIFY] tests/test_actor_critic_supervisor_r0.py`
+
+**Implement**
+
+- Remove the new lane's dependence on legacy `POSITION_ALREADY_OPEN -> FORCED_NOOP` behavior.
+- Authorize mechanically legal resize and close operations.
+
+**Dependencies:** AC-010.  
+**Gate:** LONG/SHORT held accounts can reduce and close when legal; permission reason is auditable.
+
+---
+
+### AC-012 — Explicit reversal semantics
+
+**Maps to:** T2  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_critic_supervisor_r0.py`
+- `[MODIFY] tests/test_actor_critic_supervisor_r0.py`
+
+**Implement**
+
+- Freeze how LONG->SHORT and SHORT->LONG are represented and authorized.
+- No ambiguous implicit flip.
+- Record any required close-then-open sequence as an explicit execution contract.
+
+**Dependencies:** AC-011.  
+**Gate:** reversal has one deterministic legal interpretation.
+
+---
+
+### AC-013 — Requested risk -> target exposure/quantity mapping
+
+**Maps to:** T2  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/target_exposure_r0.py`
+- `[NEW] tests/test_target_exposure_r0.py`
+
+**Implement**
+
+- Freeze mathematical mapping from `[0,1]` requested target risk to target exposure/quantity authority.
+- Account for equity/margin and declared maximum legal exposure without converting this into a trading heuristic.
+- Precision/minimum-size handling must remain mechanical.
+
+**Dependencies:** AC-010–AC-012.  
+**Gate:** same state/action/contract -> identical target exposure; no hidden strategy rule inside sizing.
+
+---
+
+### AC-014 — Target-position Physics adapter
+
+**Maps to:** T2  
+**Priority:** P0 / **Gate A completion**
+
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_physics_adapter_r0.py`
+- `[NEW] tests/test_actor_critic_physics_adapter_r0.py`
+- `[KEEP/FROZEN] cb16_local_opt/r102_physics.py`
+- `[KEEP/FROZEN] authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/**`
+
+**Implement**
+
+- Convert permitted target exposure to the smallest legal executable delta against current position.
+- Preserve authoritative fees/funding/margin/liquidation mechanics.
+- Cover open, resize, close, reverse and no-op.
+
+**Dependencies:** AC-005–AC-013.  
+**Gate:** deterministic known-state execution tests PASS; legacy H72 regression remains green. **Gate A closes only here.**
+
+---
+
+## Phase B — Stochastic Actor and continuous experience production
+
+### AC-015 — Actor policy interface
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
 
 - `[NEW] cb16_local_opt/actor_policy_r0.py`
-- `[NEW] cb16_local_opt/actor_critic_brain_r0.py`
 - `[NEW] tests/test_actor_policy_r0.py`
+
+**Implement**
+
+- `sample(...)`.
+- `log_prob(...)`.
+- `deterministic_action(...)`.
+- Explicit policy distribution/version object.
+
+**Dependencies:** Gate A.  
+**Gate:** interfaces are distinct; evaluation call consumes no RNG.
+
+---
+
+### AC-016 — Categorical direction distribution
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_policy_r0.py`
+- `[MODIFY] tests/test_actor_policy_r0.py`
+
+**Implement**
+
+- Stable categorical distribution over SHORT/FLAT/LONG.
+- Numerically stable probabilities/log-probabilities.
+
+**Dependencies:** AC-015.  
+**Gate:** probabilities normalize and remain finite under extreme logits.
+
+---
+
+### AC-017 — Bounded conditional risk distribution
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_policy_r0.py`
+- `[MODIFY] tests/test_actor_policy_r0.py`
+
+**Implement**
+
+- Explicit bounded distribution for LONG/SHORT risk in `[0,1]`.
+- Parameterization must support exact sample likelihood reconstruction.
+- FLAT risk remains contract-defined rather than sampled from a meaningless distribution.
+
+**Dependencies:** AC-015–AC-016.  
+**Gate:** samples are bounded; `log_prob` finite for legal samples.
+
+---
+
+### AC-018 — Endpoint-mass semantics
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_policy_r0.py`
+- `[MODIFY] tests/test_actor_policy_r0.py`
+
+**Implement**
+
+- If endpoint masses at risk 0/1 are retained, encode them as an explicit mixed distribution rather than pretending a continuous density supplies point probability.
+- If endpoints are disallowed, freeze that instead and validate strictly.
+
+**Dependencies:** AC-017.  
+**Gate:** exact and auditable endpoint likelihood behavior.
+
+---
+
+### AC-019 — Joint action `log_prob`
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_policy_r0.py`
+- `[MODIFY] tests/test_actor_policy_r0.py`
+
+**Implement**
+
+- Freeze joint likelihood for direction + conditional risk.
+- `log_mu` saved at collection must equal later recomputation from the frozen behavior policy.
+
+**Dependencies:** AC-016–AC-018.  
+**Gate:** sampled action -> stored `log_mu` -> recomputed `log_mu` matches within frozen tolerance.
+
+---
+
+### AC-020 — Actor RNG and sampling provenance
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/policy_rng_r0.py`
+- `[NEW] tests/test_policy_rng_r0.py`
+
+**Implement**
+
+- Separate Actor sampling RNG from model weights and unrelated process RNG.
+- Serializable/restorable RNG state.
+- Stable provenance fields for trajectory receipts.
+
+**Dependencies:** AC-015–AC-019.  
+**Gate:** fixed model + restored RNG produces identical next sampled action sequence.
+
+---
+
+### AC-021 — Deterministic evaluation action
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_policy_r0.py`
+- `[MODIFY] tests/test_actor_policy_r0.py`
+
+**Implement**
+
+- Deterministic policy readout for evaluation/diagnostics.
+- Must not mutate RNG state.
+- Must be explicitly distinct from sampled behavior used for training collection.
+
+**Dependencies:** AC-015–AC-020.  
+**Gate:** evaluation before/after does not change the subsequent stochastic sample sequence.
+
+---
+
+### AC-022 — Actor–Critic Brain integration surface
+
+**Maps to:** T3  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_brain_r0.py`
 - `[NEW] tests/test_actor_critic_brain_r0.py`
 - `[KEEP/FROZEN] cb16_local_opt/typed_central_brain_r10.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Implement a policy distribution with three distinct interfaces:
-  - `sample(...)` for training/experience generation;
-  - `log_prob(...)` for exact behavior/target likelihood calculation;
-  - `deterministic_action(...)` for evaluation/deployment diagnostics.
-- [ ] Direction should be a categorical distribution over SHORT/FLAT/LONG.
-- [ ] Risk/exposure must use an explicitly bounded distribution compatible with `[0,1]`; the chosen parameterization must permit exact `log_prob` reconstruction.
-- [ ] Store all parameters needed to recompute `log_mu` from the frozen behavior policy.
-- [ ] Separate sampling RNG state from model weights.
-- [ ] `actor_critic_brain_r0.py` may reuse existing sensory representations, but must expose the new Actor interface rather than calling the historical `compose_action()`.
-- [ ] Do not reinterpret the historical sigmoid-risk head as automatically equivalent to the new stochastic risk distribution.
+- Reuse compatible sensory representations without reusing historical deterministic action semantics.
+- Expose stochastic Actor distribution/action API.
+- Bind policy hash/version and RNG provenance.
 
-### Acceptance tests
-
-- [ ] Fixed model + fixed RNG => identical sampled action sequence.
-- [ ] Stored behavior distribution + sampled action => exact reproducible `log_mu`.
-- [ ] `deterministic_action()` never consumes RNG.
-- [ ] Probability normalization and finite-log-prob tests cover extreme logits/risk parameters.
+**Dependencies:** AC-015–AC-021.  
+**Gate:** new Brain can sample, score and deterministically evaluate the same observation while legacy Brain remains untouched.
 
 ---
 
-## T4 — Build a true continuous policy rollout runtime
+### AC-023 — Actor–Critic observation schema
 
-**Priority:** P0 / central code gap
+**Maps to:** T4  
+**Priority:** P0
 
-### Files
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_observation_r0.py`
+- `[NEW] tests/test_actor_critic_observation_r0.py`
+
+**Implement**
+
+- Explicit causal observation containing authorized market sensory state + Account state + legal/execution state required by policy.
+- Include normalized `equity/E_ref` if used.
+- Include remaining objective time `tau=T-t` only if the policy/value problem is horizon-conditioned.
+
+**Dependencies:** AC-001–AC-022.  
+**Gate:** no future information; observation identity is deterministic.
+
+---
+
+### AC-024 — Observation builder and account-lineage validation
+
+**Maps to:** T4  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/actor_critic_observation_r0.py`
+- `[MODIFY] tests/test_actor_critic_observation_r0.py`
+
+**Implement**
+
+- Build `x_t` from the exact current authoritative account snapshot.
+- Validate account lineage across successive observations.
+- Reject stale/mismatched account snapshots.
+
+**Dependencies:** AC-023.  
+**Gate:** `x_{t+1}` demonstrably descends from execution at `t`.
+
+---
+
+### AC-025 — Policy decision-clock contract
+
+**Maps to:** T4  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/decision_clock_r0.py`
+- `[NEW] tests/test_decision_clock_r0.py`
+
+**Implement**
+
+- Freeze when the Actor is allowed/required to make a new decision.
+- Separate market-bar progression from learner-update cadence and storage chunking.
+- No hidden H72-first-step-only behavior.
+
+**Dependencies:** AC-023–AC-024.  
+**Gate:** fixture enumerates exact decision timestamps and rejects duplicate/skipped unauthorized decisions.
+
+---
+
+### AC-026 — Continuous rollout state machine
+
+**Maps to:** T4  
+**Priority:** P0 / central collector task
+
+**Files**
 
 - `[NEW] cb16_local_opt/continuous_rollout_r0.py`
 - `[NEW] tests/test_continuous_rollout_r0.py`
 - `[REUSE] cb16_local_opt/market_runtime_cache_r11.py`
 - `[KEEP/FROZEN] cb16_local_opt/trace_runtime_r11.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] At **every authorized policy decision clock**:
-  1. obtain current market observation;
-  2. obtain current authoritative account snapshot;
-  3. construct Actor observation;
-  4. sample nominal action;
-  5. record behavior `log_mu`;
-  6. pass through permission;
-  7. execute through Physics adapter;
-  8. obtain new account snapshot;
-  9. compute reward;
-  10. append transition;
-  11. feed `AccountState_{t+1}` into the next policy decision.
-- [ ] No `j > 0 => FLAT/0` shortcut is allowed in this new runtime.
-- [ ] Keep one account strictly chronological even when different accounts are parallelized.
-- [ ] Define deterministic collector seeding and stable trace IDs.
-- [ ] Collector must be restartable from a sealed account/policy/RNG checkpoint.
-- [ ] Reuse market cache arrays without mutating them.
+At each authorized decision point:
 
-### Acceptance tests
+1. current market state;
+2. current Account state;
+3. observation build;
+4. Actor sample;
+5. behavior `log_mu`;
+6. permission;
+7. Physics execution;
+8. post-step Account state;
+9. reward hook;
+10. transition append;
+11. next decision from `AccountState_{t+1}`.
 
-- [ ] A multi-step fixture proves the Brain is called at every decision point.
-- [ ] Step `t+1` sees the exact post-execution account state from step `t`.
-- [ ] Same seed and same starting snapshot reproduce identical nominal actions, permission outcomes, executions and transition hashes.
-- [ ] Different accounts may execute concurrently without violating within-account order.
-- [ ] Legacy H72 runtime output is unchanged.
+**Dependencies:** AC-014, AC-022–AC-025.  
+**Gate:** multi-step fixture proves Actor is called at every decision clock and no `j>0 => FLAT/0` shortcut exists.
 
 ---
 
-## T5 — Replace learning reward with arithmetic-equity delta
+### AC-027 — Rollout execution integration and within-account serialization
 
+**Maps to:** T4  
 **Priority:** P0
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/continuous_rollout_r0.py`
+- `[MODIFY] tests/test_continuous_rollout_r0.py`
+- `[REUSE] existing async/orchestration primitives where compatible`
+
+**Implement**
+
+- Wire nominal -> permission -> executable -> Physics -> account transition.
+- Allow different accounts to run asynchronously while preserving strict chronological order within one account.
+- Stable trace/account IDs.
+
+**Dependencies:** AC-026.  
+**Gate:** concurrent-account test shows no cross-account contamination and no within-account reordering.
+
+---
+
+### AC-028 — Arithmetic-equity reward primitive
+
+**Maps to:** T5  
+**Priority:** P0
+
+**Files**
 
 - `[NEW] cb16_local_opt/reward_r0.py`
 - `[NEW] tests/test_reward_r0.py`
 
-### Implementation TODO
-
-- [ ] Implement the primary transition reward:
+**Implement**
 
 ```text
 r_t = (E_{t+1} - E_t) / E_ref
 ```
 
-- [ ] Freeze how `E_ref` is chosen for one objective episode/cohort.
-- [ ] Ensure fees, funding, realized/unrealized PnL and liquidation effects are reflected through authoritative equity rather than patched into the reward twice.
-- [ ] Never drop a transition because `E_{t+1} <= 0`.
-- [ ] Make reward finite/fail-closed for corrupt or non-finite accounting data.
-- [ ] Keep legacy H72 `log(wt/w0)` utility untouched in historical runtime.
+- Freeze `E_ref` semantics for an objective cohort/episode.
+- Keep legacy H72 log utility untouched.
 
-### Acceptance tests
-
-- [ ] For a complete finite objective episode: `sum(r_t) == (E_T - E_0)/E_ref` within the frozen numerical tolerance.
-- [ ] Positive, zero, negative and liquidation paths are tested.
-- [ ] Transaction cost and funding effects are counted exactly once.
+**Dependencies:** AC-026–AC-027.  
+**Gate:** positive/zero/negative rewards match authoritative equity deltas exactly.
 
 ---
 
-## T6 — Separate true terminal from objective horizon and chunk truncation
+### AC-029 — Reward accounting invariants
 
+**Maps to:** T5  
 **Priority:** P0
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/reward_r0.py`
+- `[MODIFY] tests/test_reward_r0.py`
+
+**Implement**
+
+- Fees, funding, realized and unrealized PnL enter reward only through authoritative equity changes unless separately proven necessary.
+- Prevent double counting.
+- Fail closed on non-finite/corrupt accounting state.
+
+**Dependencies:** AC-028.  
+**Gate:** cost/funding fixtures are counted exactly once.
+
+---
+
+### AC-030 — Reward telescoping and failure-path qualification
+
+**Maps to:** T5  
+**Priority:** P0
+
+**Files**
+
+- `[MODIFY] tests/test_reward_r0.py`
+
+**Implement/test**
+
+For common finite horizon and `gamma=1`:
+
+```text
+sum_t r_t == (E_T - E_0) / E_ref
+```
+
+Include liquidation/non-positive terminal equity.
+
+**Dependencies:** AC-028–AC-029.  
+**Gate:** identity passes within frozen numerical tolerance and failed accounts are not censored.
+
+---
+
+### AC-031 — Boundary taxonomy
+
+**Maps to:** T6  
+**Priority:** P0
+
+**Files**
 
 - `[NEW] cb16_local_opt/episode_boundary_r0.py`
 - `[NEW] tests/test_episode_boundary_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Define explicit boundary kinds, at minimum:
-  - `TRUE_TERMINAL`;
-  - `OBJECTIVE_T`;
-  - `CHUNK_TRUNCATION`;
-  - `DATA_END`;
-  - `PAUSE` / checkpoint interruption if needed.
-- [ ] Define bootstrap mask/value semantics for each boundary.
-- [ ] `OBJECTIVE_T` ends the scoring/learning objective segment but must not automatically assert that the physical account died.
-- [ ] `CHUNK_TRUNCATION` must preserve account and bootstrap continuity.
-- [ ] True liquidation/account-death semantics must remain explicit.
+At minimum:
 
-### Acceptance tests
+- `TRUE_TERMINAL`;
+- `OBJECTIVE_T`;
+- `CHUNK_TRUNCATION`;
+- `DATA_END`;
+- `PAUSE`.
 
-- [ ] Split one rollout into multiple chunks and show value/return semantics equal an unsplit rollout.
-- [ ] No bootstrap across a true terminal.
-- [ ] Account snapshot survives non-terminal chunk/objective boundaries according to the frozen contract.
+**Dependencies:** AC-026–AC-030.  
+**Gate:** every rollout stop has one explicit boundary reason.
 
 ---
 
-## T7 — Define V-trace-ready transition and sequence schemas
+### AC-032 — Bootstrap semantics by boundary type
 
+**Maps to:** T6  
 **Priority:** P0
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/episode_boundary_r0.py`
+- `[MODIFY] tests/test_episode_boundary_r0.py`
+
+**Implement**
+
+- True terminal -> no future bootstrap.
+- Non-terminal chunking/pause -> bootstrap from the next real state/value.
+- Objective horizon ends the objective segment without falsely claiming physical account death.
+- Data exhaustion must not masquerade as realized terminal outcome.
+
+**Dependencies:** AC-031.  
+**Gate:** split versus unsplit rollout has equivalent return/value semantics where mathematically expected.
+
+---
+
+### AC-033 — Pause/resume and non-terminal account continuity
+
+**Maps to:** T6  
+**Priority:** P0
+
+**Files**
+
+- `[NEW] cb16_local_opt/rollout_resume_r0.py`
+- `[NEW] tests/test_rollout_resume_r0.py`
+
+**Implement**
+
+- Seal and restore account/policy/RNG/decision-clock state at non-terminal interruption.
+- Resume without resetting logical account or skipping/repeating a decision.
+
+**Dependencies:** AC-020, AC-026–AC-032.  
+**Gate:** interrupted+resumed rollout reproduces uninterrupted rollout transition-for-transition.
+
+---
+
+### AC-034 — `TransitionV2` schema
+
+**Maps to:** T7  
+**Priority:** P0
+
+**Files**
 
 - `[NEW] cb16_local_opt/trajectory_schema_r0.py`
-- `[NEW] cb16_local_opt/trajectory_lake_r0.py`
 - `[NEW] tests/test_trajectory_schema_r0.py`
+
+**Required fields**
+
+At minimum:
+
+- transition/causal trace ID;
+- account ID;
+- generation/update identity;
+- behavior policy hash/version;
+- observation schema/version and immutable `x_t` reference/payload;
+- nominal sampled action;
+- `log_mu`;
+- permission decision/reason;
+- executed action/delta;
+- `E_t`, `E_{t+1}`, `E_ref`;
+- reward;
+- immutable `x_{t+1}` reference/payload;
+- boundary type/bootstrap mask;
+- market/data lineage;
+- action/execution/reward/normalizer versions;
+- RNG provenance;
+- source classification.
+
+**Dependencies:** AC-008–AC-033.  
+**Gate:** transition is self-auditable without mutable external runtime state.
+
+---
+
+### AC-035 — `SequenceV2`, Experience Lake adapter and failure persistence
+
+**Maps to:** T7  
+**Priority:** P0 / **Gate B completion**
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/trajectory_schema_r0.py`
+- `[NEW] cb16_local_opt/trajectory_lake_r0.py`
 - `[NEW] tests/test_trajectory_lake_r0.py`
 - `[REUSE] cb16_local_opt/sharded_experience_lake.py`
 
-### Required transition fields
+**Implement**
 
-Each primary transition must carry enough information to audit behavior, execution and learning without reconstructing hidden state from mutable runtime context. At minimum:
+- Immutable ordered sequences of compatible transitions.
+- Content-addressed persistence through existing Experience Lake.
+- Preserve bankrupt/liquidated/negative-return trajectories.
+- Detect same-ID/different-content conflict.
+- Record generation/policy/account lineage.
 
-- `CausalTraceID` / transition ID;
-- account ID;
-- generation/update ID;
-- behavior policy hash/version;
-- observation schema/version;
-- `x_t` identity or immutable observation payload/reference;
-- nominal action;
-- behavior `log_mu`;
-- permission decision and reason;
-- executed action/delta;
-- `E_t`;
-- `E_{t+1}`;
-- `E_ref`;
-- reward;
-- `x_{t+1}` identity/reference;
-- boundary kind;
-- bootstrap admissibility;
-- market/source lineage;
-- account pre/post snapshot hashes;
-- RNG provenance sufficient for deterministic replay diagnostics;
-- action/execution/reward semantic version IDs.
-
-### Implementation TODO
-
-- [ ] `trajectory_schema_r0.py` owns dataclasses + validation + canonical identity.
-- [ ] `trajectory_lake_r0.py` maps transition/sequence objects onto `ShardedExperienceLake` without teaching the generic Lake about RL semantics.
-- [ ] Add sequence sealing: ordered transition IDs + policy/version identities + start/end account snapshot hashes.
-- [ ] Fail closed on continuity breaks.
-- [ ] Keep immutable exactly-once semantics.
-
-### Acceptance tests
-
-- [ ] Death/liquidation transition can be stored and loaded normally.
-- [ ] ACCEPT/CLAMP/REJECT cases preserve nominal vs executed action.
-- [ ] Sequence whose pre/post account hashes do not chain is rejected.
-- [ ] Same logical trajectory serializes to the same identity.
+**Dependencies:** AC-034.  
+**Gate:** write/read round-trip is bit/semantic stable; failure trajectories persist; incompatible sequence composition fails closed. **Gate B closes only here.**
 
 ---
 
-# 4. P1 — learner and qualification
+## Phase C — Critic, V-trace learner, replay and recovery
 
-## T8 — Add a Critic
+### AC-036 — Separate Critic model API
 
+**Maps to:** T8  
 **Priority:** P1
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/critic_r0.py`
-- `[NEW] tests/test_critic_r0.py`
-- `[NEW or COMPOSE] cb16_local_opt/actor_critic_brain_r0.py`
+- `[NEW] cb16_local_opt/critic_value_r0.py`
+- `[NEW] tests/test_critic_value_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Critic must consume sufficient state for account-conditioned value prediction, including:
-  - market representation;
-  - account state;
-  - equity normalized consistently with objective reward;
-  - legality/termination information where required;
-  - remaining objective horizon `tau = T - t` or an equivalent frozen representation.
-- [ ] Keep policy and value heads distinguishable for optimizer/diagnostic ownership.
-- [ ] Do not use realized winning action as a supervised value label.
+- Independent value estimator; not the old Teacher.
+- Output scalar expected future arithmetic-return value under the frozen objective semantics.
 
-### Acceptance tests
-
-- [ ] Critic learns exact/near-exact values in a deterministic known-answer environment.
-- [ ] Value changes correctly when only AccountState or remaining horizon changes.
+**Dependencies:** Gate B.  
+**Gate:** shape/device/dtype and deterministic forward behavior are tested.
 
 ---
 
-## T9 — Implement pure V-trace math and Actor–Critic training runtime
+### AC-037 — Critic causal input contract
 
+**Maps to:** T8  
 **Priority:** P1
 
-### Files
+**Files**
+
+- `[MODIFY] cb16_local_opt/critic_value_r0.py`
+- `[MODIFY] tests/test_critic_value_r0.py`
+
+**Implement**
+
+- Critic sees only causal information available at decision time.
+- Account state and legal/execution state must be represented where necessary.
+- Horizon conditioning must match Actor/objective semantics.
+
+**Dependencies:** AC-023–AC-024, AC-036.  
+**Gate:** future-poison perturbation does not alter current Critic input/value.
+
+---
+
+### AC-038 — Critic regression loss
+
+**Maps to:** T8  
+**Priority:** P1
+
+**Files**
+
+- `[MODIFY] cb16_local_opt/critic_value_r0.py`
+- `[MODIFY] tests/test_critic_value_r0.py`
+
+**Implement**
+
+- Mean-value regression objective compatible with arithmetic expected return.
+- No silent quantile/pessimistic/twin-Q replacement of the owner objective.
+
+**Dependencies:** AC-036–AC-037.  
+**Gate:** exact-value toy target can be fitted within preregistered tolerance.
+
+---
+
+### AC-039 — Bootstrap value calculator
+
+**Maps to:** T8  
+**Priority:** P1
+
+**Files**
+
+- `[NEW] cb16_local_opt/value_bootstrap_r0.py`
+- `[NEW] tests/test_value_bootstrap_r0.py`
+
+**Implement**
+
+- Apply boundary-specific bootstrap rules from AC-032.
+- Explicit value at sequence end.
+
+**Dependencies:** AC-032, AC-036–AC-038.  
+**Gate:** true terminal/non-terminal truncation known-answer cases return correct bootstrap values.
+
+---
+
+### AC-040 — V-trace recurrence kernel
+
+**Maps to:** T9  
+**Priority:** P1
+
+**Files**
 
 - `[NEW] cb16_local_opt/vtrace_r0.py`
-- `[NEW] cb16_local_opt/actor_critic_training_runtime_r0.py`
 - `[NEW] tests/test_vtrace_r0.py`
-- `[NEW] tests/test_actor_critic_training_runtime_r0.py`
+
+**Implement**
+
+- Frozen equations for importance ratio, `rho_bar`, `c_bar`, temporal deltas and backward recurrence.
+- Use behavior `log_mu` and current target-policy `log_pi` from compatible action semantics.
+
+**Dependencies:** AC-019, AC-032, AC-034–AC-039.  
+**Gate:** outputs finite; shapes/masks correct; no accidental probability-space underflow path.
+
+---
+
+### AC-041 — V-trace mathematical known-answer tests
+
+**Maps to:** T9  
+**Priority:** P1
+
+**Files**
+
+- `[MODIFY] tests/test_vtrace_r0.py`
+
+**Implement/test**
+
+- Hand-computed short sequence.
+- `pi == mu` reduction to the on-policy recurrence.
+- Clipping boundary cases.
+- True terminal versus truncation.
+
+**Dependencies:** AC-040.  
+**Gate:** exact known-answer values within frozen tolerance.
+
+---
+
+### AC-042 — Actor policy-gradient loss
+
+**Maps to:** T9  
+**Priority:** P1
+
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_loss_r0.py`
+- `[NEW] tests/test_actor_critic_loss_r0.py`
+
+**Implement**
+
+- Policy loss from the frozen V-trace advantage/target formulation.
+- If entropy regularization exists, expose it as a transparent coefficient and metric.
+- Do not silently stack PPO clipping/GAE/SAO or another correction into the baseline V-trace task.
+
+**Dependencies:** AC-040–AC-041.  
+**Gate:** sign/direction of gradient matches simple hand-built policy examples.
+
+---
+
+### AC-043 — Actor–Critic training step/runtime
+
+**Maps to:** T9  
+**Priority:** P1
+
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_training_r0.py`
+- `[NEW] tests/test_actor_critic_training_r0.py`
 - `[KEEP/FROZEN] cb16_local_opt/training_runtime_r11.py`
 
-### Implementation TODO
+**Implement**
 
-`vtrace_r0.py`:
+- Separate Actor/Critic optimizers.
+- Sequence minibatch update.
+- Explicit gradient ownership.
+- Metrics for policy loss, critic loss, entropy if enabled, importance ratios and clipping rates.
+- No mutation of old Teacher/Student training runtime.
 
-- [ ] Implement pure tensor V-trace recurrence separately from optimizer/runtime concerns.
-- [ ] Inputs must include target-policy `log_pi`, stored behavior `log_mu`, rewards, discounts/bootstrap masks and values.
-- [ ] Freeze `rho_bar`, `c_bar` and policy-gradient clipping semantics in config/authority.
-- [ ] Numerically stable importance ratios from log-prob differences.
-
-`actor_critic_training_runtime_r0.py`:
-
-- [ ] Batch **ordered sequences**, not independent shuffled rows.
-- [ ] Compute current `log_pi(a_t|x_t)` and compare to immutable behavior `log_mu`.
-- [ ] Separate Actor and Critic losses.
-- [ ] Use separate optimizer state or explicitly frozen parameter ownership.
-- [ ] Keep training FP32 unless a later qualified change explicitly authorizes another precision.
-- [ ] Gradient clipping, entropy term and optimizer hyperparameters must be frozen in the training recipe.
-- [ ] Record update identity, input sequence identities and output checkpoint identity.
-
-### Acceptance tests
-
-- [ ] Hand-computed short sequence matches V-trace outputs element-by-element.
-- [ ] When `pi == mu`, importance ratios are 1 and the result reduces to the expected on-policy recurrence.
-- [ ] Extreme probability ratios remain finite after clipping.
-- [ ] Learner never shuffles transition order inside a sequence.
-- [ ] Historical `training_runtime_r11.py` remains untouched and independently runnable.
+**Dependencies:** AC-036–AC-042.  
+**Gate:** one deterministic fixed-seed update produces expected parameter deltas; frozen historical training still passes.
 
 ---
 
-## T10 — Add fail-closed replay compatibility checks
+### AC-044 — Replay compatibility gate
 
+**Maps to:** T10  
 **Priority:** P1
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/replay_compatibility_r0.py`
-- `[NEW] tests/test_replay_compatibility_r0.py`
+- `[NEW] cb16_local_opt/replay_compat_r0.py`
+- `[NEW] tests/test_replay_compat_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Before a sequence enters Actor–Critic replay, verify compatibility for:
-  - action schema/version;
-  - observation schema/normalizer identity;
-  - permission/execution semantics;
-  - reward semantics;
-  - valid behavior `log_mu`;
-  - policy-distribution version;
-  - account-state schema;
-  - boundary/bootstrap semantics.
-- [ ] Reject incompatible historical demonstrations from primary V-trace replay.
-- [ ] Permit explicit diagnostic/demo routes without silently upgrading them to RL trajectories.
+Before replay require compatible:
 
-### Acceptance tests
+- action schema;
+- behavior probability semantics;
+- observation/normalizer version;
+- permission/execution semantics;
+- reward schema;
+- boundary semantics;
+- required lineage.
 
-- [ ] Missing `log_mu` => fail closed for V-trace replay.
-- [ ] Changed action semantics => fail closed.
-- [ ] Same compatible schema across older policy generations => accepted if behavior likelihood is valid.
+**Dependencies:** AC-001–AC-043.  
+**Gate:** every deliberate mismatch fixture fails closed with explicit reason.
 
 ---
 
-## T11 — Extend checkpointing through a composite Actor–Critic adapter
+### AC-045 — Sequence replay sampler and weighting
 
+**Maps to:** T10  
 **Priority:** P1
 
-### Files
+**Files**
+
+- `[NEW] cb16_local_opt/sequence_replay_r0.py`
+- `[NEW] tests/test_sequence_replay_r0.py`
+
+**Implement**
+
+- Initial sequence length/batch semantics from the training design, while keeping these configuration values explicit.
+- Sample only compatible sequences.
+- If account/trajectory resampling weights are used, make estimator weighting explicit and testable.
+- No survivor-only filtering.
+
+**Dependencies:** AC-035, AC-044.  
+**Gate:** deterministic fixed-seed sample order; empirical weighting matches declared probabilities.
+
+---
+
+### AC-046 — Full Actor–Critic generation checkpoint and exact recovery
+
+**Maps to:** T11  
+**Priority:** P1
+
+**Files**
 
 - `[NEW] cb16_local_opt/actor_critic_checkpoint_r0.py`
 - `[NEW] tests/test_actor_critic_checkpoint_r0.py`
 - `[REUSE] cb16_local_opt/checkpoint_store_r11.py`
 
-### Composite checkpoint must bind
+**Checkpoint bundle must bind**
 
-- Actor tensor-object hash;
-- Critic tensor-object hash;
-- Actor optimizer state identity;
-- Critic optimizer state identity;
-- collector RNG state;
-- learner RNG state;
-- generation number;
-- learner update counter;
-- training recipe hash;
-- replay/trajectory snapshot identity;
-- authoritative account snapshot hash;
-- market/data authority identity;
-- schema/semantic versions.
+- Actor weights;
+- Critic weights;
+- both optimizer states;
+- Actor sampling RNG;
+- learner/process RNG needed for deterministic continuation;
+- update counter/generation;
+- replay/data snapshot identity;
+- normalizer/science contract identity;
+- logical account/collector continuation identities where applicable.
 
-### Implementation TODO
-
-- [ ] Reuse `CheckpointStoreR11` tensor CAS for model tensor objects where possible.
-- [ ] Do not break the existing generation checkpoint schema used by historical runtime.
-- [ ] Add a new composite manifest/schema in the adapter.
-- [ ] Save/restore RNG states explicitly.
-- [ ] Crash recovery must restore the exact next collection/update state, not merely weights.
-
-### Acceptance tests
-
-- [ ] Save -> restore -> next sampled action is identical.
-- [ ] Save -> restore -> next learner update produces identical tensor hashes under deterministic test conditions.
-- [ ] Missing optimizer/RNG/account component fails closed.
+**Dependencies:** AC-020, AC-033, AC-035–AC-045.  
+**Gate:** crash/restart reproduces the same next sampled action **and** same next gradient update from the same sealed state.
 
 ---
 
-## T12 — Build a training qualification gate before market-scale training
+## Phase D — Mathematical and known-answer qualification
 
+### AC-047 — Core math/contract qualification suite
+
+**Maps to:** T12  
 **Priority:** P1
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/training_qualification_r0.py`
-- `[NEW] tests/test_training_qualification_r0.py`
+- `[NEW] tests/test_actor_critic_math_qualification_r0.py`
 
-### Qualification gate must aggregate
+**Must include**
 
-- [ ] action-contract tests;
-- [ ] permission/Physics adapter tests;
-- [ ] reward conservation tests;
-- [ ] terminal/truncation tests;
-- [ ] behavior log-prob tests;
-- [ ] trajectory continuity tests;
-- [ ] V-trace hand-calculation tests;
-- [ ] replay compatibility tests;
-- [ ] checkpoint/recovery tests;
-- [ ] historical regression tests.
+- reward telescoping;
+- liquidation retention;
+- nominal/permitted/executed split;
+- behavior/action probability consistency;
+- V-trace hand recurrence;
+- `pi==mu` reduction;
+- bootstrap/terminal boundaries;
+- recovery equivalence;
+- causal-input/future-poison invariance;
+- replay weighting sanity.
 
-### Gate rule
-
-No large historical Actor–Critic market training is authorized until this qualification suite passes as one receipt-producing gate.
+**Dependencies:** AC-001–AC-046.  
+**Gate:** all tests preregistered and green; failures cannot be bypassed by deleting the failing case.
 
 ---
 
-## T13 — Add known-answer learning environments
+### AC-048 — Known-answer toy suite A: account dependence and high-risk expected return
 
+**Maps to:** T13  
 **Priority:** P1
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/known_answer_envs_r0.py`
-- `[NEW] tests/test_actor_critic_known_answer_r0.py`
+- `[NEW] cb16_local_opt/toy_envs_actor_critic_r0.py`
+- `[NEW] tests/test_actor_critic_toy_envs_r0.py`
 
-### Required toy environments
+**Toy cases**
 
-- [ ] **Account-conditioned action:** same market observation, different account state => different optimal action.
-- [ ] **Delayed loss:** locally attractive action creates a later penalty; validates temporal credit.
-- [ ] **Risky higher arithmetic mean:** low-probability large gain / frequent loss case that distinguishes arithmetic objective behavior from survival-only preference.
-- [ ] **Horizon reversal:** optimal action changes as `tau=T-t` changes.
-- [ ] **Off-policy replay:** behavior and target policies deliberately differ, with analytically checkable importance correction.
+1. Same market state, different Account state -> different optimal action.
+2. A strategy with higher bankruptcy frequency but higher true expected arithmetic return must win when the expected return is genuinely larger.
+3. Failures remain in both learning and evaluation samples.
 
-### Acceptance criteria
-
-- [ ] Pre-register multi-seed success thresholds.
-- [ ] Actor must learn the known optimum above the frozen threshold.
-- [ ] Critic error must meet the frozen threshold.
-- [ ] V-trace replay must outperform/bound the deliberately wrong uncorrected replay baseline in the designated test.
-- [ ] Failure of these gates stops expansion to expensive market training.
+**Dependencies:** AC-047.  
+**Gate:** learned/ranked policy converges to preregistered known answer within fixed seed/budget tolerance.
 
 ---
 
-# 5. P2 — economic evaluation, generation lineage and Stage-4 integration
+### AC-049 — Known-answer toy suite B: delayed consequence, horizon reversal and off-policy correction
 
-## T14 — Add economic evaluation based on common finite horizons
+**Maps to:** T13  
+**Priority:** P1
 
+**Files**
+
+- `[MODIFY] cb16_local_opt/toy_envs_actor_critic_r0.py`
+- `[MODIFY] tests/test_actor_critic_toy_envs_r0.py`
+
+**Toy cases**
+
+4. Short-term gain followed by delayed loss, proving long-horizon credit can reverse a myopic choice.
+5. Environment where extending objective horizon genuinely reverses policy ranking.
+6. Old-policy replay with known `mu` and new `pi`: compare correct V-trace, pure on-policy and intentionally uncorrected replay.
+
+**Dependencies:** AC-048.  
+**Gate:** each method matches its mathematical known answer; V-trace correction must not be accepted merely because loss decreases.
+
+---
+
+### AC-050 — Qualification compiler and hard PASS receipt
+
+**Maps to:** T12/T13  
+**Priority:** P1 / **Gate C completion**
+
+**Files**
+
+- `[NEW] cb16_local_opt/actor_critic_qualification_r0.py`
+- `[NEW] tests/test_actor_critic_qualification_r0.py`
+- `[NEW] authority/rearchitecture_r11/CB16_R11_ACTOR_CRITIC_QUALIFICATION_R0_SPEC_V1.json`
+- `[NEW on PASS only] authority/rearchitecture_r11/CB16_R11_ACTOR_CRITIC_QUALIFICATION_R0_RECEIPT_V1.json`
+
+**Implement**
+
+- Compile AC-047–AC-049 outcomes plus required legacy regressions into one fail-closed qualification result.
+- Receipt records code SHA, contract hashes, seeds, budgets, tolerances and exact test inventory.
+- No PASS if any required test is skipped/xfail/unknown.
+
+**Dependencies:** AC-001–AC-049.  
+**Gate:** one machine-checkable `PASS` receipt. **No real historical market scale-up is authorized before this task passes.**
+
+---
+
+## Phase E — Economic evaluation
+
+### AC-051 — Common-horizon cohort evaluator
+
+**Maps to:** T14  
 **Priority:** P2
 
-### Files
+**Files**
 
 - `[NEW] cb16_local_opt/economic_evaluator_r0.py`
 - `[NEW] tests/test_economic_evaluator_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Evaluate every preregistered account/cohort on a common objective horizon `T`.
-- [ ] Primary return basis is arithmetic account return/equity, consistent with the new reward objective.
-- [ ] Include at least:
-  - Trader return distribution;
-  - Buy-and-Hold baseline under the same market interval/account assumptions;
-  - always-FLAT/no-position baseline;
-  - mean/median;
-  - lower-tail statistics;
-  - account-death/liquidation probability;
-  - drawdown/terminal-equity distribution;
-  - permission rejection/clamp diagnostics.
-- [ ] Do not remove blown-up accounts before computing means.
-- [ ] Keep statistical/economic evaluation separate from the learner loss.
+- Evaluate all preregistered accounts on common objective horizon `T` and cohort semantics.
+- Arithmetic return is primary.
+- Include all failed accounts.
 
-### Acceptance tests
-
-- [ ] A deliberately high-variance strategy with rare large gains retains failed accounts in the arithmetic mean.
-- [ ] B&H and FLAT use exactly the same preregistered cohort/window.
-- [ ] Changing evaluation membership after seeing outcomes fails closed where the frozen protocol requires preregistration.
+**Dependencies:** Gate C.  
+**Gate:** synthetic cohort mean matches hand calculation including bankrupt paths.
 
 ---
 
-## T15 — Explicitly separate legacy demonstration data from primary replay
+### AC-052 — Buy-and-Hold and FLAT baseline engine
 
+**Maps to:** T14  
 **Priority:** P2
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/legacy_experience_adapter_r0.py`
-- `[NEW] tests/test_legacy_experience_adapter_r0.py`
-- `[KEEP/FROZEN] cb16_local_opt/trace_runtime_r11.py`
+- `[NEW] cb16_local_opt/economic_baselines_r0.py`
+- `[NEW] tests/test_economic_baselines_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Classify old H72 / counterfactual / Teacher evidence as `DEMONSTRATION`, `DIAGNOSTIC`, or another explicit non-primary-replay source type.
-- [ ] Do not synthesize behavior probabilities for deterministic/legacy traces that never recorded a compatible stochastic policy.
-- [ ] Allow historical experience to be used only by an explicitly authorized auxiliary objective/diagnostic route.
-- [ ] If old market contexts are to become primary V-trace experience, recollect them under the new continuous Actor policy and new trajectory schema.
+- B&H baseline and all-FLAT/no-position baseline on exactly the same cohort/horizon/data mechanics.
+- No favorable data-window mismatch.
+
+**Dependencies:** AC-051.  
+**Gate:** identical cohort IDs/data lineage across Trader and baselines.
 
 ---
 
-## T16 — Add Actor–Critic generation handoff and account continuity
+### AC-053 — Failure/tail/outcome-distribution reporting
 
+**Maps to:** T14  
 **Priority:** P2
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/actor_critic_generation_r0.py`
-- `[NEW] tests/test_actor_critic_generation_r0.py`
-- `[REFERENCE ONLY until separately integrated] cb16_local_opt/continuous_generation_binding_r0.py` from branch `ai/r11-continuous-generation-qualification-r0`
+- `[MODIFY] cb16_local_opt/economic_evaluator_r0.py`
+- `[NEW] tests/test_economic_failure_reporting_r0.py`
 
-### Implementation TODO
+**Report, without changing the primary objective**
 
-- [ ] Bind parent Actor/Critic checkpoint -> child Actor/Critic checkpoint.
-- [ ] Bind optimizer and RNG state.
-- [ ] Bind exact training recipe and experience/replay snapshot.
-- [ ] Bind account snapshot at generation transition.
-- [ ] Enforce monotonic generation/update lineage.
-- [ ] Switching policy generation must not reset or rewrite the live account unless a true reset contract is explicitly invoked.
-- [ ] Port useful concepts from the unmerged continuous-generation qualification work only after reconciling it with current `main`:
-  - account-continuity assertion;
-  - future-invariance assertion;
-  - optimizer snapshot identity;
-  - training/evaluation evidence quarantine;
-  - generation lineage.
-- [ ] Do not treat that branch as already implementing continuous RL; its binding module deliberately does not change Physics, Teacher, Student loss or sensory semantics.
+- liquidation/account-death frequency;
+- return distribution/tails;
+- median/quantiles;
+- maximum loss diagnostics where defined;
+- success/failure counts and reasons;
+- survival-sensitive diagnostics explicitly labeled as diagnostics.
 
-### Acceptance tests
-
-- [ ] `G(n+1).parent == G(n).child` for all bound policy/value components.
-- [ ] Account post-state before generation switch equals account pre-state after switch.
-- [ ] Stale/rejected parent cannot silently become the next lineage parent.
+**Dependencies:** AC-051–AC-052.  
+**Gate:** removing a failed account changes a protected fixture result and is detected.
 
 ---
 
-## T17 — Integrate the new scientific lane into Stage-4 through one adapter
+### AC-054 — Champion/Challenger economic comparison contract
 
+**Maps to:** T14  
+**Priority:** P2 / **Gate D completion**
+
+**Files**
+
+- `[NEW] cb16_local_opt/economic_promotion_r0.py`
+- `[NEW] tests/test_economic_promotion_r0.py`
+
+**Implement**
+
+- Compare Champion/Challenger under the same frozen cohort/horizon/evaluator.
+- Primary reported decision quantity remains arithmetic expected return and declared baseline deltas.
+- Do not silently substitute Sharpe/log-growth/drawdown ranking.
+- If the exact master ranking rule is still owner-open, report `DECISION_RULE_UNRESOLVED` instead of inventing one.
+
+**Dependencies:** AC-051–AC-053.  
+**Gate:** evaluator can distinguish measurement from promotion authority; unresolved ranking cannot silently promote.
+
+---
+
+## Phase F — Migration, generation continuity, CI and documentation closure
+
+### AC-055 — Historical demo / new replay boundary router
+
+**Maps to:** T15  
 **Priority:** P2
 
-### Files
+**Files**
 
-- `[NEW] cb16_local_opt/stage4_actor_critic_adapter_r0.py`
-- `[NEW] tests/test_stage4_actor_critic_adapter_r0.py`
-- `[REUSE] cb16_local_opt/market_runtime_cache_r11.py`
-- `[REUSE] cb16_local_opt/sharded_experience_lake.py`
-- `[REUSE] cb16_local_opt/checkpoint_store_r11.py`
+- `[NEW] cb16_local_opt/experience_source_router_r0.py`
+- `[NEW] tests/test_experience_source_router_r0.py`
 
-### Implementation TODO
+**Implement**
 
-- [ ] Make `stage4_actor_critic_adapter_r0.py` the narrow integration boundary between the new science lane and existing lifecycle/orchestration infrastructure.
-- [ ] Reuse existing singleton/fencing/state-root/recovery/orchestration mechanisms rather than recreating them inside the learner.
-- [ ] Keep the legacy H72 and Actor–Critic runtime independently selectable and independently receipted.
-- [ ] Do not let new Actor–Critic receipts overwrite or reinterpret historical R11 receipts.
-- [ ] Before modifying any existing Stage-4 dispatcher/entrypoint, identify the active `main` call site and make the smallest registration/import change; record that exact existing filename in the implementation PR/receipt.
-- [ ] New adapter must fail closed if Stage-4 authority selects an incompatible legacy/new runtime combination.
+- Classify legacy H72/Teacher evidence as demonstration/diagnostic unless regenerated under compatible Actor–Critic semantics.
+- Reject old nine-action/H72 records from V-trace replay when valid behavior likelihood is absent.
+- Never fabricate `log_mu`.
 
-### Acceptance tests
-
-- [ ] Historical runtime boots and runs exactly as before.
-- [ ] Actor–Critic runtime boots through the same lifecycle authority but uses its own semantic/version receipt.
-- [ ] Crash/restart restores correct account/model/RNG lineage.
+**Dependencies:** AC-044–AC-054.  
+**Gate:** known incompatible legacy sample is rejected with explicit reason while remaining readable as historical evidence.
 
 ---
 
-# 6. New Python file map
+### AC-056 — Generation switch, policy lineage and account continuity integration
 
-The target file layout after implementation should be approximately:
+**Maps to:** T16  
+**Priority:** P2
 
-```text
-cb16_local_opt/
-    # historical / reusable
-    typed_central_brain_r10.py                 # KEEP/FROZEN
-    r102_physics.py                            # KEEP/FROZEN
-    trace_runtime_r11.py                       # KEEP/FROZEN
-    training_runtime_r11.py                    # KEEP/FROZEN
-    market_runtime_cache_r11.py                # REUSE
-    sharded_experience_lake.py                 # REUSE
-    checkpoint_store_r11.py                    # REUSE
+**Files**
 
-    # new Actor-Critic science lane
-    actor_critic_contract_r0.py
-    action_contract_r0.py
-    actor_critic_supervisor_r0.py
-    actor_critic_physics_adapter_r0.py
-    actor_policy_r0.py
-    actor_critic_brain_r0.py
-    reward_r0.py
-    episode_boundary_r0.py
-    trajectory_schema_r0.py
-    trajectory_lake_r0.py
-    continuous_rollout_r0.py
-    critic_r0.py
-    vtrace_r0.py
-    replay_compatibility_r0.py
-    actor_critic_training_runtime_r0.py
-    actor_critic_checkpoint_r0.py
-    training_qualification_r0.py
-    known_answer_envs_r0.py
-    economic_evaluator_r0.py
-    legacy_experience_adapter_r0.py
-    actor_critic_generation_r0.py
-    stage4_actor_critic_adapter_r0.py
-```
+- `[NEW or ADAPT] cb16_local_opt/actor_critic_generation_binding_r0.py`
+- `[NEW] tests/test_actor_critic_generation_binding_r0.py`
+- `[REUSE/ADAPT] concepts from continuous-generation qualification/binding work`
 
-Corresponding tests:
+**Implement**
 
-```text
-tests/
-    test_r11_trace_runtime.py                   # KEEP/FROZEN regression guard
+- Fixed behavior checkpoint for each registered collection unit.
+- Generation/policy switch is explicitly recorded.
+- Switching generation must not reset the logical account.
+- Mixed-generation trajectories retain per-transition behavior-policy identity; do not attribute the entire trajectory to the final policy.
 
-    test_actor_critic_contract_r0.py
-    test_action_contract_r0.py
-    test_actor_critic_supervisor_r0.py
-    test_actor_critic_physics_adapter_r0.py
-    test_actor_policy_r0.py
-    test_actor_critic_brain_r0.py
-    test_reward_r0.py
-    test_episode_boundary_r0.py
-    test_trajectory_schema_r0.py
-    test_trajectory_lake_r0.py
-    test_continuous_rollout_r0.py
-    test_critic_r0.py
-    test_vtrace_r0.py
-    test_replay_compatibility_r0.py
-    test_actor_critic_training_runtime_r0.py
-    test_actor_critic_checkpoint_r0.py
-    test_training_qualification_r0.py
-    test_actor_critic_known_answer_r0.py
-    test_economic_evaluator_r0.py
-    test_legacy_experience_adapter_r0.py
-    test_actor_critic_generation_r0.py
-    test_stage4_actor_critic_adapter_r0.py
-```
-
-Names ending in `_r0.py` intentionally identify this as a new, independently qualifiable scientific protocol rather than a silent mutation of R10/R11 historical authority. Exact revision number may be changed by a later authority freeze, but the version separation itself is mandatory.
+**Dependencies:** AC-035, AC-046, AC-055.  
+**Gate:** account lineage remains continuous across a controlled generation switch and replay sees correct per-transition policy identity.
 
 ---
 
-# 7. Recommended implementation dependency order
+### AC-057 — Stage-4 infrastructure adoption and CI qualification workflow
 
-## Phase A — freeze semantics before generating new experience
+**Maps to:** T17  
+**Priority:** P2
 
-```text
-T0 actor_critic_contract_r0.py
- -> T1 action_contract_r0.py
- -> T2 actor_critic_supervisor_r0.py
-      actor_critic_physics_adapter_r0.py
-```
+**Files**
 
-**Gate A:** active position can be reduced, closed and reversed through deterministic permission/execution semantics without changing legacy R10.2/H72 behavior.
+- `[NEW/ADAPT] .github/workflows/cb16-r11-actor-critic-qualification-r0.yml`
+- `[ADAPT ONLY AS NEEDED] Stage-4 canonical runtime/state-root/fencing/recovery/orchestration integration surfaces`
+- `[NEW] tests/test_actor_critic_infrastructure_adoption_r0.py`
 
-## Phase B — produce scientifically valid continuous experience
+**Implement**
 
-```text
-T3 actor_policy_r0.py + actor_critic_brain_r0.py
- -> T5 reward_r0.py
- -> T6 episode_boundary_r0.py
- -> T7 trajectory_schema_r0.py + trajectory_lake_r0.py
- -> T4 continuous_rollout_r0.py
-```
+- Reuse existing singleton/fencing/state-root/recovery/async infrastructure.
+- Add only scientifically required adapter surfaces.
+- CI must run legacy regressions + new qualification gates.
+- Do not open final holdout or download fresh data.
 
-**Gate B:** one account can execute a multi-decision continuous trajectory with valid `log_mu`, exact account-state chaining, arithmetic reward and immutable transition identity.
-
-## Phase C — learner
-
-```text
-T8 critic_r0.py
- -> T9 vtrace_r0.py
- -> T10 replay_compatibility_r0.py
- -> T9 actor_critic_training_runtime_r0.py
- -> T11 actor_critic_checkpoint_r0.py
-```
-
-**Gate C:** hand-calculated V-trace, deterministic recovery and compatible replay all pass.
-
-## Phase D — qualification before market-scale learning
-
-```text
-T12 training_qualification_r0.py
- -> T13 known_answer_envs_r0.py
-```
-
-**Gate D:** all preregistered toy-learning gates pass across the frozen seed set. Failure here blocks expensive historical market training.
-
-## Phase E — economic and lifecycle closure
-
-```text
-T14 economic_evaluator_r0.py
- -> T15 legacy_experience_adapter_r0.py
- -> T16 actor_critic_generation_r0.py
- -> T17 stage4_actor_critic_adapter_r0.py
-```
-
-**Gate E:** continuous generation, crash recovery, account continuity and economic comparison can run without altering historical receipts or final-holdout authority.
+**Dependencies:** AC-050, AC-055–AC-056.  
+**Gate:** clean CI run produces complete artifacts/receipts and historical lane remains green.
 
 ---
 
-# 8. Suggested PR / task decomposition
+### AC-058 — Canonical docs/current-state/decision-log closure
 
-To keep scientific authority reviewable, do not land the entire migration as one large patch.
+**Maps to:** T17  
+**Priority:** P2 / final planning closure
 
-### PR A — Action & execution semantics
+**Files**
 
-Files:
+- `[MODIFY] docs/R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md`
+- `[MODIFY] docs/TRAINING_ALGORITHM_R0.md`
+- `[MODIFY] docs/TRAINING_QUALIFICATION_R0.md`
+- `[MODIFY] docs/CURRENT_STATE.md`
+- `[MODIFY] docs/ARCHITECTURE_MAP.md`
+- `[MODIFY] docs/DECISIONS.md`
+- `[MODIFY] docs/OPEN_QUESTIONS.md`
+- `[MODIFY] docs/README.md` if navigation changes
 
-- `actor_critic_contract_r0.py`
-- `action_contract_r0.py`
-- `actor_critic_supervisor_r0.py`
-- `actor_critic_physics_adapter_r0.py`
-- corresponding tests
+**Implement**
 
-No learner yet.
+- Record exact PASS/FAIL/BLOCKED state of AC-001–AC-057.
+- Update architecture map to show historical lane versus Actor–Critic lane.
+- Close decisions only when authority exists; unresolved choices stay explicitly unresolved.
+- Record exact code/receipt SHAs.
 
-### PR B — Continuous experience
-
-Files:
-
-- `actor_policy_r0.py`
-- `actor_critic_brain_r0.py`
-- `reward_r0.py`
-- `episode_boundary_r0.py`
-- `trajectory_schema_r0.py`
-- `trajectory_lake_r0.py`
-- `continuous_rollout_r0.py`
-- corresponding tests
-
-No market-scale training yet.
-
-### PR C — Actor–Critic / V-trace learner
-
-Files:
-
-- `critic_r0.py`
-- `vtrace_r0.py`
-- `replay_compatibility_r0.py`
-- `actor_critic_training_runtime_r0.py`
-- `actor_critic_checkpoint_r0.py`
-- corresponding tests
-
-### PR D — Scientific qualification
-
-Files:
-
-- `training_qualification_r0.py`
-- `known_answer_envs_r0.py`
-- corresponding tests
-
-Only after PR D passes may the project consider bounded real-market training.
-
-### PR E — Economic / generation / Stage-4 integration
-
-Files:
-
-- `economic_evaluator_r0.py`
-- `legacy_experience_adapter_r0.py`
-- `actor_critic_generation_r0.py`
-- `stage4_actor_critic_adapter_r0.py`
-- corresponding tests
+**Dependencies:** AC-001–AC-057.  
+**Gate:** docs agree with live code/receipts; no claim of qualification without corresponding machine-readable evidence.
 
 ---
 
-# 9. Explicit anti-TODOs
+# 6. Dependency DAG
 
-The following shortcuts are prohibited because they would create apparent code alignment without scientific alignment:
+The intended critical path is:
 
-- [ ] **Do not** rewrite `trace_runtime_r11.py` so its historical H72 test now means something different.
-- [ ] **Do not** call the existing first-action-plus-72h continuation a continuous on-policy rollout.
-- [ ] **Do not** convert `training_runtime_r11.py` in place from Teacher/Student loss to V-trace.
-- [ ] **Do not** overwrite `typed_central_brain_r10.py` deterministic action semantics.
-- [ ] **Do not** fabricate `log_mu` for old demonstrations.
-- [ ] **Do not** delete liquidation/failed trajectories to make the dataset numerically convenient.
-- [ ] **Do not** treat `OBJECTIVE_T` or a batching chunk as automatic account death.
-- [ ] **Do not** let the Actor directly write executable quantity around the permission/Physics authority.
-- [ ] **Do not** introduce a hand-engineered regime/cycle/resonance rule subsystem as part of this migration.
-- [ ] **Do not** open final holdout or download fresh market data for qualification.
-- [ ] **Do not** begin large historical training merely because the new Python modules import successfully; the known-answer qualification gate is mandatory first.
+```text
+AC-001..004
+    -> AC-005..014                # semantic Action / Permission / Physics gate
+    -> AC-015..022                # stochastic Actor
+    -> AC-023..035                # continuous experience production
+    -> AC-036..046                # Critic / V-trace / replay / recovery
+    -> AC-047..050                # mathematical + known-answer qualification
+    -> AC-051..054                # economic evaluation
+    -> AC-055..058                # migration + generation + infra + docs closure
+```
+
+Parallelism is allowed only where the declared dependency set is already satisfied. In particular:
+
+- AC-015 Actor internals may be developed after Gate A, but they must not generate canonical training experience before AC-035.
+- Critic architecture experiments may be coded after the observation contract stabilizes, but no canonical learner qualification occurs before Gate B.
+- Economic evaluator scaffolding may be written early, but no real-market scientific promotion authority exists before AC-050.
+- Infrastructure work must not outrun an unresolved scientific contract.
 
 ---
 
-# 10. Definition of done
+# 7. Definition of done for one AC task
 
-This code-alignment TODO is complete only when all of the following are true:
+A task is not DONE merely because code imports.
 
-1. Historical R10/R11 regression tests still pass unchanged.
-2. Active-position reduce/close/reverse actions are explicitly representable and permission-controlled.
-3. The Actor is a real stochastic policy with reconstructible behavior `log_mu`.
-4. One continuous account trajectory calls the policy repeatedly and preserves exact AccountState chronology.
-5. Reward telescopes to the intended finite-horizon arithmetic account return.
-6. Failure/liquidation trajectories remain present in experience and evaluation.
-7. Transition/sequence schemas are immutable, hashable and V-trace-ready.
-8. Critic and V-trace math pass known-answer tests.
-9. Replay rejects semantically incompatible experience rather than guessing compatibility.
-10. Checkpoint/recovery binds Actor, Critic, optimizers, RNG, account and replay identity.
-11. All toy learning gates pass across preregistered seeds.
-12. Economic evaluation includes every preregistered account and compares Trader vs B&H vs FLAT on the same horizon.
-13. Generation switches preserve account continuity.
-14. Stage-4 lifecycle can run the new lane without changing old receipts/authority.
-15. Final holdout remains unopened and no fresh market data is introduced.
+Each task must satisfy all applicable items:
 
-Until these conditions are satisfied, the repository should be described as:
+- [ ] declared files only, or documented authority-approved scope expansion;
+- [ ] deterministic unit tests where determinism is part of the contract;
+- [ ] negative/fail-closed test;
+- [ ] lineage/version fields recorded where relevant;
+- [ ] no final-holdout access;
+- [ ] no fresh-data download;
+- [ ] no silent mutation of historical runtime;
+- [ ] no hidden objective change;
+- [ ] no fabricated behavior likelihood;
+- [ ] failure cases retained;
+- [ ] exact dependency SHAs/contract hashes recorded in receipt when required;
+- [ ] result classified as PASS, SCIENTIFIC_FAIL, EXECUTION_BLOCKED or HARDWARE_LIMIT as appropriate.
 
-> **Actor–Critic design documented; infrastructure reusable; autonomous continuous learning runtime not yet fully code-aligned.**
+---
+
+# 8. Scientific no-rescue rules
+
+Once an AC qualification experiment begins, do not rescue it inside the same task by:
+
+- deleting bankrupt accounts;
+- replacing arithmetic return with log return;
+- changing the horizon because the result is inconvenient;
+- changing seed/budget after seeing the answer;
+- fabricating `log_mu` for historical data;
+- changing execution semantics after trajectories have already been collected;
+- changing `E_ref` definition after looking at results;
+- turning a known-answer toy into a different problem;
+- introducing a new handcrafted cycle/regime/rule engine to force recurrence behavior;
+- silently converting an execution blocker into a scientific PASS.
+
+A legitimate redesign starts a new revision/task with a new preregistered contract.
+
+---
+
+# 9. Owner-open decisions that must remain visibly open until frozen
+
+The TODO may recommend implementations, but the following should not be silently invented if still unresolved at implementation time:
+
+1. Exact target-position/exposure semantics beyond the approved high-level `LONG/FLAT/SHORT + requested target risk` intent, including any leverage/exposure cap that is strategic rather than mechanical.
+2. Exact stochastic bounded-risk distribution if multiple mathematically valid candidates remain.
+3. Exact finite objective horizon `T` used for canonical economic ranking.
+4. Exact Champion/Challenger master ranking rule when arithmetic-return deltas to B&H and FLAT do not point to the same decision.
+5. Any entropy coefficient or other regularization strength that could materially alter the objective.
+6. Exact replay sequence length/batch size if not yet frozen; these are implementation hyperparameters, not semantic permission to change the learning objective.
+
+When unresolved, code/receipts must say `UNRESOLVED` and fail closed where the missing decision affects scientific validity.
+
+---
+
+# 10. Explicitly prohibited shortcuts
+
+Do **not**:
+
+- retrofit stochastic sampling into `typed_central_brain_r10.py`;
+- convert `training_runtime_r11.py` into Actor–Critic training;
+- edit `_simulate_h72_branch_r11` into the new continuous collector;
+- reinterpret old H72 log utility as the new reward;
+- give historical demonstrations fake behavior probabilities;
+- drop non-positive-equity trajectories;
+- reset Account state at learner/checkpoint/generation boundaries without a true terminal contract;
+- use final holdout for debugging or task qualification;
+- rebuild Experience Lake/Checkpoint Store merely because new payloads are needed;
+- add hand-engineered recurrence/cycle activation logic to substitute for model learning.
+
+---
+
+# 11. Final readiness checklist
+
+Real bounded historical Actor–Critic training is not authorized until all of the following are true:
+
+- [ ] Gate A PASS: AC-001–AC-014.
+- [ ] Gate B PASS: AC-015–AC-035.
+- [ ] Gate C PASS with machine-readable receipt: AC-036–AC-050.
+- [ ] All known-answer toys pass without post-hoc rescue.
+- [ ] Legacy H72/Teacher–Student regression remains green.
+- [ ] Behavior likelihood is real and reproducible.
+- [ ] Failed accounts remain present.
+- [ ] Pause/restart/generation switch preserves account continuity.
+- [ ] Actor/Critic/optimizer/RNG/replay state can recover exactly.
+- [ ] Final holdout remains sealed.
+
+Economic Champion/Challenger promotion under the new lane additionally requires:
+
+- [ ] Gate D PASS: AC-051–AC-054.
+- [ ] Same preregistered cohort/horizon for Trader, B&H and FLAT.
+- [ ] Arithmetic expected return remains the primary objective.
+- [ ] Tail/liquidation metrics are reported rather than used as silent replacement objectives.
+- [ ] AC-055–AC-058 integration/CI/documentation closure is complete before declaring the lane canonical.
+
+---
+
+# 12. Immediate next implementation boundary
+
+The next engineering boundary is **Phase A only**:
+
+```text
+AC-001 -> AC-002 -> AC-003 -> AC-004
+       -> AC-005 -> ... -> AC-014
+```
+
+Do not jump directly to `vtrace_r0.py`.
+
+The first irreversible scientific asset is the meaning of an action executed against a live account state. Once trajectories are generated under one action/execution contract, later semantic changes can invalidate their behavior likelihoods and replay meaning. Therefore Action/Permission/Physics semantics must qualify before experience production and learning.
+
+**Current overall state:** `PLANNED / NOT YET IMPLEMENTED / HISTORICAL LANE PRESERVED`.
