@@ -89,7 +89,7 @@ jobs:
           for spec in '6 64' '6 128' '8 128' '10 128'; do
             set -- $spec
             w="$1"; a="$2"
-            GITHUB_SHA="$GITHUB_SHA" "$PY" -m cb16_local_opt.cc_fast_benchmark_runner_r0 \
+            GITHUB_SHA="$GITHUB_SHA" "$PY" experiments/cc_thread_d_scale128_probe.py \
               --output "artifacts/cc_fast_scale128/candidate-w${w}-a${a}.json" \
               --workers "$w" --accounts "$a" --market-steps 384 --chunk-facts 128 --policy-batch "$a"
           done
@@ -110,6 +110,8 @@ jobs:
           for path in sorted(glob.glob('artifacts/cc_fast_scale128/candidate-*.json')):
               p=json.load(open(path,encoding='utf-8'))
               r=p['collector_report']
+              assert p['probe_only'] is True
+              assert p['active_runtime_contract_modified'] is False
               assert p['accesses_final_or_fresh_data'] is False
               assert r['code_identity'] == os.environ['GITHUB_SHA']
               assert p['semantic']['verdict'] == 'PASS'
@@ -129,7 +131,7 @@ jobs:
                   'policy_decisions_per_s':float(r['policy_decisions_per_s']),
                   'wall_clock_s':float(r['wall_clock_s']),
                   'pss_bytes':int(r['pss_bytes']),
-                  'cgroup_memory_bytes':int(r.get('cgroup_memory_bytes',0)),
+                  'cgroup_memory_bytes':int(r.get('cgroup_memory_bytes') or 0),
                   'queue_bytes':int(r['queue_bytes']),
                   'queue_depth':int(r['queue_depth']),
                   'swap_out_bytes':int(r['swap_out_bytes']),
@@ -147,6 +149,8 @@ jobs:
               'schema_version':'CB16_R11_CC_FAST_SCALE128_SMOKE_V1',
               'code_sha':os.environ['GITHUB_SHA'],
               'science_scope':'SYNTHETIC_ONLY_NO_FINAL_NO_FRESH',
+              'probe_only':True,
+              'active_runtime_contract_modified':False,
               'candidates':rows,
               'account_doubling_6w':{
                   'from_accounts':64,
