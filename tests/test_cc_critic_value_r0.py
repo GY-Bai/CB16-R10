@@ -6,4 +6,4 @@ def test_critic_separate_and_mean_converges():
  x=torch.tensor([[-1.,0.],[0.,0.],[1.,0.],[2.,0.]]); y=2*x[:,0]+1; opt=torch.optim.Adam(c.parameters(),lr=.05)
  for _ in range(300):
   loss=mean_value_loss(c(x),y); opt.zero_grad(); loss.backward(); opt.step()
- assert float(mean_value_loss(c(x),y))<1e-3
+ assert mean_value_loss(c(x),y).detach().item()<1e-3
