@@ -1,76 +1,62 @@
 # 当前状态与接手断点
 
-核对日期：2026-09-12 UTC。本文件记录文档提交前的代码基线，后续提交必然使 HEAD 改变。接手时先核对 live GitHub，再决定增量；不要把本页静态 SHA 当作强制 checkout 命令。
+核对日期：2026-09-12 UTC。**本轮代码快照：main `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2`**。提交前补核对：`7c412ee264c463e8f9f28c707c02eccfa4ab055c` 新增 AC-014 执行适配器，具体增量见下节。main 正由实现 agent 持续推进，接手必须核对 live SHA；以下不是强制 checkout 命令，也不是后续提交的完成证明。
 
-算法设计轮增量：本轮 live main 为 `951f1bdd5c63bb315500fa57e09f14fc555afa0f`，即首批项目文档提交；以下生产代码与分支快照仍适用。用户随后批准失败经历参与长期后果学习并要求具体算法设计。已形成 [V-trace Actor–Critic 提案](TRAINING_ALGORITHM_R0.md) 和 [资格计划](TRAINING_QUALIFICATION_R0.md)，未实施、未运行训练。首次文档提交的 repo-guard 与 Main Smoke 均已成功。
+## 1. 当前分工和目标
 
-## 1. 已核对的分支
+用户要求本设计对话只负责最高理念和文档；GPT-5.6 sol 负责 TODO 拆解和代码实现。已发布 [理念对齐规则](PRINCIPLE_ALIGNMENT.md) 与 [组件要求](COMPONENT_REQUIREMENTS.md)，实施沿用 [AC-001–AC-058 TODO](R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md)，本轮未修改其任务依赖或实现。
 
-| 分支 | 本次核对 SHA | 地位 |
+用户已确认保留成功与失败完整经历，优胜示范另筛，失败可参与长期后果学习。主候选为 [V-trace 序列回放 Actor–Critic](TRAINING_ALGORITHM_R0.md)；候选、接口实现和完整训练资格是不同状态。
+
+## 2. 新链已推进到哪些接口
+
+本轮核对 main 历史、新增文件、Supervisor 与数量映射代码，以及快照对应 Actions 状态；没有重新运行每项 AC 专项 gate 或独立下载其 artifact。
+
+| 已观察的实现 | 证据入口 | 尚不能据此断言 |
 |---|---|---|
-| main | `47f1693709918978bf1e2119d77b611c01f5991f` | 本轮文档的代码基线；包含 Stage-4 与此前实验代码 |
-| ai/r11-demonstration-foundation-r0 | `b299be68a9bd9cc041900db75586ed5667407f8a` | 未合并示范学习、密集清单及 H72 分片生产线 |
-| ai/r11-continuous-generation-qualification-r0 | `168978dc632be9c62a11d2748f87c549f137dcfe` | 存在的代际资格分支；不凭分支名推断生产闭环完成 |
-| ai/r11-formal-league-contestant-g0-r0 | `b20223cc41164c29c30e4ca6aa29fbf31b8c0eb3` | 前序 contestant 工作 |
-| ai/r11-formal-science-league-r0 | `d5200237448fe91a69443639dfca705cc1ea3918` | 前序 league 工作 |
-| ai/r11-formal-science-league-season-r0 | `1e5e8ab084d01aee7357e789735df3c0f17fba48` | 旧 preseason 设计；新示范协议明确不再沿用其 50+10 划分 |
+| AC-001–AC-004 对应科学版本、哈希、新旧路由和 legacy sentinel | [science contract](../cb16_local_opt/actor_critic_contract_r0.py)、[router](../cb16_local_opt/actor_critic_runtime_router_r0.py)、[sentinel](../tests/test_actor_critic_legacy_freeze_r0.py) | 新链已有生产级完整调度 |
+| AC-005–AC-009 对应目标动作、转换、记录和行为身份 | [action](../cb16_local_opt/action_contract_r0.py)、[execution record](../cb16_local_opt/execution_record_r0.py) | 已有随机 Actor 或真实行为概率采集 |
+| AC-010–AC-012 对应持仓调整许可与显式先平后开反转契约 | [Supervisor](../cb16_local_opt/actor_critic_supervisor_r0.py) | 已经成交、反转两腿已完整计账 |
+| AC-013 对应 risk 到合法名义额度比例及目标数量映射 | [target exposure](../cb16_local_opt/target_exposure_r0.py)、[commit](https://github.com/GY-Bai/CB16-R10/commit/2da90a0b4577ad7d950641fe0a1bcd81f08d58e2) | 目标数量已经被 Physics 执行 |
+| 部分原分支通用组件已整合 | [consolidation commit](https://github.com/GY-Bai/CB16-R10/commit/25d5df8337905232ca76b7d334c390d5deeb1a07) | 所有旧示范分支内容或 71 块生产均已完成 |
 
-本轮不合并这些开发分支。首次文档提交只新增/修改 README、AGENTS 和 docs。
+此快照中未找到新链计划的 Physics adapter、随机 Actor、连续 Collector 与 V-trace learner 实现文件。因此最高目标尚需真实执行、连续经验、学习更新和下一代使用的连接证据。不能用组件数量或 commit 标题证明这些连接已完成。
 
-## 2. 能够确认的进度
+旧 `risk_supervisor_r1.py` 与冻结 kernel 的持仓 FORCED_NOOP 仍属于旧链。新链已实现持仓调整许可和反转契约；**不再把旧限制概括为整个项目目前无法表达这些动作**。
 
-### 单一示范 corpus 适配
+### 提交前增量：AC-014 与最高理念的剩余差异
 
-示范分支的 [学习范式修订](https://github.com/GY-Bai/CB16-R10/blob/b299be68a9bd9cc041900db75586ed5667407f8a/authority/rearchitecture_r11/CB16_R11_LEARNING_PARADIGM_CORRECTION_V1.json) 明确允许同 corpus 学习、重叠 episode 和跨代回放；`TRAIN` 是 Teacher 路由标记；同 corpus loss 不是泛化证据。
+随后 main [`7c412ee`](https://github.com/GY-Bai/CB16-R10/commit/7c412ee264c463e8f9f28c707c02eccfa4ab055c) 新增 [目标仓位执行适配器](https://github.com/GY-Bai/CB16-R10/blob/7c412ee264c463e8f9f28c707c02eccfa4ab055c/cb16_local_opt/actor_critic_physics_adapter_r0.py) 与对应测试；本轮读取了适配器代码。因此上述“尚无 adapter”只适用于 AC-013 快照，不能作为最新 main 的缺口继续转述。
 
-[资格 receipt](https://github.com/GY-Bai/CB16-R10/blob/b299be68a9bd9cc041900db75586ed5667407f8a/authority/rearchitecture_r11/CB16_R11_DEMONSTRATION_FOUNDATION_QUALIFICATION_R0_FREEZE_RECEIPT_V1.json) 指向 run [34658217339](https://github.com/GY-Bai/CB16-R10/actions/runs/34658217339)。该 receipt 记录适配与继承测试通过、没有 Arena 科学消费。不能据此称完整历史 foundation 已训练或已学会交易。
+该函数实现目标数量到开仓、增减仓、退出和先平后开反转的仓位操作，并记录实际 legs；函数明确不推进市场 bar。随机 Actor、连续 Collector 与 learner 的完整连接仍需后续证据。本轮未独立复跑 AC-014 专项测试或下载产物。
 
-### 密集清单已冻结，不能把计划数当完成数
+**理念审阅的具体未闭合项**：模块说明明确将 intrabar SL/TP 与 max-hold 留给旧 `step_account`；开仓继续调用 `_entry_risk_prices`，增仓许可仍检查止损与清算价关系。保留这些行为可以构成版本明确的受限环境实验，但不能宣称已消除人为退出策略、完全实现 P-05。
 
-[manifest receipt](https://github.com/GY-Bai/CB16-R10/blob/b299be68a9bd9cc041900db75586ed5667407f8a/authority/rearchitecture_r11/CB16_R11_DEMONSTRATION_FOUNDATION_R0_MANIFEST_FREEZE_RECEIPT_V1.json) 指向 run [34658436628](https://github.com/GY-Bai/CB16-R10/actions/runs/34658436628)：2020 年十资产，67,669 个合格母状态，预期 609,021 个九动作分支。清单生成时未加载模型、未编译 Teacher targets、未观察未来 utility。
+sol 应在后续执行设计中列出这些规则的来源、策略影响和新链适用范围；沿已有任务记录差异，不改写旧证据。仅仅保持历史文件字节不变，并不要求新链永远继承其交易偏好。具体是否复用同一内核或增加版本化模式属于工程选择，本页不指定代码方案。
 
-### 第一个生产分片已验证发布
+另有需对账验证的审阅点：`_partial_reduce` 将 cash 夹到非负。是否可能在该路径抹去经济损失，取决于可达状态及完整账本定义；本轮未运行反例，不先判为已证 bug。实现者应给出守恒证据，不能让数值保护替代真实损失记录。
 
-本轮读取了 run [34661816571](https://github.com/GY-Bai/CB16-R10/actions/runs/34661816571) 的状态、jobs 和 `materialize-btc-shard0` 日志：
+## 3. 已读取的自动检查
 
-- HEAD：`b299be68a9bd9cc041900db75586ed5667407f8a`。
-- workflow 与相关 jobs success；20 个 materialization 测试通过。
-- BTCUSDT shard 0：1,024 个母状态、9,216 个分支。
-- 3 个 S4F 对象封存；再次发布仍是 3 个对象，幂等通过。
-- 日志结果明确 `teacher_targets_compiled=false`、`student_training_started=false`。
-- 分类为第一块 canonical shard，可计入 71 块计划。
+- 算法文档提交 [875ab16](https://github.com/GY-Bai/CB16-R10/commit/875ab16f92c6504a2bdd5fcc12d5ea6172464990)：[repo-guard 34674613980](https://github.com/GY-Bai/CB16-R10/actions/runs/34674613980) 与 [Main Smoke 34674614161](https://github.com/GY-Bai/CB16-R10/actions/runs/34674614161) 均 success；当时 10 个发布文件 blob 与本地内容相符。
+- AC-013 快照：[repo-guard 34686788794](https://github.com/GY-Bai/CB16-R10/actions/runs/34686788794) 与 [Main Smoke 34686788897](https://github.com/GY-Bai/CB16-R10/actions/runs/34686788897) 的状态以本页更新时核对值为准，见下行。
 
-这是日志与配置核验。本轮未重新下载并逐字节校验该 run 的 artifact，不宣称独立重算产物哈希。71 块是 [生产计划](https://github.com/GY-Bai/CB16-R10/blob/b299be68a9bd9cc041900db75586ed5667407f8a/authority/rearchitecture_r11/CB16_R11_DEMONSTRATION_PRODUCTION_MATERIALIZATION_PLAN_R0_V1.json) 的总数；本次证据确认第一块，不证明全部完成。
+AC-013 核对结果：repo-guard 与 Main Smoke 均 completed / success。CI success 不是 Actor–Critic 的科学资格或盈利证明；专项 gate 的独立产物复核不在本轮文档任务内。
 
-## 3. 当前示范与最高目标之间的缺口
+## 4. 下一次理念审阅关注什么
 
-| 已实现/已记录 | 尚不能等同于 |
-|---|---|
-| 单 corpus 适配与真实优化器更新能力 | 新策略主动生成并学习新账户轨迹的整个循环 |
-| H72 分片母状态为冻结 flat account | 长期持仓、连续暴露下的广泛账户覆盖 |
-| 首步候选动作，后续冻结 E6R2 续行 | 每一步重新调用 Brain 的自主交易 |
-| 1 块生产分片发布成功 | 71 块全量完成、Teacher 编译或 foundation checkpoint 完成 |
-| 原有 72h log utility 与 Teacher loss | 用户现在的长期期望超额收益目标 |
-| 生命周期、存储和 binding 代码 | 整条新闭环已在真实市场经验上运行 |
+沿既有实施计划推进时，优先看三个可观察问题：
 
-这里的“尚不能”是证据边界，不是全仓库不存在其他实验的断言。
+1. 许可目标是否真正变成仓位与账本变化，包括减仓、退出、反转失败和费用。
+2. 该账户后果是否进入下一次政策决策，并跨切片、恢复、模型换代接续。
+3. 普通及失败经历是否进入合规后果学习，更新后的政策是否被实际使用；受控任务与经济比较分别给结论。
 
-母状态与续行定义来自 [H72 shard spec](https://github.com/GY-Bai/CB16-R10/blob/b299be68a9bd9cc041900db75586ed5667407f8a/authority/rearchitecture_r11/CB16_R11_DEMONSTRATION_H72_SHARD_SPEC_V1.json)：`FROZEN_FLAT_PARENT_STATE_PLUS_ACCOUNT6_AT_DECISION` 和 `FROZEN_E6R2_BRANCH_RUNTIME`。已有数据可作为示范组件，不能默认为满足整个目标的必要且充分路线。
+其中包括 risk 比例与真实数量的区别、保证金来源、终态负净值以及暂停恢复语义，详见 [组件要求](COMPONENT_REQUIREMENTS.md)。这些是审阅方向，不是本轮已发现 bug 的定论。
 
-## 4. 下一步如何接手
+精确经济时域、比较人群/权重、基准组合和未来模拟账户晋升规则仍见 [OPEN_QUESTIONS](OPEN_QUESTIONS.md)。常规任务拆解不必因此停下；依赖该科学选择的正式比较须先形成具体方案。不得重复请求失败学习等已确认原则的许可。
 
-当前已推进到具体训练算法设计与文档，不是启动全量生产或修改运行中的 frozen loss。后续任务先读取 [算法提案](TRAINING_ALGORITHM_R0.md)、[未决问题](OPEN_QUESTIONS.md) 和 [决策记录](DECISIONS.md)，据用户实际任务选择路线。
+## 5. 历史记录与维护
 
-工程实施前需要对齐：目标 T 和基准组合、动作/执行语义、回放协议，以及示范生产与策略驱动连续账户循环的先后关系。失败经历允许学习的原则已经确认。算法核查发现旧内核禁止持仓后的主动 resize/close/reverse；这是实现完整自主风险管理前的具体能力缺口。
+最初的示范分支、manifest、第一块生产分片及当时运行核对保留在 [首次文档阶段历史快照](HISTORICAL_STATE_20260912_INITIAL.md)。其中“未合并”“下一步”是历史状态，不代表当前分支仍存在，也不覆盖后续 consolidation。历史 FAIL、authority 和产物保持原身份。
 
-不要因为某个旧 JSON 写着 `next_gate` 就自动执行它。新任务若已明确授权，应继续完成，不对已有授权重复确认。
-
-## 5. 自动检查与历史文件
-
-main 的 [repo-guard](../.github/workflows/guard.yml) 对 push/PR 运行；[main smoke](../.github/workflows/cb16-r11-main-smoke.yml) 对 main push 运行，检查冻结 blob、Docker/Python 和有界 Stage-4 测试。文档提交可以触发现有这些检查，不需要手工 dispatch 科学训练。
-
-仓库旧文档和旧 verdict 保留原身份。目标更新不会追溯改变已经执行的实验结论，也不会自动开放 FINAL 或 fresh data。
-
-## 6. 本页后续更新必须包括
-
-核对日期、分支与精确 SHA、所读代码/receipt/run、实际完成数量、证据类型、尚未验证的连接、下一项用户授权工作。不要只把计划复制成完成清单。
+后续实现 agent 更新本页时写明：精确 SHA、所读代码/receipt/run、证据类型、实际接通处、剩余缺口。只核对代码时不要写成实验通过；只看到 receipt 哈希时不要写成独立重算产物。当前 FINAL 封存、fresh download 与实验权限不因文档更新自动变化。

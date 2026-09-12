@@ -8,7 +8,12 @@
 2. 阅读 [最高理念](docs/VISION.md)、[学习规则](docs/LEARNING_CONTRACT.md)、[评价规则](docs/EVALUATION_PRINCIPLES.md)。
 3. 阅读 [当前状态](docs/CURRENT_STATE.md)；现场核对目标分支 SHA、相关 Actions、authority 和 receipt。状态文档是带日期的快照，不是实时数据库。
 4. 按本次任务阅读 [组件职责](docs/ARCHITECTURE_MAP.md)、[决策记录](docs/DECISIONS.md)、[未决问题](docs/OPEN_QUESTIONS.md)，再查对应实现。训练设计另读 [算法候选 R0](docs/TRAINING_ALGORITHM_R0.md) 和 [资格计划](docs/TRAINING_QUALIFICATION_R0.md)。
-5. 不要求通读全部历史文件。沿当前任务的调用链和证据索引读取必要材料。
+5. 实施对齐时阅读 [理念对齐规则](docs/PRINCIPLE_ALIGNMENT.md) 与 [组件要求](docs/COMPONENT_REQUIREMENTS.md)，再进入已有 [AC TODO](docs/R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md)。
+6. 不要求通读全部历史文件。沿当前任务的调用链和证据索引读取必要材料。
+
+## 当前协作分工
+
+2026-09-12 用户明确：本设计对话负责最高理念与文档，GPT-5.6 sol 负责对齐后的 TODO 拆解和代码实现。文档维护者不代写运行代码；实施者沿用现有任务，不新建平行 TODO。该分工不按模型名称授予额外权限，不改变用户对具体任务已有的授权。理念要求、算法候选、实现事实和运行证据分别记录。详见 [对齐规则](docs/PRINCIPLE_ALIGNMENT.md)。
 
 ## 必须保持的项目含义
 

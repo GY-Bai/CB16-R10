@@ -7,6 +7,9 @@
 | 你要了解的问题 | 入口 |
 |---|---|
 | 项目所有者想培养怎样的 Trader？ | [VISION](VISION.md) |
+| sol 应按哪些理念审阅和拆解任务？ | [PRINCIPLE_ALIGNMENT](PRINCIPLE_ALIGNMENT.md) |
+| 各组件必须传递什么、如何判断对齐？ | [COMPONENT_REQUIREMENTS](COMPONENT_REQUIREMENTS.md) |
+| 现有实施任务在哪里？ | [AC-001–AC-058 TODO](R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md)，由实施 agent 维护 |
 | 经验怎样生成、复习、更新模型？ | [LEARNING_CONTRACT](LEARNING_CONTRACT.md) |
 | 哪个具体算法、如何奖励、回放和归因？ | [TRAINING_ALGORITHM_R0](TRAINING_ALGORITHM_R0.md) |
 | 如何验证算法与接口？ | [TRAINING_QUALIFICATION_R0](TRAINING_QUALIFICATION_R0.md) |
@@ -33,3 +36,5 @@
 ## 更新约定
 
 理念变化更新 VISION / DECISIONS；学习或评价语义变化更新对应规则；实现与运行推进更新 CURRENT_STATE / ARCHITECTURE_MAP。未决项确认后注明来源与日期，再调整状态，避免不同 agent 各自猜测。
+
+理念要求使用 P 编号供任务引用；AC 编号继续管理实现。本设计对话维护理念与文档，GPT-5.6 sol 维护任务拆解与实现。阅读和更新按任务需要进行，不重复复制整份最高理念到每个文件。

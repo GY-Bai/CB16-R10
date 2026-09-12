@@ -20,7 +20,7 @@
 
 这些职责不要求新增同名服务。优先理解已有能力再决定组件修改。
 
-## 2. main 中可直接定位的组件
+## 2. 历史链中可直接定位的组件
 
 | 路径 | 当前用途与阅读重点 |
 |---|---|
@@ -51,9 +51,9 @@ Ordered4H30 是 task-gated shadow sidecar，不是 nominal Brain 输入；Remote
 
 FLAT/0 是名义输入，不能自动翻译为“立即平仓”；持仓情形下的许可、NOOP、退出由冻结执行语义决定。参见 [R10.2 执行说明](LOCAL_AGENT_EXECUTION_R10_2.md) 和实际 binding。
 
-## 3. 未合并示范分支的增量
+## 3. 原示范分支的历史快照
 
-以下链接固定在 `b299be68a9bd9cc041900db75586ed5667407f8a`，不是 main 相对路径：
+以下链接固定在 `b299be68a9bd9cc041900db75586ed5667407f8a`，不是 main 相对路径。随后部分通用模块已整合进入 main，不能从此表推断分支仍存在或其所有内容均已合并：
 
 | 文件 | 已有能力及边界 |
 |---|---|
@@ -74,3 +74,21 @@ FLAT/0 是名义输入，不能自动翻译为“立即平仓”；持仓情形�
 - 新长期目标与旧 utility 的差异被显式迁移，不通过改名掩盖。
 
 实际已验证项和剩余缺口见 [CURRENT_STATE](CURRENT_STATE.md)。
+
+## 5. 新 Actor–Critic 链的增量定位
+
+核对快照：`2da90a0b4577ad7d950641fe0a1bcd81f08d58e2`。以上旧链的参数量、FLAT/NOOP 与 Teacher 语义不能不加区分地套用到以下新链。组件应满足的目标要求见 [COMPONENT_REQUIREMENTS](COMPONENT_REQUIREMENTS.md)。
+
+| 路径 | 已有职责；不等同于完整闭环 |
+|---|---|
+| [actor_critic_contract_r0.py](../cb16_local_opt/actor_critic_contract_r0.py) | 科学版本、身份与语义哈希 |
+| [actor_critic_runtime_router_r0.py](../cb16_local_opt/actor_critic_runtime_router_r0.py) | 新旧运行协议显式区分 |
+| [action_contract_r0.py](../cb16_local_opt/action_contract_r0.py) | 目标方向/风险、转换表示与行为来源 |
+| [execution_record_r0.py](../cb16_local_opt/execution_record_r0.py) | 名义请求、许可、执行记录分离 |
+| [actor_critic_supervisor_r0.py](../cb16_local_opt/actor_critic_supervisor_r0.py) | 持仓调整许可、先平后开反转契约 |
+| [target_exposure_r0.py](../cb16_local_opt/target_exposure_r0.py) | 合法名义额度比例到目标数量的机械映射 |
+| [continuous_generation_binding_r0.py](../cb16_local_opt/continuous_generation_binding_r0.py) | 复用的代际/账户来源约束 |
+
+此快照尚无新 Physics adapter、随机 Actor、连续政策 Collector 和 V-trace learner 对应实现文件。这里说明新链集成缺口，不否认历史链已有其他执行/训练模块。代码、组件测试、真实接线和经济结果分别认定。
+
+提交前补核对：main [`7c412ee`](https://github.com/GY-Bai/CB16-R10/commit/7c412ee264c463e8f9f28c707c02eccfa4ab055c) 已新增 [AC-014 adapter](https://github.com/GY-Bai/CB16-R10/blob/7c412ee264c463e8f9f28c707c02eccfa4ab055c/cb16_local_opt/actor_critic_physics_adapter_r0.py)，补上目标仓位操作；其函数不推进 bar，且保留旧 SL/TP 与 max-hold 生命周期。上述缺少 adapter 的描述仅适用于 AC-013 快照；剩余理念差异见 CURRENT_STATE，不把主动仓位操作误当成完整无人工交易偏好的闭环。
