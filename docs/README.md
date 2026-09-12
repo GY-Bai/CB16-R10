@@ -8,7 +8,7 @@
 |---|---|
 | 项目所有者想培养怎样的 Trader？ | [VISION](VISION.md) |
 | 最新任务组织和性能决策是什么？ | **[CC 并行执行决策](CC_PARALLEL_EXECUTION_DECISION.md)** |
-| 当前实施总控在哪里？ | **[CC 四线程并行 Hard-Cutover TODO](R11_CC_PARALLEL_HARD_CUTOVER_TODO.md)**，冻结基线 `main@89d62bf966f476e598f0e2f5c5e8e03c15a8db51` |
+| 当前实施总控在哪里？ | **[CC 四线程并行 Hard-Cutover TODO](R11_CC_PARALLEL_HARD_CUTOVER_TODO.md)**；四线程冻结实现基线为 `main@89d62bf966f476e598f0e2f5c5e8e03c15a8db51` |
 | Thread A 做什么？ | [Runtime / Account / Continuous Interaction](cc/CC_THREAD_A_RUNTIME_ACCOUNT.md) |
 | Thread B 做什么？ | [Policy / Critic / Learner / Retention](cc/CC_THREAD_B_POLICY_LEARNING.md) |
 | Thread C 做什么？ | [Experience / Replay / Economic Evaluation](cc/CC_THREAD_C_EXPERIENCE_ECONOMICS.md) |
@@ -30,7 +30,9 @@
 
 ## 当前实施组织
 
-CC 把后续工作拆成四个真正可以同时启动的 task package。四个 sub-agent 都从同一个冻结 SHA `89d62bf...` 开工，只共享 CC master 中的 W-01..W-05 wire 语义，不依赖 sibling branch。
+CC 把后续工作拆成四个真正可以同时启动的 task package。四个 sub-agent 的**实现代码**都从冻结 SHA `89d62bf...` 开工，只共享 CC master 中的 W-01..W-05 wire 语义，不依赖 sibling branch。
+
+CC 任务文档本身提交在 `89d62bf` 之后，以便直接从当前 main 阅读；这不改变四线程的代码基线。正确做法是从当前 main/交接上下文读取任务文档，再从 `89d62bf` 建 implementation branch。
 
 四线程结束后再做一次 integration join。integration 统一 typed interface、连接 A/B/C，并将 D 的 fast spine 作为 CC 唯一性能运行路径。旧性能 broker/farm/vectorized runtime 不做 CC compatibility/fallback。
 
