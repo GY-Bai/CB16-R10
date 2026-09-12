@@ -17,8 +17,12 @@ permissions:
   contents: read
 
 jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
   thread-a-smoke:
     name: Thread A semantic smoke on Shanxi Docker
+    needs: shanxi-preflight
     runs-on: [self-hosted, shanxi-docker-r11]
     timeout-minutes: 10
     steps:
