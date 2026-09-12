@@ -112,24 +112,68 @@ Hard cutover 已完成。Canonical CC runtime 不得 import、兼容或 fallback
 
 不能升级为 ECONOMIC 或 TRANSFER。当前没有证明真实历史市场 edge、未来盈利性或跨时期迁移；FINAL 未打开，fresh market data 未使用。
 
-## 6. 双基准问题已澄清，后继实现待迁移
+## 6. 双基准原则已关闭；当前缺口是实现迁移
 
-2026-09-12 用户要求本对话表态并落实：B&H/FLAT 无默认主次，同合同的完整算术收益决定候选排序；满足预登记改善证据的候选可晋升沙盒学习冠军，不以同时击败两基准为额外门槛。详见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
+B&H 和 FLAT 是两个并列 benchmark components，**没有 master precedence，也没有 master baseline winner**。同合同下的模型间完整算术收益排序、单模型 B&H/FLAT component 结果、promotion decision 是不同对象。详见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
 
-这是后续训练设计决定，不是已实现或已测经济结论。现有 `cc_economic_promotion_r0.py::assess` 及 frozen receipt 仍反映旧 unresolved 契约；下一阶段 S0 迁移并验证新语义，原 receipt 不改写。不得继续把这项文档已关闭的问题当作需要 owner 再选基准。
+现有 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍反映历史 unresolved 契约。它们不被改写。S0 负责创建 successor ordering/component/promotion contracts、显式 adapter/migration/router，并证明 post-CC canonical path 不再把 B&H/FLAT disagreement 解释成 owner uncertainty。
 
-## 7. 下一断点
+因此不要再询问 owner “B&H 和 FLAT 谁优先”。当前问题是代码迁移与资格，不是原则选择。
 
-当前后继路线由 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md) 明确：S0 契约/spec → S1 端到端可学习性 → S2 历史执行 canary → S3 小规模历史学习 → 条件性 S4 容量 → S5 经济确认。先完成 S0/S1，不直接全量训练或扩大 Brain。本轮只落实文档，尚无这些新阶段的运行结果。
+## 7. 当前精确断点：S0 -> S1
 
-后续执行继续遵守：
+宽泛路线仍由 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md) 定义；**当前直接执行 authority 已进一步拆成：**
 
-1. 以 integration receipt/spec 指定的 canonical CC runtime 为起点；
-2. 不重新打开 A/B/C/D 四线程 implementation；
-3. 不恢复 legacy performance fallback；
-4. 在每个新科学 run 前冻结数据 authority、cohort、horizon、budget、seeds、replay/update 配置和 gate；
-5. 保持 synthetic qualification 与真实 market economic evidence 分层。
+- 总控：`docs/R11_POST_CC_S0_S1_TODO.md`
+- S0：`docs/post_cc/S0_CONTRACT_MIGRATION_TODO.md`
+- S1：`docs/post_cc/S1_END_TO_END_LEARNABILITY_TODO.md`
 
-`docs/BRAIN_CAPACITY_ROADMAP_3700X_1060.md` 是容量规划建议，不自动授权模型扩容或训练；其候选范围需要后续单独的容量实验验证。
+规划冻结基线：
+
+`main@fc7102442e91a1c27cf705487c6d06bd64b8ea09`
+
+执行顺序严格为：
+
+```text
+S0 contract/economic semantic migration
+    -> S0 qualification receipt
+    -> freeze exact S1 base at S0 qualified head
+    -> S1 durable end-to-end learnability qualification
+    -> S1 receipt/verdict
+    -> STOP
+```
+
+### 7.1 S0 要关闭什么
+
+S0 不是再讨论原则，而是处理当前 code-vs-doc mismatch：
+
+- 旧 promotion code 的 `UNRESOLVED_OWNER_DECISION` 迁移为 successor semantics；
+- B&H/FLAT 作为 parallel components；
+- model ordering 与 promotion rule 分离；
+- old receipts 保持原样并由 migration authority 说明历史/当前边界；
+- 预冻结 S1 observation sidecar、joint replay sample、task registry、run spec、seed/no-rescue/evidence rules。
+
+### 7.2 S1 要证明什么
+
+当前 CC canary 已证明“一次 update 能接通”，但仍不是 robust learnability evidence。主要对齐缺口是：
+
+- integration canary 的训练张量可来自 rollout 内存 `records`，尚未证明 learner 只依靠 durable replay 即可重建训练真值；
+- persistent experience 有 observation identity/hash，但需要 Brain-ready `market/account/execution` observation payload 的 durable materialization；
+- generic learner batch/API 主要是 categorical action，而 canonical Actor 是 `direction + conditional continuous risk` 联合分布；
+- 现有 component toys 不等于 full persistent loop 的多轮收敛证据。
+
+S1 必须建立：
+
+`durable observation fact -> persistent replay materialization -> joint action batch -> true log_mu / joint log_pi -> Critic/V-trace/Actor update -> exactly-once child checkpoint -> generation switch -> actual child behavior -> preregistered known-answer improvement`
+
+并通过多 seed、no-signal、shuffled-credit 等 negative controls。Loss 下降、checkpoint 改变、child 输出不同动作都不能单独构成 S1 PASS。
+
+## 8. S1 之后的路线边界
+
+S1 结束即停。S2 historical execution canary、S3 小规模历史学习、条件性 S4 capacity、S5 economic confirmation 仍由 `POST_CC_SCIENTIFIC_PROGRAM_R0.md` 定义，但不能由 S0/S1 executor 自动启动。
+
+S4 不是必须阶段；是否扩容由 S3 证据决定。`BRAIN_CAPACITY_ROADMAP_3700X_1060.md` 只是容量规划建议，不是自动扩容授权。
+
+后续所有真实 historical runs 继续要求：数据 authority、cohort、horizon、budget、seeds、replay/update 配置与 gate 在运行前冻结，并保持 synthetic qualification 与 market economic evidence 分层。
 
 历史 AC/BC TODO、Stage-4、Teacher/demonstration 与 CC 四线程 TODO 均作为 provenance/history 保留，不再是当前 execution authority。
