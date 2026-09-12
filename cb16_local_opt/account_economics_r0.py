@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 
 ACCOUNT_ECONOMICS_SCHEMA_R0 = "CB16_R11_BC_ACCOUNT_ECONOMICS_V1_R0"
 ACCOUNT_OBSERVATION_RELATION_R0 = "ACCOUNT6_IS_PROJECTION_NOT_LEDGER"
+NEGATIVE_CASH_SETTLEMENT_VERSION_R0 = "CB16_R11_BC_NEGATIVE_CASH_TO_LIABILITY_V1_R0"
 
 FIELD_AUTHORITY_R0 = {
     "cash": "AUTHORITATIVE_LEDGER_STOCK",
@@ -46,7 +47,7 @@ def calculate_unrealized_pnl_r0(position_quantity: float, position_cost_basis: f
 
 
 def calculate_equity_r0(*, cash: float, margin_collateral: float, unrealized_pnl: float, liabilities: float) -> float:
-    """Stocks-only equity; cumulative audit flows are already settled in cash."""
+    """No floor/clamp: economic losses remain signed until responsibility truly ends."""
     return (
         _finite(cash, "ACECO_R0_CASH_INVALID")
         + _finite(margin_collateral, "ACECO_R0_COLLATERAL_INVALID")
@@ -73,11 +74,7 @@ class AccountEconomicsStateR0:
 
     @property
     def unrealized_pnl(self) -> float:
-        return calculate_unrealized_pnl_r0(
-            self.position_quantity,
-            self.position_cost_basis,
-            self.mark_price,
-        )
+        return calculate_unrealized_pnl_r0(self.position_quantity, self.position_cost_basis, self.mark_price)
 
     @property
     def equity(self) -> float:
@@ -119,6 +116,47 @@ class AccountEconomicsStateR0:
         _finite(self.equity, "ACECO_R0_EQUITY_INVALID")
         if not isinstance(self.economic_responsibility_open, bool):
             raise RuntimeError("ACECO_R0_RESPONSIBILITY_FLAG_INVALID")
+
+
+@dataclass(frozen=True)
+class LiabilitySettlementReceiptR0:
+    settlement_version: str
+    cash_before: float
+    liabilities_before: float
+    cash_after: float
+    liabilities_after: float
+    equity_before: float
+    equity_after: float
+
+    def validate(self) -> None:
+        if self.settlement_version != NEGATIVE_CASH_SETTLEMENT_VERSION_R0:
+            raise RuntimeError("ACECO_R0_SETTLEMENT_VERSION_INVALID")
+        if self.cash_before >= 0.0 or self.cash_after != 0.0:
+            raise RuntimeError("ACECO_R0_SETTLEMENT_SHAPE_INVALID")
+        if abs(self.equity_before - self.equity_after) > 1e-12:
+            raise RuntimeError("ACECO_R0_SETTLEMENT_DESTROYED_LOSS")
+
+
+def settle_negative_cash_to_liability_r0(state: AccountEconomicsStateR0) -> tuple[AccountEconomicsStateR0, LiabilitySettlementReceiptR0]:
+    """Explicit legal-accounting transformation; never an implicit numerical clamp."""
+    state.validate()
+    if state.cash >= 0.0:
+        raise RuntimeError("ACECO_R0_NEGATIVE_CASH_REQUIRED")
+    before = state.equity
+    shortfall = -state.cash
+    settled = replace(state, cash=0.0, liabilities=state.liabilities + shortfall)
+    settled.validate()
+    receipt = LiabilitySettlementReceiptR0(
+        settlement_version=NEGATIVE_CASH_SETTLEMENT_VERSION_R0,
+        cash_before=state.cash,
+        liabilities_before=state.liabilities,
+        cash_after=settled.cash,
+        liabilities_after=settled.liabilities,
+        equity_before=before,
+        equity_after=settled.equity,
+    )
+    receipt.validate()
+    return settled, receipt
 
 
 def make_account_economics_state_r0(**kwargs: object) -> AccountEconomicsStateR0:
