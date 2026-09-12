@@ -1,33 +1,38 @@
 {
   "schema": "CB16_R11_CC_INTEGRATION_SPEC_V1",
-  "status": "PREREGISTERED",
+  "status": "QUALIFIED_AND_FROZEN",
   "integration_branch": "ai/r11-cc-integration-r0",
   "integration_seed_sha": "68ab5881a3ff0e43a0291c2f1406b534ab85a965",
   "frozen_implementation_base_sha": "89d62bf966f476e598f0e2f5c5e8e03c15a8db51",
+  "qualified_integration_head_sha": "fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2",
   "frozen_threads": {
     "A": {
       "head_sha": "d904fa67f66026fc2bc9c320fe5a888ff5f98db6",
       "qualified_implementation_sha": "b1ebbc45482f2b10c49bbd9c521f831020558a04",
       "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_A_RECEIPT_V1.json",
-      "receipt_git_blob_sha": "32499bf8e0c515762bf0e7c100d9f9c3f4770e30"
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "32499bf8e0c515762bf0e7c100d9f9c3f4770e30"
     },
     "B": {
       "head_sha": "f06babb485daee0a2f7e978c51d6263b03fc2fea",
       "qualified_implementation_sha": "87a37398d75c9fb644de31d94595db66a49fafbc",
       "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json",
-      "receipt_git_blob_sha": "ac976274953c7d8f48200e0c750be4944c88cd10"
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "ac976274953c7d8f48200e0c750be4944c88cd10"
     },
     "C": {
       "head_sha": "626241fc1043e10326e538f93cf08d9cfac75b67",
       "qualified_implementation_sha": "2a909fe0ba9a55d0540a5c93c034bae7db131cf4",
       "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
-      "receipt_git_blob_sha": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
     },
     "D": {
       "head_sha": "26742447af209d52943085e9d37996eae522b93c",
       "qualified_implementation_sha": "089031a935e58100f3a0dbfec34c16fa5f272915",
       "receipt_path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_D_RECEIPT_V1.json",
-      "receipt_git_blob_sha": "cae9b31ae490cec348485e60feffb4d27bdc8812"
+      "receipt_hash_kind": "git_blob_sha1",
+      "receipt_hash": "cae9b31ae490cec348485e60feffb4d27bdc8812"
     }
   },
   "science_contract": {
@@ -80,40 +85,55 @@
     "child_policy_actually_acts"
   ],
   "known_answer_equivalence": {
-    "discrete_fields": "EXACT",
+    "discrete_fields": "EXACT_BY_CANONICAL_FACT_AND_FINAL_ACCOUNT_CHECKSUM",
     "floating_atol": 1e-10,
     "floating_rtol": 1e-10,
     "oracle": "Thread_A_reference_semantics",
     "fast_path_may_not_change_scientific_semantics": true
   },
+  "selected_runtime_topology": "CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER",
+  "selected_runtime_definition": {
+    "runtime_account_execution_semantics": "THREAD_A",
+    "policy_critic_learner": "THREAD_B",
+    "immutable_experience_replay_evaluation": "THREAD_C",
+    "performance_spine": "THREAD_D_SAME_ACCOUNT_SCHEDULER_BOUNDED_QUEUE_DURABLE_CHUNK_WRITER",
+    "thread_d_synthetic_account_kernel_promoted_to_science_authority": false,
+    "legacy_performance_fallback": false,
+    "failure_mode": "FAIL_CLOSED"
+  },
   "shanxi_benchmark": {
     "runner_labels": ["self-hosted", "shanxi-docker-r11"],
+    "workflow_run_id": 34710702090,
+    "job_id": 103598868269,
+    "artifact_id": 10303497599,
+    "artifact_sha256": "9b0be77738e680de071e92d622f9fc25539373ec4c49a54714f471cafde4b903",
     "repetitions_per_topology": 7,
     "ordering": "ALTERNATE_REFERENCE_FAST_AND_FAST_REFERENCE",
     "selection_rule": "MAX_MEDIAN_END_TO_END_COMPLIANT_TRANSITIONS_PER_SECOND_AMONG_SEMANTIC_PASS_IMPLEMENTATIONS",
-    "required_metrics": [
-      "wall_clock_s",
-      "compliant_transitions_per_s",
-      "median",
-      "dispersion",
-      "queue_bytes",
-      "queue_oldest_age_s",
-      "pss_bytes",
-      "swap_out_bytes",
-      "semantic_verdict"
-    ]
+    "workload_identity": "CB16_R11_CC_INTEGRATED_SYNTHETIC_WORKLOAD_V1",
+    "accounts": 16,
+    "market_steps": 64,
+    "transitions_per_run": 1024,
+    "reference_median_transitions_per_s": 7.535366092751262,
+    "fast_median_transitions_per_s": 638.7657684067791,
+    "fast_over_reference_median_ratio": 84.76904247840694,
+    "semantic_checksum": "c864052eab1c107ab73a88d96ddb527bfc60819a41165b1495ecc74d56644988",
+    "final_account_checksum": "29d33e7639029f40c6edfb1c7fe9fff26e4af3f418cf5109a066a55de13e282e",
+    "semantic_equivalence": "PASS"
   },
-  "mandatory_gates": [
-    "CLOSED_LOOP_PASS",
-    "KNOWN_ANSWER_PASS",
-    "REFERENCE_FAST_EQUIVALENCE_PASS",
-    "HOSTILE_RECOVERY_PASS",
-    "SHANXI_BENCHMARK_PASS",
-    "HARD_CUTOVER_PASS",
-    "FINAL_FRESH_FIREWALL_PASS"
-  ],
+  "mandatory_gates": {
+    "CLOSED_LOOP_PASS": true,
+    "KNOWN_ANSWER_PASS": true,
+    "REFERENCE_FAST_EQUIVALENCE_PASS": true,
+    "HOSTILE_RECOVERY_PASS": true,
+    "SHANXI_BENCHMARK_PASS": true,
+    "HARD_CUTOVER_PASS": true,
+    "LEGACY_IMPORT_FIREWALL_PASS": true,
+    "FINAL_FRESH_FIREWALL_PASS": true
+  },
   "docs_update_policy": "SHARED_CANONICAL_DOCS_MAY_CHANGE_ONLY_AFTER_ALL_MANDATORY_GATES_PASS",
   "economic_evidence_policy": "NO_ECONOMIC_OR_TRANSFER_CLAIM_FROM_INTEGRATION_MECHANICAL_OR_PERFORMANCE_QUALIFICATION",
+  "strongest_justified_evidence_level": "INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE",
   "owner_open_decisions": [
     {
       "owner": "OWNER",
@@ -122,5 +142,11 @@
       "status": "UNRESOLVED_OWNER_DECISION",
       "integration_must_not_invent_precedence": true
     }
-  ]
+  ],
+  "evidence_limit": {
+    "economic_evidence_claimed": false,
+    "transfer_evidence_claimed": false,
+    "FINAL_opened": false,
+    "fresh_data_used": false
+  }
 }
