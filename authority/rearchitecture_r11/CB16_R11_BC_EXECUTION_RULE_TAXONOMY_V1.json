@@ -1,0 +1,130 @@
+{
+  "schema": "CB16_R11_BC_EXECUTION_RULE_TAXONOMY_V1",
+  "task_id": "BC-009",
+  "principle": "P-05",
+  "round2_policy": {
+    "unclassified_forced_behavior_forbidden": true,
+    "strategy_preference_default": "DISABLED_UNLESS_SEPARATELY_AUTHORIZED",
+    "historical_only_default": "NOT_ROUND2_AUTHORITY"
+  },
+  "allowed_categories": [
+    "MARKET_EXCHANGE_MECHANIC",
+    "USER_RESOURCE_BOUNDARY",
+    "STRATEGY_PREFERENCE",
+    "HISTORICAL_ONLY"
+  ],
+  "rules": [
+    {
+      "rule_id": "fee",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "sim_config.fee_rate + execution_semantics.fees",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "slippage",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "sim_config.slippage_bps + execution_semantics.pricing",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "funding",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "execution_semantics.funding",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "margin",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "sim_config.margin_type + maintenance_margin_rate + execution_semantics.margin",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "liquidation",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "execution_semantics.liquidation",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "min_qty",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "sim_config.lot_min_qty",
+      "round2_default": "ENFORCED_IF_BOUND_NON_NULL"
+    },
+    {
+      "rule_id": "min_notional",
+      "category": "MARKET_EXCHANGE_MECHANIC",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "sim_config.min_notional",
+      "round2_default": "ENFORCED_IF_BOUND_NON_NULL"
+    },
+    {
+      "rule_id": "leverage_cap",
+      "category": "USER_RESOURCE_BOUNDARY",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "CB16_ACCOUNT_PHYSICS_CONTRACT_V1/d1da4242141dc2e5aa257eddc50a2573b8d41471faa3e6270acb596e6c459321",
+      "source_field": "sim_config.max_leverage",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "stop_loss",
+      "category": "STRATEGY_PREFERENCE",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "V5.5_CLEAN_REBUILD_PHASE1/5.5-clean.0",
+      "source_field": "sim_config.stop_atr_mult + execution_semantics.stops",
+      "round2_default": "DISABLED"
+    },
+    {
+      "rule_id": "take_profit",
+      "category": "STRATEGY_PREFERENCE",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "V5.5_CLEAN_REBUILD_PHASE1/5.5-clean.0",
+      "source_field": "sim_config.min_risk_reward + execution_semantics.stops",
+      "round2_default": "DISABLED"
+    },
+    {
+      "rule_id": "max_hold",
+      "category": "STRATEGY_PREFERENCE",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "V5.5_CLEAN_REBUILD_PHASE1/5.5-clean.0",
+      "source_field": "sim_config.max_holding_bars + execution_semantics.max_holding",
+      "round2_default": "DISABLED"
+    },
+    {
+      "rule_id": "cooldown",
+      "category": "STRATEGY_PREFERENCE",
+      "source_path": "authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/ACCOUNT_PHYSICS_CONTRACT_V1.json",
+      "source_version": "V5.5_CLEAN_REBUILD_PHASE1/5.5-clean.0",
+      "source_field": "sim_config.stop_cooldown_bars + execution_semantics.cooldown",
+      "round2_default": "DISABLED"
+    },
+    {
+      "rule_id": "risk_limits",
+      "category": "USER_RESOURCE_BOUNDARY",
+      "source_path": "cb16_local_opt/r102_physics.py",
+      "source_version": "EXTERNAL_RISK_BUDGET_AUTHORITY_V1",
+      "source_field": "risk_authority.risk_budget_remaining/risk_budget_capacity",
+      "round2_default": "ENFORCED"
+    },
+    {
+      "rule_id": "finalize_behavior",
+      "category": "HISTORICAL_ONLY",
+      "source_path": "cb16_local_opt/r102_physics.py",
+      "source_version": "H72_EVALUATION_FINALIZE",
+      "source_field": "FrozenPhysicsRuntimeR102.evaluation_finalize",
+      "round2_default": "DISABLED"
+    }
+  ]
+}
