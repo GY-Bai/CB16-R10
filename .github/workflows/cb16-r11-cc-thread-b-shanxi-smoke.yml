@@ -1,0 +1,139 @@
+name: CB16 R11 CC Thread B Shanxi Smoke
+
+on:
+  push:
+    branches:
+      - ai/r11-cc-thread-b-learning-r0
+    paths:
+      - cb16_local_opt/cc_policy_*.py
+      - cb16_local_opt/cc_critic_*.py
+      - cb16_local_opt/cc_vtrace_*.py
+      - cb16_local_opt/cc_learner_*.py
+      - cb16_local_opt/cc_continual_retention_r0.py
+      - cb16_local_opt/cc_learning_*.py
+      - tests/test_cc_*.py
+      - authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_BASELINE_V1.json
+      - authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json
+      - .github/workflows/cb16-r11-cc-thread-b-shanxi-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  thread-b-smoke:
+    name: CC Thread B Shanxi Docker Smoke
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Thread B branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/cc_thread_b_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cc_thread_b_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('CC_THREAD_B_PYTHON_ENV_READY')
+          PY
+
+      - name: Verify Thread B frozen-base lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git merge-base HEAD 89d62bf966f476e598f0e2f5c5e8e03c15a8db51)" = "89d62bf966f476e598f0e2f5c5e8e03c15a8db51"
+          test -f authority/rearchitecture_r11/CB16_R11_CC_THREAD_B_RECEIPT_V1.json
+          test ! -e data/2025-09
+          test ! -e final_holdout
+          echo CC_THREAD_B_LINEAGE_AND_FIREWALL_PASS
+
+      - name: Run Thread B qualification on Shanxi Docker
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cc_thread_b_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" -m pytest -q tests/test_cc_*.py
+          PYTHONPATH=. "$PYTHON" -m compileall -q cb16_local_opt tests
+
+      - name: Emit Shanxi smoke receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cc_thread_b_python.json"
+          RECEIPT="$RUNNER_TEMP/cc_thread_b_shanxi_smoke.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          "$PYTHON" - "$RECEIPT" <<'PY'
+          import json, os, platform, subprocess, sys, torch
+          path = sys.argv[1]
+          payload = {
+              'schema': 'CB16_R11_CC_THREAD_B_SHANXI_SMOKE_V1',
+              'status': 'PASS',
+              'git_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'runner_name': os.environ.get('RUNNER_NAME'),
+              'runner_os': os.environ.get('RUNNER_OS'),
+              'python_version': platform.python_version(),
+              'torch_version': torch.__version__,
+              'torch_cuda_version': torch.version.cuda,
+              'cuda_available': bool(torch.cuda.is_available()),
+              'cuda_device': torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+              'network_install_attempted': False,
+              'final_holdout_accessed': False,
+              'fresh_market_data_used': False,
+              'claim_scope': 'SHANXI_DOCKER_EXECUTION_SMOKE_ONLY_NO_REAL_MARKET_EDGE',
+          }
+          with open(path, 'w', encoding='utf-8') as f:
+              json.dump(payload, f, indent=2, sort_keys=True)
+              f.write('\n')
+          print(json.dumps(payload, sort_keys=True))
+          PY
+
+      - name: Upload Shanxi smoke receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-cc-thread-b-shanxi-smoke
+          path: ${{ runner.temp }}/cc_thread_b_shanxi_smoke.json
+          if-no-files-found: error
+          retention-days: 30
