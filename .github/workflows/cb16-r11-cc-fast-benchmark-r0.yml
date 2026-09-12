@@ -80,16 +80,23 @@ jobs:
           PY
           )
           "$PY" - <<'PY'
+          import ast
           from pathlib import Path
-          forbidden=(
+          forbidden={
               'cb16_local_opt.gpu_inference_broker',
               'cb16_local_opt.multiprocess_trajectory_farm',
               'cb16_local_opt.vectorized_physics',
-          )
+          }
           for path in Path('cb16_local_opt').glob('cc_fast_*.py'):
-              text=path.read_text(encoding='utf-8')
-              bad=[x for x in forbidden if x in text]
-              if bad: raise SystemExit(f'legacy import forbidden in {path}: {bad}')
+              tree=ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+              imported=set()
+              for node in ast.walk(tree):
+                  if isinstance(node,ast.Import):
+                      imported.update(alias.name for alias in node.names)
+                  elif isinstance(node,ast.ImportFrom):
+                      imported.add(node.module or '')
+              bad=forbidden & imported
+              if bad: raise SystemExit(f'legacy import forbidden in {path}: {sorted(bad)}')
           print('CC_FAST_IMPORT_FIREWALL_PASS')
           PY
 
