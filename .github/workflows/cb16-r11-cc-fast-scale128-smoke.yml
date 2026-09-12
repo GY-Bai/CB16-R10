@@ -89,7 +89,7 @@ jobs:
           for spec in '6 64' '6 128' '8 128' '10 128'; do
             set -- $spec
             w="$1"; a="$2"
-            GITHUB_SHA="$GITHUB_SHA" "$PY" experiments/cc_thread_d_scale128_probe.py \
+            PYTHONPATH=. GITHUB_SHA="$GITHUB_SHA" "$PY" experiments/cc_thread_d_scale128_probe.py \
               --output "artifacts/cc_fast_scale128/candidate-w${w}-a${a}.json" \
               --workers "$w" --accounts "$a" --market-steps 384 --chunk-facts 128 --policy-batch "$a"
           done
