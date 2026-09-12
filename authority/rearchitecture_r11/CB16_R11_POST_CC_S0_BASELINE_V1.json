@@ -10,7 +10,7 @@
     },
     "integration_receipt": {
       "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json",
-      "blob_sha": "3fea48f46ef676cb0b9f8a2c22fe4c4dbd6d2867",
+      "blob_sha": "3fea57a6c5d3a0a2ad5d88d99e6041b7fe9973e5",
       "edit_target": false
     },
     "thread_c_receipt": {
