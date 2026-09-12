@@ -1,6 +1,6 @@
 # Central Brain 容量发展规划：3700X / GTX 1060 6GB
 
-日期：2026-09-12。性质：面向未来的容量评估与实验建议，不是已测性能、模型晋升决定或新的训练 authority。本次只新增文档，不实现模型、不启动训练、不改变 CC 集成任务。
+日期：2026-09-12。性质：面向未来的容量评估与实验建议，不是模型晋升决定或新的训练 authority。**状态更新：CC R11 integration 已通过 PR #99 合入 `main`；本文后续容量实验必须以当前 integration receipt/spec 为运行 authority。本文本身仍不授权扩容、训练、FINAL 或 fresh data。**
 
 ## 1. 结论先行
 
@@ -32,7 +32,7 @@
 
 **上述时间范围只描述用户持有的数据，不把全部日期自动授权为 TRAIN。** 现有 FINAL/fresh-data 防火墙和版本化数据权限不变。本文不读取新的行情、不扩大可消费范围。
 
-本次文档核对基于 `main@68ab5881a3ff0e43a0291c2f1406b534ab85a965`；另只读查看了 CC 集成候选 `fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2` 的 Brain、Critic、learner 和 Brain 单测。这不是合并、验收或完整代码审计。该候选不能替代 main/receipt 的运行事实。
+本容量文档最初核对基线为 `main@68ab5881a3ff0e43a0291c2f1406b534ab85a965`，并只读查看了当时尚未合入 main 的 CC integration code head `fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2`。随后 PR #99 已正式合并，merge commit 为 `daa889d758ce80c7d1ce73ea37110937e1b146c0`。因此 `fc7ada...` 现在是 integration receipt 冻结的 qualified runtime code head，而不再只是“未合并候选”。当前运行事实仍以 integration receipt/spec、`CURRENT_STATE.md` 和 `CC_INTEGRATION_HANDOFF.md` 为准；本容量文档不替代它们。
 
 ## 3. 先把“16K”定义准确
 
@@ -46,7 +46,7 @@
 | `P_replica` | 另驻留的行为策略、target 或其他副本；不是新增学习能力 |
 | 结构与运行配置 | 隐藏宽度、深度、记忆形式、序列长度、batch、精度、优化器、运行设备 |
 
-候选 [CCCentralBrain 源码](https://github.com/GY-Bai/CB16-R10/blob/fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2/cb16_local_opt/cc_policy_brain_r0.py) 中，设市场维度为 M、账户维度 A、执行维度 E、隐藏宽度 H，则该类自身：
+[CCCentralBrain 源码](https://github.com/GY-Bai/CB16-R10/blob/fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2/cb16_local_opt/cc_policy_brain_r0.py) 中，设市场维度为 M、账户维度 A、执行维度 E、隐藏宽度 H，则该类自身：
 
 ```text
 可训练参数 = 2H² + H(A + E + 8) + 9
@@ -83,7 +83,7 @@
          + 临时张量、CUDA/cuDNN 工作区、缓存与运行时开销
 ```
 
-共享参数只计一次，实际精度和优化器必须替换进公式。只读候选 [CC learner](https://github.com/GY-Bai/CB16-R10/blob/fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2/cb16_local_opt/cc_learner_r0.py) 使用无 momentum 的 SGD，不是 Adam；其权重加梯度的基础预算约 8 字节/参数。此处使用 Adam 只是为未来保留较宽预算，不授权切换优化器。
+共享参数只计一次，实际精度和优化器必须替换进公式。[CC learner](https://github.com/GY-Bai/CB16-R10/blob/fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2/cb16_local_opt/cc_learner_r0.py) 使用无 momentum 的 SGD，不是 Adam；其权重加梯度的基础预算约 8 字节/参数。此处使用 Adam 只是为未来保留较宽预算，不授权切换优化器。
 
 必须在预热、实际 forward/backward、优化器状态建立之后测峰值，并把采样侧与学习侧的同时驻留纳入测试。可用显存以运行时测量为准，不把标称 6GB 全部分配给模型。混合精度不能预设为 1060 的提速保证。
 
@@ -103,7 +103,7 @@
 - SSD 用于可容纳的热分片与活跃训练数据；HDD 适合顺序归档。SSD 实际空闲容量未知，本文不承诺全量热缓存可容纳。
 - 参数变大后先定位是 GPU 计算、CPU 环境、IPC、重算器官还是 IO 等待。把 Python 改成 Rust/Go 不会直接减少 GPU 矩阵计算量。
 
-性能运行拓扑服从当前 [CC 执行决策](CC_PARALLEL_EXECUTION_DECISION.md) 和 [Thread D](cc/CC_THREAD_D_PERFORMANCE_HARD_CUTOVER.md)。本文不恢复旧 broker/farm/vectorized runtime fallback；[早期硬件性能策略](PERFORMANCE_STRATEGY_3700X_1060.md) 只在与最新 CC 决策一致的范围内引用。
+性能运行拓扑服从当前 integration receipt/spec 与 [当前性能策略](PERFORMANCE_STRATEGY_3700X_1060.md)。本文不恢复旧 broker/farm/vectorized runtime fallback；历史 [CC 执行决策](CC_PARALLEL_EXECUTION_DECISION.md) 与 [Thread D](cc/CC_THREAD_D_PERFORMANCE_HARD_CUTOVER.md) 作为 provenance 使用。
 
 ## 6. 业务需求决定该扩大哪里
 
@@ -131,7 +131,7 @@ BRO 在其连续控制基准上发现，经适当正则化的大 Critic 有益�
 
 这部分是供后续实施者拆解的提案，不是立即启动的实验配置。
 
-1. **建立真实基线。** 记录实际 checkpoint、唯一可训练参数数、梯度归属、观察/动作接口、优化器和完整运行配置；先通过现行 known-answer 与 closed-loop 要求。
+1. **建立真实基线。** 记录实际 checkpoint、唯一可训练参数数、梯度归属、观察/动作接口、优化器和完整运行配置；以当前 canonical CC 的 known-answer / closed-loop authority 为起点。
 2. **先筛小阶梯。** 可用约 `16K → 64K → 256K → 1M → 4M` 作为 Actor 候选；结构取整后的真实计数应如实报告。不是要求一次跑完，更不是保证每档胜出。
 3. **分离变量。** 固定 Actor 比较 Critic 容量；固定 Critic 比较 Actor 容量。记忆结构变化另设对照，避免把增加历史信息、改奖励和加参数同时发生的收益归为容量收益。
 4. **区分两种公平预算。** 等环境交互/学习数据预算回答样本效率；等墙钟/总计算预算回答本机实用效率。固定 batch 后的 update 次数并不能跨不同 batch 代表相同训练量。主比较口径及调参预算事先声明。
@@ -150,6 +150,6 @@ GTX 1060 的 CUDA compute capability 为 6.1；CUDA 13.0 已移除 Pascal 的离
 
 ## 9. 交给后续实施者的一句话
 
-**先在现有 1060 上证明闭环和科学裁判，再以 Actor/Critic 分开的容量阶梯研究 100K–5M 级决策 Brain；允许反复练习完整账户经历，不把分钟行情行数当成模型规模公式，不用牺牲账户连续性和失败记账换取更大的参数牌面。**
+**现在已有 synthetic closed-loop/known-answer + Shanxi performance-qualified 的 canonical CC runtime；容量研究应在这个基线上，以 Actor/Critic 分开的阶梯研究 100K–5M 级决策 Brain，并继续保持完整账户经历、失败记账、因果输入和 evidence 分层。分钟行情行数不是模型规模公式，模型变大也不是经济能力已经提升。**
 
-尚需运行证据补齐而非本次臆测的内容：真实 16K 计数、实际冻结器官规模与驻留设备、batch/序列、优化器、CC 联合运行峰值与吞吐、SSD 空闲量。这些会收窄实用上限；本文件所有范围在获得这些测量后可修订。
+尚需通过未来容量实验补齐而非本文件臆测的内容：真实当前 Brain 精确计数、实际冻结器官规模与驻留设备、具体 batch/序列、容量变化后的联合峰值与吞吐、SSD 热缓存可用空间，以及不同容量在固定科学预算下是否真的改善 known-answer / economic target。这些结果会收窄或改变本文件的实用区间。
