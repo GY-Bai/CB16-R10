@@ -1,0 +1,22 @@
+{
+  "schema": "CB16_QUALIFICATION_PROFILE_V1",
+  "stage": "STAGE_ID",
+  "claims": [
+    {"claim_id": "CLAIM_ID", "proof_obligation_ids": ["PROOF_ID"]}
+  ],
+  "proof_obligations": [
+    {
+      "obligation_id": "PROOF_ID",
+      "producer": "producer",
+      "consumer": "consumer",
+      "gate_id": "GATE_ID",
+      "artifact_proof": "artifact/ref",
+      "counterexample_id": "COUNTEREXAMPLE_ID",
+      "mandatory": true
+    }
+  ],
+  "edge_cases": {
+    "ordinary": "PROCESS",
+    "missing_mandatory_proof": "FAIL_CLOSED"
+  }
+}

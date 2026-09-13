@@ -7,10 +7,11 @@
 所有 agent 必须先读：
 
 1. `docs/ROLES_AND_REVIEW_PROTOCOL.md`
-2. 与自己角色对应的 principle：
+2. `docs/SCIENTIFIC_QUALIFICATION_FRAMEWORK.md`
+3. 与自己角色对应的 principle：
    - Sol：`docs/SOL_ROLE_PRINCIPLES.md`
    - DS Flash / implementation agent：`docs/DS_FLASH_ROLE_PRINCIPLES.md`
-3. 当前 stage 的 TODO、authority、receipt 和 candidate/review artifacts。
+4. 当前 stage 的 TODO、Stage Qualification Profile、authority、receipt 和 candidate/review artifacts。
 
 当前 owner 指定的责任链：
 
@@ -19,7 +20,7 @@ owner/user
   ↓ supervises
 Astra — documents/principles aligned to owner
   ↓ supervises
-Sol — scientific gap → architecture-aware TODO → independent code review
+Sol — scientific gap → Stage Qualification Profile → architecture-aware TODO → independent code review
   ↓ supervises
 DS Flash — TODO → code/tests/exact-SHA CI evidence
 ```
@@ -30,18 +31,23 @@ implementation agent 自检、repo-guard 或绿色 CI 不能替代 Sol review；
 
 ## 2. Sol 的仓库工作方式
 
-Sol 不得一边无边界扫描仓库、一边直接写 TODO。复杂 S-series authoring 按 `docs/SOL_ROLE_PRINCIPLES.md` 的 pipeline：
+Sol 不得一边无边界扫描仓库、一边直接写 TODO。复杂 S-series authoring 按 `docs/SOL_ROLE_PRINCIPLES.md` 的 pipeline，并在 Gap-to-Code 与 executable TODO 之间加入 Stage Qualification Profile：
 
 ```text
 Scientific Gap Freeze
 → Relevant Infrastructure Inventory
 → Upstream/Downstream Interface Map
 → Gap-to-Code Matrix
+→ Stage Qualification Profile
 → Executable TODO
 → Adversarial TODO Review
 ```
 
 Sol 只调查 task-local architecture slice。TODO 必须明确：可复用 infra、要新增/修改的 surface、上下游 producer/consumer、禁止重造路径、HIGH-risk identity/RNG/edge cases、formal gate、CI/artifact evidence。
+
+复杂 stage 的 Qualification Profile 至少覆盖 capability claims / proof obligations、semantic trace、identity/RNG、edge-case decisions、negative controls / hostile counterexamples、machine gates、artifact proof、exact-SHA CI 与 reviewer gate。mandatory proof obligation 没有 consumer、gate 或 artifact proof 时，不得交给 DS 猜测。
+
+Sol-Reviewer 必须独立检查 actual diff 和 machine evidence，不默认相信 Sol-Author 对 gate 的命名或 proof 强度。
 
 ## 3. DS Flash / implementation agent 的仓库工作方式
 
@@ -58,11 +64,30 @@ DS 不得用局部 fallback 改写 scientific semantics，包括但不限于：
 - nominal/executed action 偷换；
 - 用旧 CI 为新 SHA 背书。
 
-遇到 TODO 未定义的 HIGH-risk semantic choice，报告给 Sol，不自行决定。
+遇到 TODO/Profile 未定义的 HIGH-risk semantic choice，报告给 Sol，不自行决定。
 
 DS terminal handoff state 是 `READY_FOR_SOL_REVIEW`。
 
-## 4. 当前 stage
+## 4. Scientific Qualification Framework
+
+资格审查只回答“一个已定义的能力声明需要怎样被证明”，不得反向修改 frozen science。
+
+通用 verdict 仅使用：
+
+- `PASS`
+- `SCIENTIFIC_FAIL`
+- `CONTRACT_MISMATCH`
+- `EXECUTION_BLOCKED`
+- `HARDWARE_LIMIT`
+- `EVIDENCE_INSUFFICIENT`
+
+只有执行/identity/provenance/evidence 合同完整有效时，冻结科学判据失败才可称 `SCIENTIFIC_FAIL`。字段存在不等于 link 被证明；proof 名称不得强于机器实际验证内容。
+
+若 stage 声称 durable/restart-safe/artifact-only，应能删除原 scratch/run root 后仅靠导出 artifact 复核 mandatory lineage，并对中间 corruption fail closed。
+
+当前 qualification framework 的公共 primitive 属于独立 non-scientific infrastructure；不得在 active authority-sensitive stage PR 中顺手重构科学 runtime。
+
+## 5. 当前 stage
 
 S0-v2 Durable Learnability Foundation 已被 Sol 验收并合入 main；其最高 evidence 为：
 
@@ -70,9 +95,9 @@ S0-v2 Durable Learnability Foundation 已被 Sol 验收并合入 main；其最�
 
 当前 active implementation/review stage 是 **S1 End-to-End Learnability**，工作通过 PR #102 在指定 S1 branch 上多轮修订。S1 正式 5-seed qualification 只有在 Sol 明确签发 `READY_FOR_S1_QUALIFICATION` authorization 后才能运行。
 
-当前实现 agent 不得重开 S0-v2 foundation，也不得把 S1 bounded smoke 当 scientific qualification。
+当前 implementation agent 不得重开 S0-v2 foundation，也不得把 S1 bounded smoke 当 scientific qualification。本 qualification framework 不授权修改 S1 frozen science 或顺手抽取/重构 PR #102 runtime。
 
-## 5. Historical authority 必须保持不可变
+## 6. Historical authority 必须保持不可变
 
 CC R11 integration 已关闭。Canonical CC authority：
 
@@ -89,7 +114,7 @@ S0-v2 final authority：
 
 不得编辑历史 receipts 来满足新任务。需要修正 authority 时使用 versioned successor artifact，并由对应 reviewer/owner 权限冻结。
 
-## 6. Scientific semantics that must not change
+## 7. Scientific semantics that must not change
 
 - `Truth != Belief != Decision != Permission != Execution`.
 - Nominal sampled action remains separate from permitted/executed action.
@@ -107,7 +132,7 @@ S0-v2 final authority：
 - No hidden strategic SL/TP/max-hold/cooldown.
 - FINAL remains sealed; fresh market data remains forbidden unless explicitly authorized.
 
-## 7. Canonical runtime and legacy firewall
+## 8. Canonical runtime and legacy firewall
 
 Selected CC topology remains:
 
@@ -123,7 +148,7 @@ Canonical path must not silently fall back to historical performance runtime：
 
 这些 legacy modules 可作 reference，不能在没有新 authority 的情况下恢复成 canonical fallback。
 
-## 8. Pre-merge CI requirement
+## 9. Pre-merge CI requirement
 
 runtime/code behavior 变更在合并 `main` 前必须通过 GitHub Actions → Shanxi Docker 的相关专项/冒烟测试，至少绑定：
 
@@ -138,7 +163,7 @@ Repo-guard alone is insufficient for runtime evidence。
 
 纯说明性文档变更可只运行 repo-guard/static checks；不得把文档 CI 当 runtime evidence。
 
-## 9. HIGH-risk implementation surfaces
+## 10. HIGH-risk implementation surfaces
 
 Sol/DS 都应按 role principle 特别处理：
 
@@ -158,7 +183,7 @@ Sol/DS 都应按 role principle 特别处理：
 - threshold equality / empty / missing / NaN / Inf；
 - any fallback that could change science or hide failure。
 
-## 10. Evidence ceilings
+## 11. Evidence ceilings
 
 Historical CC strongest evidence：
 

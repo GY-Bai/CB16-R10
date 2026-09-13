@@ -1,0 +1,158 @@
+name: CB16 Scientific Qualification Framework
+
+on:
+  push:
+    branches:
+      - ai/r11-scientific-qualification-framework-r0
+    paths:
+      - "AGENTS.md"
+      - "docs/SCIENTIFIC_QUALIFICATION_FRAMEWORK.md"
+      - "docs/QUALIFICATION_TODO_AUTHORING_ADDENDUM.md"
+      - "docs/qualification/**"
+      - "contracts/qualification/**"
+      - "cb16_local_opt/scientific_qualification_*.py"
+      - "tests/test_scientific_qualification_*.py"
+      - ".github/workflows/cb16-r11-scientific-qualification-framework.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  qualification-contract:
+    name: Qualification contract kernel
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout qualification branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/qualification_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/qualification_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          payload = json.load(open(sys.argv[1]))
+          assert payload['status'] == 'READY', payload
+          assert payload['mode'] == 'VERIFIED_CANONICAL_R104_VENV_REUSE', payload
+          assert payload['python']['network_install_attempted'] is False, payload
+          print('QUALIFICATION_PYTHON_ENV_READY')
+          PY
+
+      - name: Record exact checkout identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "QUALIFICATION_CHECKOUT_SHA=$(git rev-parse HEAD)"
+          echo "QUALIFICATION_CHECKOUT_TREE=$(git rev-parse HEAD^{tree})"
+
+      - name: Run qualification contract tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/qualification_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          payload = json.load(open(sys.argv[1]))
+          print(payload['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" -m pytest -q \
+            --junitxml="$RUNNER_TEMP/qualification_tests.xml" \
+            tests/test_scientific_qualification_*.py
+          PYTHONPATH=. "$PYTHON" -m compileall -q \
+            cb16_local_opt/scientific_qualification_contract_v1.py \
+            cb16_local_opt/scientific_qualification_evidence_v1.py \
+            cb16_local_opt/scientific_qualification_identity_v1.py \
+            cb16_local_opt/scientific_qualification_artifact_v1.py
+          PYTHONPATH=. "$PYTHON" - <<'PY'
+          import json
+          from cb16_local_opt.scientific_qualification_contract_v1 import validate_profile_structure_v1
+          with open('contracts/qualification/PROFILE_TEMPLATE_V1.json', encoding='utf-8') as handle:
+              validate_profile_structure_v1(json.load(handle))
+          print('QUALIFICATION_PROFILE_TEMPLATE_VALID')
+          PY
+
+      - name: Emit validation receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON_JSON="$RUNNER_TEMP/qualification_python.json"
+          PYTHON=$(python3 - "$PYTHON_JSON" <<'PY'
+          import json, sys
+          payload = json.load(open(sys.argv[1]))
+          print(payload['python']['venv'] + '/bin/python')
+          PY
+          )
+          OUT="$RUNNER_TEMP/QUALIFICATION_FRAMEWORK_VALIDATION.json"
+          JUNIT="$RUNNER_TEMP/qualification_tests.xml"
+          "$PYTHON" - "$OUT" "$JUNIT" <<'PY'
+          import json, subprocess, sys, xml.etree.ElementTree as ET
+          out_path, junit_path = sys.argv[1:]
+          root = ET.parse(junit_path).getroot()
+          suites = [root] if root.tag == 'testsuite' else list(root.findall('.//testsuite'))
+          assert suites, 'QUALIFICATION_JUNIT_HAS_NO_TESTSUITE'
+          tests = sum(int(suite.attrib.get('tests', 0)) for suite in suites)
+          failures = sum(int(suite.attrib.get('failures', 0)) for suite in suites)
+          errors = sum(int(suite.attrib.get('errors', 0)) for suite in suites)
+          skipped = sum(int(suite.attrib.get('skipped', 0)) for suite in suites)
+          payload = {
+              'schema': 'CB16_SCIENTIFIC_QUALIFICATION_FRAMEWORK_VALIDATION_V1',
+              'status': 'PASS',
+              'git_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'git_tree_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+              'tests': tests,
+              'failures': failures,
+              'errors': errors,
+              'skipped': skipped,
+              'science_authority_modified': False,
+              's1_runtime_modified': False,
+              'evidence_class': 'NON_SCIENTIFIC_QUALIFICATION_INFRA_VALIDATION',
+          }
+          assert tests > 0, payload
+          assert failures == 0 and errors == 0, payload
+          with open(out_path, 'w', encoding='utf-8') as handle:
+              json.dump(payload, handle, indent=2, sort_keys=True)
+              handle.write('\n')
+          print(json.dumps(payload, sort_keys=True))
+          PY
+
+      - name: Upload qualification framework validation
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-scientific-qualification-framework-validation
+          path: |
+            ${{ runner.temp }}/QUALIFICATION_FRAMEWORK_VALIDATION.json
+            ${{ runner.temp }}/qualification_tests.xml
+            ${{ runner.temp }}/qualification_docker_preflight.json
+            ${{ runner.temp }}/qualification_python.json
+          if-no-files-found: error
+          retention-days: 30
