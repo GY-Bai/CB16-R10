@@ -1,0 +1,357 @@
+{
+  "schema": "CB16_SHANXI_RUNNER_LAUNCH_SPEC_V1",
+  "status": "DS_PROPOSED_PENDING_SOL_REVIEW",
+  "task_id": "R1",
+  "source_snapshot": "authority/infra/SHANXI_DOCKER_RUNNER_SNAPSHOT_V1.json",
+  "source_contract": "docs/infra/SHANXI_DOCKER_RUNNER_CONTRACT.md",
+  "container": {
+    "name": "cb16-runner-r11",
+    "id": "26fb170773b85ce12f9d54113efcaf56b6838206be84810533a8a08c21cee30f",
+    "runtime": "runc",
+    "started_at": "2026-09-09T13:21:57.434236376Z",
+    "managed_by": {
+      "systemd_unit": null,
+      "compose_project": null,
+      "compose_config_files": null,
+      "labels": {},
+      "note": "Ad-hoc docker run plus restart=unless-stopped; no versioned definition existed before this reconstruction."
+    }
+  },
+  "image": {
+    "reference": "cb16-runner-r11:latest",
+    "live_image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+    "live_image_size_bytes": 304735787,
+    "live_image_created": "2026-09-09T08:36:54.828410678+08:00",
+    "base_image": "python:3.10-slim-bookworm",
+    "base_python_version": "3.10.21",
+    "build_definition": "infra/shanxi_runner/Dockerfile",
+    "build_context_definition": "infra/shanxi_runner/build_context_v1.json",
+    "rebuild_identity_claim": "CONTRACT_RECONSTRUCTION_NOT_BIT_IDENTICAL"
+  },
+  "run": {
+    "name": "cb16-runner-r11",
+    "detach": true,
+    "restart_policy": "unless-stopped",
+    "network_mode": "cb16-net",
+    "gpu_request": "all",
+    "shm_size_bytes": 67108864,
+    "user": "1001:1001",
+    "working_dir": "/home/cb16-runner/actions-runner",
+    "entrypoint": null,
+    "command": [
+      "./run.sh"
+    ],
+    "privileged": false,
+    "memory_limit_bytes": 0,
+    "nano_cpus": 0,
+    "pids_limit": null,
+    "readonly_rootfs": false
+  },
+  "gpu_contract": {
+    "device_requests": [
+      {
+        "Driver": "",
+        "Count": -1,
+        "DeviceIDs": null,
+        "Capabilities": [
+          [
+            "gpu"
+          ]
+        ],
+        "Options": {}
+      }
+    ],
+    "observed_device": "NVIDIA GeForce GTX 1060 6GB",
+    "observed_uuid": "GPU-82acd8ea-83e0-00e2-44d1-e5496bc81c1c"
+  },
+  "environment": [
+    {
+      "name": "CB16_RAW_ROOT",
+      "value": "/cb16/raw",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_UV_CACHE_DIR",
+      "value": "/cb16/uv-cache",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_CI_WORKER_ROOT",
+      "value": "/cb16/worker",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_PARENT_R101_ROOT",
+      "value": "/cb16/parent-r101",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_PARENT_G0",
+      "value": "/cb16/parents/r10_1.pt",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "HOME",
+      "value": "/home/cb16-runner",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "NO_PROXY",
+      "value": "localhost,127.0.0.1",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_G0_ROOT",
+      "value": "/cb16/g0",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_R104_ROOT",
+      "value": "/cb16/runtime/r104",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_VERIFIED_VENV",
+      "value": "/cb16/venv",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "CB16_PROVISION_ENV",
+      "value": "/run/secrets/cb16-provision.env",
+      "snapshot_status": "OMITTED_FROM_SNAPSHOT_DIVERGENCE",
+      "live_target_exists": false,
+      "note": "Live env points to a non-existent file. See divergences.R1-DIV-001."
+    },
+    {
+      "name": "CB16_PACKAGE_ROOT",
+      "value": "/cb16/package",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "HTTP_PROXY",
+      "value": "http://cb16-gost:33128",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "HTTPS_PROXY",
+      "value": "http://cb16-gost:33128",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "PATH",
+      "value": "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "LANG",
+      "value": "C.UTF-8",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "GPG_KEY",
+      "value": "A035C8C19219BA821ECEA86B64E628F8D684696D",
+      "snapshot_status": "OMITTED_NON_SECRET_SNAPSHOT_FILTER",
+      "note": "Base-image signing key identifier; not a credential."
+    },
+    {
+      "name": "PYTHON_VERSION",
+      "value": "3.10.21",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "PYTHON_SHA256",
+      "value": "a0da1e72132e950154eca0f6f47d5db828454700de20e5113667940d81e0db04",
+      "snapshot_status": "OMITTED_NON_SECRET_SNAPSHOT_FILTER",
+      "note": "Python distribution hash from the base image; not a credential."
+    },
+    {
+      "name": "UV_CACHE_DIR",
+      "value": "/cb16/uv-cache",
+      "snapshot_status": "PRESENT"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1",
+      "snapshot_status": "PRESENT"
+    }
+  ],
+  "mounts": [
+    {
+      "volume": "cb16-raw",
+      "container_path": "/cb16/raw",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "read-only raw market data"
+    },
+    {
+      "volume": "cb16-g0",
+      "container_path": "/cb16/g0",
+      "mount_rw": true,
+      "runner_writable": true,
+      "storage_class": "HDD_COLD",
+      "purpose": "G0 writable scientific root (setgid)"
+    },
+    {
+      "volume": "cb16-runtime-r104",
+      "container_path": "/cb16/runtime/r104",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "read-only runtime"
+    },
+    {
+      "volume": "cb16-venv",
+      "container_path": "/cb16/venv",
+      "mount_rw": true,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "verified venv (consume only)"
+    },
+    {
+      "volume": "cb16-uv-cache",
+      "container_path": "/cb16/uv-cache",
+      "mount_rw": true,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "uv cache dir; live owner mode prevents runner writes"
+    },
+    {
+      "volume": "cb16-worker",
+      "container_path": "/cb16/worker",
+      "mount_rw": true,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "provision.env carrier (read-only for runner)"
+    },
+    {
+      "volume": "cb16-package",
+      "container_path": "/cb16/package",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "read-only package/materialization input"
+    },
+    {
+      "volume": "cb16-parent-r101",
+      "container_path": "/cb16/parent-r101",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "read-only R10.1 parent"
+    },
+    {
+      "volume": "cb16-parent-g0",
+      "container_path": "/cb16/parents",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "read-only G0 parents (r10_1.pt)"
+    },
+    {
+      "volume": "cb16-r2-authority",
+      "container_path": "/cb16/r2-authority",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "read-only R2 authority"
+    },
+    {
+      "volume": "cb16-r2-native",
+      "container_path": "/cb16/r2-native",
+      "mount_rw": true,
+      "runner_writable": true,
+      "storage_class": "HDD_COLD",
+      "purpose": "R2 native writable area"
+    },
+    {
+      "volume": "cb16-config",
+      "container_path": "/run/secrets",
+      "mount_rw": false,
+      "runner_writable": false,
+      "storage_class": "HDD_COLD",
+      "purpose": "root-only secrets volume containing provision.env"
+    },
+    {
+      "volume": "cb16-runner-docker",
+      "container_path": "/home/cb16-runner/actions-runner",
+      "mount_rw": true,
+      "runner_writable": true,
+      "storage_class": "HDD_COLD",
+      "purpose": "runner root and _work (persistent)"
+    }
+  ],
+  "uid_gid_contract": {
+    "container_user": "cb16-runner",
+    "uid": 1001,
+    "gid": 1001,
+    "supplementary_groups": [],
+    "writable_container_paths": [
+      "/cb16/g0",
+      "/cb16/r2-native",
+      "/home/cb16-runner/actions-runner"
+    ],
+    "non_writable_or_consume_only_paths": [
+      "/cb16/raw",
+      "/cb16/runtime/r104",
+      "/cb16/venv",
+      "/cb16/uv-cache",
+      "/cb16/worker",
+      "/cb16/package",
+      "/cb16/parent-r101",
+      "/cb16/parents",
+      "/cb16/r2-authority",
+      "/run/secrets",
+      "/dev/shm (capacity-limited, job-clean)"
+    ]
+  },
+  "storage_class_declarations": {
+    "current_docker_root": "/data/cb16_docker",
+    "current_docker_root_physical_device": "/dev/sda1 (rotational HDD)",
+    "current_volume_storage_class": "HDD_COLD",
+    "fast_hot_storage": "NOT_PRESENT_IN_R1_LIVE_SURFACE",
+    "fast_hot_future_container_path": "/cb16/fast_hot",
+    "fast_hot_owner": "R21 RC2 R2/R3 proposal; not created by R1"
+  },
+  "divergences": [
+    {
+      "divergence_id": "R1-DIV-001",
+      "kind": "ENV_PATH_MISMATCH",
+      "field": "CB16_PROVISION_ENV",
+      "live_value": "/run/secrets/cb16-provision.env",
+      "live_target_exists": false,
+      "documented_secrets_copy": "/run/secrets/provision.env",
+      "documented_secrets_copy_readable_by_runner": false,
+      "available_runner_readable_copy": "/cb16/worker/provision.env",
+      "snapshot_environment": "OMITTED",
+      "classification": "CONTRACT_MISMATCH",
+      "auto_fix_applied": false,
+      "host_changed": false,
+      "required_decision": "Sol/owner must decide whether the live env path, the mounted filename, the snapshot environment list or the consumer contract is authoritative. R1 records the live value and must not silently rewrite it."
+    },
+    {
+      "divergence_id": "R1-DIV-002",
+      "kind": "SNAPSHOT_FILTER_COVERAGE",
+      "field": "GPG_KEY and PYTHON_SHA256",
+      "snapshot_status": "OMITTED_FROM_ENVIRONMENT_VALUES",
+      "live_values_are_secrets": false,
+      "classification": "SNAPSHOT_COVERAGE_GAP",
+      "auto_fix_applied": false,
+      "required_decision": "Confirm whether non-secret base-image env values should be included in the sanitized snapshot schema or recorded only in the launch spec."
+    }
+  ],
+  "reproduction_status": {
+    "static_definition_validation": "IMPLEMENTED_IN_R1",
+    "live_surface_self_check": "IMPLEMENTED_IN_R1_READ_ONLY_SHANXI_JOB",
+    "disposable_runner_launch": {
+      "status": "EXECUTION_BLOCKED",
+      "reason": "R1 authority matrix forbids host/container change; creating a disposable container requires a host change.",
+      "host_changes_applied": false,
+      "possible_resolutions": [
+        "Owner/Sol authorize one temporary disposable launch in a bounded R1 exception.",
+        "Owner/Sol accept definition parity plus live surface self-check and defer literal disposable launch to R3."
+      ]
+    },
+    "bit_identical_image_rebuild": "NOT_CLAIMED"
+  }
+}
