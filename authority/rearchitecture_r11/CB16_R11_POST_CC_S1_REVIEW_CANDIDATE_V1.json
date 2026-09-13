@@ -71,7 +71,7 @@
     "status": "NOT_RUN_AWAITING_SOL_QUALIFICATION_AUTHORIZATION"
   },
   "qualified_runtime_sha": null,
-  "record_binding_head_sha": null,
+  "record_binding_head_sha": "6aabe2fffb9cadad09a62676a201afb904415851",
   "review_history": [
     {
       "implementation_candidate_sha": "b8ed8d6c171caf3b669a97050a1ee25ade0a274f",
