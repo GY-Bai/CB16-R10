@@ -157,14 +157,19 @@ def test_dirty_runtime_after_implementation_candidate_is_rejected():
 
 
 def test_record_binding_verification_passes_at_current_head():
-    """Integration check: pending CI evidence must fail closed; attached evidence must pass."""
+    """Integration check: pre-CI-D candidate state must fail closed; attached CI-D evidence must pass."""
     record = json.loads(Path(binding.CANDIDATE_PATH).read_text(encoding="utf-8"))
     shanxi = record.get("candidate_state", {}).get("shanxi_ci", {})
     evidence_ready = bool(shanxi.get("implementation_suite")) and bool(shanxi.get("bounded_smoke"))
+    binding_evidence = shanxi.get("record_binding_verification") or {}
+    binding_ready = evidence_ready and binding_evidence.get("status") == "PASS"
     result = binding.verify_record_binding_v1(".")
-    if evidence_ready:
+    if binding_ready:
         assert result["status"] == "PASS", [name for name, ok in result["checks"].items() if not ok]
     else:
         assert result["status"] == "CONTRACT_MISMATCH"
-        assert result["checks"]["latest_ci_head_declared"] is False
-        assert result["checks"]["implementation_suite_present"] is False
+        if not evidence_ready:
+            assert result["checks"]["latest_ci_head_declared"] is False
+            assert result["checks"]["implementation_suite_present"] is False
+        else:
+            assert not binding_evidence, "pending CI-D state must not carry a false PASS receipt"
