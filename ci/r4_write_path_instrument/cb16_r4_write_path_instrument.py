@@ -172,11 +172,29 @@ class _CountedFile:
 
 
 class _CountedConnection:
-    __slots__ = ("_conn", "_path")
+    __slots__ = ("_conn", "_path", "_last_sqlite_bytes")
 
     def __init__(self, conn: Any, path: str) -> None:
         self._conn = conn
         self._path = path
+        self._last_sqlite_bytes = self._sqlite_bytes_estimate()
+
+    def _sqlite_bytes_estimate(self) -> int:
+        path = Path(self._path) if self._path else None
+        total = 0
+        try:
+            page_count = int(self._conn.execute("PRAGMA page_count").fetchone()[0])
+            page_size = int(self._conn.execute("PRAGMA page_size").fetchone()[0])
+            total += page_count * page_size
+        except Exception:
+            pass
+        if path is not None:
+            for candidate in (path, Path(str(path) + "-wal")):
+                try:
+                    total += candidate.stat().st_size
+                except OSError:
+                    pass
+        return total
 
     def _record_sql(self, sql: str, duration_ns: int) -> None:
         statement = sql.strip().split(None, 1)[0].upper() if sql.strip() else "UNKNOWN"
@@ -219,12 +237,22 @@ class _CountedConnection:
             return self._conn.commit()
         finally:
             _record("sqlite_commit", self._path, duration_ns=time.monotonic_ns() - start)
+            current = self._sqlite_bytes_estimate()
+            delta = max(0, current - self._last_sqlite_bytes)
+            self._last_sqlite_bytes = current
+            if delta:
+                _record("sqlite_bytes_estimate", self._path, bytes_count=delta)
 
     def rollback(self) -> None:
         _record("sqlite_rollback", self._path)
         return self._conn.rollback()
 
     def close(self) -> None:
+        current = self._sqlite_bytes_estimate()
+        delta = max(0, current - self._last_sqlite_bytes)
+        self._last_sqlite_bytes = current
+        if delta:
+            _record("sqlite_bytes_estimate", self._path, bytes_count=delta)
         return self._conn.close()
 
     def __enter__(self) -> "_CountedConnection":

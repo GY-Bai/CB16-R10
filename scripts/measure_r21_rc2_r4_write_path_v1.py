@@ -143,9 +143,14 @@ def _aggregate(metrics_dir: Path) -> tuple[dict[str, dict[str, dict[str, Any]]],
 
 def _count_ops(summary: dict[str, dict[str, dict[str, Any]]], category: str) -> dict[str, Any]:
     ops = summary.get(category, {})
+    sqlite_commit_calls = int(ops.get("sqlite_commit", {}).get("count", 0))
     return {
-        "write_calls": int(ops.get("write", {}).get("count", 0)) + int(ops.get("os_write", {}).get("count", 0)),
-        "bytes_written": int(ops.get("write", {}).get("bytes", 0)) + int(ops.get("os_write", {}).get("bytes", 0)),
+        "write_calls": int(ops.get("write", {}).get("count", 0))
+        + int(ops.get("os_write", {}).get("count", 0))
+        + sqlite_commit_calls,
+        "bytes_written": int(ops.get("write", {}).get("bytes", 0))
+        + int(ops.get("os_write", {}).get("bytes", 0))
+        + int(ops.get("sqlite_bytes_estimate", {}).get("bytes", 0)),
         "flush_calls": int(ops.get("flush", {}).get("count", 0)),
         "fsync_calls": int(ops.get("fsync", {}).get("count", 0)),
         "fsync_duration_ns": int(ops.get("fsync", {}).get("duration_ns", 0)),
@@ -195,6 +200,16 @@ def _surface_report(category: str, summary: dict[str, dict[str, dict[str, Any]]]
         "random_versus_sequential": _classify_access(stats),
         "physical_device": mount,
         "durability_requirement": DURABILITY_REQUIREMENTS.get(category, "unclassified"),
+        "bytes_measurement_method": (
+            "SQLITE_PAGE_GROWTH_AND_WAL_ESTIMATE_PLUS_PYTHON_WRITES"
+            if category == "sqlite_index"
+            else "PYTHON_FILE_WRITE_INTERCEPTION"
+        ),
+        "measurement_limitations": (
+            ["SQLITE_C_LEVEL_WRITES_ESTIMATED_FROM_PAGE_GROWTH_AND_WAL_FILE_SIZE"]
+            if category == "sqlite_index"
+            else []
+        ),
     }
 
 
