@@ -32,6 +32,13 @@ class QualificationContractError(ValueError):
     pass
 
 
+def _require_nonempty_string(value: Any, field_name: str) -> None:
+    if not isinstance(value, str):
+        raise QualificationContractError(f"{field_name.upper()}_NOT_STRING")
+    if not value.strip():
+        raise QualificationContractError(f"EMPTY_{field_name.upper()}")
+
+
 @dataclass(frozen=True)
 class ProofObligationV1:
     obligation_id: str
@@ -51,8 +58,7 @@ class ProofObligationV1:
             "artifact_proof",
             "counterexample_id",
         ):
-            if not str(getattr(self, field_name)).strip():
-                raise QualificationContractError(f"EMPTY_{field_name.upper()}")
+            _require_nonempty_string(getattr(self, field_name), field_name)
         if type(self.mandatory) is not bool:
             raise QualificationContractError("MANDATORY_FLAG_NOT_BOOL")
         return self
@@ -64,10 +70,13 @@ class CapabilityClaimV1:
     proof_obligation_ids: tuple[str, ...]
 
     def validate(self) -> "CapabilityClaimV1":
-        if not str(self.claim_id).strip():
-            raise QualificationContractError("EMPTY_CLAIM_ID")
+        _require_nonempty_string(self.claim_id, "claim_id")
+        if not isinstance(self.proof_obligation_ids, (list, tuple)):
+            raise QualificationContractError("PROOF_OBLIGATION_REFERENCES_NOT_SEQUENCE")
         if not self.proof_obligation_ids:
             raise QualificationContractError("CLAIM_WITHOUT_PROOF_OBLIGATIONS")
+        for obligation_id in self.proof_obligation_ids:
+            _require_nonempty_string(obligation_id, "proof_obligation_reference")
         if len(set(self.proof_obligation_ids)) != len(self.proof_obligation_ids):
             raise QualificationContractError("DUPLICATE_PROOF_OBLIGATION_REFERENCE")
         return self
@@ -85,8 +94,7 @@ def validate_profile_structure_v1(profile: Mapping[str, Any]) -> Mapping[str, An
             raise QualificationContractError(f"MISSING_PROFILE_FIELD:{key}")
     if profile["schema"] != PROFILE_SCHEMA_V1:
         raise QualificationContractError("PROFILE_SCHEMA_MISMATCH")
-    if not str(profile["stage"]).strip():
-        raise QualificationContractError("EMPTY_STAGE")
+    _require_nonempty_string(profile["stage"], "stage")
     if not profile["claims"]:
         raise QualificationContractError("PROFILE_WITHOUT_CLAIMS")
     if not profile["proof_obligations"]:
@@ -108,6 +116,7 @@ def validate_profile_structure_v1(profile: Mapping[str, Any]) -> Mapping[str, An
             raise QualificationContractError(f"UNKNOWN_PROOF_OBLIGATION:{sorted(missing)}")
 
     for case_name, decision in dict(profile["edge_cases"]).items():
+        _require_nonempty_string(case_name, "edge_case_name")
         if decision not in ALLOWED_EDGE_DECISIONS_V1:
             raise QualificationContractError(f"INVALID_EDGE_DECISION:{case_name}:{decision}")
 
