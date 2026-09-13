@@ -3,12 +3,12 @@
   "authoritative_sol_todo": "docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md",
   "candidate_state": {
     "implementation": {
-      "local_development_tests": "R4_1_AUTHORITY_ALIGNMENT_COMMITTED_PENDING_SHANXI_EXECUTION",
-      "shanxi_ci_state": "PENDING_R4_1_EXACT_SHA_EVIDENCE",
+      "local_development_tests": "R4_1_SHANXI_CI_A_179_PASS_CI_B_R4_TRACE_PASS",
+      "shanxi_ci_state": "R4_1_CI_A_CI_B_PASS_PENDING_CI_D_FAIL_CLOSED",
       "task_coverage_complete": true
     },
-    "latest_ci_head_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
-    "phase": "A_IMPLEMENTATION_CANDIDATE_R4_1",
+    "latest_ci_head_sha": "ec1fb0320e679cd65332addd0868a40b116788c8",
+    "phase": "A_IMPLEMENTATION_CANDIDATE_R4_1_CI_D_PENDING",
     "r3_closure": {
       "B4_versioned_authority": {
         "counterexample_tests": [
@@ -61,48 +61,59 @@
         "fix": "export every committed child checkpoint and complete DurableTransitionRecordV1 field set; artifact-only verifier re-encodes each child into the canonical next-parent identity, binds all mandatory S1-026 transition/materialization/update fields, verifies full generation-switch account continuity, and records explicit NOT_APPLICABLE_FIXED_DISTINCT_BEHAVIOR for fixed OFF_POLICY behavior",
         "implementation_module": "cb16_local_opt/post_cc_s1_provenance_audit_r4_v1.py",
         "sol_review_comment_id": 5653648212,
-        "state": "IMPLEMENTED_PENDING_SHANXI_EXACT_SHA_EVIDENCE"
+        "state": "CLOSED_R4_1_SHANXI_EXACT_SHA_CI_A_CI_B"
       }
     },
     "shanxi_ci": {
       "bounded_smoke": {
-        "artifact_id": 10318327291,
+        "artifact_digest_sha256": "1d469ecb2ac2d3455a9cc81553530366d55ab449ad4e67ef4766921b901f2084",
+        "artifact_id": 10320927426,
         "artifact_only_update_trace_all_checks_pass": true,
-        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
-        "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+        "artifact_only_update_trace_runs_audited": 13,
+        "artifact_only_update_trace_traced_update_count": 52,
+        "checkpoint_chain_verified": true,
+        "checkout_sha": "ec1fb0320e679cd65332addd0868a40b116788c8",
+        "checkout_tree_sha": "fe3e53f85b64492f09c9a2096c84a0f988f610b5",
+        "child_checkpoint_files": 52,
         "conclusion": "success",
-        "duration_seconds": 208,
-        "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE_PRE_R4",
+        "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
         "executed_jobs": 13,
         "fabricated_log_mu_audit_pass": true,
+        "fixed_off_policy_generation_switch_na": 8,
+        "full_generation_switch_receipts": 44,
+        "generation_switch_verified": true,
         "high_bankruptcy_failure_fact_audit_pass": true,
         "integrity_attack_suite_all_rejected": true,
-        "job_id": 103727971076,
+        "job_id": 103747318992,
         "job_name": "S1 bounded smoke (engineering only)",
+        "mandatory_s1_026_fields_verified": true,
         "not_scientific_qualification": true,
         "objective_firewall_audit_pass": true,
-        "program_wall_seconds": 55.69239830970764,
+        "program_wall_seconds": 60.10184597969055,
         "run_attempt": 1,
-        "run_id": 34758863874,
-        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
-        "scratch_root": "/dev/shm/cb16-s1-34758863874-smoke",
+        "run_id": 34766129495,
+        "runtime_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+        "scratch_root": "/dev/shm/cb16-s1-34766129495-smoke",
         "workers": 2
       },
       "checkpoint_identity": {
-        "artifact_id": 10318247344,
-        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
-        "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+        "artifact_digest_sha256": "6fd9e61b2752dbcd4eca04cf6e17e6602971537e3646cffc7a54395f990690c4",
+        "artifact_id": 10320163773,
+        "checkout_sha": "ec1fb0320e679cd65332addd0868a40b116788c8",
+        "checkout_tree_sha": "fe3e53f85b64492f09c9a2096c84a0f988f610b5",
         "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
         "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
         "conclusion": "success",
         "declared_hash_reproduced": false,
-        "job_id": 103727971034,
+        "historical_v1_mutated": false,
+        "job_id": 103747318966,
         "job_name": "S1 initial checkpoint identity (exact SHA)",
         "python_version": "3.10.21",
         "run_attempt": 1,
-        "run_id": 34758863874,
-        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
-        "torch_version": "2.8.0+cu126"
+        "run_id": 34766129495,
+        "runtime_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+        "torch_version": "2.8.0+cu126",
+        "versioned_corrective_authority_status": "FROZEN_BY_SOL"
       },
       "formal_qualification": {
         "additional_hard_gate": "SOL_FROZEN_VERSIONED_INITIAL_CHECKPOINT_AUTHORITY",
@@ -111,34 +122,43 @@
         "started": false
       },
       "implementation_suite": {
-        "artifact_id": 10317659104,
-        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
-        "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+        "artifact_digest_sha256": "0cf44434dd9b8ef3a14770ca2a3c1d9e7d06bd5245cee974dc8d80a7cb077a1e",
+        "artifact_id": 10320033719,
+        "checkout_sha": "ec1fb0320e679cd65332addd0868a40b116788c8",
+        "checkout_tree_sha": "fe3e53f85b64492f09c9a2096c84a0f988f610b5",
         "conclusion": "success",
-        "duration_seconds": 223,
         "gpu": "NVIDIA GeForce GTX 1060 6GB",
-        "job_id": 103727971063,
+        "job_id": 103747318961,
         "job_name": "S1 implementation unit and invariant suite",
         "python_version": "3.10.21",
         "run_attempt": 1,
-        "run_id": 34758863874,
+        "run_id": 34766129495,
         "runner": "shanxi-docker-r11",
-        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
+        "runtime_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
         "tests_failed": 0,
-        "tests_passed": 173,
+        "tests_passed": 179,
         "tests_skipped": 0,
         "torch_version": "2.8.0+cu126",
         "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
       },
       "record_binding_verification": {},
       "r4_exact_sha_evidence": {
+        "artifact_ids": [
+          10320033719,
+          10320163773,
+          10320927426
+        ],
+        "checkout_sha": "ec1fb0320e679cd65332addd0868a40b116788c8",
+        "checkout_tree_sha": "fe3e53f85b64492f09c9a2096c84a0f988f610b5",
         "implementation_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
         "implementation_candidate_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
-        "state": "PENDING_R4_1_SHANXI"
+        "run_id": 34766129495,
+        "state": "CI_A_CI_B_PASS_PENDING_CI_D_FAIL_CLOSED",
+        "tests_passed": 179
       }
     }
   },
-  "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_PENDING_SHANXI_R4_1_EXACT_SHA_EVIDENCE",
+  "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_SHANXI_R4_1_CI_A_CI_B_PASS_PENDING_CI_D",
   "environment_versions": {
     "ACCOUNT_DEPENDENT_ACTION": "POST_CC_S1_ACCOUNT_DEPENDENT_ACTION_V1",
     "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "POST_CC_S1_ABA_RETENTION_V1",
@@ -160,7 +180,7 @@
     "historical_market_corpus_accessed": false,
     "transfer_evidence_claimed": false
   },
-  "first_unfinished_item": "Run exact-SHA Shanxi CI-A/CI-B for implementation candidate 19c6b7ece5a5 and then refresh CI-D record binding. Do not run CI-C.",
+  "first_unfinished_item": "CI-D record-binding verification remains pending. Preserve fail-closed state and do not run CI-C.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
   "implementation_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
   "implementation_candidate_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
@@ -279,10 +299,25 @@
     {
       "implementation_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
       "implementation_candidate_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
-      "notes": "R4.1 aligns three stale test expectations with Sol R3's frozen checkpoint authority and preserves fail-closed pre-CI-D record-binding semantics. No scientific runtime code or S1-026 provenance semantics changed.",
-      "requested_state": "READY_FOR_SHANXI_R4_1_CI_A_CI_B",
-      "review_record": "R4 Shanxi CI-A follow-up",
+      "notes": "R4.1 aligns three stale test expectations with Sol R3's frozen checkpoint authority and preserves fail-closed pre-CI-D record-binding semantics. Exact-SHA Shanxi run 34766129495: CI-A 179 passed; CI-B smoke R4 audit all checks pass across 13 runs / 52 committed updates, with 52 child checkpoints, 44 full generation-switch receipts, and 8 explicit fixed OFF_POLICY N/A proofs. No scientific runtime code or S1-026 provenance semantics changed.",
+      "requested_state": "CI_A_CI_B_PASS_CI_D_PENDING_FAIL_CLOSED",
+      "review_record": "PR #102 comment 5653648212",
       "round": "R4.1",
+      "shanxi_ci": {
+        "artifact_ids": [
+          10320033719,
+          10320163773,
+          10320927426
+        ],
+        "bounded_smoke_job": 103747318992,
+        "checkout_sha": "ec1fb0320e679cd65332addd0868a40b116788c8",
+        "checkout_tree_sha": "fe3e53f85b64492f09c9a2096c84a0f988f610b5",
+        "checkpoint_identity_job": 103747318966,
+        "implementation_suite_job": 103747318961,
+        "run_id": 34766129495,
+        "runtime_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+        "tests_passed": 179
+      },
       "submitted_by": "DS Flash"
     }
   ],
@@ -298,8 +333,8 @@
   "sol_r2_review_comment_id": 5653376570,
   "sol_r3_review_comment_id": 5653648212,
   "stage_identity": "CB16_R11_POST_CC_S1_END_TO_END_LEARNABILITY_R1",
-  "status": "DS_IMPLEMENTATION_CANDIDATE_R4_1_PENDING_SHANXI_EVIDENCE",
-  "strongest_evidence_claimed_by_candidate": "R3_B6_S1_026_IMPLEMENTED_R4_1_TEST_ALIGNMENT_PENDING_EXACT_SHA_SHANXI_CI_A_CI_B_CI_D",
+  "status": "DS_IMPLEMENTATION_CANDIDATE_R4_1_CI_A_CI_B_PASS_CI_D_PENDING_FAIL_CLOSED",
+  "strongest_evidence_claimed_by_candidate": "R3_B6_S1_026_CLOSED_BY_R4_1_EXACT_SHA_SHANXI_CI_A_179_PASS_AND_CI_B_R4_ARTIFACT_AUDIT_PASS_PENDING_CI_D",
   "task_spec_hashes": {
     "ACCOUNT_DEPENDENT_ACTION": "b3691e98bc195059944823e8b03fb08034031df5a28342b72126986e737f7d8a",
     "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "3eee9e90f293894ec2de58915c12e1e0b2f257648ced51b09652e48ccce406f8",
@@ -309,7 +344,7 @@
   },
   "terminal_state": "READY_FOR_SOL_REVIEW",
   "unresolved_items": [
-    "Exact-SHA R4.1 Shanxi CI-A/CI-B and refreshed CI-D record-binding evidence are still pending.",
+    "CI-D record-binding verification is still pending; the candidate intentionally remains fail-closed until that evidence exists.",
     "Formal 5-seed qualification has not started and remains gated by reviewer-owned authorization; CI-C is explicitly not authorized in R4.",
     "HIGH_BANKRUPTCY success family LONG × risk in [0.85,0.95) remains frozen and unchanged.",
     "Off-policy both-sides ratio evidence is required per seed during formal qualification."
