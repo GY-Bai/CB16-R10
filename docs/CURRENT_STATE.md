@@ -1,155 +1,61 @@
 # 当前状态与接手断点
 
-核对基线：2026-09-13 UTC；本次执行重排以 `main@392063881a6ef0dd1776ac579f1a290a134fc49e` 为科学/代码基线。后续 S0-v2 task-authoring/navigation commits 只改变执行路由，不追溯改变既有 CC / S0 scientific identity。
+核对日期：2026-09-13 UTC。基于 `main@b19d3473a87fe36ec3394be53ad1cc6220f324c6`，另核对 PR #102 和 #104 的 live head。本文是当前状态的统一导航；冻结科学值、运行权限与结果仍由对应版本的 authority/review/receipt 约束。
 
-## 1. 已冻结并完成的历史 authority
+## 1. 当前阶段
 
-CC R11 integration 已通过 PR #99 合入 `main`。Canonical authority：
+| 阶段 | 核对状态 | 依据与下一步 |
+|---|---|---|
+| CC integration | 已完成 | PR #99；canonical integration spec/receipt 保持历史身份 |
+| 历史 S0 contract migration | PASS / 冻结 | `CB16_R11_POST_CC_S0_RECEIPT_V1.json`；不重做 |
+| S0-v2 durable foundation | 已经 Sol 验收并合入 main | `CB16_R11_S0V2_RECEIPT_V1.json` 为 QUALIFIED，review_verdict=PASS；后继 S1 以接受后的 merge 为 parent |
+| S1 end-to-end learnability | PR #102 实现/审阅进行中，未合并 | 使用 post-S0-v2 的 R1 任务包和最新 PR review，不退回旧 r0 分支；正式资格必须满足其 Sol authorization |
+| 通用 qualification framework R0 | PR #104 候选，未合并 | 指定提交的 Shanxi CI 有效；Astra 要求修订基础校验与文档边界，仍待 Sol 独立审核 |
+| S2/S3 历史科学、S4 容量、S5 经济确认 | 后续路线 | 本轮导航维护与 PR #104 均不授权启动 |
 
-- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
-- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
+S0-v2 已闭合的 foundation 不应因旧 TODO 中的“待实现”重新建设。PR #102 的实现/复审状态不能自动写成 S1 scientific PASS；本次未全面审计其最新修复和正式资格记录。
 
-CC strongest evidence：
+## 2. 已合格基础与不可改写的证据
 
-`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`
+Canonical CC authority：
 
-它不是 ECONOMIC 或 TRANSFER evidence。FINAL 未开启，fresh market data 未使用。
+- [integration spec](../authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json)
+- [integration receipt](../authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json)
 
-历史 post-CC S0 contract/economic migration 也已 PASS：
+CC evidence：`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`。
 
-- frozen implementation base: `fc7102442e91a1c27cf705487c6d06bd64b8ea09`
-- qualified implementation identity: `5760061d6c274e9f8796e6608e86bb173018148f`
-- receipt-bearing head: `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f`
-- evidence: `POST_CC_CONTRACT_MIGRATION_QUALIFIED`
+历史 S0：[receipt](../authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json)。Qualified implementation 为 `5760061d6c274e9f8796e6608e86bb173018148f`，receipt-bearing head 为 `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f`；证据为 `POST_CC_CONTRACT_MIGRATION_QUALIFIED`。
 
-Historical S0 receipt remains immutable. B&H/FLAT are parallel benchmark components with no master precedence; model ordering, benchmark components and promotion decision remain separate.
+S0-v2：[receipt](../authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json)、[Sol R2 review](reviews/S0V2_CODE_REVIEW_2026-09-13_R2.md)。接受后的合并基线为 `fc80b472236e7a4df8094563f8adac826fc42231`，已核对它是本次 main 的祖先。证据为 `POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`。它不等于 S1 可学习性或市场 ECONOMIC/TRANSFER。
 
-## 2. 当前协作与审核链
+历史科学合同与 receipt 不因本次导航更新改变。旧状态页内容仍可从 [更新前版本](https://github.com/GY-Bai/CB16-R10/blob/b19d3473a87fe36ec3394be53ad1cc6220f324c6/docs/CURRENT_STATE.md) 追溯；其中 S0-v2 ACTIVE 的状态描述已被本页纠正。
 
-当前 owner 指定流程由 `docs/ROLES_AND_REVIEW_PROTOCOL.md` 约束：
+## 3. S1 的当前接手路径
 
-- 文档/原则先与 owner 对齐；
-- Sol 维护可执行 TODO，并对实际代码负责审核；
-- 一个 implementation Agent 按 TODO 在指定 branch 写代码；
-- runtime/code behavior 变更合并 main 前必须通过 GitHub Actions 调度的 Shanxi Docker 相关测试；
-- implementer 自检、repo-guard 或绿色 CI 都不能替代 Sol 对实际 diff、公式、比较、裸分支、mask、空值和边界的审核；
-- implementer 不自行合并。
+当前 PR：[S1 / #102](https://github.com/GY-Bai/CB16-R10/pull/102)；分支 `ai/r11-post-cc-s1-end-to-end-learnability-r1`。本次观测 head：`d82381850891149a43c9562689ee10b38bc57d5c`。接手时重新核对 live head、最新 review、candidate 和相关 CI，不能只读可能过时的 PR body。
 
-## 3. 当前精确断点：S0-v2 ACTIVE
+以下是 **PR 分支中的精确版本链接**，尚未作为本次 main 新代码导入：
 
-旧 S1 包把 durable data-plane、joint learner、recovery 与最终 known-answer science 放在同一大阶段，导致执行 Agent 多次停在“尚不能签最终 receipt”的状态。根据最新 executability review 和 owner 的单-Agent执行安排，当前真实工程依赖被重新封装为一个**新的 versioned S0**：
+- [post-S0-v2 base handoff](https://github.com/GY-Bai/CB16-R10/blob/d82381850891149a43c9562689ee10b38bc57d5c/docs/post_cc/S1_POST_S0V2_BASE_HANDOFF.md)
+- [S1 R1 implementation/qualification TODO](https://github.com/GY-Bai/CB16-R10/blob/d82381850891149a43c9562689ee10b38bc57d5c/docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md)
+- [S1 baseline](https://github.com/GY-Bai/CB16-R10/blob/d82381850891149a43c9562689ee10b38bc57d5c/authority/rearchitecture_r11/CB16_R11_POST_CC_S1_BASELINE_V1.json)
 
-`CB16_R11_S0V2_DURABLE_LEARNABILITY_FOUNDATION_R0`
+其中旧 S1 TODO 的任务/科学要求按适用合同继承，旧 working base 与“foundation 尚不存在”的文字由后继 handoff 覆盖。不能把本页当作另一次实验参数冻结，也不能据此回退至 `ec30185...` 或旧 r0 分支。
 
-当前任务 authority：
+S1 正式多 seed qualification 必须满足其 reviewer-owned `READY_FOR_S1_QUALIFICATION` authorization 和对应的代码/manifest 绑定。本轮 Astra 导航与 PR #104 审阅不代签该授权。
 
-`docs/post_cc/S0_V2_DURABLE_LEARNABILITY_FOUNDATION_TODO.md`
+## 4. PR #104 的位置
 
-唯一 implementation branch：
+[PR #104](https://github.com/GY-Bai/CB16-R10/pull/104) 当前观测 head：`4583c39738c8b901c53308598685492d1f069db2`。这是独立的 non-scientific infrastructure 候选。
 
-`ai/r11-s0v2-durable-learnability-foundation-r0`
+[Shanxi run 34770356260](https://github.com/GY-Bai/CB16-R10/actions/runs/34770356260) 在该提交完成 17 项测试，证据仅为 `NON_SCIENTIFIC_QUALIFICATION_INFRA_VALIDATION`。所查交付状态为 READY_FOR_SOL_REVIEW，未发现 Sol acceptance。
 
-S0-v2 scientific/code baseline：
+[Astra 审阅](reviews/PR104_ASTRA_REVIEW_2026-09-13.md)：支持方向，当前提交暂不建议合并；null identity/reference 校验须修复，开工与资格条件及 primitive 证明边界须澄清，再由 Sol 审阅新代码与 CI。框架不自动接管 active S1。
 
-`392063881a6ef0dd1776ac579f1a290a134fc49e`
+## 5. 协作和边界
 
-S0-v2 不是历史 S0 的重跑，不替代旧 receipt。它是新的 successor engineering qualification。
+[角色协议](ROLES_AND_REVIEW_PROTOCOL.md)：用户审核 Astra 文档，Astra 审核 Sol TODO，Sol 审核 DS 代码。运行验证走 GitHub Actions → Shanxi Docker；临时沙盒静态准备不构成 runtime evidence。
 
-## 4. S0-v2 必须完成的链路
+Account continuity、真实 nominal action/log_mu、signed economics/失败事实、冻结器官、算术期望目标、并列 B&H/FLAT 和 FINAL/fresh firewall 继续保持。新框架不能改变这些含义。
 
-一个 Agent 在同一 branch 内实现完整基础链：
-
-```text
-canonical Brain observation
- -> immutable content-addressed observation fact
- -> authoritative transition/experience linkage
- -> persistent replay selection
- -> restart-safe replay materialization
- -> joint nominal direction+risk batch
- -> persisted true behavior log_mu
- -> target joint log_pi on nominal action
- -> separate Critic + boundary-aware bootstrap + V-trace
- -> joint Actor/Critic update
- -> durable exactly-once update provenance
- -> child checkpoint
- -> generation switch
- -> SAME LOGICAL ACCOUNT continuation
-```
-
-关键硬约束：
-
-- qualification/training truth 不能来自 collector-private live `records`；
-- observation/hash mismatch fail closed；
-- executed action 不得替代 nominal action；
-- `log_mu` 不得事后重构；
-- FLAT risk 必须精确为 0；
-- 删除 live rollout Python 对象并重启后必须从 durable state 重建相同 replay identity；
-- child generation 不能用新 flat account 伪造 continuity；
-- exactly-once update/recovery 必须有 hostile interruption tests；
-- FINAL/fresh-data firewall 保持关闭。
-
-S0-v2 最大证据：
-
-`POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`
-
-这不等于最终 known-answer learnability PASS。
-
-## 5. 单 Agent 的结束状态
-
-Implementer 必须持续推进全部 S0-v2 tasks，普通缺功能不是 blocker。完成后把 branch 留在：
-
-`READY_FOR_SOL_REVIEW`
-
-并提供 exact head SHA、diff inventory、测试结果、Shanxi workflow/run/job/artifact identities 以及 candidate machine-readable record。
-
-Implementer 不 merge，不自签 Sol reviewer acceptance，也不自动进入 successor S1。
-
-合法提前停止仅限：
-
-- `CONTRACT_MISMATCH`
-- `EXECUTION_BLOCKED`
-- `HARDWARE_LIMIT`
-- current authority 无法解决的全新 owner scientific choice
-
-## 6. Sol 审核与 merge gate
-
-Sol 接到 branch 后必须独立核对：
-
-1. branch lineage / exact base / diff scope；
-2. frozen CC 与 historical S0 receipts 未被改写；
-3. observation/replay durable truth 与 restart reconstruction；
-4. canonical joint policy likelihood、risk density、log-Jacobian、direction indexing；
-5. `log_pi - log_mu` / V-trace ratio 与 boundary/bootstrap masks；
-6. nominal/permission/execution routing；
-7. gradient ownership；
-8. exactly-once update/checkpoint recovery；
-9. generation switch / same-account continuity；
-10. exact reviewed SHA 的 GitHub Actions -> Shanxi Docker evidence。
-
-有问题则要求 implementer 在同一 branch 修复；满足后由 Sol merge。
-
-## 7. S0-v2 之后
-
-只有 S0-v2 经 Sol review/merge 后，才重新路由 successor S1 scientific qualification。后续 S1 应集中验证五类 known-answer tasks 与 negative controls：
-
-1. `ACCOUNT_DEPENDENT_ACTION`
-2. `DELAYED_CONSEQUENCE_CREDIT`
-3. `HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION`
-4. `OFF_POLICY_VTRACE_CORRECTION`
-5. `A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION`
-
-S0-v2 结束不自动授权 historical S2/S3、容量扩张、FINAL 或经济资格。
-
-## 8. 仍必须保持的最高科学原则
-
-- `Truth != Belief != Decision != Permission != Execution`；
-- requested target risk != confidence；
-- one logical account is continuous across chunk/restart/checkpoint/generation boundaries；
-- signed account economics / liability / failure facts remain real；
-- historical information is not expired merely because it is old；
-- recurrence由模型权重/replay隐式表达，不增加手工 cycle/regime/resonance 激活系统；
-- arithmetic expected return remains the current economic orientation；
-- no hidden strategic SL/TP/max-hold/cooldown；
-- FINAL sealed / fresh data forbidden until separately authorized。
-
-历史 AC/BC/Stage-4/Teacher/CC-thread/S0/S1 documents remain provenance/history unless the current routing documents explicitly name them as active authority.
+文档如何分层见 [DOCUMENTATION_MAP](DOCUMENTATION_MAP.md)。本次只收敛导航与发布审阅，没有修改实现、冻结 authority/receipt，也没有启动业务测试或训练。

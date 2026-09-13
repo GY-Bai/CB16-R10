@@ -10,17 +10,18 @@ CB16 的目标是在沙盒中训练一个单资产 Trader：读取市场和账�
 
 - **Agent 必读**：[AGENTS.md](AGENTS.md)。
 - **文档导航**：[docs/README.md](docs/README.md)。
+- **文档组织与维护职责**：[DOCUMENTATION_MAP](docs/DOCUMENTATION_MAP.md)。
 - **当前做到哪里**：[CURRENT_STATE](docs/CURRENT_STATE.md)，包含 main 与未合并分支的区别。
-- **理念与实施对齐**：[PRINCIPLE_ALIGNMENT](docs/PRINCIPLE_ALIGNMENT.md) / [COMPONENT_REQUIREMENTS](docs/COMPONENT_REQUIREMENTS.md)；sol 沿用 [现有 AC TODO](docs/R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md)。
+- **理念与实施对齐**：[PRINCIPLE_ALIGNMENT](docs/PRINCIPLE_ALIGNMENT.md) / [COMPONENT_REQUIREMENTS](docs/COMPONENT_REQUIREMENTS.md)；Sol 按 [角色原则](docs/SOL_ROLE_PRINCIPLES.md) 和 CURRENT_STATE 指定的当前任务工作，AC TODO 保留历史身份。
 - **如何学习**：[LEARNING_CONTRACT](docs/LEARNING_CONTRACT.md)。
-- **具体算法设计**：[TRAINING_ALGORITHM_R0](docs/TRAINING_ALGORITHM_R0.md) / [资格计划](docs/TRAINING_QUALIFICATION_R0.md)，目前为设计提案。
+- **具体算法设计**：[TRAINING_ALGORITHM_R0](docs/TRAINING_ALGORITHM_R0.md) / [资格计划](docs/TRAINING_QUALIFICATION_R0.md)；实际接线、学习和经济证据分别查对应阶段的 receipt，不由设计文档推定。
 - **如何判断策略**：[EVALUATION_PRINCIPLES](docs/EVALUATION_PRINCIPLES.md)。
 - **组件分别负责什么**：[ARCHITECTURE_MAP](docs/ARCHITECTURE_MAP.md)。
 - **哪些已决定、哪些待定**：[DECISIONS](docs/DECISIONS.md) / [OPEN_QUESTIONS](docs/OPEN_QUESTIONS.md)。
 - **双基准与沙盒晋升决定**：[ECONOMIC_ORDERING_AND_PROMOTION](docs/ECONOMIC_ORDERING_AND_PROMOTION.md)。
 - **后 CC 科学执行路线**：[POST_CC_SCIENTIFIC_PROGRAM_R0](docs/POST_CC_SCIENTIFIC_PROGRAM_R0.md)：契约 → 可学习性 → 历史执行/学习 → 条件性容量 → 经济确认。
 
-2026-09-12 最新文档核对快照为 `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2`：新链已包含目标动作、持仓调整/反转许可和目标数量映射，完整 Actor–Critic 训练闭环仍待接通与验证。提交前 AC-014 又新增了仓位执行适配，保留旧退出机制的理念差异已另行记录。此处是代码快照，不是实时 HEAD 或经济成功证明；详细证据和历史进展见 CURRENT_STATE。
+当前工作 PR、已合格基础、候选能力和精确版本统一维护在 [CURRENT_STATE](docs/CURRENT_STATE.md)。本页不再复制旧 AC 阶段的实现断点；文档与基础设施的通过不构成交易盈利证明。
 
 ## 代码与执行入口
 
