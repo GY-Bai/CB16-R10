@@ -53,10 +53,10 @@ def _metrics_dir() -> Path:
 def classify_path(path: str) -> str:
     """Map an absolute path to an R4 measured write-path surface."""
     text = str(path)
-    if UPDATE_JOURNAL_RE.search(text):
-        return "update_journal"
-    if "/checkpoints/" in text or text.endswith("/checkpoints") or "checkpoint" in text:
+    if "checkpoints" in text or text.endswith("/checkpoints") or "checkpoint" in text:
         return "checkpoint_store"
+    if "/updates/" in text or UPDATE_JOURNAL_RE.search(text):
+        return "update_journal"
     if "index.sqlite3" in text or text.endswith("-wal") or text.endswith("-shm") or "sqlite" in text:
         return "sqlite_index"
     if "observ" in text:

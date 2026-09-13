@@ -315,6 +315,11 @@ def main(argv: list[str] | None = None) -> int:
             }
 
     status = measurement_status(process.returncode, updates, missing_surfaces)
+    paths_by_category: dict[str, list[str]] = {}
+    for item in unique_paths:
+        category, _, observed_path = item.partition("|")
+        paths_by_category.setdefault(category, []).append(observed_path)
+    metric_process_count = len(list(metrics.glob("pid-*.json")))
     report = {
         "schema": "CB16_R21_RC2_R4_WRITE_PATH_INVENTORY_V1",
         "task_id": "R4",
@@ -328,6 +333,8 @@ def main(argv: list[str] | None = None) -> int:
         "workers": args.workers,
         "committed_updates": updates,
         "committed_updates_source": updates_source,
+        "metric_process_count": metric_process_count,
+        "observed_paths_by_category": {category: sorted(paths)[:8] for category, paths in sorted(paths_by_category.items())},
         "observed_surfaces": observed_surfaces,
         "missing_required_surfaces": missing_surfaces,
         "physical_device": mount,
