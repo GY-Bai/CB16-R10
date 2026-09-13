@@ -43,6 +43,7 @@ from .post_cc_s1_execution_manifest_v1 import (
     build_s1_execution_manifest_v1,
     validate_s1_execution_manifest_v1,
 )
+from .post_cc_s1_checkpoint_identity_v1 import initial_checkpoint_identity_v1
 from .post_cc_s1_gate_compiler_v1 import compile_s1_gates_v1
 from .post_cc_s1_tasks_v1 import (
     CONTROL_ACCOUNT_ABLATION,
@@ -1109,6 +1110,9 @@ def run_s1_program_v1(
     if mode == "qualification":
         import subprocess
 
+        checkpoint_identity = dict(initial_checkpoint_identity_v1())
+        if checkpoint_identity.get("declared_hash_reproduced") is not True:
+            raise S1QualificationError("S1_INITIAL_CHECKPOINT_CONTRACT_MISMATCH")
         candidate_path = root / "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json"
         if not candidate_path.exists():
             raise S1QualificationError("S1_QUALIFICATION_REQUIRES_REVIEW_CANDIDATE_RECORD")
