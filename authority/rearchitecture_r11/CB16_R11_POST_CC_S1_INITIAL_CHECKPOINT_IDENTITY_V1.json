@@ -1,29 +1,42 @@
 {
-  "schema": "CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_AUTHORITY_V1",
-  "status": "DS_PROPOSED_PENDING_SOL_FREEZE",
-  "scope": "PRE_QUALIFICATION_VERSIONED_AUTHORITY_CORRECTION_NOT_RESULT_DRIVEN",
+  "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+  "computed_actor_only_sha256": "42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f",
+  "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+  "construction_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
+  "frozen_actor_plus_critic_sha256": null,
+  "high_bankruptcy_success_family_frozen": "LONG x risk in [0.85,0.95)",
   "historical_v1_mutated": false,
-  "supersedes_for_s1_pre_qualification": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json#/model/initialization/initial_checkpoint_semantic_sha256",
+  "initialization_seed": 1701,
+  "legacy_declared_sha256": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
+  "legacy_declared_sha256_reproduced": false,
   "modules": [
     "actor",
     "critic"
   ],
-  "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
-  "initialization_seed": 1701,
-  "construction_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
-  "legacy_declared_sha256": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
-  "legacy_declared_sha256_reproduced": false,
-  "computed_actor_only_sha256": "42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f",
-  "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
-  "frozen_actor_plus_critic_sha256": null,
-  "required_exact_sha_shanxi_identity_artifact": {
-    "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml",
-    "job": "s1-checkpoint-identity",
-    "artifact_name": "cb16-r11-post-cc-s1-checkpoint-identity",
-    "schema": "CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1"
-  },
-  "shanxi_identity_evidence": null,
-  "reviewer_freeze_instruction": "Sol freezes this corrective authority by setting status=FROZEN_BY_SOL and frozen_actor_plus_critic_sha256=computed_actor_plus_critic_sha256 after accepting the exact-SHA Shanxi checkpoint identity artifact. Until then S1 qualification stays hard-fail-closed.",
   "no_seed_reward_threshold_model_lr_budget_change": true,
-  "high_bankruptcy_success_family_frozen": "LONG x risk in [0.85,0.95)"
+  "required_exact_sha_shanxi_identity_artifact": {
+    "artifact_name": "cb16-r11-post-cc-s1-checkpoint-identity",
+    "job": "s1-checkpoint-identity",
+    "schema": "CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1",
+    "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
+  },
+  "reviewer_freeze_instruction": "Sol freezes this corrective authority by setting status=FROZEN_BY_SOL and frozen_actor_plus_critic_sha256=computed_actor_plus_critic_sha256 after accepting the exact-SHA Shanxi checkpoint identity artifact. Until then S1 qualification stays hard-fail-closed.",
+  "schema": "CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_AUTHORITY_V1",
+  "scope": "PRE_QUALIFICATION_VERSIONED_AUTHORITY_CORRECTION_NOT_RESULT_DRIVEN",
+  "shanxi_identity_evidence": {
+    "artifact_id": 10318247344,
+    "artifact_name": "cb16-r11-post-cc-s1-checkpoint-identity",
+    "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
+    "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+    "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+    "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+    "job_id": 103727971034,
+    "python_version": "3.10.21",
+    "run_attempt": 1,
+    "run_id": 34758863874,
+    "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
+    "torch_version": "2.8.0+cu126"
+  },
+  "status": "DS_PROPOSED_PENDING_SOL_FREEZE",
+  "supersedes_for_s1_pre_qualification": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json#/model/initialization/initial_checkpoint_semantic_sha256"
 }

@@ -7,7 +7,7 @@
       "shanxi_ci_state": "PENDING_SOL_REVIEW",
       "task_coverage_complete": true
     },
-    "latest_ci_head_sha": null,
+    "latest_ci_head_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
     "phase": "A_IMPLEMENTATION_CANDIDATE_R3",
     "r3_closure": {
       "B4_versioned_authority": {
@@ -52,15 +52,71 @@
       }
     },
     "shanxi_ci": {
-      "bounded_smoke": {},
-      "checkpoint_identity": {},
+      "bounded_smoke": {
+        "artifact_id": 10318327291,
+        "artifact_only_update_trace_all_checks_pass": true,
+        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
+        "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+        "conclusion": "success",
+        "duration_seconds": 208,
+        "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
+        "executed_jobs": 13,
+        "fabricated_log_mu_audit_pass": true,
+        "high_bankruptcy_failure_fact_audit_pass": true,
+        "integrity_attack_suite_all_rejected": true,
+        "job_id": 103727971076,
+        "job_name": "S1 bounded smoke (engineering only)",
+        "not_scientific_qualification": true,
+        "objective_firewall_audit_pass": true,
+        "program_wall_seconds": 55.69239830970764,
+        "run_attempt": 1,
+        "run_id": 34758863874,
+        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
+        "scratch_root": "/dev/shm/cb16-s1-34758863874-smoke",
+        "workers": 2
+      },
+      "checkpoint_identity": {
+        "artifact_id": 10318247344,
+        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
+        "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+        "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+        "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+        "conclusion": "success",
+        "declared_hash_reproduced": false,
+        "job_id": 103727971034,
+        "job_name": "S1 initial checkpoint identity (exact SHA)",
+        "python_version": "3.10.21",
+        "run_attempt": 1,
+        "run_id": 34758863874,
+        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
+        "torch_version": "2.8.0+cu126"
+      },
       "formal_qualification": {
         "additional_hard_gate": "SOL_FROZEN_VERSIONED_INITIAL_CHECKPOINT_AUTHORITY",
         "gated_by": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
         "required_status": "READY_FOR_S1_QUALIFICATION",
         "started": false
       },
-      "implementation_suite": {},
+      "implementation_suite": {
+        "artifact_id": 10317659104,
+        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
+        "checkout_tree_sha": "2eb5ef029f3d47b0ecf8047678c7400ee0dec22b",
+        "conclusion": "success",
+        "duration_seconds": 223,
+        "gpu": "NVIDIA GeForce GTX 1060 6GB",
+        "job_id": 103727971063,
+        "job_name": "S1 implementation unit and invariant suite",
+        "python_version": "3.10.21",
+        "run_attempt": 1,
+        "run_id": 34758863874,
+        "runner": "shanxi-docker-r11",
+        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
+        "tests_failed": 0,
+        "tests_passed": 173,
+        "tests_skipped": 0,
+        "torch_version": "2.8.0+cu126",
+        "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
+      },
       "record_binding_verification": {}
     }
   },
@@ -127,7 +183,7 @@
   },
   "qualified_runtime_sha": null,
   "r1_contract_issues": [],
-  "record_binding_head_sha": "e27e5c18eab3fc82e6f01bf7e92a68c1f3c9e43c",
+  "record_binding_head_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
   "review_history": [
     {
       "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
@@ -174,9 +230,23 @@
     },
     {
       "implementation_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
-      "notes": "R2-C1..C4 closed with counterexample tests; B4 versioned corrective authority drafted and hard-fail-closed until Sol freeze; exact-SHA checkpoint identity artifact job added.",
+      "notes": "R2-C1..C4 closed with counterexample tests; B4 versioned corrective authority drafted and hard-fail-closed until Sol freeze; exact-SHA Shanxi checkpoint identity artifact emitted. CI-A 173 passed, CI-B smoke all audits true including per-update artifact trace.",
       "requested_state": "READY_FOR_SOL_REVIEW",
       "round": "R3",
+      "shanxi_ci": {
+        "artifact_ids": [
+          10317659104,
+          10318247344,
+          10318327291
+        ],
+        "bounded_smoke_job": 103727971076,
+        "checkout_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
+        "checkpoint_identity_job": 103727971034,
+        "implementation_suite_job": 103727971063,
+        "run_id": 34758863874,
+        "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
+        "tests_passed": 173
+      },
       "submitted_by": "DS Flash"
     }
   ],
