@@ -244,8 +244,8 @@ def main(argv: list[str] | None = None) -> int:
         "unmeasured_perf_gates": unmeasured,
         "s1_stdout": process.stdout,
         "s1_stderr": process.stderr,
-        "s1_runtime_changed": false,
-        "scientific_manifest_changed": false,
+        "s1_runtime_changed": False,
+        "scientific_manifest_changed": False,
     }
     text = json.dumps(report, indent=2, sort_keys=True)
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
