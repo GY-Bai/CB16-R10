@@ -72,8 +72,9 @@
   "exactly_once_status": "REUSED_S0V2_AND_EXTENDED_INTEGRITY_MATRIX_13_ATTACKS_ALL_REJECTED_LOCALLY",
   "execution_manifest": {
     "git_blob_sha1": "5f9cb5781d8ef3f96239dfadf139902afe01e6a5",
+    "manifest_payload_sha256": "85ba028c03ca575390f1497adb72fad95939b5b20bad504ba2ceccdbaae8e4e7",
     "path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_EXECUTION_MANIFEST_V1.json",
-    "sha256": "85ba028c03ca575390f1497adb72fad95939b5b20bad504ba2ceccdbaae8e4e7"
+    "sha256": "0a16c3161dcd7a094bae519b0cd236690bfaa654b985802ba1375213fc226afa"
   },
   "firewall": {
     "FINAL_opened": false,
@@ -84,8 +85,8 @@
   },
   "first_unfinished_item": "Sol R1 code review of runtime candidate e3007fc2d26923a99c51ec8708acf8e81c7b2392; formal qualification only after reviewer authorization.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
-  "implementation_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
-  "implementation_candidate_tree_sha": "348be5d04f9f7cebf2316b8bf6aa48025d9b19e9",
+  "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
+  "implementation_candidate_tree_sha": "23a6d5ac645cc660129e7fc460e0e7daf381e3c7",
   "model_optimizer_identity": {
     "actor_class": "CCCentralBrain",
     "actor_dimensions": {
@@ -114,10 +115,10 @@
     "status": "NOT_RUN_AWAITING_SOL_QUALIFICATION_AUTHORIZATION"
   },
   "qualified_runtime_sha": null,
-  "record_binding_head_sha": "041d14185bf9ce25fddbcc9aef22c642630b52d3",
+  "record_binding_head_sha": null,
   "review_history": [
     {
-      "implementation_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
+      "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
       "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO; fail-closed qualification authorization gate, control-pairing tests, execution-only scratch root for Qualification mode.",
       "requested_state": "READY_FOR_SOL_CODE_REVIEW",
       "round": "R0",
@@ -162,7 +163,6 @@
   "unresolved_items": [
     "Formal 5-seed qualification has not started; it is gated by reviewer-owned READY_FOR_S1_QUALIFICATION authorization.",
     "The frozen initial checkpoint semantic hash is treated as declared authority because the repository contains no codec generator.",
-    "High-bankruptcy higher-EV family mass uses the manifest-declared risk band [0.85,0.95) for direction LONG; reviewer may require a different concretization before formal qualification.",
     "Off-policy ratio both-sides evidence is required per seed during formal qualification; Phase A records the counts but does not assert them.",
     "Qualification envelope estimate from the Shanxi smoke (832 decisions, 47.4s wall, workers=2) is roughly 3-5 hours for the full 65-run program at workers=8; CI-C timeout is 360 minutes and the execution-only /dev/shm scratch root is used to avoid container-disk fsync cost."
   ],
