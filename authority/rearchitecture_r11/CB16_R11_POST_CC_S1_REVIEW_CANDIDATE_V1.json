@@ -127,7 +127,7 @@
   },
   "qualified_runtime_sha": null,
   "r1_contract_issues": [],
-  "record_binding_head_sha": null,
+  "record_binding_head_sha": "e27e5c18eab3fc82e6f01bf7e92a68c1f3c9e43c",
   "review_history": [
     {
       "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
