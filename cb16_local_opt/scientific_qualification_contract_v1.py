@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+PROFILE_SCHEMA_V1 = "CB16_QUALIFICATION_PROFILE_V1"
 
 ALLOWED_VERDICTS_V1 = (
     "PASS",
@@ -52,6 +53,8 @@ class ProofObligationV1:
         ):
             if not str(getattr(self, field_name)).strip():
                 raise QualificationContractError(f"EMPTY_{field_name.upper()}")
+        if type(self.mandatory) is not bool:
+            raise QualificationContractError("MANDATORY_FLAG_NOT_BOOL")
         return self
 
 
@@ -61,7 +64,7 @@ class CapabilityClaimV1:
     proof_obligation_ids: tuple[str, ...]
 
     def validate(self) -> "CapabilityClaimV1":
-        if not self.claim_id.strip():
+        if not str(self.claim_id).strip():
             raise QualificationContractError("EMPTY_CLAIM_ID")
         if not self.proof_obligation_ids:
             raise QualificationContractError("CLAIM_WITHOUT_PROOF_OBLIGATIONS")
@@ -71,15 +74,23 @@ class CapabilityClaimV1:
 
 
 def validate_profile_structure_v1(profile: Mapping[str, Any]) -> Mapping[str, Any]:
-    """Validate only shared structural proof requirements.
+    """Validate shared structural proof requirements only.
 
-    This function must not infer or modify stage science.
+    The validator is deliberately incapable of changing stage science.
     """
 
     required = ("schema", "stage", "claims", "proof_obligations", "edge_cases")
     for key in required:
         if key not in profile:
             raise QualificationContractError(f"MISSING_PROFILE_FIELD:{key}")
+    if profile["schema"] != PROFILE_SCHEMA_V1:
+        raise QualificationContractError("PROFILE_SCHEMA_MISMATCH")
+    if not str(profile["stage"]).strip():
+        raise QualificationContractError("EMPTY_STAGE")
+    if not profile["claims"]:
+        raise QualificationContractError("PROFILE_WITHOUT_CLAIMS")
+    if not profile["proof_obligations"]:
+        raise QualificationContractError("PROFILE_WITHOUT_PROOF_OBLIGATIONS")
 
     obligations = [ProofObligationV1(**dict(item)).validate() for item in profile["proof_obligations"]]
     obligation_ids = [item.obligation_id for item in obligations]
@@ -124,6 +135,8 @@ def classify_qualification_v1(
     gates = dict(mandatory_scientific_gates or {})
     if not gates:
         return "EVIDENCE_INSUFFICIENT"
-    if all(value is True for value in gates.values()):
+    if any(type(value) is not bool for value in gates.values()):
+        return "CONTRACT_MISMATCH"
+    if all(gates.values()):
         return "PASS"
     return "SCIENTIFIC_FAIL"
