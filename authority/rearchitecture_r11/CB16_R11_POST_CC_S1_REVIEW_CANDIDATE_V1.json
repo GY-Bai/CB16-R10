@@ -3,12 +3,12 @@
   "authoritative_sol_todo": "docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md",
   "candidate_state": {
     "implementation": {
-      "local_development_tests": "R4_COUNTEREXAMPLES_ADDED_PENDING_SHANXI_EXECUTION",
-      "shanxi_ci_state": "PENDING_R4_EXACT_SHA_EVIDENCE",
+      "local_development_tests": "R4_1_AUTHORITY_ALIGNMENT_COMMITTED_PENDING_SHANXI_EXECUTION",
+      "shanxi_ci_state": "PENDING_R4_1_EXACT_SHA_EVIDENCE",
       "task_coverage_complete": true
     },
     "latest_ci_head_sha": "6615373159d0d98b958bd3892d8cb581a905d813",
-    "phase": "A_IMPLEMENTATION_CANDIDATE_R4",
+    "phase": "A_IMPLEMENTATION_CANDIDATE_R4_1",
     "r3_closure": {
       "B4_versioned_authority": {
         "counterexample_tests": [
@@ -132,13 +132,13 @@
       },
       "record_binding_verification": {},
       "r4_exact_sha_evidence": {
-        "implementation_candidate_sha": "6a38fca4df30e87b8ce5f22175ca3571fbba2c1a",
-        "implementation_candidate_tree_sha": "bf257b15cb730784bc8b62d91d4a770e15ad8843",
-        "state": "PENDING"
+        "implementation_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+        "implementation_candidate_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+        "state": "PENDING_R4_1_SHANXI"
       }
     }
   },
-  "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_PENDING_SHANXI_R4_EXACT_SHA_EVIDENCE",
+  "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_PENDING_SHANXI_R4_1_EXACT_SHA_EVIDENCE",
   "environment_versions": {
     "ACCOUNT_DEPENDENT_ACTION": "POST_CC_S1_ACCOUNT_DEPENDENT_ACTION_V1",
     "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "POST_CC_S1_ABA_RETENTION_V1",
@@ -160,10 +160,10 @@
     "historical_market_corpus_accessed": false,
     "transfer_evidence_claimed": false
   },
-  "first_unfinished_item": "Attach exact-SHA Shanxi CI-A/CI-B evidence for implementation candidate 6a38fca4df30 and then refresh CI-D record binding. Do not run CI-C.",
+  "first_unfinished_item": "Run exact-SHA Shanxi CI-A/CI-B for implementation candidate 19c6b7ece5a5 and then refresh CI-D record binding. Do not run CI-C.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
-  "implementation_candidate_sha": "6a38fca4df30e87b8ce5f22175ca3571fbba2c1a",
-  "implementation_candidate_tree_sha": "bf257b15cb730784bc8b62d91d4a770e15ad8843",
+  "implementation_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+  "implementation_candidate_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
   "model_optimizer_identity": {
     "actor_class": "CCCentralBrain",
     "actor_dimensions": {
@@ -275,6 +275,15 @@
       "review_record": "PR #102 comment 5653648212",
       "round": "R4",
       "submitted_by": "DS Flash"
+    },
+    {
+      "implementation_candidate_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+      "implementation_candidate_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+      "notes": "R4.1 aligns three stale test expectations with Sol R3's frozen checkpoint authority and preserves fail-closed pre-CI-D record-binding semantics. No scientific runtime code or S1-026 provenance semantics changed.",
+      "requested_state": "READY_FOR_SHANXI_R4_1_CI_A_CI_B",
+      "review_record": "R4 Shanxi CI-A follow-up",
+      "round": "R4.1",
+      "submitted_by": "DS Flash"
     }
   ],
   "schema": "CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1",
@@ -289,8 +298,8 @@
   "sol_r2_review_comment_id": 5653376570,
   "sol_r3_review_comment_id": 5653648212,
   "stage_identity": "CB16_R11_POST_CC_S1_END_TO_END_LEARNABILITY_R1",
-  "status": "DS_IMPLEMENTATION_CANDIDATE_R4_PENDING_SHANXI_EVIDENCE",
-  "strongest_evidence_claimed_by_candidate": "R3_B6_S1_026_IMPLEMENTED_PENDING_EXACT_SHA_SHANXI_CI_A_CI_B_CI_D",
+  "status": "DS_IMPLEMENTATION_CANDIDATE_R4_1_PENDING_SHANXI_EVIDENCE",
+  "strongest_evidence_claimed_by_candidate": "R3_B6_S1_026_IMPLEMENTED_R4_1_TEST_ALIGNMENT_PENDING_EXACT_SHA_SHANXI_CI_A_CI_B_CI_D",
   "task_spec_hashes": {
     "ACCOUNT_DEPENDENT_ACTION": "b3691e98bc195059944823e8b03fb08034031df5a28342b72126986e737f7d8a",
     "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "3eee9e90f293894ec2de58915c12e1e0b2f257648ced51b09652e48ccce406f8",
@@ -300,9 +309,9 @@
   },
   "terminal_state": "READY_FOR_SOL_REVIEW",
   "unresolved_items": [
-    "Exact-SHA R4 Shanxi CI-A/CI-B and refreshed CI-D record-binding evidence are still pending.",
+    "Exact-SHA R4.1 Shanxi CI-A/CI-B and refreshed CI-D record-binding evidence are still pending.",
     "Formal 5-seed qualification has not started and remains gated by reviewer-owned authorization; CI-C is explicitly not authorized in R4.",
-    "HIGH_BANKRUPTCY success family LONG \u00d7 risk in [0.85,0.95) remains frozen and unchanged.",
+    "HIGH_BANKRUPTCY success family LONG × risk in [0.85,0.95) remains frozen and unchanged.",
     "Off-policy both-sides ratio evidence is required per seed during formal qualification."
   ],
   "vtrace_critic_status": "ANALYTIC_HAND_FIXTURE_IMPLEMENTED_TOLERANCE_1E-6"
