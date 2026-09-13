@@ -1,0 +1,31 @@
+{
+  "schema": "CB16_SHANXI_RUNNER_BUILD_CONTEXT_V1",
+  "status": "DS_PROPOSED_PENDING_SOL_REVIEW",
+  "purpose": "Pin the external build-context artifact required by infra/shanxi_runner/Dockerfile for the reproduced cb16-runner-r11 image.",
+  "build_definition": "infra/shanxi_runner/Dockerfile",
+  "build_command": "docker build --tag cb16-runner-r11:latest infra/shanxi_runner",
+  "required_build_context_files": [
+    {
+      "build_context_path": "uv",
+      "kind": "binary",
+      "tool": "uv",
+      "version": "0.12.6",
+      "target_triple": "x86_64-unknown-linux-gnu",
+      "size_bytes": 51102256,
+      "sha256": "d381f11517c66523211b0876552ff7dea5c1b4b0f13800571b35225761302fba",
+      "container_install_path": "/usr/local/bin/uv",
+      "container_owner": "root:root",
+      "container_mode": "0755",
+      "observed_in_live_image": true,
+      "official_release_reference": "https://github.com/astral-sh/uv/releases/tag/0.12.6",
+      "verification_rule": "Required build-context binary must exist, be 51102256 bytes and have the pinned SHA256 before docker build is allowed."
+    }
+  ],
+  "image_reconstruction": {
+    "live_image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+    "live_image_size_bytes": 304735787,
+    "live_image_created": "2026-09-09T08:36:54.828410678+08:00",
+    "reconstruction_status": "CONTRACT_RECONSTRUCTION_NOT_BIT_IDENTICAL",
+    "known_limitation": "The original Dockerfile, build context, builder version and build metadata are unavailable. A rebuild reproduces the declared runtime contract, not necessarily the same image ID."
+  }
+}
