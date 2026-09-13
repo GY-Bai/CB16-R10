@@ -919,6 +919,22 @@ def _report_markdown_v1(
     return "\n".join(lines)
 
 
+def require_qualification_authorization_v1(repo_root: str | Path) -> Mapping[str, Any]:
+    """Formal qualification is fail-closed until the reviewer records authorization."""
+    path = (
+        Path(repo_root)
+        / "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json"
+    )
+    if not path.exists():
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_MISSING")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("status") != "READY_FOR_S1_QUALIFICATION":
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_STATUS_INVALID")
+    if payload.get("reviewer_role") != "SOL_INDEPENDENT_QUALIFICATION_REVIEW":
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_ROLE_INVALID")
+    return payload
+
+
 def run_s1_program_v1(
     *,
     repo_root: str | Path,
@@ -930,6 +946,8 @@ def run_s1_program_v1(
     if mode not in ("smoke", "qualification"):
         raise S1QualificationError("UNKNOWN_PROGRAM_MODE")
     root = Path(repo_root)
+    if mode == "qualification":
+        require_qualification_authorization_v1(root)
     manifest = validate_s1_execution_manifest_v1(root)
     output = Path(output_root)
     output.mkdir(parents=True, exist_ok=True)
