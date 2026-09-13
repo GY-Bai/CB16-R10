@@ -17,6 +17,8 @@ class QualificationArtifactError(ValueError):
 
 
 def _safe_relative_path_v1(value: str) -> Path:
+    if not isinstance(value, str) or not value:
+        raise QualificationArtifactError("ARTIFACT_PATH_INVALID")
     path = Path(value)
     if path.is_absolute() or ".." in path.parts or not path.parts:
         raise QualificationArtifactError(f"UNSAFE_ARTIFACT_PATH:{value}")
@@ -43,13 +45,15 @@ def build_artifact_manifest_v1(
     root: str | Path,
     required_relative_paths: Sequence[str],
 ) -> Mapping[str, Any]:
+    if not isinstance(required_relative_paths, (list, tuple)):
+        raise QualificationArtifactError("ARTIFACT_REQUIREMENTS_CONTAINER_INVALID")
     if not required_relative_paths:
         raise QualificationArtifactError("ARTIFACT_REQUIREMENTS_EMPTY")
     base = Path(root)
     entries: list[dict[str, Any]] = []
     seen: set[str] = set()
     for raw in required_relative_paths:
-        relative = _safe_relative_path_v1(str(raw))
+        relative = _safe_relative_path_v1(raw)
         key = relative.as_posix()
         if key in seen:
             raise QualificationArtifactError(f"DUPLICATE_ARTIFACT_PATH:{key}")
@@ -72,15 +76,23 @@ def verify_artifact_manifest_v1(
     root: str | Path,
     manifest: Mapping[str, Any],
 ) -> Mapping[str, Any]:
+    if not isinstance(manifest, Mapping):
+        raise QualificationArtifactError("ARTIFACT_MANIFEST_INVALID")
     if manifest.get("schema") != "CB16_QUALIFICATION_ARTIFACT_BYTE_MANIFEST_V1":
         raise QualificationArtifactError("ARTIFACT_MANIFEST_SCHEMA_MISMATCH")
+    entries = manifest.get("entries")
+    if not isinstance(entries, (list, tuple)):
+        raise QualificationArtifactError("ARTIFACT_MANIFEST_ENTRIES_CONTAINER_INVALID")
+
     base = Path(root)
     violations: list[str] = []
     seen: set[str] = set()
     checked = 0
-    for raw_entry in manifest.get("entries", []):
+    for raw_entry in entries:
+        if not isinstance(raw_entry, Mapping):
+            raise QualificationArtifactError("ARTIFACT_MANIFEST_ENTRY_INVALID")
         entry = dict(raw_entry)
-        relative = _safe_relative_path_v1(str(entry.get("path", "")))
+        relative = _safe_relative_path_v1(entry.get("path"))
         key = relative.as_posix()
         if key in seen:
             violations.append(f"DUPLICATE_ARTIFACT_PATH:{key}")
@@ -106,7 +118,7 @@ def verify_artifact_manifest_v1(
             violations.append(f"ARTIFACT_SIZE_MISMATCH:{key}")
         if observed_sha != str(entry.get("sha256", "")):
             violations.append(f"ARTIFACT_SHA256_MISMATCH:{key}")
-    if not manifest.get("entries"):
+    if not entries:
         violations.append("ARTIFACT_MANIFEST_EMPTY")
     return {
         "schema": "CB16_QUALIFICATION_ARTIFACT_BYTE_VERIFICATION_V1",
