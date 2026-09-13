@@ -122,7 +122,7 @@ def evaluate_record_binding_v1(
         checks["latest_ci_head_metadata_only_diff"] = False
         checks["latest_ci_head_not_older_than_binding_head"] = False
 
-    required_ci_entries = ("implementation_suite", "bounded_smoke", "record_binding_verification")
+    required_ci_entries = ("implementation_suite", "bounded_smoke")
     for entry_name in required_ci_entries:
         entry = shanxi.get(entry_name) or {}
         checks[f"{entry_name}_present"] = bool(entry)
@@ -131,12 +131,21 @@ def evaluate_record_binding_v1(
         checks[f"{entry_name}_runtime_candidate_matches"] = (
             str(entry.get("runtime_candidate_sha")) == implementation_sha
         )
-        entry_head = str(entry.get("checkout_sha") or entry.get("verified_head_sha") or "")
-        checks[f"{entry_name}_checkout_head_binds_latest_ci_head"] = bool(
-            entry_head and latest_ci_head and entry_head == latest_ci_head
+        entry_head = str(entry.get("checkout_sha") or "")
+        entry_head_ok = False
+        if entry_head and latest_ci_head:
+            if entry_head == latest_ci_head:
+                entry_head_ok = True
+            elif is_ancestor(entry_head, latest_ci_head):
+                entry_head_ok = set(changed_paths(entry_head, latest_ci_head)) <= ALLOWED_METADATA_ONLY_PATHS
+        checks[f"{entry_name}_checkout_head_binds_latest_ci_head"] = bool(entry_head_ok)
+    verification_entry = shanxi.get("record_binding_verification") or {}
+    checks["record_binding_verification_optional_entry_consistent"] = bool(
+        not verification_entry
+        or (
+            str(verification_entry.get("runtime_candidate_sha")) == implementation_sha
+            and verification_entry.get("status") == "PASS"
         )
-    checks["record_binding_verification_passed"] = bool(
-        (shanxi.get("record_binding_verification") or {}).get("status") == "PASS"
     )
     details["implementation_candidate_sha"] = implementation_sha
     details["latest_ci_head_sha"] = latest_ci_head

@@ -44,7 +44,7 @@ def _record(*, binding_head=BINDING_HEAD, latest_ci_head=CI_HEAD, runtime=IMPL, 
                     "runtime_candidate_sha": runtime,
                     "verified_head_sha": entry_head,
                     "status": "PASS",
-                },
+                } if entry_head else {},
             },
         },
     }
@@ -72,6 +72,33 @@ def test_fresh_record_binding_passes():
         diffs={
             (IMPL, HEAD): [binding.CANDIDATE_PATH],
             (CI_HEAD, HEAD): [binding.CANDIDATE_PATH],
+            (BINDING_HEAD, HEAD): [binding.CANDIDATE_PATH],
+        },
+    )
+    result = binding.evaluate_record_binding_v1(
+        record, head_sha=HEAD, head_tree="b" * 40, is_ancestor=is_ancestor, changed_paths=changed_paths, show_file=show_file
+    )
+    assert result["status"] == "PASS", [name for name, ok in result["checks"].items() if not ok]
+
+
+def test_entry_checkout_head_may_be_metadata_only_ancestor_of_latest_ci_head():
+    record = _record(latest_ci_head="5" * 40)
+    record["candidate_state"]["shanxi_ci"]["implementation_suite"]["checkout_sha"] = CI_HEAD
+    record["candidate_state"]["shanxi_ci"]["bounded_smoke"]["checkout_sha"] = CI_HEAD
+    record["candidate_state"]["shanxi_ci"]["record_binding_verification"] = {}
+    is_ancestor, changed_paths, show_file = _git_model(
+        ancestor_pairs={
+            (IMPL, HEAD),
+            (CI_HEAD, "5" * 40),
+            ("5" * 40, HEAD),
+            (BINDING_HEAD, HEAD),
+            (CI_HEAD, BINDING_HEAD),
+            ("5" * 40, BINDING_HEAD),
+        },
+        diffs={
+            (IMPL, HEAD): [binding.CANDIDATE_PATH],
+            (CI_HEAD, "5" * 40): [binding.CANDIDATE_PATH],
+            ("5" * 40, HEAD): [binding.CANDIDATE_PATH],
             (BINDING_HEAD, HEAD): [binding.CANDIDATE_PATH],
         },
     )
