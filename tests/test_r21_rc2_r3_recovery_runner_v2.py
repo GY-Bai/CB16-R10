@@ -11,6 +11,7 @@ PLAN_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R3_TASK_LOCAL_CHANGE_PL
 PROFILE_PATH = REPO_ROOT / "infra" / "shanxi_runner" / "runner_launch_spec_r21_v2.json"
 APPROVAL_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_OWNER_APPROVAL_V2.json"
 DIFF_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_EXPECTED_VS_ACTUAL_V1.json"
+RECEIPT_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R3_HOST_CHANGE_RECEIPT_V1.json"
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "cb16-r21-rc2-r3-recovery-runner-gate.yml"
 
 
@@ -55,6 +56,7 @@ class RecoveryRunnerPlanV2Tests(unittest.TestCase):
         cls.profile = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
         cls.approval = json.loads(APPROVAL_PATH.read_text(encoding="utf-8"))
         cls.diff_record = json.loads(DIFF_PATH.read_text(encoding="utf-8"))
+        cls.receipt = json.loads(RECEIPT_PATH.read_text(encoding="utf-8"))
         cls.workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
 
     def test_v2_schemas_and_supersession(self) -> None:
@@ -151,6 +153,29 @@ class RecoveryRunnerPlanV2Tests(unittest.TestCase):
         self.assertIn("verify_r21_rc2_r3_recovery_runner_v2.py", self.workflow_text)
         self.assertIn("tests/test_r21_rc2_r3_recovery_runner_v2.py", self.workflow_text)
         self.assertIn("cb16-r21-rc2-r3-recovery-runner-gate", self.workflow_text)
+
+    def test_r3_host_change_receipt_binds_execution_and_gate(self) -> None:
+        receipt = self.receipt
+        self.assertEqual(receipt["schema"], "CB16_R21_RC2_R3_HOST_CHANGE_RECEIPT_V1")
+        self.assertEqual(receipt["status"], "EXECUTED_READY_FOR_SOL_REVIEW")
+        capacity = receipt["final_capacity"]
+        self.assertEqual(
+            capacity["fast_hot_projected_headroom_after_quota_and_reserve_bytes"],
+            capacity["ssd_root_free_bytes"] - capacity["fast_hot_quota_bytes"] - capacity["fast_hot_reserve_floor_bytes"],
+        )
+        self.assertGreater(capacity["fast_hot_projected_headroom_after_quota_and_reserve_bytes"], 0)
+        gates = {operation["operation_id"]: operation for operation in receipt["operations"]}
+        gate = gates["GATE-01"]
+        self.assertEqual(gate["gate_status"], "PASS")
+        self.assertEqual(gate["gate_failed_checks"], 0)
+        self.assertEqual(gate["gate_checks"], 54)
+        self.assertEqual(gate["repository_run_id"], 34787774829)
+        self.assertEqual(gate["artifact_id"], 10327432751)
+        self.assertTrue(gate["artifact_digest"].startswith("sha256:"))
+        self.assertFalse(receipt["scientific_boundary"]["s1_scientific_constants_changed"])
+        self.assertFalse(receipt["scientific_boundary"]["hdd_fast_hot_fallback_used"])
+        self.assertFalse(receipt["existing_runner_immutability"]["changed_by_r3"])
+        self.assertIn("CONTRACT_MISMATCH", gates["CLN-03"]["classification"])
 
     def test_hostile_v2_quota_mutation_is_rejected(self) -> None:
         mutated = json.loads(json.dumps(self.plan))
