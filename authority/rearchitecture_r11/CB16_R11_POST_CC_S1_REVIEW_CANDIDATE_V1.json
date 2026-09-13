@@ -7,7 +7,7 @@
       "shanxi_ci_state": "PENDING_SOL_REVIEW",
       "task_coverage_complete": true
     },
-    "latest_ci_head_sha": null,
+    "latest_ci_head_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
     "phase": "A_IMPLEMENTATION_CANDIDATE_R1",
     "r1_blocker_closure": {
       "B1_uniform_replay_sampling": {
@@ -67,13 +67,55 @@
       }
     },
     "shanxi_ci": {
-      "bounded_smoke": {},
+      "bounded_smoke": {
+        "artifact_id": 10314544240,
+        "artifact_only_update_trace_all_checks_pass": true,
+        "checkout_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
+        "checkout_tree_sha": "46be1d66c71e55f6a26e1ce1d44a8b5d94cfa79c",
+        "conclusion": "success",
+        "duration_seconds": 149,
+        "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
+        "executed_jobs": 13,
+        "fabricated_log_mu_audit_pass": true,
+        "high_bankruptcy_failure_fact_audit_pass": true,
+        "integrity_attack_suite_all_rejected": true,
+        "job_id": 103702578015,
+        "job_name": "S1 bounded smoke (engineering only)",
+        "not_scientific_qualification": true,
+        "objective_firewall_audit_pass": true,
+        "program_wall_seconds": 48.4658260345459,
+        "run_attempt": 1,
+        "run_id": 34749227529,
+        "runtime_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
+        "scratch_root": "/dev/shm/cb16-s1-34749227529-smoke",
+        "workers": 2
+      },
       "formal_qualification": {
         "gated_by": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
         "required_status": "READY_FOR_S1_QUALIFICATION",
         "started": false
       },
-      "implementation_suite": {},
+      "implementation_suite": {
+        "artifact_id": 10314897942,
+        "checkout_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
+        "checkout_tree_sha": "46be1d66c71e55f6a26e1ce1d44a8b5d94cfa79c",
+        "conclusion": "success",
+        "duration_seconds": 283,
+        "gpu": "NVIDIA GeForce GTX 1060 6GB",
+        "job_id": 103702577996,
+        "job_name": "S1 implementation unit and invariant suite",
+        "python_version": "3.10.21",
+        "run_attempt": 1,
+        "run_id": 34749227529,
+        "runner": "shanxi-docker-r11",
+        "runtime_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
+        "tests_failed": 0,
+        "tests_passed": 164,
+        "tests_skipped": 0,
+        "torch_cuda_version": "12.6",
+        "torch_version": "2.8.0+cu126",
+        "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
+      },
       "record_binding_verification": {}
     }
   },
@@ -143,7 +185,7 @@
       "requested_resolution": "Sol/authority to confirm the intended construction/codec or version the frozen initial-checkpoint hash before CI-C."
     }
   ],
-  "record_binding_head_sha": "09a468b473e886ee37c4f066d0a914a0f5aeff77",
+  "record_binding_head_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
   "review_history": [
     {
       "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
@@ -170,9 +212,21 @@
     },
     {
       "implementation_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
-      "notes": "B1-B7 response: B1/B2/B3/B5/B6/B7 closed with counterexample tests; B4 codec verification implemented, RNG isolation fixed, authority hash mismatch reported as CONTRACT_MISMATCH per review instruction.",
+      "notes": "B1-B7 response: B1/B2/B3/B5/B6/B7 closed with counterexample tests; B4 codec verification implemented, RNG isolation fixed, qualification hard-fails closed on the unresolved authority hash, and CONTRACT_MISMATCH is reported per R1 instruction. Exact-SHA Shanxi CI-A (164 passed) and CI-B bounded smoke attached.",
       "requested_state": "READY_FOR_SOL_REVIEW",
       "round": "R2",
+      "shanxi_ci": {
+        "artifact_ids": [
+          10314897942,
+          10314544240
+        ],
+        "bounded_smoke_job": 103702578015,
+        "checkout_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
+        "implementation_suite_job": 103702577996,
+        "run_id": 34749227529,
+        "runtime_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
+        "tests_passed": 164
+      },
       "submitted_by": "DS Flash"
     }
   ],
