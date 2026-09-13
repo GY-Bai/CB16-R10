@@ -1,0 +1,374 @@
+{
+  "schema": "CB16_R21_RC2_R2_SSD_CAPACITY_INVENTORY_V1",
+  "spec_version": "V1",
+  "status": "DS_PROPOSED_PENDING_OWNER_APPROVAL",
+  "task_id": "R2",
+  "collected_at_utc": "2026-09-13T21:34:00Z",
+  "collection": {
+    "method": "read-only SSH host session: lsblk, df -B1, du -s -B1, stat, docker system df, swapon --show",
+    "read_only": true,
+    "host_changes_applied": false,
+    "cleanup_executed": false,
+    "secrets_read": false,
+    "source_contract": "docs/infra/SHANXI_DOCKER_RUNNER_CONTRACT.md"
+  },
+  "host": {
+    "hostname": "bgyubuntusever22041",
+    "kernel": "5.15.0-191-generic",
+    "cpu_logical": 16,
+    "memory_total_kib": 16283404,
+    "swap_total_bytes": 34359738368,
+    "gpu": "NVIDIA GeForce GTX 1060 6GB",
+    "gpu_uuid": "GPU-82acd8ea-83e0-00e2-44d1-e5496bc81c1c",
+    "docker_root_dir": "/data/cb16_docker",
+    "docker_storage_driver": "overlay2"
+  },
+  "block_devices": {
+    "hdd_sda": {
+      "device": "/dev/sda",
+      "model": "ST1000DM010-2EP1",
+      "rotational": true,
+      "size_bytes": 1000204886016,
+      "mounted_role": "HDD cold/Docker data root"
+    },
+    "ssd_sdb": {
+      "device": "/dev/sdb",
+      "model": "CT500MX500SSD1",
+      "rotational": false,
+      "size_bytes": 500107862016,
+      "partition_count": 3,
+      "lvm_pv": {
+        "device": "/dev/sdb3",
+        "size_bytes": 496831037440
+      }
+    }
+  },
+  "filesystems": {
+    "ssd_root_lv": {
+      "device": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+      "mountpoint": "/",
+      "fs_type": "ext4",
+      "total_bytes": 453853200384,
+      "used_bytes": 400243847168,
+      "free_bytes": 34029350912,
+      "reserved_bytes": 19580002304,
+      "use_percent": 93,
+      "logical_volume_size_bytes": 461708984320,
+      "storage_class": "SSD_NON_ROTATIONAL"
+    },
+    "hdd_data": {
+      "device": "/dev/sda1",
+      "mountpoint": "/data",
+      "fs_type": "ext4",
+      "total_bytes": 983349346304,
+      "used_bytes": 238284079104,
+      "free_bytes": 695038337024,
+      "reserved_bytes": 50026930176,
+      "use_percent": 26,
+      "storage_class": "HDD_ROTATIONAL",
+      "role": "cold payload, Docker data root, migration destination"
+    },
+    "boot": {
+      "device": "/dev/sdb2",
+      "mountpoint": "/boot",
+      "fs_type": "ext4",
+      "total_bytes": 2040373248,
+      "used_bytes": 500887552,
+      "free_bytes": 1415335936,
+      "use_percent": 27
+    }
+  },
+  "ssd_root_usage": {
+    "/home": 330572025856,
+    "/usr": 18330660864,
+    "/var": 8265396224,
+    "/opt": 115032064,
+    "/tmp": 2142208
+  },
+  "fast_hot_target": {
+    "host_path": "/srv/cb16_fast_hot",
+    "container_path": "/cb16/fast_hot",
+    "host_filesystem": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+    "storage_class": "SSD_NON_ROTATIONAL",
+    "owner_uid": 1001,
+    "owner_gid": 1001,
+    "created_by_r2": false,
+    "creation_task": "R3"
+  },
+  "protect_and_keep": {
+    "reason": "These paths/volumes are scientific authority, runner identity, secret boundary or host stability inputs and must not be deleted by SSD cleanup.",
+    "docker_never_delete_volumes": [
+      "cb16-raw",
+      "cb16-runtime-r104",
+      "cb16-package",
+      "cb16-parent-r101",
+      "cb16-parent-g0",
+      "cb16-r2-authority",
+      "cb16-venv",
+      "cb16-config",
+      "cb16-runner-docker",
+      "cb16-worker"
+    ],
+    "host_paths": [
+      {
+        "path": "/swapfile",
+        "size_bytes": 34359738368,
+        "reason": "Host swap; relocation or reduction is a separate high-risk host decision and is not part of any R2 option."
+      },
+      {
+        "path": "/home/bgy/.ssh",
+        "reason": "SSH identity and known_hosts."
+      },
+      {
+        "path": "/home/bgy/.config",
+        "reason": "User and tool configuration."
+      },
+      {
+        "path": "/home/bgy/Downloads/CB16",
+        "reason": "Active CB16 workspace and repository checkout."
+      },
+      {
+        "path": "/home/bgy/miniforge3/envs",
+        "size_bytes": 37490728960,
+        "reason": "Keep by default; unused-env deletion or migration requires an explicit owner-selected sub-list."
+      },
+      {
+        "path": "/data/cb16_ci",
+        "size_bytes": 26323017260,
+        "reason": "HDD relay/worker area; not an SSD cleanup target."
+      },
+      {
+        "path": "/data/cb16_docker",
+        "reason": "Docker data root; HDD component and runner volumes are protected."
+      }
+    ]
+  },
+  "reclaim_candidates": [
+    {
+      "candidate_id": "CACHE_HUGGINGFACE",
+      "path": "/home/bgy/.cache/huggingface",
+      "used_bytes": 40881950720,
+      "data_class": "MODEL_CACHE",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "DELETE_CACHE_OR_MOVE_TO_HDD",
+      "reclaimable_without_data_loss": false,
+      "note": "Re-downloadable model cache; may be expensive or unavailable offline. Requires owner-selected model list before deletion."
+    },
+    {
+      "candidate_id": "CACHE_MODELSCOPE",
+      "path": "/home/bgy/.cache/modelscope",
+      "used_bytes": 2280161280,
+      "data_class": "MODEL_CACHE",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "DELETE_CACHE_OR_MOVE_TO_HDD",
+      "reclaimable_without_data_loss": false
+    },
+    {
+      "candidate_id": "CACHE_WHISPER",
+      "path": "/home/bgy/.cache/whisper",
+      "used_bytes": 1824436224,
+      "data_class": "MODEL_CACHE",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "DELETE_CACHE_OR_MOVE_TO_HDD",
+      "reclaimable_without_data_loss": false
+    },
+    {
+      "candidate_id": "CACHE_UV",
+      "path": "/home/bgy/.cache/uv",
+      "used_bytes": 1660186624,
+      "data_class": "PACKAGE_CACHE",
+      "default_sensitivity": "LOW",
+      "recommended_method": "DELETE_CACHE",
+      "reclaimable_without_data_loss": true
+    },
+    {
+      "candidate_id": "CACHE_PIP",
+      "path": "/home/bgy/.cache/pip",
+      "used_bytes": 100220928,
+      "data_class": "PACKAGE_CACHE",
+      "default_sensitivity": "LOW",
+      "recommended_method": "DELETE_CACHE",
+      "reclaimable_without_data_loss": true
+    },
+    {
+      "candidate_id": "CONDA_PKG_CACHE",
+      "path": "/home/bgy/miniforge3/pkgs",
+      "used_bytes": 28341469184,
+      "data_class": "PACKAGE_CACHE",
+      "default_sensitivity": "LOW",
+      "recommended_method": "CONDA_CLEAN_PKGS",
+      "reclaimable_without_data_loss": true,
+      "note": "Conda package cache; environment creation may re-download packages."
+    },
+    {
+      "candidate_id": "LOG_JOURNAL",
+      "path": "/var/log/journal",
+      "used_bytes": 4454641664,
+      "data_class": "SYSTEM_LOG",
+      "default_sensitivity": "LOW",
+      "recommended_method": "VACUUM_JOURNAL",
+      "reclaimable_without_data_loss": true,
+      "note": "Proposed option uses a 512 MiB retained journal cap; reclaim estimate is used_bytes minus 512 MiB."
+    },
+    {
+      "candidate_id": "CRASH_DUMPS",
+      "path": "/var/crash",
+      "used_bytes": 776331264,
+      "data_class": "CRASH_DUMP",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "DELETE_AFTER_REVIEW",
+      "reclaimable_without_data_loss": false
+    },
+    {
+      "candidate_id": "APT_CACHE",
+      "path": "/var/cache/apt",
+      "used_bytes": 252284928,
+      "data_class": "PACKAGE_CACHE",
+      "default_sensitivity": "LOW",
+      "recommended_method": "APT_CLEAN",
+      "reclaimable_without_data_loss": true
+    },
+    {
+      "candidate_id": "SNAP_DISABLED_REVISIONS",
+      "path": "/var/lib/snapd/snaps",
+      "used_bytes": 627445760,
+      "data_class": "SYSTEM_PACKAGE",
+      "default_sensitivity": "LOW",
+      "recommended_method": "REMOVE_DISABLED_REVISIONS",
+      "reclaimable_without_data_loss": true,
+      "note": "Sum of currently disabled snap revision files only; enabled snap revisions are outside this candidate."
+    },
+    {
+      "candidate_id": "MIGRATE_AUDIO",
+      "path": "/home/bgy/audiotransfer",
+      "used_bytes": 49327542272,
+      "data_class": "USER_PROJECT",
+      "default_sensitivity": "HIGH",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Requires owner selection and checksum-verified HDD copy."
+    },
+    {
+      "candidate_id": "MIGRATE_PHOTO_TIMELINE",
+      "path": "/home/bgy/photo_timeline",
+      "used_bytes": 20411514880,
+      "data_class": "USER_DATA",
+      "default_sensitivity": "HIGH",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true
+    },
+    {
+      "candidate_id": "MIGRATE_RECOVERED_PHOTOS",
+      "path": "/home/bgy/recovered_photos",
+      "used_bytes": 15399612416,
+      "data_class": "USER_DATA",
+      "default_sensitivity": "HIGH",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true
+    },
+    {
+      "candidate_id": "MIGRATE_PHOTO_PACKS",
+      "path": "/home/bgy/photo_packs",
+      "used_bytes": 3504091136,
+      "data_class": "USER_DATA",
+      "default_sensitivity": "HIGH",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true
+    },
+    {
+      "candidate_id": "MIGRATE_PHOTO_PACKS_TAR",
+      "path": "/home/bgy/photo_packs.tar.zst",
+      "used_bytes": 3437293568,
+      "data_class": "USER_ARCHIVE",
+      "default_sensitivity": "HIGH",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Archive may be redundant with /home/bgy/photo_packs; owner must confirm."
+    },
+    {
+      "candidate_id": "MIGRATE_CODES_AND_DATAS",
+      "path": "/home/bgy/Codes_and_Datas",
+      "used_bytes": 32113430528,
+      "data_class": "USER_PROJECT",
+      "default_sensitivity": "HIGH",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Not selected in the default options; available for owner expansion."
+    },
+    {
+      "candidate_id": "MIGRATE_M3_INFRA",
+      "path": "/home/bgy/m3-infra",
+      "used_bytes": 27185258496,
+      "data_class": "USER_PROJECT",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Not selected in the default options; available for owner expansion."
+    },
+    {
+      "candidate_id": "MIGRATE_STAGE1_NVIDIA",
+      "path": "/home/bgy/stage1-nvidia-ref",
+      "used_bytes": 15264727040,
+      "data_class": "USER_PROJECT",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Not selected in the default options; available for owner expansion."
+    },
+    {
+      "candidate_id": "MIGRATE_EDITOR_DLW",
+      "path": "/home/bgy/editor_DLW",
+      "used_bytes": 7016378368,
+      "data_class": "USER_PROJECT",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Not selected in the default options; available for owner expansion."
+    },
+    {
+      "candidate_id": "MIGRATE_VIBEVOICE",
+      "path": "/home/bgy/vibevoice-podcast",
+      "used_bytes": 7777021952,
+      "data_class": "USER_PROJECT",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "MIGRATE_TO_HDD_AFTER_CHECKSUM",
+      "reclaimable_without_data_loss": true,
+      "note": "Not selected in the default options; available for owner expansion."
+    },
+    {
+      "candidate_id": "MIGRATE_VENVS",
+      "path": "/home/bgy/venvs",
+      "used_bytes": 17292263424,
+      "data_class": "PYTHON_ENVIRONMENTS",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "MIGRATE_OR_DELETE_UNUSED_ENVS",
+      "reclaimable_without_data_loss": false,
+      "note": "Rebuildable but expensive; requires owner-selected keep list."
+    },
+    {
+      "candidate_id": "MIGRATE_MINIFORGE_ENVS",
+      "path": "/home/bgy/miniforge3/envs",
+      "used_bytes": 37490728960,
+      "data_class": "PYTHON_ENVIRONMENTS",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "MIGRATE_OR_DELETE_UNUSED_ENVS",
+      "reclaimable_without_data_loss": false,
+      "note": "Keep by default; env-level deletion/migration requires owner-selected keep list."
+    },
+    {
+      "candidate_id": "CB16_SSD_REVIEW",
+      "path": "/home/bgy/cb16_ssd",
+      "used_bytes": 2182721536,
+      "data_class": "CB16_ARTIFACT_REVIEW",
+      "default_sensitivity": "MEDIUM",
+      "recommended_method": "OWNER_REVIEW_THEN_DELETE_OR_KEEP",
+      "reclaimable_without_data_loss": false
+    }
+  ],
+  "owner_approval": {
+    "required_before_r3": true,
+    "status": "PENDING_OWNER_DECISION",
+    "decision_artifact": "authority/infra/R21_RC2_R2_FAST_HOT_PROVISION_PROPOSAL_V1.json",
+    "note": "No cleanup, migration, mount creation, partition or Docker reconfiguration is authorized by this inventory."
+  }
+}

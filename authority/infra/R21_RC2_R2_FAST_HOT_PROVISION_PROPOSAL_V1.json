@@ -1,0 +1,301 @@
+{
+  "schema": "CB16_R21_RC2_R2_FAST_HOT_PROVISION_PROPOSAL_V1",
+  "spec_version": "V1",
+  "status": "DS_PROPOSED_PENDING_OWNER_APPROVAL",
+  "task_id": "R2",
+  "source_inventory": "authority/infra/R21_RC2_R2_SSD_CAPACITY_INVENTORY_V1.json",
+  "current_state": {
+    "ssd_root_lv_free_bytes": 34029350912,
+    "ssd_root_lv_use_percent": 93,
+    "fast_hot_created": false,
+    "cleanup_executed": false,
+    "host_change_executed": false
+  },
+  "target": {
+    "host_path": "/srv/cb16_fast_hot",
+    "container_path": "/cb16/fast_hot",
+    "host_filesystem": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+    "storage_class": "SSD_NON_ROTATIONAL",
+    "hdd_fallback_allowed": false,
+    "owner_uid": 1001,
+    "owner_gid": 1001,
+    "creation_task": "R3"
+  },
+  "decision_rules": [
+    "No cleanup, migration, deletion, mount creation, partition change or Docker reconfiguration may happen in R2.",
+    "R3 is blocked until the owner explicitly selects one option, the exact candidate list, the FAST_HOT quota and the reserve floor.",
+    "Every migration must be checksum-verified and must land on /data before any SSD source is removed.",
+    "If a selected metric or capacity cannot be measured, the result is EVIDENCE_INSUFFICIENT, not PASS.",
+    "If a FAST_HOT surface resolves to rotational storage, the result is CONTRACT_MISMATCH.",
+    "The S1 scientific manifest, seeds, reward, model, optimizer, budget, evaluation and thresholds are unchanged by this proposal."
+  ],
+  "reserve_floor_definition": {
+    "meaning": "Free bytes that must remain available on the SSD root filesystem after FAST_HOT allocation and before R3 proceeds.",
+    "minimum_recommended_bytes": 15000000000,
+    "minimum_recommended_human": "14.0 GiB",
+    "note": "Options below all keep at least this reserve unless the owner explicitly accepts a lower floor."
+  },
+  "options": [
+    {
+      "option_id": "A_NO_CLEANUP_EXISTING_FREE",
+      "name": "No cleanup - carve FAST_HOT from existing free SSD space",
+      "summary": "Create FAST_HOT directly from the current 34.0 GB free root-LV space without deleting or migrating any data.",
+      "candidate_ids": [],
+      "selected_bytes_by_candidate": {},
+      "reclaimed_or_migrated_bytes": 0,
+      "projected_root_free_bytes": 34029350912,
+      "projected_root_free_human": "31.69 GiB",
+      "proposed_fast_hot_quota_bytes": 24000000000,
+      "proposed_fast_hot_quota_human": "22.35 GiB",
+      "reserve_floor_bytes": 10029350912,
+      "reserve_floor_human": "9.34 GiB",
+      "risk": "HIGH",
+      "pros": [
+        "No deletion and no data migration.",
+        "Fastest R3 path.",
+        "Preserves all current user and system data."
+      ],
+      "cons": [
+        "SSD root stays above 93 percent after the reserve is reduced.",
+        "FAST_HOT capacity is limited to about 22 GiB.",
+        "Likely insufficient for 8-worker production-shaped formal scratch plus hot metadata.",
+        "Conflicts with the architecture direction to perform cleanup/provisioning first."
+      ],
+      "recommended": false,
+      "owner_authorization_required": true
+    },
+    {
+      "option_id": "B_SAFE_RECLAIM_THEN_ALLOCATE",
+      "name": "Safe reclaim - caches/logs/crash/apt/disabled snaps/conda cache",
+      "summary": "Reclaim low-sensitivity caches and logs, then allocate a larger FAST_HOT while keeping a 20 GiB reserve.",
+      "candidate_ids": [
+        "CACHE_UV",
+        "CACHE_PIP",
+        "CONDA_PKG_CACHE",
+        "LOG_JOURNAL",
+        "CRASH_DUMPS",
+        "APT_CACHE",
+        "SNAP_DISABLED_REVISIONS"
+      ],
+      "selected_bytes_by_candidate": {
+        "CACHE_UV": 1660186624,
+        "CACHE_PIP": 100220928,
+        "CONDA_PKG_CACHE": 28341469184,
+        "LOG_JOURNAL": 3917770752,
+        "CRASH_DUMPS": 776331264,
+        "APT_CACHE": 252284928,
+        "SNAP_DISABLED_REVISIONS": 627445760
+      },
+      "reclaimed_or_migrated_bytes": 35675709440,
+      "projected_root_free_bytes": 69705060352,
+      "projected_root_free_human": "64.92 GiB",
+      "proposed_fast_hot_quota_bytes": 48000000000,
+      "proposed_fast_hot_quota_human": "44.70 GiB",
+      "reserve_floor_bytes": 21705060352,
+      "reserve_floor_human": "20.21 GiB",
+      "risk": "MEDIUM",
+      "pros": [
+        "No personal data is deleted.",
+        "No user project or media migration is required.",
+        "Frees enough SSD space for a 44.7 GiB FAST_HOT with a 20 GiB reserve.",
+        "Conda package cache and uv/pip caches are re-creatable."
+      ],
+      "cons": [
+        "Model/package caches may be re-downloaded later, consuming network/time.",
+        "Deleting conda package cache can slow environment rebuilds.",
+        "Crash dumps must be reviewed before deletion."
+      ],
+      "recommended": true,
+      "recommendation_note": "Lowest-risk option that still creates meaningful FAST_HOT headroom.",
+      "owner_authorization_required": true
+    },
+    {
+      "option_id": "C_MIGRATE_COLD_USER_DATA",
+      "name": "Migrate selected cold media/audio data to HDD",
+      "summary": "Copy and checksum-verify selected cold user data to /data, then remove the SSD copies to free about 86 GiB.",
+      "candidate_ids": [
+        "MIGRATE_AUDIO",
+        "MIGRATE_PHOTO_TIMELINE",
+        "MIGRATE_RECOVERED_PHOTOS",
+        "MIGRATE_PHOTO_PACKS",
+        "MIGRATE_PHOTO_PACKS_TAR"
+      ],
+      "selected_bytes_by_candidate": {
+        "MIGRATE_AUDIO": 49327542272,
+        "MIGRATE_PHOTO_TIMELINE": 20411514880,
+        "MIGRATE_RECOVERED_PHOTOS": 15399612416,
+        "MIGRATE_PHOTO_PACKS": 3504091136,
+        "MIGRATE_PHOTO_PACKS_TAR": 3437293568
+      },
+      "reclaimed_or_migrated_bytes": 92080054272,
+      "projected_root_free_bytes": 126109405184,
+      "projected_root_free_human": "117.45 GiB",
+      "proposed_fast_hot_quota_bytes": 96000000000,
+      "proposed_fast_hot_quota_human": "89.41 GiB",
+      "reserve_floor_bytes": 30109405184,
+      "reserve_floor_human": "28.04 GiB",
+      "migration_destination_root": "/data/cb16_hdd/home_archive",
+      "migration_integrity_requirement": "COPY_THEN_SHA256_VERIFY_THEN_REMOVE_SOURCE",
+      "risk": "MEDIUM_HIGH",
+      "pros": [
+        "No user data is deleted; it is moved to HDD with checksum proof.",
+        "Frees about 86 GiB of SSD space.",
+        "Supports a larger FAST_HOT and a larger reserve."
+      ],
+      "cons": [
+        "Requires owner-selected exact data list.",
+        "Copy time and HDD I/O during migration.",
+        "Requires careful checksum and deletion proof.",
+        "Some applications may expect those paths to remain on the SSD."
+      ],
+      "recommended": false,
+      "owner_authorization_required": true
+    },
+    {
+      "option_id": "D_COMBINED_RECLAIM_AND_MIGRATION",
+      "name": "Combined safe reclaim plus selected cold-data migration",
+      "summary": "Apply option B and option C together to free about 119 GiB and allocate a 111.8 GiB FAST_HOT with a 38.9 GiB reserve.",
+      "candidate_ids": [
+        "CACHE_UV",
+        "CACHE_PIP",
+        "CONDA_PKG_CACHE",
+        "LOG_JOURNAL",
+        "CRASH_DUMPS",
+        "APT_CACHE",
+        "SNAP_DISABLED_REVISIONS",
+        "MIGRATE_AUDIO",
+        "MIGRATE_PHOTO_TIMELINE",
+        "MIGRATE_RECOVERED_PHOTOS",
+        "MIGRATE_PHOTO_PACKS",
+        "MIGRATE_PHOTO_PACKS_TAR"
+      ],
+      "selected_bytes_by_candidate": {
+        "CACHE_UV": 1660186624,
+        "CACHE_PIP": 100220928,
+        "CONDA_PKG_CACHE": 28341469184,
+        "LOG_JOURNAL": 3917770752,
+        "CRASH_DUMPS": 776331264,
+        "APT_CACHE": 252284928,
+        "SNAP_DISABLED_REVISIONS": 627445760,
+        "MIGRATE_AUDIO": 49327542272,
+        "MIGRATE_PHOTO_TIMELINE": 20411514880,
+        "MIGRATE_RECOVERED_PHOTOS": 15399612416,
+        "MIGRATE_PHOTO_PACKS": 3504091136,
+        "MIGRATE_PHOTO_PACKS_TAR": 3437293568
+      },
+      "reclaimed_or_migrated_bytes": 127755763712,
+      "projected_root_free_bytes": 161785114624,
+      "projected_root_free_human": "150.67 GiB",
+      "proposed_fast_hot_quota_bytes": 120000000000,
+      "proposed_fast_hot_quota_human": "111.76 GiB",
+      "reserve_floor_bytes": 41785114624,
+      "reserve_floor_human": "38.92 GiB",
+      "migration_destination_root": "/data/cb16_hdd/home_archive",
+      "migration_integrity_requirement": "COPY_THEN_SHA256_VERIFY_THEN_REMOVE_SOURCE",
+      "risk": "MEDIUM_HIGH",
+      "pros": [
+        "Largest available FAST_HOT capacity without new hardware.",
+        "Leaves the largest reserve margin.",
+        "Combines cache reclamation with checksum-verified cold-data migration."
+      ],
+      "cons": [
+        "Most owner decisions and the longest execution path.",
+        "Combines the risks of option B and option C.",
+        "Requires a precise keep list and migration verification evidence."
+      ],
+      "recommended": false,
+      "recommendation_note": "Recommended only if R4/R5 evidence indicates that 44.7 GiB FAST_HOT is insufficient.",
+      "owner_authorization_required": true
+    },
+    {
+      "option_id": "E_NEW_SSD_HARDWARE",
+      "name": "Add a new SSD/NVMe device for FAST_HOT",
+      "summary": "Provision an additional non-rotational device and allocate FAST_HOT there; no deletion or migration on the existing root LV.",
+      "candidate_ids": [],
+      "selected_bytes_by_candidate": {},
+      "reclaimed_or_migrated_bytes": 0,
+      "projected_root_free_bytes": 34029350912,
+      "projected_root_free_human": "31.69 GiB",
+      "proposed_fast_hot_quota_bytes": 500000000000,
+      "proposed_fast_hot_quota_human": "465.66 GiB",
+      "reserve_floor_bytes": 34029350912,
+      "reserve_floor_human": "31.69 GiB on existing root; new device must define its own reserve",
+      "new_hardware_required": true,
+      "risk": "LOW_FOR_EXISTING_DATA_HIGH_FOR_SCHEDULE",
+      "pros": [
+        "No existing user data needs deletion or migration.",
+        "Large and clean FAST_HOT capacity.",
+        "Separates hot storage from the already-occupied root LV."
+      ],
+      "cons": [
+        "Requires procurement and physical host access.",
+        "Long lead time and likely stronger host/power/thermal validation.",
+        "Not available for the immediate Recovery schedule."
+      ],
+      "recommended": false,
+      "owner_authorization_required": true
+    }
+  ],
+  "not_recommended_explicit_exclusions": [
+    {
+      "candidate_id": "KEEP_SWAPFILE",
+      "reason": "Relocating or reducing the 32 GiB swapfile could free SSD space but risks host stability and swap behaviour; it is not part of any option above and requires a separate host decision."
+    },
+    {
+      "candidate_id": "CACHE_HUGGINGFACE",
+      "reason": "HuggingFace cache is the largest single cache (40.9 GB) but may contain models needed offline; deleting it requires an owner-selected model list. It is not in the default options."
+    },
+    {
+      "candidate_id": "MIGRATE_CODES_AND_DATAS",
+      "reason": "Project/data tree; available for owner expansion but not selected by default."
+    },
+    {
+      "candidate_id": "MIGRATE_M3_INFRA",
+      "reason": "Other project infra; available for owner expansion but not selected by default."
+    },
+    {
+      "candidate_id": "MIGRATE_STAGE1_NVIDIA",
+      "reason": "Reference pack; available for owner expansion but not selected by default."
+    },
+    {
+      "candidate_id": "MIGRATE_EDITOR_DLW",
+      "reason": "Project/application data; available for owner expansion but not selected by default."
+    },
+    {
+      "candidate_id": "MIGRATE_VIBEVOICE",
+      "reason": "Project/application data; available for owner expansion but not selected by default."
+    },
+    {
+      "candidate_id": "MIGRATE_VENVS",
+      "reason": "Environment deletion or migration requires a per-environment keep list."
+    },
+    {
+      "candidate_id": "MIGRATE_MINIFORGE_ENVS",
+      "reason": "Environment deletion or migration requires a per-environment keep list."
+    },
+    {
+      "candidate_id": "CB16_SSD_REVIEW",
+      "reason": "Unknown CB16 SSD artifact; owner review required before any action."
+    }
+  ],
+  "recommendation": {
+    "default_option_id": "B_SAFE_RECLAIM_THEN_ALLOCATE",
+    "default_reason": "Frees about 33 GiB with low data-loss risk and creates a 44.7 GiB FAST_HOT plus a 20.2 GiB reserve.",
+    "condition_for_larger_option": "Choose D_COMBINED_RECLAIM_AND_MIGRATION only if R4/R5 measured evidence shows that 44.7 GiB FAST_HOT is insufficient or if the owner wants a larger reserve margin."
+  },
+  "owner_approval_record_template": {
+    "schema": "CB16_R21_RC2_R2_OWNER_APPROVAL_V1",
+    "required_fields": [
+      "selected_option_id",
+      "selected_candidate_ids",
+      "fast_hot_quota_bytes",
+      "reserve_floor_bytes",
+      "migration_destination_root_if_any",
+      "migration_integrity_requirement_if_any",
+      "authorize_r3_host_change_plan",
+      "approved_by_owner",
+      "approved_at_utc"
+    ],
+    "status": "NOT_YET_APPROVED"
+  }
+}
