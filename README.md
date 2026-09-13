@@ -23,6 +23,12 @@ CB16 的目标是在沙盒中训练一个单资产 Trader：读取市场和账�
 
 当前工作 PR、已合格基础、候选能力和精确版本统一维护在 [CURRENT_STATE](docs/CURRENT_STATE.md)。本页不再复制旧 AC 阶段的实现断点；文档与基础设施的通过不构成交易盈利证明。
 
+## TODO / 技术债
+
+- **仓库级长期 TODO**：[MAIN_TODO](docs/MAIN_TODO.md)。这里记录具有长期收益、但不应被临时混入当前 scientific stage 的工程与 Infra 技术债。
+- **Shanxi Docker Runner 技术债**：当前重点包括专用 `cb16-scratch`、`CB16_CI_WORKER_ROOT` / Provisioner ownership 漂移、`UV_CACHE_DIR` 可写性、preflight writable-root 覆盖、版本化 runner build/start contract、资源与 cleanup 策略。详细拆分见 [MAIN_TODO](docs/MAIN_TODO.md#td-shanxi--shanxi-docker-runner--provisioning-技术债)。
+- 技术债条目本身**不授权**修改冻结科学语义；当前 stage 的执行权限仍以 CURRENT_STATE、stage TODO 和 authority/receipt 为准。
+
 ## 代码与执行入口
 
 | 路径 | 内容 |
