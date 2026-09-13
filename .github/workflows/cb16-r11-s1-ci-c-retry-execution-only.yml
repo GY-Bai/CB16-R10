@@ -17,7 +17,10 @@ env:
   CB16_PROVISION_ENV: /cb16/worker/provision.env
   S1_AUTHORIZED_HEAD: a974e2803ccc2693d67a0375e460da35837636a4
   S1_INVALID_PRIOR_RUN_ID: '34776116151'
+  S1_PERMISSION_INVALID_RUN_ID: '34777726380'
   S1_DIAGNOSTIC_RUN_ID: '34776930235'
+  S1_INFRA_SNAPSHOT_COMMIT: '1349d31778988a3f76308820f60f4a4576bf9ce3'
+  S1_MIN_DISK_FREE_BYTES: '34359738368'
 
 jobs:
   shanxi-preflight:
@@ -88,31 +91,50 @@ jobs:
           set -euo pipefail
           trap 'printf "2\n" > "$RUNNER_TEMP/S1_QUALIFICATION_EXIT_CODE.txt"' ERR
           INVALID_ROOT="/dev/shm/cb16-s1-${S1_INVALID_PRIOR_RUN_ID}-qualification"
-          # Run 34776116151 is formally dispositioned execution-invalid.
-          # Its scratch was preserved only for diagnosis and is now safe to remove.
+          # Run 34776116151 is formally dispositioned execution-invalid after
+          # exhausting the 64 MiB /dev/shm. Its preserved scratch was diagnostic only.
           rm -rf "$INVALID_ROOT"
           rm -rf "/dev/shm/cb16-s1-cic-diag-${S1_DIAGNOSTIC_RUN_ID}" || true
 
-          # RUNNER_TEMP is already writable by the self-hosted runner and resides on
-          # the host-backed disk rather than the 64 MiB /dev/shm tmpfs.
+          # docs/infra/SHANXI_DOCKER_RUNNER_CONTRACT.md and the machine snapshot at
+          # S1_INFRA_SNAPSHOT_COMMIT establish RUNNER_TEMP as runner-writable,
+          # host-backed, job-local disposable scratch. /cb16/worker is intentionally
+          # NOT used because the deployed volume root is root:root 0755 for uid 1001.
+          test -n "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP"
+          test -w "$RUNNER_TEMP"
+          case "$RUNNER_TEMP" in
+            /dev/shm|/dev/shm/*) echo "REFUSE_RUNNER_TEMP_ON_SHM=$RUNNER_TEMP"; exit 1 ;;
+          esac
+
           SCRATCH_ROOT="${RUNNER_TEMP}/s1-qualification-${GITHUB_RUN_ID}"
           rm -rf "$SCRATCH_ROOT"
           mkdir -p "$SCRATCH_ROOT"
           test -w "$SCRATCH_ROOT"
+          PROBE="$SCRATCH_ROOT/.write_probe"
+          printf 's1-cic-retry\n' > "$PROBE"
+          sync "$PROBE"
+          rm -f "$PROBE"
           echo "$SCRATCH_ROOT" > "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt"
 
           SHM_FREE=$(df -PB1 /dev/shm | awk 'NR==2 {print $4}')
           DISK_FREE=$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2 {print $4}')
+          SHM_FS=$(df -P /dev/shm | awk 'NR==2 {print $1}')
+          TEMP_FS=$(df -P "$RUNNER_TEMP" | awk 'NR==2 {print $1}')
           echo "S1_RETRY_SHM_FREE_BYTES=$SHM_FREE"
           echo "S1_RETRY_DISK_FREE_BYTES=$DISK_FREE"
+          echo "S1_RETRY_SHM_FS=$SHM_FS"
+          echo "S1_RETRY_TEMP_FS=$TEMP_FS"
           test "$SHM_FREE" -ge 33554432
-          # Fail closed before scientific execution if writable runner disk cannot
-          # safely hold the formal campaign.
-          test "$DISK_FREE" -ge 2147483648
+          test "$TEMP_FS" != "$SHM_FS"
+          # Conservative execution-only guard. The invalid formal run filled 64 MiB
+          # after ~4/128 updates across 8 concurrent workers; the full 65-job campaign
+          # can require multi-GB scratch. 32 GiB is capacity headroom, not a scientific knob.
+          test "$DISK_FREE" -ge "$S1_MIN_DISK_FREE_BYTES"
           df -h /dev/shm "$RUNNER_TEMP"
           df -i /dev/shm "$RUNNER_TEMP"
 
-          export SHM_FREE DISK_FREE SCRATCH_ROOT
+          export SHM_FREE DISK_FREE SHM_FS TEMP_FS SCRATCH_ROOT
           python3 - <<'PY'
           import json, os, subprocess
           from pathlib import Path
@@ -120,18 +142,27 @@ jobs:
               'schema': 'CB16_R11_S1_CIC_EXECUTION_RETRY_RECEIPT_V1',
               'evidence_class': 'EXECUTION_ONLY_RETRY_BINDING',
               'scientific_semantics_changed': False,
-              'prior_invalid_run_id': int(os.environ['S1_INVALID_PRIOR_RUN_ID']),
+              'prior_invalid_run_ids': [
+                  int(os.environ['S1_INVALID_PRIOR_RUN_ID']),
+                  int(os.environ['S1_PERMISSION_INVALID_RUN_ID']),
+              ],
               'diagnostic_run_id': int(os.environ['S1_DIAGNOSTIC_RUN_ID']),
-              'failure_root_cause': 'SHARED_MEMORY_CAPACITY_EXHAUSTED_DATABASE_OR_DISK_FULL',
+              'failure_root_causes': [
+                  'SHARED_MEMORY_CAPACITY_EXHAUSTED_DATABASE_OR_DISK_FULL',
+                  'DECLARED_WORKER_ROOT_NOT_WRITABLE_BY_RUNNER_UID',
+              ],
+              'infra_snapshot_commit': os.environ['S1_INFRA_SNAPSHOT_COMMIT'],
               'wrapper_event_sha': os.environ['GITHUB_SHA'],
               'authorized_checkout_sha': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
               'authorized_checkout_tree': subprocess.check_output(['git','rev-parse','HEAD^{tree}'], text=True).strip(),
               'scratch_root': os.environ['SCRATCH_ROOT'],
-              'scratch_storage_class': 'WRITABLE_RUNNER_TEMP_HOST_DISK',
+              'scratch_storage_class': 'RUNNER_TEMP_HOST_BACKED_JOB_LOCAL_DISPOSABLE',
+              'scratch_filesystem': os.environ['TEMP_FS'],
               'workers': 8,
               'mode': 'qualification',
               'shm_free_bytes_before_retry': int(os.environ['SHM_FREE']),
               'disk_free_bytes_before_retry': int(os.environ['DISK_FREE']),
+              'minimum_disk_free_bytes': int(os.environ['S1_MIN_DISK_FREE_BYTES']),
               'changed_scientific_fields': [],
           }
           Path(os.environ['RUNNER_TEMP'], 'S1_CIC_EXECUTION_RETRY_RECEIPT.json').write_text(
