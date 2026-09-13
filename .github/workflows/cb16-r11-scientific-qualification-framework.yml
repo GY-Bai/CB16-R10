@@ -118,20 +118,27 @@ jobs:
           import json, subprocess, sys, xml.etree.ElementTree as ET
           out_path, junit_path = sys.argv[1:]
           root = ET.parse(junit_path).getroot()
+          suites = [root] if root.tag == 'testsuite' else list(root.findall('.//testsuite'))
+          assert suites, 'QUALIFICATION_JUNIT_HAS_NO_TESTSUITE'
+          tests = sum(int(suite.attrib.get('tests', 0)) for suite in suites)
+          failures = sum(int(suite.attrib.get('failures', 0)) for suite in suites)
+          errors = sum(int(suite.attrib.get('errors', 0)) for suite in suites)
+          skipped = sum(int(suite.attrib.get('skipped', 0)) for suite in suites)
           payload = {
               'schema': 'CB16_SCIENTIFIC_QUALIFICATION_FRAMEWORK_VALIDATION_V1',
               'status': 'PASS',
               'git_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
               'git_tree_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
-              'tests': int(root.attrib.get('tests', 0)),
-              'failures': int(root.attrib.get('failures', 0)),
-              'errors': int(root.attrib.get('errors', 0)),
-              'skipped': int(root.attrib.get('skipped', 0)),
+              'tests': tests,
+              'failures': failures,
+              'errors': errors,
+              'skipped': skipped,
               'science_authority_modified': False,
               's1_runtime_modified': False,
               'evidence_class': 'NON_SCIENTIFIC_QUALIFICATION_INFRA_VALIDATION',
           }
-          assert payload['failures'] == 0 and payload['errors'] == 0, payload
+          assert tests > 0, payload
+          assert failures == 0 and errors == 0, payload
           with open(out_path, 'w', encoding='utf-8') as handle:
               json.dump(payload, handle, indent=2, sort_keys=True)
               handle.write('\n')
