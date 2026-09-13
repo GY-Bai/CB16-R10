@@ -1,0 +1,14 @@
+{
+  "schema": "CB16_CI_RESULT_V1",
+  "job_id": "ca4f5cc5-0ae2-4776-ae44-9f80c32663d1",
+  "commit_sha": "f7eec55fb1fc84cf4e1fbe5d949ab01b1a909be1",
+  "ci_profile": "smoke",
+  "verdict": "ERROR",
+  "started_at": "2026-09-13T19:20:33Z",
+  "finished_at": "2026-09-13T19:20:33Z",
+  "tests_total": 1,
+  "tests_pass": 0,
+  "tests_fail": 1,
+  "error": "ReadTimeout: HTTPSConnectionPool(host='ci-speedtest.bayesdesk.com', port=443): Read timed out. (read timeout=120)",
+  "model_artifacts": []
+}
