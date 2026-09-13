@@ -1,0 +1,238 @@
+{
+  "schema": "CB16_R21_RC2_R3_HOST_CHANGE_RECEIPT_V1",
+  "status": "EXECUTED_READY_FOR_SOL_REVIEW",
+  "task_id": "R3",
+  "authority": {
+    "task_local_plan": "authority/infra/R21_RC2_R3_TASK_LOCAL_CHANGE_PLAN_V2.json",
+    "owner_approval": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V2.json",
+    "profile_spec": "infra/shanxi_runner/runner_launch_spec_r21_v2.json",
+    "expected_vs_actual": "authority/infra/R21_RC2_R2_EXPECTED_VS_ACTUAL_V1.json"
+  },
+  "execution": {
+    "executor_role": "DS_FLASH",
+    "started_at_utc": "2026-09-13T21:47:00Z",
+    "completed_at_utc": "2026-09-13T23:01:00Z",
+    "host_session": "SSH as bgy to bgyubuntusever22041",
+    "sudo_nopasswd": false,
+    "root_operation_method": "authorized bounded privileged helper containers with nsenter into host namespaces"
+  },
+  "final_capacity": {
+    "ssd_root_free_bytes": 149350363136,
+    "ssd_root_use_percent": 66,
+    "hdd_data_free_bytes": 595987841024,
+    "fast_hot_quota_bytes": 100000000000,
+    "fast_hot_reserve_floor_bytes": 41785114624,
+    "fast_hot_projected_headroom_after_quota_and_reserve_bytes": 7565248512,
+    "hdd_fast_hot_fallback_used": false
+  },
+  "operations": [
+    {
+      "operation_id": "CLN-01",
+      "kind": "RECLAIM_CACHE",
+      "status": "EXECUTED",
+      "paths": [
+        "/home/bgy/.cache/uv",
+        "/home/bgy/.cache/pip",
+        "/home/bgy/miniforge3/pkgs"
+      ],
+      "note": "Conda package cache shared hardlinks with environments; actual free delta was lower than the du-measured candidate size."
+    },
+    {
+      "operation_id": "CLN-02",
+      "kind": "JOURNAL_VACUUM",
+      "status": "EXECUTED",
+      "result": "journal reduced to about 648 MiB; about 3.5 GiB archived journals freed"
+    },
+    {
+      "operation_id": "CLN-03",
+      "kind": "CRASH_ARCHIVE_AND_RECLAIM",
+      "status": "EXECUTED_WITH_CONTRACT_MISMATCH",
+      "archive_path": "/data/cb16_hdd/archive/20260913T214718Z/var_crash",
+      "posthoc_manifest": "/data/cb16_hdd/archive/20260913T214718Z/var_crash.posthoc.sha256",
+      "classification": "CONTRACT_MISMATCH / EVIDENCE_INSUFFICIENT",
+      "detail": "The pre-delete SHA256 verification did not run because bgy could not read root-only crash files; the archived copy remains and post-hoc root SHA256/size evidence was recorded. No full pre-delete proof is claimed."
+    },
+    {
+      "operation_id": "CLN-04",
+      "kind": "APT_CACHE_CLEAN",
+      "status": "EXECUTED",
+      "result": "/var/cache/apt reduced from 252284928 bytes to about 45056 bytes"
+    },
+    {
+      "operation_id": "CLN-05",
+      "kind": "SNAP_DISABLED_REVISIONS",
+      "status": "EXECUTED",
+      "removed": [
+        "core18:2999",
+        "core20:2769",
+        "core22:2411",
+        "lxd:40338",
+        "nextcloud:32537",
+        "nvtop:309",
+        "snapd:27710"
+      ],
+      "result": "no disabled revisions remain in snap list --all"
+    },
+    {
+      "operation_id": "MIG-01",
+      "kind": "MIGRATE_DIR",
+      "target": "/home/bgy/audiotransfer",
+      "destination": "/data/cb16_hdd/home_archive/audiotransfer",
+      "status": "EXECUTED_SHA256_VERIFIED_SOURCE_REMOVED",
+      "source_du_bytes": 49327542272,
+      "dest_du_bytes": 49327763456
+    },
+    {
+      "operation_id": "MIG-02",
+      "kind": "MIGRATE_DIR",
+      "target": "/home/bgy/photo_timeline",
+      "destination": "/data/cb16_hdd/home_archive/photo_timeline",
+      "status": "EXECUTED_SHA256_VERIFIED_SOURCE_REMOVED",
+      "executor": "root-helper because source was root-owned",
+      "source_du_bytes": 20411514880,
+      "dest_du_bytes": 20410482688,
+      "ownership": "root:root preserved"
+    },
+    {
+      "operation_id": "MIG-03",
+      "kind": "MIGRATE_DIR",
+      "target": "/home/bgy/recovered_photos",
+      "destination": "/data/cb16_hdd/home_archive/recovered_photos",
+      "status": "EXECUTED_SHA256_VERIFIED_SOURCE_REMOVED",
+      "source_du_bytes": 20984414208,
+      "dest_du_bytes": 20984131584,
+      "note": "Sparse-file materialization changed du accounting relative to the initial inventory; SHA256 manifest comparison passed."
+    },
+    {
+      "operation_id": "MIG-04",
+      "kind": "MIGRATE_DIR",
+      "target": "/home/bgy/photo_packs",
+      "destination": "/data/cb16_hdd/home_archive/photo_packs",
+      "status": "EXECUTED_SHA256_VERIFIED_SOURCE_REMOVED",
+      "source_du_bytes": 3504091136,
+      "dest_du_bytes": 3504087040
+    },
+    {
+      "operation_id": "MIG-05",
+      "kind": "MIGRATE_FILE",
+      "target": "/home/bgy/photo_packs.tar.zst",
+      "destination": "/data/cb16_hdd/home_archive/photo_packs.tar.zst",
+      "status": "EXECUTED_SHA256_VERIFIED_SOURCE_REMOVED",
+      "bytes": 3437288106,
+      "sha256": "accf6ec6cd5e12d0b19408b9574dd4a1f023215b92a56fee58292f6321066bbf"
+    },
+    {
+      "operation_id": "FH-01",
+      "kind": "FAST_HOT_CREATE",
+      "target": "/srv/cb16_fast_hot",
+      "status": "EXECUTED",
+      "owner": "1001:1001",
+      "mode": "0750",
+      "device": "/dev/sdb",
+      "rotational": false
+    },
+    {
+      "operation_id": "FH-02",
+      "kind": "FAST_HOT_PROFILE",
+      "status": "EXECUTED",
+      "files": [
+        "/srv/cb16_fast_hot/PROFILE_IDENTITY.json",
+        "/srv/cb16_fast_hot/CAPACITY_GUARD.json"
+      ],
+      "profile_id": "R21_RC2_FAST_HOT_RUNNER_V2",
+      "quota_bytes": 100000000000,
+      "reserve_floor_bytes": 41785114624
+    },
+    {
+      "operation_id": "RUN-01",
+      "kind": "RUNNER_VOLUME",
+      "status": "EXECUTED",
+      "volume": "cb16-runner-r21-docker"
+    },
+    {
+      "operation_id": "RUN-02",
+      "kind": "RUNNER_SEED",
+      "status": "EXECUTED",
+      "source": "cb16-runner-docker read-only",
+      "excluded": [
+        ".runner",
+        ".credentials",
+        ".credentials_rsaparams",
+        ".env",
+        ".path",
+        "_work",
+        "_diag"
+      ]
+    },
+    {
+      "operation_id": "RUN-03",
+      "kind": "RUNNER_REGISTRATION",
+      "status": "EXECUTED",
+      "token_persisted": false
+    },
+    {
+      "operation_id": "RUN-04",
+      "kind": "RUNNER_CONFIGURE",
+      "status": "EXECUTED",
+      "runner_name": "shanxi-docker-r21",
+      "agent_id": 25,
+      "labels": [
+        "self-hosted",
+        "Linux",
+        "X64",
+        "shanxi-docker-r21"
+      ]
+    },
+    {
+      "operation_id": "RUN-05",
+      "kind": "RUNNER_START",
+      "status": "EXECUTED",
+      "container_name": "cb16-runner-r21",
+      "container_id": "3108a0ffb5a8d85538e7026f2af081894697b5f11073331cfb67175028c915c6",
+      "image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+      "shm_size_bytes": 2147483648,
+      "runner_status": "online",
+      "existing_r11_container_untouched": true
+    },
+    {
+      "operation_id": "GATE-01",
+      "kind": "RUNNER_GATE",
+      "status": "EXECUTED",
+      "repository_run_id": 34787774829,
+      "job_id": 103806301168,
+      "checkout_sha": "89a84969206c5bf7dbd4e8fcb2aa47a04cc3d58e",
+      "workflow": ".github/workflows/cb16-r21-rc2-r3-recovery-runner-gate.yml",
+      "artifact_id": 10327432751,
+      "artifact_name": "cb16-r21-rc2-r3-recovery-runner-gate",
+      "artifact_digest": "sha256:14dbbfde17edfb4988183f0e08fe0161a39a75906ede6c389d2b2d8f63764baf",
+      "gate_status": "PASS",
+      "gate_checks": 54,
+      "gate_failed_checks": 0,
+      "docker_preflight": "PASS",
+      "verified_python": "READY"
+    }
+  ],
+  "existing_runner_immutability": {
+    "container": "cb16-runner-r11",
+    "container_id": "26fb170773b85ce12f9d54113efcaf56b6838206be84810533a8a08c21cee30f",
+    "image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+    "started_at_utc": "2026-09-09T13:21:57.434236376Z",
+    "shm_size_bytes": 67108864,
+    "status": "online",
+    "changed_by_r3": false
+  },
+  "scientific_boundary": {
+    "s1_scientific_constants_changed": false,
+    "s1_runtime_code_changed": false,
+    "scientific_payload_opened": false,
+    "final_holdout_accessed": false,
+    "hdd_fast_hot_fallback_used": false
+  },
+  "unresolved_for_next_tasks": [
+    "CLN-03 pre-delete proof remains CONTRACT_MISMATCH / EVIDENCE_INSUFFICIENT.",
+    "R4 must record real write-path metrics on the R21 Recovery runner.",
+    "R5 must decide whether SQLite batching (R6) is justified; R6 remains closed by default.",
+    "R7 container-level recovery requires task-limited host authorization.",
+    "R8 remains Sol-owned."
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "schema": "CB16_R21_RC2_R3_TASK_LOCAL_CHANGE_PLAN_V1",
+  "status": "FROZEN_FOR_EXECUTION_OWNER_APPROVED",
+  "task_id": "R3",
+  "owner_approval": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V1.json",
+  "profile_spec": "infra/shanxi_runner/runner_launch_spec_r21_v1.json",
+  "scope": {
+    "allowed": [
+      "safe cache/log/crash/apt/disabled-snap reclaim on the SSD root LV",
+      "checksum-verified migration of the owner-selected cold data to /data/cb16_hdd",
+      "creation of /srv/cb16_fast_hot on the SSD root LV",
+      "creation of one parallel R21 Recovery runner container with a dedicated runner identity/label",
+      "read-only inspection and receipts for all of the above"
+    ],
+    "forbidden": [
+      "formatting, repartitioning or resizing any block device or LVM volume",
+      "stopping, removing, reconfiguring or writing to cb16-runner-r11",
+      "touching scientific payloads, S1 runtime code, S1 manifests or receipts",
+      "using HDD as a FAST_HOT fallback",
+      "deleting any path outside the exact owner-approved candidate list",
+      "deleting an SSD source before copy and integrity verification complete",
+      "adding secrets or tokens to the repository"
+    ],
+    "host_root_access": {
+      "sudo_nopasswd": false,
+      "method": "bgy is in the docker group; root-only host operations are executed through bounded ephemeral privileged helper containers using nsenter into the host namespaces",
+      "authorization": "owner approved R3 host change plan via CB16_R21_RC2_R2_OWNER_APPROVAL_V1",
+      "constraint": "helper commands are limited to the exact operation list below; no generic shell access is retained"
+    }
+  },
+  "frozen_values": {
+    "ssd_root_free_before_bytes": 34029350912,
+    "planned_reclaim_bytes": 35675709440,
+    "planned_migration_bytes": 92080054272,
+    "expected_root_free_after_bytes": 161785114624,
+    "fast_hot_quota_bytes": 120000000000,
+    "reserve_floor_bytes": 41785114624,
+    "migration_destination_root": "/data/cb16_hdd/home_archive",
+    "migration_integrity": "COPY_THEN_SHA256_VERIFY_THEN_REMOVE_SOURCE",
+    "fast_hot_host_path": "/srv/cb16_fast_hot",
+    "fast_hot_container_path": "/cb16/fast_hot",
+    "fast_hot_owner": "1001:1001",
+    "fast_hot_mode": "0750",
+    "new_runner_container": "cb16-runner-r21",
+    "new_runner_volume": "cb16-runner-r21-docker",
+    "new_runner_name": "shanxi-docker-r21",
+    "new_runner_labels": [
+      "self-hosted",
+      "Linux",
+      "X64",
+      "shanxi-docker-r21"
+    ],
+    "new_runner_shm_bytes": 2147483648,
+    "runner_image_reference": "cb16-runner-r11:latest",
+    "runner_image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+    "runner_profile_id": "R21_RC2_FAST_HOT_RUNNER_V1",
+    "provision_env_resolution": {
+      "live_r11_value": "/run/secrets/cb16-provision.env",
+      "r21_profile_value": "/cb16/worker/provision.env",
+      "reason": "R1-DIV-001 recorded that the live target does not exist and the mounted secrets copy is not runner-readable. The new parallel R21 profile uses the runner-readable worker-volume path; the live r11 container is not modified."
+    }
+  },
+  "operations": [
+    {
+      "operation_id": "CLN-01",
+      "kind": "RECLAIM",
+      "target": [
+        "/home/bgy/.cache/uv",
+        "/home/bgy/.cache/pip",
+        "/home/bgy/miniforge3/pkgs/*"
+      ],
+      "executor": "bgy",
+      "command": "rm -rf /home/bgy/.cache/uv /home/bgy/.cache/pip; find /home/bgy/miniforge3/pkgs -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +",
+      "precondition": "owner approval option D; paths are cache-only",
+      "verification": "df -B1 / before/after; du -s -B1 updated; no user project path removed"
+    },
+    {
+      "operation_id": "CLN-02",
+      "kind": "RECLAIM",
+      "target": "/var/log/journal",
+      "executor": "root-helper-nsenter",
+      "command": "nsenter -t 1 -m -u -i -n -p -- journalctl --vacuum-size=512M",
+      "precondition": "owner approval option D; retain 512 MiB",
+      "verification": "journalctl --disk-usage <= 512 MiB; df -B1 / after"
+    },
+    {
+      "operation_id": "CLN-03",
+      "kind": "ARCHIVE_AND_RECLAIM",
+      "target": "/var/crash",
+      "executor": "root-helper-nsenter",
+      "command": "mkdir -p /data/cb16_hdd/archive/var_crash_<utc>; nsenter -t 1 -m -u -i -n -p -- rsync -a /var/crash/ /data/cb16_hdd/archive/var_crash_<utc>/; verify file sizes/sha256; remove /var/crash/* after verification",
+      "precondition": "owner approval option D; crash dumps archived to HDD before SSD removal",
+      "verification": "archive checksum manifest written; /var/crash empty; df -B1 / after"
+    },
+    {
+      "operation_id": "CLN-04",
+      "kind": "RECLAIM",
+      "target": "/var/cache/apt",
+      "executor": "root-helper-nsenter",
+      "command": "nsenter -t 1 -m -u -i -n -p -- apt-get clean",
+      "precondition": "owner approval option D",
+      "verification": "du -s -B1 /var/cache/apt before/after"
+    },
+    {
+      "operation_id": "CLN-05",
+      "kind": "RECLAIM",
+      "target": "disabled snap revisions",
+      "executor": "root-helper-nsenter",
+      "command": "nsenter -t 1 -m -u -i -n -p -- snap remove <name> --revision=<revision> for core18:2999, core20:2769, core22:2411, lxd:40338, nextcloud:32537, nvtop:309, snapd:27710",
+      "precondition": "owner approval option D; only disabled revisions",
+      "verification": "snap list --all shows no listed disabled revisions; /var/lib/snapd/snaps size decreases"
+    },
+    {
+      "operation_id": "MIG-01",
+      "kind": "MIGRATE",
+      "target": "/home/bgy/audiotransfer",
+      "destination": "/data/cb16_hdd/home_archive/audiotransfer",
+      "executor": "bgy",
+      "command": "rsync -aHAX --numeric-ids --info=progress2 /home/bgy/audiotransfer/ /data/cb16_hdd/home_archive/audiotransfer/; rsync -aHAX --checksum --dry-run --itemize-changes ...; sha256 manifest comparison; rm -rf source after PASS",
+      "precondition": "destination free space sufficient; owner approved option D",
+      "verification": "no itemized differences after checksum dry-run; source removed only after PASS"
+    },
+    {
+      "operation_id": "MIG-02",
+      "kind": "MIGRATE",
+      "target": "/home/bgy/photo_timeline",
+      "destination": "/data/cb16_hdd/home_archive/photo_timeline",
+      "executor": "bgy",
+      "same_rule_as": "MIG-01"
+    },
+    {
+      "operation_id": "MIG-03",
+      "kind": "MIGRATE",
+      "target": "/home/bgy/recovered_photos",
+      "destination": "/data/cb16_hdd/home_archive/recovered_photos",
+      "executor": "bgy",
+      "same_rule_as": "MIG-01"
+    },
+    {
+      "operation_id": "MIG-04",
+      "kind": "MIGRATE",
+      "target": "/home/bgy/photo_packs",
+      "destination": "/data/cb16_hdd/home_archive/photo_packs",
+      "executor": "bgy",
+      "same_rule_as": "MIG-01"
+    },
+    {
+      "operation_id": "MIG-05",
+      "kind": "MIGRATE",
+      "target": "/home/bgy/photo_packs.tar.zst",
+      "destination": "/data/cb16_hdd/home_archive/photo_packs.tar.zst",
+      "executor": "bgy",
+      "same_rule_as": "MIG-01"
+    },
+    {
+      "operation_id": "FH-01",
+      "kind": "FAST_HOT_CREATE",
+      "target": "/srv/cb16_fast_hot",
+      "executor": "root-helper",
+      "command": "mkdir -p /srv/cb16_fast_hot; chown 1001:1001 /srv/cb16_fast_hot; chmod 0750 /srv/cb16_fast_hot",
+      "precondition": "owner approval option D",
+      "verification": "stat owner/mode; /sys/block/sdb/queue/rotational == 0; runner-uid write probe"
+    },
+    {
+      "operation_id": "FH-02",
+      "kind": "FAST_HOT_PROFILE",
+      "target": [
+        "/srv/cb16_fast_hot/PROFILE_IDENTITY.json",
+        "/srv/cb16_fast_hot/CAPACITY_GUARD.json"
+      ],
+      "executor": "root-helper or uid 1001",
+      "command": "write profile identity and capacity guard with quota 120000000000, reserve floor 41785114624, host path /srv/cb16_fast_hot, non-rotational device /dev/sdb",
+      "precondition": "FH-01 complete",
+      "verification": "files readable by uid 1001; values match owner approval"
+    },
+    {
+      "operation_id": "RUN-01",
+      "kind": "RUNNER_VOLUME",
+      "target": "docker volume cb16-runner-r21-docker",
+      "executor": "bgy docker",
+      "command": "docker volume create cb16-runner-r21-docker",
+      "precondition": "owner approval R3",
+      "verification": "volume exists; no impact on cb16-runner-docker"
+    },
+    {
+      "operation_id": "RUN-02",
+      "kind": "RUNNER_SEED",
+      "target": "cb16-runner-r21-docker",
+      "executor": "bgy docker root-helper",
+      "command": "docker run --rm --user 0:0 -v cb16-runner-docker:/src:ro -v cb16-runner-r21-docker:/dst cb16-runner-r11:latest rsync -a --exclude=_work --exclude=_diag --exclude=.runner --exclude=.runner_migrated --exclude=.credentials --exclude=.credentials_rsaparams --exclude=.env --exclude=.path /src/ /dst/; chown -R 1001:1001 /dst",
+      "precondition": "cb16-runner-docker is read-only source; existing runner remains untouched",
+      "verification": "new volume contains bin/externals/config.sh/run.sh but no runner credentials or existing _work state"
+    },
+    {
+      "operation_id": "RUN-03",
+      "kind": "RUNNER_REGISTRATION",
+      "target": "GitHub Actions runner registration token",
+      "executor": "local gh CLI",
+      "command": "gh api -X POST repos/GY-Bai/CB16-R10/actions/runners/registration-token",
+      "precondition": "owner approval R3",
+      "verification": "token exists and expires; token is never written to the repository or a durable host file"
+    },
+    {
+      "operation_id": "RUN-04",
+      "kind": "RUNNER_CONFIGURE",
+      "target": "cb16-runner-r21 runner registration",
+      "executor": "bgy docker one-shot",
+      "command": "docker run --rm -i --network cb16-net --gpus all --shm-size 2g ...same profile env/mounts... cb16-runner-r11:latest bash -lc 'read -r TOKEN; ./config.sh --unattended --url https://github.com/GY-Bai/CB16-R10 --token \"$TOKEN\" --name shanxi-docker-r21 --labels self-hosted,Linux,X64,shanxi-docker-r21 --work _work --replace'",
+      "precondition": "RUN-01..03 complete",
+      "verification": "config exits 0; new volume contains .runner/.credentials and no r11 identity"
+    },
+    {
+      "operation_id": "RUN-05",
+      "kind": "RUNNER_START",
+      "target": "container cb16-runner-r21",
+      "executor": "bgy docker",
+      "command": "docker run -d --name cb16-runner-r21 --hostname cb16-runner-r21 --restart unless-stopped --network cb16-net --gpus all --shm-size 2g ...profile env/mounts... cb16-runner-r11:latest ./run.sh",
+      "precondition": "RUN-04 complete; cb16-runner-r11 untouched",
+      "verification": "container running as 1001:1001; Runner.Listener process present; GitHub runner list shows shanxi-docker-r21 online with labels"
+    },
+    {
+      "operation_id": "EVID-01",
+      "kind": "RECEIPT",
+      "target": "R3 host-change receipt",
+      "executor": "DS Flash",
+      "command": "write authority/infra/R21_RC2_R3_HOST_CHANGE_RECEIPT_V1.json and artifact evidence",
+      "precondition": "operations complete or fail-closed",
+      "verification": "before/after bytes, commands, exit statuses, protected-path checks and runner identity recorded"
+    }
+  ],
+  "gate": {
+    "workflow": ".github/workflows/cb16-r21-rc2-r3-recovery-runner-gate.yml",
+    "runs_on": [
+      "self-hosted",
+      "shanxi-docker-r21"
+    ],
+    "proofs": [
+      "runner profile identity",
+      "FAST_HOT write permission",
+      "2 GiB shared memory",
+      "FAST_HOT non-rotational placement",
+      "protected scientific inputs read-only",
+      "existing cb16-runner-r11 untouched"
+    ]
+  },
+  "rollback": {
+    "runner": "stop and remove cb16-runner-r21 and cb16-runner-r21-docker if R3 gate fails; cb16-runner-r11 remains the rollback runner.",
+    "fast_hot": "remove /srv/cb16_fast_hot only if not used by a passing gate and owner authorizes.",
+    "migration": "do not delete SSD sources before verification; if verification fails, keep both copies and fail closed.",
+    "cleanup": "cache/log/crash cleanup is not reversible; archive/checksum receipts are retained."
+  }
+}

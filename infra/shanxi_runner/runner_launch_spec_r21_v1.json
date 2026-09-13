@@ -1,0 +1,270 @@
+{
+  "schema": "CB16_SHANXI_RUNNER_LAUNCH_SPEC_R21_V1",
+  "status": "DS_PROPOSED_PENDING_SOL_REVIEW",
+  "profile_id": "R21_RC2_FAST_HOT_RUNNER_V1",
+  "task_id": "R3",
+  "source_base_spec": "infra/shanxi_runner/runner_launch_spec_v1.json",
+  "owner_approval": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V1.json",
+  "container": {
+    "name": "cb16-runner-r21",
+    "hostname": "cb16-runner-r21",
+    "source_live_reference_container": "cb16-runner-r11",
+    "dedicated_github_runner_name": "shanxi-docker-r21",
+    "dedicated_github_runner_labels": [
+      "self-hosted",
+      "Linux",
+      "X64",
+      "shanxi-docker-r21"
+    ],
+    "managed_by": {
+      "systemd_unit": null,
+      "compose_project": null,
+      "labels": {}
+    }
+  },
+  "image": {
+    "reference": "cb16-runner-r11:latest",
+    "live_image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+    "base_image": "python:3.10-slim-bookworm",
+    "base_python_version": "3.10.21",
+    "source_definition": "infra/shanxi_runner/Dockerfile"
+  },
+  "run": {
+    "detach": true,
+    "restart_policy": "unless-stopped",
+    "network_mode": "cb16-net",
+    "gpu_request": "all",
+    "shm_size_bytes": 2147483648,
+    "user": "1001:1001",
+    "working_dir": "/home/cb16-runner/actions-runner",
+    "entrypoint": null,
+    "command": [
+      "./run.sh"
+    ],
+    "privileged": false,
+    "readonly_rootfs": false
+  },
+  "environment": [
+    {
+      "name": "CB16_RAW_ROOT",
+      "value": "/cb16/raw"
+    },
+    {
+      "name": "CB16_G0_ROOT",
+      "value": "/cb16/g0"
+    },
+    {
+      "name": "CB16_R11_G0_ROOT",
+      "value": "/cb16/g0"
+    },
+    {
+      "name": "CB16_R104_ROOT",
+      "value": "/cb16/runtime/r104"
+    },
+    {
+      "name": "CB16_VERIFIED_VENV",
+      "value": "/cb16/venv"
+    },
+    {
+      "name": "CB16_UV_CACHE_DIR",
+      "value": "/cb16/uv-cache"
+    },
+    {
+      "name": "CB16_CI_WORKER_ROOT",
+      "value": "/cb16/worker"
+    },
+    {
+      "name": "CB16_PACKAGE_ROOT",
+      "value": "/cb16/package"
+    },
+    {
+      "name": "CB16_PARENT_R101_ROOT",
+      "value": "/cb16/parent-r101"
+    },
+    {
+      "name": "CB16_PARENT_G0",
+      "value": "/cb16/parents/r10_1.pt"
+    },
+    {
+      "name": "CB16_PROVISION_ENV",
+      "value": "/cb16/worker/provision.env",
+      "note": "R21 profile uses the runner-readable worker path; this resolves R1-DIV-001 for the new parallel runner without modifying cb16-runner-r11."
+    },
+    {
+      "name": "CB16_FAST_HOT_ROOT",
+      "value": "/cb16/fast_hot",
+      "note": "New profile-scoped path for R4/R5/R7 hot-state placement."
+    },
+    {
+      "name": "CB16_RUNNER_PROFILE_ID",
+      "value": "R21_RC2_FAST_HOT_RUNNER_V1",
+      "note": "Dedicated identity marker for the R21 Recovery runner gate."
+    },
+    {
+      "name": "HTTP_PROXY",
+      "value": "http://cb16-gost:33128"
+    },
+    {
+      "name": "HTTPS_PROXY",
+      "value": "http://cb16-gost:33128"
+    },
+    {
+      "name": "NO_PROXY",
+      "value": "localhost,127.0.0.1"
+    },
+    {
+      "name": "HOME",
+      "value": "/home/cb16-runner"
+    },
+    {
+      "name": "PATH",
+      "value": "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+    },
+    {
+      "name": "LANG",
+      "value": "C.UTF-8"
+    },
+    {
+      "name": "PYTHON_VERSION",
+      "value": "3.10.21"
+    },
+    {
+      "name": "GPG_KEY",
+      "value": "A035C8C19219BA821ECEA86B64E628F8D684696D"
+    },
+    {
+      "name": "PYTHON_SHA256",
+      "value": "a0da1e72132e950154eca0f6f47d5db828454700de20e5113667940d81e0db04"
+    },
+    {
+      "name": "UV_CACHE_DIR",
+      "value": "/cb16/uv-cache"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    }
+  ],
+  "mounts": [
+    {
+      "volume": "cb16-raw",
+      "container_path": "/cb16/raw",
+      "mount_rw": false,
+      "purpose": "read-only raw market data",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-g0",
+      "container_path": "/cb16/g0",
+      "mount_rw": true,
+      "purpose": "G0 writable scientific root",
+      "protected_input": false
+    },
+    {
+      "volume": "cb16-runtime-r104",
+      "container_path": "/cb16/runtime/r104",
+      "mount_rw": false,
+      "purpose": "read-only runtime",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-venv",
+      "container_path": "/cb16/venv",
+      "mount_rw": true,
+      "purpose": "verified venv (consume only)",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-uv-cache",
+      "container_path": "/cb16/uv-cache",
+      "mount_rw": true,
+      "purpose": "uv cache dir; owner remains root in the live profile",
+      "protected_input": false
+    },
+    {
+      "volume": "cb16-worker",
+      "container_path": "/cb16/worker",
+      "mount_rw": true,
+      "purpose": "provision.env carrier",
+      "protected_input": false
+    },
+    {
+      "volume": "cb16-package",
+      "container_path": "/cb16/package",
+      "mount_rw": false,
+      "purpose": "read-only package/materialization input",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-parent-r101",
+      "container_path": "/cb16/parent-r101",
+      "mount_rw": false,
+      "purpose": "read-only R10.1 parent",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-parent-g0",
+      "container_path": "/cb16/parents",
+      "mount_rw": false,
+      "purpose": "read-only G0 parents",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-r2-authority",
+      "container_path": "/cb16/r2-authority",
+      "mount_rw": false,
+      "purpose": "read-only R2 authority",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-r2-native",
+      "container_path": "/cb16/r2-native",
+      "mount_rw": true,
+      "purpose": "R2 native writable area",
+      "protected_input": false
+    },
+    {
+      "volume": "cb16-config",
+      "container_path": "/run/secrets",
+      "mount_rw": false,
+      "purpose": "root-only secrets volume",
+      "protected_input": true
+    },
+    {
+      "volume": "cb16-runner-r21-docker",
+      "container_path": "/home/cb16-runner/actions-runner",
+      "mount_rw": true,
+      "purpose": "dedicated R21 runner root and _work",
+      "protected_input": false
+    },
+    {
+      "volume": null,
+      "host_path": "/srv/cb16_fast_hot",
+      "container_path": "/cb16/fast_hot",
+      "mount_rw": true,
+      "purpose": "SSD-backed FAST_HOT",
+      "protected_input": false,
+      "storage_class": "SSD_NON_ROTATIONAL"
+    }
+  ],
+  "fast_hot": {
+    "host_path": "/srv/cb16_fast_hot",
+    "container_path": "/cb16/fast_hot",
+    "host_filesystem": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+    "host_device": "/dev/sdb",
+    "quota_bytes": 120000000000,
+    "reserve_floor_bytes": 41785114624,
+    "owner_uid": 1001,
+    "owner_gid": 1001,
+    "mode": "0750",
+    "hdd_fallback_allowed": false
+  },
+  "identity": {
+    "runtime_acceptance_inherited": false,
+    "s1_scientific_manifest_changed": false,
+    "s1_runtime_code_changed": false,
+    "execution_surface_changed": true,
+    "new_container_identity": "cb16-runner-r21",
+    "runner_profile_id": "R21_RC2_FAST_HOT_RUNNER_V1"
+  }
+}
