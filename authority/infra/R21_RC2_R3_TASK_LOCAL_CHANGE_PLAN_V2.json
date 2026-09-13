@@ -1,0 +1,189 @@
+{
+  "schema": "CB16_R21_RC2_R3_TASK_LOCAL_CHANGE_PLAN_V2",
+  "status": "FROZEN_FOR_EXECUTION_OWNER_APPROVED",
+  "revision": 2,
+  "supersedes": "authority/infra/R21_RC2_R3_TASK_LOCAL_CHANGE_PLAN_V1.json",
+  "task_id": "R3",
+  "owner_approval": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V2.json",
+  "profile_spec": "infra/shanxi_runner/runner_launch_spec_r21_v2.json",
+  "scope": {
+    "allowed": [
+      "complete the owner-approved Option D migration with SHA256 verification",
+      "create /srv/cb16_fast_hot with quota 100000000000 and reserve floor 41785114624",
+      "create one parallel R21 Recovery runner container with a dedicated runner identity/label",
+      "run the R3 GitHub Actions gate on the new runner",
+      "produce read-only receipts for all of the above"
+    ],
+    "forbidden": [
+      "formatting, repartitioning or resizing any block device or LVM volume",
+      "stopping, removing, reconfiguring or writing to cb16-runner-r11",
+      "touching scientific payloads, S1 runtime code, S1 manifests or receipts",
+      "using HDD as a FAST_HOT fallback",
+      "deleting any path outside the exact owner-approved candidate list",
+      "deleting an SSD source before SHA256 verification passes",
+      "allowing FAST_HOT usage to consume the reserve floor",
+      "adding secrets or tokens to the repository"
+    ],
+    "host_root_access": {
+      "sudo_nopasswd": false,
+      "method": "bgy is in the docker group; root-only host operations use bounded ephemeral privileged helper containers with nsenter into host namespaces",
+      "authorization": "owner approved R3 host change plan via R21_RC2_R2_OWNER_APPROVAL_V2",
+      "constraint": "helper commands are limited to the operation list below; no generic retained shell"
+    }
+  },
+  "actual_state_at_revision": {
+    "ssd_root_free_bytes": 121424924672,
+    "migration_completed": [
+      "audiotransfer",
+      "photo_timeline"
+    ],
+    "migration_pending": [
+      "recovered_photos",
+      "photo_packs",
+      "photo_packs.tar.zst"
+    ],
+    "remaining_migration_source_bytes": 22340997120,
+    "projected_free_after_remaining_migration_bytes": 143765921792,
+    "remaining_migration_integrity": "SHA256_MANIFEST_VERIFY_BEFORE_SOURCE_REMOVAL"
+  },
+  "revised_frozen_values": {
+    "fast_hot_host_path": "/srv/cb16_fast_hot",
+    "fast_hot_container_path": "/cb16/fast_hot",
+    "fast_hot_quota_bytes": 100000000000,
+    "reserve_floor_bytes": 41785114624,
+    "projected_free_after_quota_and_reserve_bytes": 1980807168,
+    "fast_hot_owner": "1001:1001",
+    "fast_hot_mode": "0750",
+    "new_runner_container": "cb16-runner-r21",
+    "new_runner_volume": "cb16-runner-r21-docker",
+    "new_runner_name": "shanxi-docker-r21",
+    "new_runner_labels": [
+      "self-hosted",
+      "Linux",
+      "X64",
+      "shanxi-docker-r21"
+    ],
+    "new_runner_shm_bytes": 2147483648,
+    "runner_profile_id": "R21_RC2_FAST_HOT_RUNNER_V2",
+    "runner_image_reference": "cb16-runner-r11:latest",
+    "runner_image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e",
+    "provision_env_for_r21_profile": "/cb16/worker/provision.env"
+  },
+  "known_deviations_retained": [
+    {
+      "operation_id": "CLN-03",
+      "classification": "CONTRACT_MISMATCH / EVIDENCE_INSUFFICIENT",
+      "detail": "Pre-delete SHA256 verification for /var/crash did not actually run because bgy could not read root-only crash files. The archive remains on HDD with post-hoc root SHA256/size evidence; no full pre-delete proof is claimed."
+    },
+    {
+      "operation_id": "MIG-02",
+      "classification": "EXECUTOR_CHANGED_TO_ROOT_HELPER",
+      "detail": "/home/bgy/photo_timeline was root-owned; source removal required a root helper. Content was SHA256-verified and root ownership preserved on the destination."
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "MIG-03",
+      "kind": "MIGRATE_COMPLETE",
+      "target": "/home/bgy/recovered_photos",
+      "destination": "/data/cb16_hdd/home_archive/recovered_photos",
+      "executor": "root-helper",
+      "command": "generate source SHA256 manifest if absent; rsync -aHAX --numeric-ids --owner --group --partial; sha256sum -c source manifest; generate dest manifest and compare; rm -rf source only after PASS",
+      "precondition": "owner approval V2; source and destination both remain",
+      "verification": "source/dest manifest compare PASS; file count compare; free-byte delta recorded"
+    },
+    {
+      "operation_id": "MIG-04",
+      "kind": "MIGRATE",
+      "target": "/home/bgy/photo_packs",
+      "destination": "/data/cb16_hdd/home_archive/photo_packs",
+      "executor": "root-helper",
+      "same_rule_as": "MIG-03",
+      "verification": "SHA256_MANIFEST_VERIFY_BEFORE_SOURCE_REMOVAL"
+    },
+    {
+      "operation_id": "MIG-05",
+      "kind": "MIGRATE_FILE",
+      "target": "/home/bgy/photo_packs.tar.zst",
+      "destination": "/data/cb16_hdd/home_archive/photo_packs.tar.zst",
+      "executor": "root-helper",
+      "command": "sha256 source; cp -a; sha256 destination; compare; rm source only after PASS"
+    },
+    {
+      "operation_id": "FH-01",
+      "kind": "FAST_HOT_CREATE",
+      "target": "/srv/cb16_fast_hot",
+      "executor": "root-helper",
+      "command": "mkdir -p /srv/cb16_fast_hot; chown 1001:1001; chmod 0750",
+      "verification": "owner/mode; non-rotational /dev/sdb; write probe"
+    },
+    {
+      "operation_id": "FH-02",
+      "kind": "FAST_HOT_PROFILE",
+      "target": [
+        "/srv/cb16_fast_hot/PROFILE_IDENTITY.json",
+        "/srv/cb16_fast_hot/CAPACITY_GUARD.json"
+      ],
+      "executor": "root-helper or uid 1001",
+      "command": "write profile R21_RC2_FAST_HOT_RUNNER_V2 and capacity guard quota=100000000000 reserve=41785114624",
+      "verification": "files readable by uid 1001 and values match owner approval V2"
+    },
+    {
+      "operation_id": "RUN-01",
+      "kind": "RUNNER_VOLUME",
+      "target": "docker volume cb16-runner-r21-docker",
+      "executor": "bgy docker",
+      "command": "docker volume create cb16-runner-r21-docker"
+    },
+    {
+      "operation_id": "RUN-02",
+      "kind": "RUNNER_SEED",
+      "target": "cb16-runner-r21-docker",
+      "executor": "bgy docker root-helper",
+      "command": "seed runner binaries from cb16-runner-docker read-only excluding _work,_diag,.runner,.runner_migrated,.credentials,.credentials_rsaparams,.env,.path; chown 1001:1001"
+    },
+    {
+      "operation_id": "RUN-03",
+      "kind": "RUNNER_REGISTRATION",
+      "target": "GitHub Actions registration token",
+      "executor": "local gh CLI",
+      "command": "gh api -X POST repos/GY-Bai/CB16-R10/actions/runners/registration-token",
+      "verification": "token used ephemerally; never written to repository or durable file"
+    },
+    {
+      "operation_id": "RUN-04",
+      "kind": "RUNNER_CONFIGURE",
+      "target": "cb16-runner-r21 registration",
+      "executor": "bgy docker one-shot",
+      "command": "read token from stdin; config.sh --unattended --name shanxi-docker-r21 --labels self-hosted,Linux,X64,shanxi-docker-r21 --work _work --replace"
+    },
+    {
+      "operation_id": "RUN-05",
+      "kind": "RUNNER_START",
+      "target": "container cb16-runner-r21",
+      "executor": "bgy docker",
+      "command": "docker run -d --name cb16-runner-r21 --hostname cb16-runner-r21 --restart unless-stopped --network cb16-net --gpus all --shm-size 2g profile env/mounts cb16-runner-r11:latest ./run.sh",
+      "verification": "container running as 1001:1001; GitHub runner online with dedicated label"
+    },
+    {
+      "operation_id": "GATE-01",
+      "kind": "RUNNER_GATE",
+      "target": ".github/workflows/cb16-r21-rc2-r3-recovery-runner-gate.yml",
+      "executor": "GitHub Actions on shanxi-docker-r21",
+      "verification": "profile identity, FAST_HOT write permission, 2 GiB shm, non-rotational placement, protected inputs read-only"
+    },
+    {
+      "operation_id": "EVID-01",
+      "kind": "RECEIPT",
+      "target": "authority/infra/R21_RC2_R3_HOST_CHANGE_RECEIPT_V1.json",
+      "executor": "DS Flash",
+      "verification": "before/after bytes, commands, exit statuses, deviations, artifact IDs"
+    }
+  ],
+  "rollback": {
+    "runner": "stop/remove cb16-runner-r21 and its volume if the gate fails; cb16-runner-r11 remains rollback.",
+    "fast_hot": "remove /srv/cb16_fast_hot only after owner authorization if unused.",
+    "migration": "keep both copies and fail closed if verification fails.",
+    "cleanup": "cache/log/crash cleanup is not reversible; receipts are retained."
+  }
+}
