@@ -284,7 +284,21 @@ def main(argv: list[str] | None = None) -> int:
         _surface_report(category, summary, updates, mount)
         for category in sorted(set(REQUIRED_SURFACES) | set(summary.keys()))
     ]
-    observed_surfaces = [entry["surface"] for entry in surfaces if entry["bytes_written"] > 0 or entry["write_calls"] > 0]
+    def _has_activity(entry: dict[str, Any]) -> bool:
+        return any(
+            entry.get(name, 0)
+            for name in (
+                "bytes_written",
+                "write_calls",
+                "fsync_calls",
+                "durable_syncs",
+                "sqlite_commit_calls",
+                "open_write_calls",
+                "replace_calls",
+            )
+        )
+
+    observed_surfaces = [entry["surface"] for entry in surfaces if _has_activity(entry)]
     missing_surfaces = [surface for surface in REQUIRED_SURFACES if surface not in observed_surfaces]
 
     device_io: dict[str, Any] = {}

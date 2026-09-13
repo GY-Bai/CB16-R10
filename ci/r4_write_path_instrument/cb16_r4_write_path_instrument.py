@@ -28,6 +28,7 @@ _RAW_RENAME = os.rename
 _RAW_OS_OPEN = os.open
 _RAW_OS_WRITE = os.write
 _RAW_OS_CLOSE = os.close
+_RAW_OS_FDOPEN = os.fdopen
 
 _LOCK = threading.Lock()
 _START_NS = time.monotonic_ns()
@@ -264,6 +265,14 @@ def _instrumented_os_close(fd: int) -> None:
     return _RAW_OS_CLOSE(fd)
 
 
+def _instrumented_fdopen(fd: int, *args: Any, **kwargs: Any) -> Any:
+    file_obj = _RAW_OS_FDOPEN(fd, *args, **kwargs)
+    path = _FD_PATHS.get(fd)
+    if path and _is_monitored(path):
+        return _CountedFile(file_obj, path)
+    return file_obj
+
+
 def _instrumented_replace(src: Any, dst: Any) -> None:
     _record("replace", str(os.fspath(dst)))
     return _RAW_REPLACE(src, dst)
@@ -319,6 +328,7 @@ def install() -> None:
     os.open = _instrumented_os_open
     os.write = _instrumented_os_write
     os.close = _instrumented_os_close
+    os.fdopen = _instrumented_fdopen
     os.replace = _instrumented_replace
     os.rename = _instrumented_rename
     if hasattr(os, "register_at_fork"):

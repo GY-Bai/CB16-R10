@@ -52,6 +52,7 @@ class WritePathInventoryV1Tests(unittest.TestCase):
         self.assertIn("_record(\"write\"", module)
         self.assertIn("sqlite3.connect", module)
         self.assertIn("fsync", module)
+        self.assertIn("os.fdopen", module)
 
     def test_path_classification(self) -> None:
         cases = {
