@@ -41,8 +41,8 @@
   },
   "first_unfinished_item": "Attach exact-SHA Shanxi Docker CI-A / CI-B evidence to this record after the push for implementation candidate f4f5848f894b.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
-  "implementation_candidate_sha": "f4f5848f894bd5078e0b2113d37c2c6be6bb822c",
-  "implementation_candidate_tree_sha": "cd0454090127ec6e52f0a71346e85a2d4892c46c",
+  "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
+  "implementation_candidate_tree_sha": "b1b76360d111b03d59d59d3f52a45913618916c1",
   "model_optimizer_identity": {
     "actor_class": "CCCentralBrain",
     "actor_dimensions": {
@@ -74,7 +74,7 @@
   "record_binding_head_sha": null,
   "review_history": [
     {
-      "implementation_candidate_sha": "f4f5848f894bd5078e0b2113d37c2c6be6bb822c",
+      "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
       "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO.",
       "requested_state": "READY_FOR_SOL_CODE_REVIEW",
       "round": "R0",
