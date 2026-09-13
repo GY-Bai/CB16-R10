@@ -14,24 +14,24 @@
     },
     "shanxi_ci": {
       "bounded_smoke": {
-        "artifact_id": 10314630289,
-        "checkout_sha": "d38a78d2e8b4368236ab861aed955ac25a1fb2f7",
-        "checkout_tree_sha": "847388727a2265cf8520bc4fd591b0c0c034a8cf",
+        "artifact_id": 10314233594,
+        "checkout_sha": "7e3e178810c1f181d8a01ae4693978d31bd5fa97",
+        "checkout_tree_sha": "5411091e9797963bfcfc6f6b956521654a6bfce0",
         "conclusion": "success",
-        "duration_seconds": 149,
+        "duration_seconds": 142,
         "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
         "executed_jobs": 13,
         "fabricated_log_mu_audit_pass": true,
         "integrity_attack_suite_all_rejected": true,
-        "job_id": 103693241221,
+        "job_id": 103696586248,
         "job_name": "S1 bounded smoke (engineering only)",
         "not_scientific_qualification": true,
         "objective_firewall_audit_pass": true,
-        "program_wall_seconds": 47.356651306152344,
+        "program_wall_seconds": 46.67992973327637,
         "run_attempt": 1,
-        "run_id": 34745732978,
-        "runtime_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
-        "scratch_root": "/dev/shm/cb16-s1-34745732978-smoke",
+        "run_id": 34746971506,
+        "runtime_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
+        "scratch_root": "/dev/shm/cb16-s1-34746971506-smoke",
         "workers": 2
       },
       "formal_qualification": {
@@ -40,24 +40,39 @@
         "started": false
       },
       "implementation_suite": {
-        "artifact_id": 10314196647,
-        "checkout_sha": "d38a78d2e8b4368236ab861aed955ac25a1fb2f7",
-        "checkout_tree_sha": "847388727a2265cf8520bc4fd591b0c0c034a8cf",
+        "artifact_id": 10314073817,
+        "checkout_sha": "7e3e178810c1f181d8a01ae4693978d31bd5fa97",
+        "checkout_tree_sha": "5411091e9797963bfcfc6f6b956521654a6bfce0",
         "conclusion": "success",
-        "duration_seconds": 249,
+        "duration_seconds": 248,
         "gpu": "NVIDIA GeForce GTX 1060 6GB",
-        "job_id": 103693241233,
+        "job_id": 103696586242,
         "job_name": "S1 implementation unit and invariant suite",
         "python_version": "3.10.21",
         "run_attempt": 1,
-        "run_id": 34745732978,
+        "run_id": 34746971506,
         "runner": "shanxi-docker-r11",
-        "runtime_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
+        "runtime_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
         "tests_failed": 0,
-        "tests_passed": 146,
+        "tests_passed": 147,
+        "tests_skipped": 0,
         "torch_cuda_version": "12.6",
         "torch_version": "2.8.0+cu126",
         "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
+      },
+      "record_binding_verification": {
+        "artifact_id": 10314910361,
+        "conclusion": "success",
+        "duration_seconds": 88,
+        "job_id": 103696592424,
+        "job_name": "S1 record-binding head verification",
+        "reuse_of_qualified_artifacts_allowed": true,
+        "run_attempt": 1,
+        "run_id": 34746973146,
+        "runtime_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
+        "status": "PASS",
+        "verified_head_sha": "7e3e178810c1f181d8a01ae4693978d31bd5fa97",
+        "verified_head_tree_sha": "5411091e9797963bfcfc6f6b956521654a6bfce0"
       }
     }
   },
@@ -83,7 +98,7 @@
     "historical_market_corpus_accessed": false,
     "transfer_evidence_claimed": false
   },
-  "first_unfinished_item": "Sol R1 code review of runtime candidate e3007fc2d26923a99c51ec8708acf8e81c7b2392; formal qualification only after reviewer authorization.",
+  "first_unfinished_item": "Sol R1 code review of runtime candidate 3ee53f6576ea39e151e7377e4b9f46c2c63d1eee; formal qualification only after reviewer records READY_FOR_S1_QUALIFICATION.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
   "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
   "implementation_candidate_tree_sha": "23a6d5ac645cc660129e7fc460e0e7daf381e3c7",
@@ -139,6 +154,25 @@
         "implementation_suite_run": 34745732978
       },
       "submitted_by": "DS Flash"
+    },
+    {
+      "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
+      "notes": "Final Phase-A evidence: 147 focused S1+S0v2 tests passed on Shanxi Docker, bounded smoke executed the full durable loop for all five tasks plus controls, and CI-D record binding returned PASS. No scientific verdict claimed.",
+      "requested_state": "READY_FOR_SOL_CODE_REVIEW",
+      "round": "R0",
+      "shanxi_ci": {
+        "artifact_ids": [
+          10314073817,
+          10314233594,
+          10314910361
+        ],
+        "bounded_smoke_job": 103696586248,
+        "implementation_suite_job": 103696586242,
+        "implementation_suite_run": 34746971506,
+        "record_binding_job": 103696592424,
+        "record_binding_run": 34746973146
+      },
+      "submitted_by": "DS Flash"
     }
   ],
   "schema": "CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1",
@@ -163,8 +197,9 @@
   "unresolved_items": [
     "Formal 5-seed qualification has not started; it is gated by reviewer-owned READY_FOR_S1_QUALIFICATION authorization.",
     "The frozen initial checkpoint semantic hash is treated as declared authority because the repository contains no codec generator.",
+    "High-bankruptcy higher-EV family mass uses the manifest-declared risk band [0.85,0.95) for direction LONG; reviewer may require a different concretization before formal qualification.",
     "Off-policy ratio both-sides evidence is required per seed during formal qualification; Phase A records the counts but does not assert them.",
-    "Qualification envelope estimate from the Shanxi smoke (832 decisions, 47.4s wall, workers=2) is roughly 3-5 hours for the full 65-run program at workers=8; CI-C timeout is 360 minutes and the execution-only /dev/shm scratch root is used to avoid container-disk fsync cost."
+    "Qualification envelope estimate: Shanxi smoke consumed 46.7s wall (832 decisions, workers=2, /dev/shm scratch); the full 65-run program at workers=8 is estimated roughly 3-5 hours against the CI-C 360-minute timeout."
   ],
   "vtrace_critic_status": "ANALYTIC_HAND_FIXTURE_IMPLEMENTED_TOLERANCE_1E-6"
 }
