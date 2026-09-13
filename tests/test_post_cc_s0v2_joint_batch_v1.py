@@ -8,7 +8,9 @@ import pytest
 from cb16_local_opt.cc_runtime_boundary_r0 import COMPUTE_CHUNK, ECONOMIC_TERMINAL
 from cb16_local_opt.post_cc_joint_batch_v1 import (
     JointActionBatchV1,
+    boundary_semantics_v1,
     build_joint_batch_v1,
+    classify_boundary_v1,
 )
 from tests.cc_s0v2_support import make_batch_v1, make_canonical_observation_v1, make_joint_sample_v1
 
@@ -112,3 +114,38 @@ def test_truncation_requires_durable_bootstrap_observation(tmp_path: Path):
             (unexpected,),
             bootstrap_observations_by_sequence={unexpected.sequence_id: bootstrap_fact},
         )
+
+
+def test_boundary_semantics_distinguish_terminal_truncation_and_horizon(tmp_path: Path):
+    assert boundary_semantics_v1("ECONOMIC_TERMINAL") == "ECONOMIC_TERMINAL"
+    assert boundary_semantics_v1("ECONOMIC_TERMINAL", mechanical_terminal=True) == "MECHANICAL_TERMINAL"
+    assert boundary_semantics_v1("OBJECTIVE_HORIZON_REACHED") == "TASK_HORIZON"
+    assert boundary_semantics_v1("COMPUTE_CHUNK") == "COMPUTE_TRUNCATION"
+    assert boundary_semantics_v1("PAUSE") == "COMPUTE_TRUNCATION"
+    assert boundary_semantics_v1("DATA_END_TRUNCATION") == "DATASET_TRUNCATION"
+    assert boundary_semantics_v1("TRADING_DISABLED_PENDING_SETTLEMENT") == "PENDING_SETTLEMENT"
+    assert classify_boundary_v1("COMPUTE_CHUNK") == "TRUNCATION"
+    assert classify_boundary_v1("OBJECTIVE_HORIZON_REACHED") == "TERMINAL"
+    with pytest.raises(ValueError, match="MECHANICAL_TERMINAL_BOUNDARY_MISMATCH"):
+        boundary_semantics_v1("COMPUTE_CHUNK", mechanical_terminal=True)
+    with pytest.raises(ValueError, match="MECHANICAL_TERMINAL_BOUNDARY_MISMATCH"):
+        replace(
+            make_joint_sample_v1(root=tmp_path, boundary_type="CONTINUE"),
+            mechanical_terminal=True,
+        ).validate()
+
+
+def test_mechanical_terminal_tensor_mismatch_fails_closed(tmp_path: Path):
+    first = make_joint_sample_v1(root=tmp_path, boundary_type="CONTINUE")
+    second = make_joint_sample_v1(
+        root=tmp_path,
+        transition_id="cc-s0v2-mechanical-terminal",
+        decision_index=1,
+        environment_time=1,
+        boundary_type="ECONOMIC_TERMINAL",
+        mechanical_terminal=True,
+    )
+    batch = make_batch_v1((first, second))
+    corrupted = replace(batch, mechanical_terminals=(True, True))
+    with pytest.raises(ValueError, match="MECHANICAL_TERMINAL_TENSOR_MISMATCH"):
+        corrupted.validate()

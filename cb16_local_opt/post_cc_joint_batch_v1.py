@@ -35,31 +35,40 @@ BOUNDARY_CLASS_CONTINUE = "CONTINUE"
 BOUNDARY_CLASS_TERMINAL = "TERMINAL"
 BOUNDARY_CLASS_TRUNCATION = "TRUNCATION"
 
-_TERMINAL_BOUNDARIES = frozenset({"ECONOMIC_TERMINAL", "OBJECTIVE_HORIZON_REACHED"})
-_TRUNCATION_BOUNDARIES = frozenset(
-    {
-        "COMPUTE_CHUNK",
-        "PAUSE",
-        "DATA_END_TRUNCATION",
-        "PROCESS_FAILURE",
-        "TRADING_DISABLED_PENDING_SETTLEMENT",
-    }
-)
+_COMPUTE_TRUNCATION_BOUNDARIES = frozenset({"COMPUTE_CHUNK", "PAUSE", "PROCESS_FAILURE"})
+_DATASET_TRUNCATION_BOUNDARIES = frozenset({"DATA_END_TRUNCATION"})
+_PENDING_SETTLEMENT_BOUNDARIES = frozenset({"TRADING_DISABLED_PENDING_SETTLEMENT"})
 
 
-def classify_boundary_v1(boundary_type: str, *, mechanical_terminal: bool = False) -> str:
-    """Map a persisted boundary to one explicit bootstrap class."""
+def boundary_semantics_v1(boundary_type: str, *, mechanical_terminal: bool = False) -> str:
+    """Explicit, non-collapsed boundary semantics used by bootstrap/masks."""
     if not isinstance(boundary_type, str) or not boundary_type:
         raise ValueError("BOUNDARY_TYPE_INVALID")
     if mechanical_terminal and boundary_type != "ECONOMIC_TERMINAL":
         raise ValueError("MECHANICAL_TERMINAL_BOUNDARY_MISMATCH")
     if boundary_type == "CONTINUE":
-        return BOUNDARY_CLASS_CONTINUE
-    if boundary_type in _TERMINAL_BOUNDARIES:
-        return BOUNDARY_CLASS_TERMINAL
-    if boundary_type in _TRUNCATION_BOUNDARIES:
-        return BOUNDARY_CLASS_TRUNCATION
+        return "CONTINUE"
+    if boundary_type == "ECONOMIC_TERMINAL":
+        return "MECHANICAL_TERMINAL" if mechanical_terminal else "ECONOMIC_TERMINAL"
+    if boundary_type == "OBJECTIVE_HORIZON_REACHED":
+        return "TASK_HORIZON"
+    if boundary_type in _COMPUTE_TRUNCATION_BOUNDARIES:
+        return "COMPUTE_TRUNCATION"
+    if boundary_type in _DATASET_TRUNCATION_BOUNDARIES:
+        return "DATASET_TRUNCATION"
+    if boundary_type in _PENDING_SETTLEMENT_BOUNDARIES:
+        return "PENDING_SETTLEMENT"
     raise ValueError(f"UNKNOWN_BOUNDARY_TYPE:{boundary_type}")
+
+
+def classify_boundary_v1(boundary_type: str, *, mechanical_terminal: bool = False) -> str:
+    """Map boundary semantics to the bootstrap class."""
+    semantics = boundary_semantics_v1(boundary_type, mechanical_terminal=mechanical_terminal)
+    if semantics == "CONTINUE":
+        return BOUNDARY_CLASS_CONTINUE
+    if semantics in {"ECONOMIC_TERMINAL", "MECHANICAL_TERMINAL", "TASK_HORIZON"}:
+        return BOUNDARY_CLASS_TERMINAL
+    return BOUNDARY_CLASS_TRUNCATION
 
 
 def boundary_requires_bootstrap_v1(boundary_type: str, *, mechanical_terminal: bool = False) -> bool:
@@ -127,6 +136,7 @@ class JointActionBatchV1:
     discounts: torch.Tensor
     replay_weights: torch.Tensor
     boundary_types: tuple[str, ...]
+    mechanical_terminals: tuple[bool, ...]
     bootstrap_state_refs: tuple[str | None, ...]
     observation_hashes: tuple[str, ...]
     behavior_policy_identities: tuple[str, ...]
@@ -148,6 +158,7 @@ class JointActionBatchV1:
             sample.validate()
         for name in (
             "boundary_types",
+            "mechanical_terminals",
             "bootstrap_state_refs",
             "observation_hashes",
             "behavior_policy_identities",
@@ -274,15 +285,23 @@ class JointActionBatchV1:
             sequence_id = self.sequence_ids[sequence_index]
             for index in range(start, end):
                 boundary = self.boundary_types[index]
+                mechanical = bool(self.mechanical_terminals[index])
                 is_last = index == end - 1
-                boundary_class = classify_boundary_v1(boundary)
+                if not isinstance(self.mechanical_terminals[index], bool):
+                    raise ValueError("MECHANICAL_TERMINAL_MUST_BE_BOOL")
+                if mechanical != bool(self.samples[index].mechanical_terminal):
+                    raise ValueError("MECHANICAL_TERMINAL_TENSOR_MISMATCH")
+                boundary_class = classify_boundary_v1(boundary, mechanical_terminal=mechanical)
                 if not is_last and boundary_class != BOUNDARY_CLASS_CONTINUE:
                     raise ValueError("NON_FINAL_BOUNDARY_MUST_BE_CONTINUE")
                 if is_last and boundary_class == BOUNDARY_CLASS_CONTINUE:
                     raise ValueError("SEQUENCE_FINAL_BOUNDARY_CANNOT_BE_CONTINUE")
             final_index = end - 1
             final_sample = self.samples[final_index]
-            if classify_boundary_v1(final_sample.boundary_type) == BOUNDARY_CLASS_TERMINAL:
+            if classify_boundary_v1(
+                final_sample.boundary_type,
+                mechanical_terminal=bool(self.mechanical_terminals[final_index]),
+            ) == BOUNDARY_CLASS_TERMINAL:
                 if final_sample.bootstrap_state_ref_or_null is not None:
                     raise ValueError("TERMINAL_BOUNDARY_MUST_NOT_HAVE_BOOTSTRAP_STATE")
             else:
@@ -296,7 +315,10 @@ class JointActionBatchV1:
         required_indices: list[int] = []
         for sequence_index, (start, end) in enumerate(self.sequence_offsets):
             del start
-            if classify_boundary_v1(self.samples[end - 1].boundary_type) == BOUNDARY_CLASS_TRUNCATION:
+            if classify_boundary_v1(
+                self.samples[end - 1].boundary_type,
+                mechanical_terminal=bool(self.mechanical_terminals[end - 1]),
+            ) == BOUNDARY_CLASS_TRUNCATION:
                 required_indices.append(sequence_index)
         if set(bootstrap_indices) != set(required_indices):
             raise ValueError("bootstrap sequence index set mismatch")
@@ -331,6 +353,7 @@ class JointActionBatchV1:
             discounts=self.discounts.to(device),
             replay_weights=self.replay_weights.to(device),
             boundary_types=self.boundary_types,
+            mechanical_terminals=self.mechanical_terminals,
             bootstrap_state_refs=self.bootstrap_state_refs,
             observation_hashes=self.observation_hashes,
             behavior_policy_identities=self.behavior_policy_identities,
@@ -403,6 +426,7 @@ def build_joint_batch_v1(
     direction_indices = []
     target_risks = []
     point_mass_mask = []
+    mechanical_terminals = []
     log_mu_values = []
     rewards = []
     discounts = []
@@ -421,11 +445,15 @@ def build_joint_batch_v1(
             direction_indices.append(DIRECTION_INDEX[sample.nominal_direction])
             target_risks.append(float(sample.nominal_target_risk))
             point_mass_mask.append(sample.risk_measure_kind == "point_mass")
+            mechanical_terminals.append(bool(sample.mechanical_terminal))
             log_mu_values.append(float(sample.behavior_log_mu))
             rewards.append(float(sample.reward))
             discounts.append(float(sample.discount))
             weights.append(float(sample.sampling_probability_or_weight))
-        if boundary_requires_bootstrap_v1(ordered[end - 1].boundary_type):
+        if boundary_requires_bootstrap_v1(
+            ordered[end - 1].boundary_type,
+            mechanical_terminal=bool(ordered[end - 1].mechanical_terminal),
+        ):
             if sequence_id not in mapping:
                 raise ValueError(f"BOOTSTRAP_OBSERVATION_REQUIRED:{sequence_id}")
             bootstrap_fact = mapping[sequence_id]
@@ -458,6 +486,7 @@ def build_joint_batch_v1(
         discounts=torch.tensor(discounts, dtype=torch.float32),
         replay_weights=torch.tensor(weights, dtype=torch.float32),
         boundary_types=tuple(sample.boundary_type for sample in ordered),
+        mechanical_terminals=tuple(mechanical_terminals),
         bootstrap_state_refs=tuple(sample.bootstrap_state_ref_or_null for sample in ordered),
         observation_hashes=tuple(sample.observation.observation_hash for sample in ordered),
         behavior_policy_identities=tuple(sample.behavior_policy_identity for sample in ordered),

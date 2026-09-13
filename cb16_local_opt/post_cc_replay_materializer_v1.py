@@ -343,6 +343,7 @@ class ReplayMaterializerV1:
             reward=float(transition_record.reward),
             discount=float(transition_record.discount),
             boundary_type=transition_record.boundary_type,
+            mechanical_terminal=bool(transition_record.mechanical_terminal),
             bootstrap_state_ref_or_null=bootstrap_state_ref_or_null,
             sampling_probability_or_weight=float(sampling_probability_or_weight),
             target_policy_identity=target_policy_identity,

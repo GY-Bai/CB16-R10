@@ -42,6 +42,7 @@ from .post_cc_generation_continuity_v1 import (
 from .post_cc_joint_batch_v1 import (
     DurableBatchProvenanceV1,
     MATERIALIZER_CONTRACT_ID,
+    boundary_semantics_v1,
     build_joint_batch_v1,
     observation_to_tensors_v1,
 )
@@ -492,6 +493,14 @@ def _gate_true_log_mu_integrity() -> tuple[bool, dict[str, Any]]:
 
 def _gate_critic_bootstrap_vtrace() -> tuple[bool, dict[str, Any]]:
     checks: dict[str, bool] = {
+        "boundary_semantics_mechanically_distinct": (
+            boundary_semantics_v1("ECONOMIC_TERMINAL") == "ECONOMIC_TERMINAL"
+            and boundary_semantics_v1("ECONOMIC_TERMINAL", mechanical_terminal=True) == "MECHANICAL_TERMINAL"
+            and boundary_semantics_v1("OBJECTIVE_HORIZON_REACHED") == "TASK_HORIZON"
+            and boundary_semantics_v1("COMPUTE_CHUNK") == "COMPUTE_TRUNCATION"
+            and boundary_semantics_v1("DATA_END_TRUNCATION") == "DATASET_TRUNCATION"
+            and boundary_semantics_v1("TRADING_DISABLED_PENDING_SETTLEMENT") == "PENDING_SETTLEMENT"
+        ),
         "economic_terminal_bootstrap_zero": bootstrap_value_v1("ECONOMIC_TERMINAL", 7.0) == 0.0,
         "objective_horizon_bootstrap_zero": bootstrap_value_v1("OBJECTIVE_HORIZON_REACHED", 7.0) == 0.0,
         "compute_chunk_bootstrap_next": bootstrap_value_v1("COMPUTE_CHUNK", 7.0) == 7.0,

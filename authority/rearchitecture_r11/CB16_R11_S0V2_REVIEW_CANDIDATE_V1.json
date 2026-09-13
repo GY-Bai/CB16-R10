@@ -60,9 +60,9 @@
   "local_development_result": {
     "status": "PASS",
     "note": "local CPU development evidence only; not a substitute for Shanxi Docker qualification",
-    "s0v2_focused_tests_collected": 60,
-    "s0v2_plus_regression_tests_collected": 107,
-    "s0v2_plus_regression_tests_passed": 107,
+    "s0v2_focused_tests_collected": 62,
+    "s0v2_plus_regression_tests_collected": 109,
+    "s0v2_plus_regression_tests_passed": 109,
     "s0v2_foundation_runner": "PASS"
   },
   "shanxi_evidence": {

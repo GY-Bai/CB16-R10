@@ -166,6 +166,10 @@ class DurableTransitionRecordV1:
             raise ValueError("BOUNDARY_TYPE_INVALID")
         if not isinstance(self.mechanical_terminal, bool):
             raise ValueError("mechanical_terminal must be bool")
+        if self.mechanical_terminal and self.boundary_type != "ECONOMIC_TERMINAL":
+            raise ValueError("MECHANICAL_TERMINAL_BOUNDARY_MISMATCH")
+        if not isinstance(self.mechanical_terminal, bool):
+            raise ValueError("mechanical_terminal must be bool")
         if self.bootstrap_state_ref_or_null is not None:
             _require_nonempty("bootstrap_state_ref_or_null", self.bootstrap_state_ref_or_null)
         _validate_consequence_context(self.consequence_context)
@@ -281,6 +285,7 @@ class DurableJointReplaySampleV1:
     reward: float
     discount: float
     boundary_type: str
+    mechanical_terminal: bool
     bootstrap_state_ref_or_null: str | None
     sampling_probability_or_weight: float
     target_policy_identity: str
@@ -327,6 +332,10 @@ class DurableJointReplaySampleV1:
             raise ValueError("LOG_MU_NOT_DECISION_TIME_PERSISTED")
         if self.boundary_type not in BOUNDARIES:
             raise ValueError("BOUNDARY_TYPE_INVALID")
+        if not isinstance(self.mechanical_terminal, bool):
+            raise ValueError("mechanical_terminal must be bool")
+        if self.mechanical_terminal and self.boundary_type != "ECONOMIC_TERMINAL":
+            raise ValueError("MECHANICAL_TERMINAL_BOUNDARY_MISMATCH")
         discount = _require_finite("discount", self.discount)
         if discount < 0.0:
             raise ValueError("discount must be >= 0")
