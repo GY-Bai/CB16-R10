@@ -10,6 +10,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 INVENTORY_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_SSD_CAPACITY_INVENTORY_V1.json"
 PROPOSAL_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_FAST_HOT_PROVISION_PROPOSAL_V1.json"
 APPROVAL_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_OWNER_APPROVAL_V1.json"
+APPROVAL_V2_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_OWNER_APPROVAL_V2.json"
+DIFF_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_EXPECTED_VS_ACTUAL_V1.json"
 DECISION_PATH = REPO_ROOT / "docs" / "infra" / "R21_RC2_R2_OWNER_DECISION_REQUEST.md"
 
 NEVER_DELETE_VOLUMES = {
@@ -61,6 +63,8 @@ class SSDPlanV1Tests(unittest.TestCase):
         cls.inventory = json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
         cls.proposal = json.loads(PROPOSAL_PATH.read_text(encoding="utf-8"))
         cls.approval = json.loads(APPROVAL_PATH.read_text(encoding="utf-8"))
+        cls.approval_v2 = json.loads(APPROVAL_V2_PATH.read_text(encoding="utf-8"))
+        cls.expected_vs_actual = json.loads(DIFF_PATH.read_text(encoding="utf-8"))
         cls.decision_text = DECISION_PATH.read_text(encoding="utf-8")
 
     def test_schemas_and_pending_owner_state(self) -> None:
@@ -195,6 +199,49 @@ class SSDPlanV1Tests(unittest.TestCase):
         self.assertEqual(approval["migration_integrity_requirement"], option_d["migration_integrity_requirement"])
         self.assertTrue(approval["authorize_r3_host_change_plan"])
         self.assertIn("scientific constants", " ".join(approval["constraints"]))
+
+    def test_owner_approval_v2_lowers_quota_and_preserves_reserve(self) -> None:
+        approval_v2 = self.approval_v2
+        self.assertEqual(approval_v2["schema"], "CB16_R21_RC2_R2_OWNER_APPROVAL_V2")
+        self.assertEqual(approval_v2["status"], "APPROVED")
+        self.assertEqual(approval_v2["supersedes"], "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V1.json")
+        self.assertEqual(approval_v2["fast_hot_quota_bytes"], 100000000000)
+        self.assertEqual(approval_v2["reserve_floor_bytes"], self.approval["reserve_floor_bytes"])
+        self.assertTrue(approval_v2["authorize_r3_host_change_plan"])
+        self.assertEqual(
+            approval_v2["projected_free_after_remaining_migration_bytes"],
+            approval_v2["measured_actual_free_bytes_at_revision"] + approval_v2["remaining_planned_migration_source_bytes"],
+        )
+        self.assertEqual(
+            approval_v2["projected_free_after_quota_and_reserve_bytes"],
+            approval_v2["projected_free_after_remaining_migration_bytes"]
+            - approval_v2["fast_hot_quota_bytes"]
+            - approval_v2["reserve_floor_bytes"],
+        )
+
+    def test_expected_vs_actual_record_is_consistent(self) -> None:
+        record = self.expected_vs_actual
+        expected = record["expected_under_option_d"]
+        actual = record["actual_at_stop"]
+        self.assertFalse(record["classification"]["option_d_v1_target_met"])
+        self.assertFalse(record["classification"]["scientific_constants_changed"])
+        self.assertFalse(record["classification"]["hdd_fast_hot_fallback_used"])
+        self.assertEqual(
+            record["deltas"]["projected_free_shortfall_vs_option_d_bytes"],
+            expected["projected_free_after_cleanup_and_migration_bytes"]
+            - actual["projected_free_after_remaining_migration_bytes"],
+        )
+        self.assertEqual(
+            record["deltas"]["reclaim_shortfall_bytes"],
+            expected["planned_reclaim_bytes"] - actual["actual_reclaim_free_delta_bytes"],
+        )
+        self.assertEqual(
+            actual["projected_free_after_remaining_migration_bytes"],
+            actual["actual_free_bytes"] + actual["remaining_migration_source_bytes"],
+        )
+        self.assertEqual(record["owner_revision"]["fast_hot_quota_bytes"], 100000000000)
+        causes = {cause["cause_id"] for cause in record["causes"]}
+        self.assertEqual(causes, {"HARDLINK_ACCOUNTING", "CRASH_VERIFICATION_GAP", "ROOT_OWNED_MIGRATION_SOURCE"})
 
     def test_hostile_arithmetic_mutation_is_rejected(self) -> None:
         mutated = json.loads(json.dumps(self.proposal))
