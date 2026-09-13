@@ -3,7 +3,7 @@
   "computed_actor_only_sha256": "42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f",
   "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
   "construction_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
-  "frozen_actor_plus_critic_sha256": null,
+  "frozen_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
   "high_bankruptcy_success_family_frozen": "LONG x risk in [0.85,0.95)",
   "historical_v1_mutated": false,
   "initialization_seed": 1701,
@@ -37,6 +37,6 @@
     "runtime_candidate_sha": "cef07b1c5412fd224d2f25d4a458ca13df78fed2",
     "torch_version": "2.8.0+cu126"
   },
-  "status": "DS_PROPOSED_PENDING_SOL_FREEZE",
+  "status": "FROZEN_BY_SOL",
   "supersedes_for_s1_pre_qualification": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json#/model/initialization/initial_checkpoint_semantic_sha256"
 }
