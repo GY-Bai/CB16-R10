@@ -47,7 +47,7 @@ owner principles
 - 用旧 CI 证明新代码；
 - 把缺失 evidence 解释为 PASS。
 
-冻结合同若对合法边界无定义，优先 fail closed 并升级到 Sol/authority/versioning 判断。
+冻结合同若对合法边界无定义，优先 fail closed 并升级到 Sol/versioning 判断。
 
 ## 5. 通用 verdict taxonomy
 
@@ -63,3 +63,7 @@ owner principles
 `SCIENTIFIC_FAIL` 只表示执行与证据合同有效、但冻结能力判据失败；implementation/provenance/identity 错误必须归入 contract-invalid 路径，不能污染科学结论。
 
 不得增加模糊 `PARTIAL_PASS` 掩盖 mandatory gate failure。
+
+## 6. Stage Profile requirement
+
+复杂 stage 在交给 implementation agent 前必须先发布 Stage Qualification Profile，至少覆盖 claims、proof obligations、semantic trace、identity/RNG、edge cases、negative controls、machine gates、artifact evidence 和 exact-SHA CI。Profile 不完整时，不得要求 DS 自行补科学语义。
