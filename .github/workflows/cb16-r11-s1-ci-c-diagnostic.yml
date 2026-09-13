@@ -1,0 +1,200 @@
+name: CB16 R11 S1 CI-C Diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  diagnose:
+    name: S1 CI-C non-scientific failure diagnostic
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_diag_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('S1_DIAG_PYTHON_READY')
+          PY
+
+      - name: Snapshot failed CI-C scratch and shm resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_diag_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          export FAILED_ROOT=/dev/shm/cb16-s1-34776116151-qualification
+          export SNAPSHOT_OUT="$RUNNER_TEMP/S1_CIC_RESOURCE_SNAPSHOT.json"
+          df -h /dev/shm || true
+          df -i /dev/shm || true
+          mount | grep -E '(/dev/shm|tmpfs)' || true
+          PYTHONPATH=. "$PYTHON" - <<'PY'
+          import collections, json, os
+          from pathlib import Path
+
+          root = Path(os.environ['FAILED_ROOT'])
+          stat = os.statvfs('/dev/shm')
+          summary = {
+              'schema': 'CB16_R11_S1_CIC_RESOURCE_DIAGNOSTIC_V1',
+              'evidence_class': 'NON_SCIENTIFIC_EXECUTION_DIAGNOSTIC',
+              'failed_run_id': 34776116151,
+              'failed_root': str(root),
+              'failed_root_exists': root.exists(),
+              'shm_bytes_total': int(stat.f_frsize * stat.f_blocks),
+              'shm_bytes_free': int(stat.f_frsize * stat.f_bavail),
+              'shm_inodes_total': int(stat.f_files),
+              'shm_inodes_free': int(stat.f_favail),
+          }
+          leaf = []
+          total_bytes = 0
+          if root.exists():
+              for path in root.rglob('*'):
+                  if path.is_file():
+                      try:
+                          total_bytes += path.stat().st_size
+                      except FileNotFoundError:
+                          pass
+              for index in root.rglob('durable_index.jsonl'):
+                  run = index.parent
+                  try:
+                      index_rows = sum(1 for line in index.read_text(encoding='utf-8').splitlines() if line.strip())
+                  except Exception:
+                      index_rows = -1
+                  update_dir = run / 'updates' / 'updates'
+                  checkpoint_dir = run / 'updates' / 'checkpoints'
+                  leaf.append({
+                      'relative_run': str(run.relative_to(root)),
+                      'durable_index_rows': index_rows,
+                      'update_records': len(list(update_dir.glob('*.json'))) if update_dir.exists() else 0,
+                      'child_checkpoints': len(list(checkpoint_dir.glob('*.json'))) if checkpoint_dir.exists() else 0,
+                  })
+          summary['failed_root_bytes'] = total_bytes
+          summary['run_roots_found'] = len(leaf)
+          summary['durable_index_row_distribution'] = dict(collections.Counter(str(x['durable_index_rows']) for x in leaf))
+          summary['update_record_distribution'] = dict(collections.Counter(str(x['update_records']) for x in leaf))
+          summary['checkpoint_distribution'] = dict(collections.Counter(str(x['child_checkpoints']) for x in leaf))
+          summary['runs'] = leaf
+          Path(os.environ['SNAPSHOT_OUT']).write_text(json.dumps(summary, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Run one frozen-shape worker as non-scientific diagnostic
+        shell: bash
+        continue-on-error: true
+        run: |
+          set +e
+          OUT="$RUNNER_TEMP/s1_diag_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          export DIAG_ROOT="/dev/shm/cb16-s1-cic-diag-${GITHUB_RUN_ID}"
+          export DIAG_STAGE="$RUNNER_TEMP/s1_cic_diag_stage"
+          export DIAG_OUT="$RUNNER_TEMP/S1_CIC_SINGLE_WORKER_OUTCOME.json"
+          PYTHONPATH=. "$PYTHON" - <<'PY'
+          import json, os, traceback
+          from pathlib import Path
+          from cb16_local_opt.post_cc_s1_execution_manifest_v1 import build_s1_execution_manifest_v1
+          from cb16_local_opt.post_cc_s1_qualification_v1 import _job_list_v1
+          from cb16_local_opt.post_cc_s1_provenance_audit_r4_v1 import run_job_with_r4_provenance_v1
+
+          manifest = build_s1_execution_manifest_v1()
+          jobs = _job_list_v1(manifest, 'qualification')
+          job = next(
+              dict(item) for item in jobs
+              if item['task_id'] == 'ACCOUNT_DEPENDENT_ACTION'
+              and int(item['seed']) == 1701
+              and item['control_id'] is None
+          )
+          job['manifest_sha256'] = manifest['manifest_sha256']
+          job['run_root'] = os.environ['DIAG_ROOT']
+          job['checkpoint_staging_root'] = str(Path(os.environ['DIAG_STAGE']) / 'checkpoints')
+          job['provenance_staging_root'] = str(Path(os.environ['DIAG_STAGE']) / 'provenance')
+          job['cleanup_run_root'] = False
+          try:
+              outcome = run_job_with_r4_provenance_v1(job)
+              result = outcome.get('result') if isinstance(outcome, dict) else None
+              reduced = {
+                  'schema': 'CB16_R11_S1_CIC_SINGLE_WORKER_DIAGNOSTIC_V1',
+                  'evidence_class': 'NON_SCIENTIFIC_EXECUTION_DIAGNOSTIC',
+                  'status': outcome.get('status'),
+                  'error_type': outcome.get('error_type'),
+                  'error_message': outcome.get('error_message'),
+                  'task_id': job['task_id'],
+                  'seed': job['seed'],
+                  'control_id': job['control_id'],
+                  'unit_size': job['unit_size'],
+                  'max_units': job['max_units'],
+                  'evaluation_population': job['evaluation_population'],
+                  'result_object_created': isinstance(result, dict),
+                  'completed_unit_count': len(result.get('unit_evidence', [])) if isinstance(result, dict) else None,
+                  'committed_updates_count': result.get('committed_updates_count') if isinstance(result, dict) else None,
+              }
+          except BaseException as exc:
+              reduced = {
+                  'schema': 'CB16_R11_S1_CIC_SINGLE_WORKER_DIAGNOSTIC_V1',
+                  'evidence_class': 'NON_SCIENTIFIC_EXECUTION_DIAGNOSTIC',
+                  'status': 'DIAGNOSTIC_PROCESS_EXCEPTION',
+                  'error_type': type(exc).__name__,
+                  'error_message': str(exc),
+                  'traceback': traceback.format_exc(),
+              }
+          Path(os.environ['DIAG_OUT']).write_text(json.dumps(reduced, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(reduced, indent=2, sort_keys=True))
+          PY
+          RC=$?
+          echo "diagnostic_python_exit_code=$RC"
+          df -h /dev/shm || true
+          df -i /dev/shm || true
+          rm -rf "$DIAG_ROOT"
+          exit 0
+
+      - name: Upload CI-C diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-s1-cic-diagnostic
+          path: |
+            ${{ runner.temp }}/S1_CIC_RESOURCE_SNAPSHOT.json
+            ${{ runner.temp }}/S1_CIC_SINGLE_WORKER_OUTCOME.json
+            ${{ runner.temp }}/s1_diag_python.json
+          if-no-files-found: warn
+          retention-days: 30
