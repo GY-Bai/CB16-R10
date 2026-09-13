@@ -17,6 +17,7 @@ from scripts.verify_r21_rc2_runner_definition_v1 import (
     BUILD_CONTEXT_PATH,
     DOCKERFILE_PATH,
     SPEC_PATH,
+    _parse_environ_bytes,
     static_check,
 )
 
@@ -174,6 +175,10 @@ class RunnerDefinitionV1Tests(unittest.TestCase):
     def test_sanitize_environment_ignores_malformed_entries(self) -> None:
         snapshot = sanitize_environment({"Config": {"Env": ["NO_EQUALS_SIGN", "A=1"]}})
         self.assertEqual(snapshot["values"], {"A": "1"})
+
+    def test_pid1_environ_parser_is_null_separated_and_ignores_malformed_entries(self) -> None:
+        parsed = _parse_environ_bytes(b"A=1\0B=two=three\0MALFORMED\0\0C=\0")
+        self.assertEqual(parsed, {"A": "1", "B": "two=three", "C": ""})
 
     def test_static_check_fails_on_mutated_definition(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
