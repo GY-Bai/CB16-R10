@@ -68,11 +68,17 @@ def verify_record_binding_v1(repo_root: str | Path) -> dict:
     if manifest_path.exists():
         import hashlib
 
-        checks["execution_manifest_sha256_matches"] = (
+        checks["execution_manifest_file_sha256_matches"] = (
             hashlib.sha256(manifest_path.read_bytes()).hexdigest() == manifest_entry.get("sha256")
         )
+        declared_payload_sha = manifest_entry.get("manifest_payload_sha256")
+        checks["execution_manifest_payload_sha256_matches"] = bool(
+            declared_payload_sha
+            and json.loads(manifest_path.read_text(encoding="utf-8")).get("manifest_sha256") == declared_payload_sha
+        )
     else:
-        checks["execution_manifest_sha256_matches"] = False
+        checks["execution_manifest_file_sha256_matches"] = False
+        checks["execution_manifest_payload_sha256_matches"] = False
     state = candidate.get("candidate_state", {})
     implementation = state.get("implementation", {})
     checks["task_coverage_complete"] = bool(implementation.get("task_coverage_complete") is True)
