@@ -1,0 +1,97 @@
+{
+  "schema": "CB16_R11_POST_CC_S1_BASELINE_V1",
+  "status": "FROZEN_READY_FOR_S1_IMPLEMENTATION_NOT_STARTED",
+  "stage_identity": "CB16_R11_POST_CC_S1_END_TO_END_LEARNABILITY_R1",
+  "scope": "SYNTHETIC_ONLY",
+  "exact_parent_main": {
+    "sha": "fc80b472236e7a4df8094563f8adac826fc42231",
+    "tree_sha": "afb9f468e95f877d4e27a0df59958b385beeea33",
+    "meaning": "S0-v2 Sol-R2-qualified merge state; exact immutable parent for the new S1 working lineage"
+  },
+  "parent_foundation_authority": {
+    "receipt_path": "authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json",
+    "receipt_status_required": "QUALIFIED",
+    "review_verdict_required": "PASS",
+    "qualified_stage": "CB16_R11_S0V2_DURABLE_LEARNABILITY_FOUNDATION_R0",
+    "runtime_test_workflow_candidate_sha": "8ac88f834cd4b467f2daa61a136a01d0b68a5785",
+    "runtime_test_workflow_candidate_tree_sha": "669a81cac5fab4646cdab9cc293950e50bde4334",
+    "reviewed_record_binding_sha": "787431a15563f7a1f205b258d1bf49a27695002f",
+    "accepted_merge_sha": "fc80b472236e7a4df8094563f8adac826fc42231",
+    "strongest_parent_evidence": "POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED"
+  },
+  "s1_working_lineage": {
+    "branch": "ai/r11-post-cc-s1-end-to-end-learnability-r1",
+    "branch_created_exactly_from_parent_main_sha": true,
+    "branch_parent_sha": "fc80b472236e7a4df8094563f8adac826fc42231",
+    "no_s1_scientific_execution_started_at_freeze": true
+  },
+  "legacy_s1_branch": {
+    "branch": "ai/r11-post-cc-s1-end-to-end-learnability-r0",
+    "observed_head_at_freeze": "9d9911432d1da419b9957d857867cf3c5c8d9d3d",
+    "merge_base_with_accepted_main": "ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f",
+    "relationship_to_accepted_main_at_freeze": "DIVERGED",
+    "accepted_main_ahead_by": 27,
+    "legacy_branch_ahead_by": 7,
+    "authority_status": "STALE_NON_AUTHORITATIVE_DO_NOT_USE_AS_S1_BASE",
+    "preservation_rule": "Do not force-reset, rewrite, or silently consume its seven divergent commits; any useful content must be independently reviewed and explicitly ported onto r1."
+  },
+  "frozen_preregistration": {
+    "task_registry_path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_TASK_REGISTRY_V1.json",
+    "task_registry_status": "FROZEN_BEFORE_S1_EXECUTION",
+    "run_spec_path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json",
+    "run_spec_status": "FROZEN_BEFORE_S1_EXECUTION",
+    "task_ids": [
+      "ACCOUNT_DEPENDENT_ACTION",
+      "DELAYED_CONSEQUENCE_CREDIT",
+      "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION",
+      "OFF_POLICY_VTRACE_CORRECTION",
+      "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION"
+    ],
+    "seeds": [1701, 1702, 1703, 1704, 1705],
+    "minimum_positive_seeds_passing": 4,
+    "optimizer_family": "SGD",
+    "actor_learning_rate": 0.01,
+    "critic_learning_rate": 0.01,
+    "maximum_policy_decisions_per_task_per_seed": 100000,
+    "scientific_values_changed_by_this_baseline": false
+  },
+  "base_binding_migration": {
+    "reason": "S0-v2 was inserted and independently qualified after the original S1 V1 preregistration in order to close the durable observation/replay/joint-learning/exactly-once/generation-continuity foundation that S1 previously listed as missing.",
+    "superseded_field_scope_only": [
+      "CB16_R11_POST_CC_S1_RUN_SPEC_V1.s1_base_rule",
+      "docs/post_cc/S1_END_TO_END_LEARNABILITY_TODO.md legacy S0/S1 working-base text"
+    ],
+    "new_base_rule": "EXACT_ACCEPTED_S0V2_MERGED_MAIN_SHA_FROM_CB16_R11_S0V2_RECEIPT_V1",
+    "new_required_parent_sha": "fc80b472236e7a4df8094563f8adac826fc42231",
+    "all_task_model_optimizer_seed_budget_reward_threshold_no_rescue_semantics_from_v1_remain_frozen": true,
+    "historical_v1_files_must_not_be_rewritten_to_hide_the_old_binding": true
+  },
+  "qualified_foundation_surfaces_to_reuse": [
+    "cb16_local_opt/post_cc_observation_fact_v1.py",
+    "cb16_local_opt/post_cc_observation_store_v1.py",
+    "cb16_local_opt/post_cc_durable_collection_v1.py",
+    "cb16_local_opt/post_cc_joint_replay_v1.py",
+    "cb16_local_opt/post_cc_replay_materializer_v1.py",
+    "cb16_local_opt/post_cc_joint_batch_v1.py",
+    "cb16_local_opt/post_cc_joint_policy_loss_v1.py",
+    "cb16_local_opt/post_cc_critic_vtrace_v1.py",
+    "cb16_local_opt/post_cc_update_transaction_v1.py",
+    "cb16_local_opt/post_cc_learner_v1.py",
+    "cb16_local_opt/post_cc_generation_continuity_v1.py"
+  ],
+  "s1_adoption_rule": {
+    "do_not_reimplement_already_qualified_s0v2_foundation_merely_because_legacy_s1_todo_lists_it_as_missing": true,
+    "first_action": "Verify/adopt the qualified S0-v2 surfaces against the frozen S1 task/run contracts, then implement the remaining repeated-learning known-answer environments, controls, qualification runtime and gate compiler.",
+    "foundation_component_pass_alone_is_not_s1_success": true,
+    "checkpoint_or_loss_or_single_update_alone_is_not_s1_success": true
+  },
+  "s1_target_evidence_if_all_gates_pass": "INTEGRATED_SYNTHETIC_END_TO_END_LEARNABILITY_KNOWN_ANSWER",
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false,
+    "historical_market_corpus_access": false,
+    "economic_evidence_claimed": false,
+    "transfer_evidence_claimed": false
+  },
+  "freeze_verdict": "S1_BASE_FROZEN_NO_S1_EXECUTION_AUTHORITY_CONSUMED_YET"
+}
