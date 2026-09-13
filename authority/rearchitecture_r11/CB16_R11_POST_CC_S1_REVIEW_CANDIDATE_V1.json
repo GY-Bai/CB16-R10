@@ -7,7 +7,7 @@
       "shanxi_ci_state": "PENDING_SOL_REVIEW",
       "task_coverage_complete": true
     },
-    "latest_ci_head_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
+    "latest_ci_head_sha": "e7a3094310de05e98cb761bfed125f8e96d9905b",
     "phase": "A_IMPLEMENTATION_CANDIDATE_R1",
     "r1_blocker_closure": {
       "B1_uniform_replay_sampling": {
@@ -68,26 +68,26 @@
     },
     "shanxi_ci": {
       "bounded_smoke": {
-        "artifact_id": 10314544240,
+        "artifact_id": 10314929142,
         "artifact_only_update_trace_all_checks_pass": true,
-        "checkout_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
-        "checkout_tree_sha": "46be1d66c71e55f6a26e1ce1d44a8b5d94cfa79c",
+        "checkout_sha": "e7a3094310de05e98cb761bfed125f8e96d9905b",
+        "checkout_tree_sha": "3628a8e1bb22a56874c28c0e406c3b10303f4bf7",
         "conclusion": "success",
-        "duration_seconds": 149,
+        "duration_seconds": 151,
         "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
         "executed_jobs": 13,
         "fabricated_log_mu_audit_pass": true,
         "high_bankruptcy_failure_fact_audit_pass": true,
         "integrity_attack_suite_all_rejected": true,
-        "job_id": 103702578015,
+        "job_id": 103703391281,
         "job_name": "S1 bounded smoke (engineering only)",
         "not_scientific_qualification": true,
         "objective_firewall_audit_pass": true,
-        "program_wall_seconds": 48.4658260345459,
+        "program_wall_seconds": 50.72805976867676,
         "run_attempt": 1,
-        "run_id": 34749227529,
+        "run_id": 34749508999,
         "runtime_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
-        "scratch_root": "/dev/shm/cb16-s1-34749227529-smoke",
+        "scratch_root": "/dev/shm/cb16-s1-34749508999-smoke",
         "workers": 2
       },
       "formal_qualification": {
@@ -96,17 +96,17 @@
         "started": false
       },
       "implementation_suite": {
-        "artifact_id": 10314897942,
-        "checkout_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
-        "checkout_tree_sha": "46be1d66c71e55f6a26e1ce1d44a8b5d94cfa79c",
+        "artifact_id": 10314803958,
+        "checkout_sha": "e7a3094310de05e98cb761bfed125f8e96d9905b",
+        "checkout_tree_sha": "3628a8e1bb22a56874c28c0e406c3b10303f4bf7",
         "conclusion": "success",
-        "duration_seconds": 283,
+        "duration_seconds": 290,
         "gpu": "NVIDIA GeForce GTX 1060 6GB",
-        "job_id": 103702577996,
+        "job_id": 103703391434,
         "job_name": "S1 implementation unit and invariant suite",
         "python_version": "3.10.21",
         "run_attempt": 1,
-        "run_id": 34749227529,
+        "run_id": 34749508999,
         "runner": "shanxi-docker-r11",
         "runtime_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
         "tests_failed": 0,
@@ -185,7 +185,7 @@
       "requested_resolution": "Sol/authority to confirm the intended construction/codec or version the frozen initial-checkpoint hash before CI-C."
     }
   ],
-  "record_binding_head_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
+  "record_binding_head_sha": "e7a3094310de05e98cb761bfed125f8e96d9905b",
   "review_history": [
     {
       "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
@@ -217,13 +217,14 @@
       "round": "R2",
       "shanxi_ci": {
         "artifact_ids": [
-          10314897942,
-          10314544240
+          10314803958,
+          10314929142
         ],
-        "bounded_smoke_job": 103702578015,
-        "checkout_sha": "467f039dbe5c360a9da0560e42e94a1f5e16d062",
-        "implementation_suite_job": 103702577996,
-        "run_id": 34749227529,
+        "bounded_smoke_job": 103703391281,
+        "checkout_sha": "e7a3094310de05e98cb761bfed125f8e96d9905b",
+        "checkout_tree_sha": "3628a8e1bb22a56874c28c0e406c3b10303f4bf7",
+        "implementation_suite_job": 103703391434,
+        "run_id": 34749508999,
         "runtime_candidate_sha": "49989e7a011d11c39b4be588fe37335130a53209",
         "tests_passed": 164
       },
