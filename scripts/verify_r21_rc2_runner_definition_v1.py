@@ -62,7 +62,7 @@ REQUIRED_ENV_NAMES = (
     "PYTHON_SHA256",
     "PYTHONUNBUFFERED",
 )
-SELF_CHECK_ENV_NAMES = tuple(name for name in REQUIRED_ENV_NAMES if name != "PATH")
+SELF_CHECK_ENV_NAMES = REQUIRED_ENV_NAMES
 
 
 def _load_json(path: Path) -> Any:
@@ -210,6 +210,34 @@ def _mount_options_by_destination() -> dict[str, set[str]]:
     return options
 
 
+def _parse_environ_bytes(raw: bytes) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for item in raw.split(b"\0"):
+        if not item:
+            continue
+        text = item.decode("utf-8", errors="replace")
+        if "=" in text:
+            name, value = text.split("=", 1)
+            values[name] = value
+    return values
+
+
+def _read_pid1_env() -> dict[str, str] | None:
+    """Read the container PID 1 environment (the docker-run launch env).
+
+    A workflow-level ``env:`` block can override ``os.environ`` for the current
+    job. Comparing against ``/proc/1/environ`` instead keeps the self-check
+    bound to the container launch contract rather than to GitHub Actions
+    workflow overrides.
+    """
+    path = Path("/proc/1/environ")
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        return None
+    return _parse_environ_bytes(raw)
+
+
 def self_check(repo_root: Path = REPO_ROOT) -> list[dict[str, Any]]:
     spec = _load_json(repo_root / SPEC_PATH.relative_to(REPO_ROOT))
     checks: list[dict[str, Any]] = []
@@ -239,8 +267,17 @@ def self_check(repo_root: Path = REPO_ROOT) -> list[dict[str, Any]]:
     else:  # pragma: no cover - defensive
         _check(checks, "self_pid1_working_dir", False, "missing /proc/1/cwd")
 
+    pid1_env = _read_pid1_env()
+    _check(checks, "self_pid1_env_available", pid1_env is not None, "/proc/1/environ")
+    live_env = pid1_env if pid1_env is not None else os.environ
+    env_source = "pid1" if pid1_env is not None else "process_env"
     for name in SELF_CHECK_ENV_NAMES:
-        _check(checks, f"self_env:{name}", os.environ.get(name) == env.get(name), f"live={os.environ.get(name)!r}")
+        _check(
+            checks,
+            f"self_env:{name}",
+            live_env.get(name) == env.get(name),
+            f"source={env_source} live={live_env.get(name)!r}",
+        )
 
     live_provision_target = Path(env["CB16_PROVISION_ENV"])
     _check(
