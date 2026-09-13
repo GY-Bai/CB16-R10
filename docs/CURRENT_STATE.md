@@ -1,187 +1,155 @@
 # 当前状态与接手断点
 
-核对日期：2026-09-13 UTC；本次文档审阅基于 `main@8d37166f9fcc87d61affaf1319afe225d8754d1b`。CC R11 integration 已通过 PR #99 正式合入 `main`；integration merge commit 为：
+核对基线：2026-09-13 UTC；本次执行重排以 `main@392063881a6ef0dd1776ac579f1a290a134fc49e` 为科学/代码基线。后续 S0-v2 task-authoring/navigation commits 只改变执行路由，不追溯改变既有 CC / S0 scientific identity。
 
-`daa889d758ce80c7d1ce73ea37110937e1b146c0`
+## 1. 已冻结并完成的历史 authority
 
-机器可读 canonical authority：
+CC R11 integration 已通过 PR #99 合入 `main`。Canonical authority：
 
 - `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
 - `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
 
-Receipt 冻结的完整 runtime qualification code head 为 `fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2`。PR 最终 handoff head `5d236e9d2368a79e830bec1971b949de88c032df` 在 authority/docs 更新后又完整重跑同一 integration workflow 并 PASS，因此不存在“runtime head 通过但最终 PR head 未复验”的残余风险。
-
-后续纯文档维护提交不改变上述 science identity、qualified runtime 或 receipt 内容。
-
-**2026-09-13 用户补充的协作规则：** Astra 文档向用户对齐、Sol TODO 向文档对齐、DS Flash 代码向 TODO 对齐；用户审核 Astra，Astra 审核 Sol，Sol 审核 DS。运行变更在 main 合并前经 GitHub Actions 调度 Shanxi Docker 的相关测试，并由 Sol 重点审查公式/比较/分支/边界。入口见 [角色与审核协议](ROLES_AND_REVIEW_PROTOCOL.md) 及 [TODO 原则 SW-13/14](S_SERIES_TODO_AUTHORING_PRINCIPLES.md)。本次文档补充不声称新增 S1 实现、运行资格或平台 required-check 配置。
-
-## 1. CC 已完成什么
-
-CC 四线程已完成独立实现、integration join、closed-loop qualification、reference-vs-fast equivalence、hostile/recovery qualification、Shanxi 性能选择和 hard cutover。
-
-合成资格 canary 已实际接通：
-
-`Market + same Account -> stochastic Actor -> nominal action + true log_mu -> permission -> target sizing -> execution -> signed account consequence -> environment advance -> next Actor decision -> immutable experience -> replay -> Critic/V-trace update -> committed child checkpoint -> generation switch -> SAME LOGICAL ACCOUNT -> child policy acts`
-
-该 canary 保留 policy/RNG/generation provenance、真实 `log_mu`、失败事实和同账户连续性，并验证 exactly-once learner commit。
-
-它证明的是 **synthetic closed-loop / known-answer implementation qualification**，不是市场盈利证据。
-
-## 2. 四线程 frozen authority
-
-所有线程原始 implementation base：
-
-`89d62bf966f476e598f0e2f5c5e8e03c15a8db51`
-
-| Thread | Frozen head | Qualified implementation | Canonical authority |
-|---|---|---|---|
-| A | `d904fa67f66026fc2bc9c320fe5a888ff5f98db6` | `b1ebbc45482f2b10c49bbd9c521f831020558a04` | runtime/account/execution correctness oracle |
-| B | `f06babb485daee0a2f7e978c51d6263b03fc2fea` | `87a37398d75c9fb644de31d94595db66a49fafbc` | stochastic policy, true joint `log_mu`, Critic/V-trace learner, checkpoint/retention |
-| C | `626241fc1043e10326e538f93cf08d9cfac75b67` | `2a909fe0ba9a55d0540a5c93c034bae7db131cf4` | immutable experience, replay, arithmetic-economic evaluation contracts |
-| D | `26742447af209d52943085e9d37996eae522b93c` | `089031a935e58100f3a0dbfec34c16fa5f272915` | performance implementation only; no new scientific semantics |
-
-W contracts：
-
-- W-01 `CCPolicyDecisionV1`
-- W-02 `CCEnvironmentTransitionV1`
-- W-03 `CCExperienceSequenceV1`
-- W-04 `CCLearningUpdateV1`
-- W-05 `CCEconomicResultV1`
-
-Science identity：`CB16_R11_CC_SCIENCE_SEMANTIC_V1`。
-
-不要再从移动的 A/B/C/D branch 名恢复 authority；frozen heads、qualified SHAs 和 receipt hashes 已写入 integration receipt。
-
-## 3. 最终资格结果
-
-### 3.1 冻结资格 run
-
-Shanxi workflow run `34710702090`，qualification job `103598868269`：
-
-- Joined CC tests：**155 passed, 1 deselected**。
-- 唯一 deselected：Thread A 独立分支阶段的 `test_no_sibling_cc_module_dependency`；A/B/C/D 被正式授权 join 后该断言不再适用，没有跳过科学行为测试。
-- Closed-loop + provenance：PASS。
-- Hostile/recovery：PASS，包括 negative equity/liability、REJECT 后 world continuation、reversal second-leg failure、process crash/recovery、failure-fact retention、writer backpressure、same-account generation switch、exactly-once update。
-- Reference-vs-fast semantic equivalence：PASS。
-- Semantic checksum：`c864052eab1c107ab73a88d96ddb527bfc60819a41165b1495ecc74d56644988`。
-- Final-account checksum：`29d33e7639029f40c6edfb1c7fe9fff26e4af3f418cf5109a066a55de13e282e`。
-- FINAL sealed；fresh market data 未使用。
-
-冻结资格 artifact：ID `10303497599`，SHA256 `9b0be77738e680de071e92d622f9fc25539373ec4c49a54714f471cafde4b903`。
-
-### 3.2 最终 PR head 重复资格确认
-
-最终 PR head `5d236e9d2368a79e830bec1971b949de88c032df` 又运行 workflow `34712758444`，结果仍为 SUCCESS：
-
-- 155 passed, 1 同一合法 deselection；
-- closed-loop / provenance / hostile / recovery / equivalence / hard-cutover / legacy-import / FINAL-fresh firewalls 全部 PASS；
-- semantic checksum 与 final-account checksum 均未变化；
-- selected topology 未变化。
-
-该重复 run 用于证明最后 authority/docs commits 没有破坏 runtime。它不用于事后替换首次冻结 benchmark 的数字。
-
-## 4. Canonical 性能路径
-
-Receipt 冻结的预注册 workload：16 accounts × 64 market steps = 1024 transitions/run，reference 与 fast 各 7 次，交替执行。
-
-- Reference median：**7.535366 transitions/s**；median wall clock **135.892535 s**。
-- Integrated fast median：**638.765768 transitions/s**；median wall clock **1.603092 s**。
-- Median speedup：**84.769×**。
-
-按冻结规则：
-
-`PERFORMANCE FIRST AMONG SEMANTICALLY QUALIFIED IMPLEMENTATIONS`
-
-最终 canonical topology：
-
-`CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER`
-
-Thread D 的 synthetic account kernel 没有被提升为 science authority。账户/runtime/execution 语义仍由 Thread A 定义；D 负责 performance spine、same-account scheduling、bounded fact transport 和 durable chunk writing。
-
-Hard cutover 已完成。Canonical CC runtime 不得 import、兼容或 fallback 到：
-
-- `gpu_inference_broker.py`
-- `multiprocess_trajectory_farm.py`
-- `vectorized_physics.py`
-
-新 fast path 失败时 fail closed。
-
-## 5. 证据边界
-
-当前最强证据：
+CC strongest evidence：
 
 `INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`
 
-不能升级为 ECONOMIC 或 TRANSFER。当前没有证明真实历史市场 edge、未来盈利性或跨时期迁移；FINAL 未打开，fresh market data 未使用。
+它不是 ECONOMIC 或 TRANSFER evidence。FINAL 未开启，fresh market data 未使用。
 
-## 6. 双基准原则与 S0 实现迁移均已关闭
+历史 post-CC S0 contract/economic migration 也已 PASS：
 
-B&H 和 FLAT 是两个并列 benchmark components，**没有 master precedence，也没有 master baseline winner**。同合同下的模型间完整算术收益排序、单模型 B&H/FLAT component 结果、promotion decision 是不同对象。详见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
+- frozen implementation base: `fc7102442e91a1c27cf705487c6d06bd64b8ea09`
+- qualified implementation identity: `5760061d6c274e9f8796e6608e86bb173018148f`
+- receipt-bearing head: `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f`
+- evidence: `POST_CC_CONTRACT_MIGRATION_QUALIFIED`
 
-现有 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍反映历史 unresolved 契约。它们不被改写。S0 已创建 successor ordering/component/promotion contracts、显式 adapter/migration/router；receipt 记录 post-CC canonical path 不再把 B&H/FLAT disagreement 解释成 owner uncertainty。
+Historical S0 receipt remains immutable. B&H/FLAT are parallel benchmark components with no master precedence; model ordering, benchmark components and promotion decision remain separate.
 
-因此不要再询问 owner “B&H 和 FLAT 谁优先”。S0 receipt 的证据范围为 `POST_CC_CONTRACT_MIGRATION_QUALIFIED`，不能提升为 S1 可学习性或市场经济证据。
+## 2. 当前协作与审核链
 
-## 7. 当前精确断点：S0 PASS / S1 ACTIVE
+当前 owner 指定流程由 `docs/ROLES_AND_REVIEW_PROTOCOL.md` 约束：
 
-宽泛路线仍由 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md) 定义；**当前直接执行 authority 已进一步拆成：**
+- 文档/原则先与 owner 对齐；
+- Sol 维护可执行 TODO，并对实际代码负责审核；
+- 一个 implementation Agent 按 TODO 在指定 branch 写代码；
+- runtime/code behavior 变更合并 main 前必须通过 GitHub Actions 调度的 Shanxi Docker 相关测试；
+- implementer 自检、repo-guard 或绿色 CI 都不能替代 Sol 对实际 diff、公式、比较、裸分支、mask、空值和边界的审核；
+- implementer 不自行合并。
 
-- 总控：`docs/R11_POST_CC_S0_S1_TODO.md`
-- S0：`docs/post_cc/S0_CONTRACT_MIGRATION_TODO.md`
-- S1：`docs/post_cc/S1_END_TO_END_LEARNABILITY_TODO.md`
+## 3. 当前精确断点：S0-v2 ACTIVE
 
-规划冻结基线：
+旧 S1 包把 durable data-plane、joint learner、recovery 与最终 known-answer science 放在同一大阶段，导致执行 Agent 多次停在“尚不能签最终 receipt”的状态。根据最新 executability review 和 owner 的单-Agent执行安排，当前真实工程依赖被重新封装为一个**新的 versioned S0**：
 
-`main@fc7102442e91a1c27cf705487c6d06bd64b8ea09`
+`CB16_R11_S0V2_DURABLE_LEARNABILITY_FOUNDATION_R0`
 
-执行顺序严格为：
+当前任务 authority：
+
+`docs/post_cc/S0_V2_DURABLE_LEARNABILITY_FOUNDATION_TODO.md`
+
+唯一 implementation branch：
+
+`ai/r11-s0v2-durable-learnability-foundation-r0`
+
+S0-v2 scientific/code baseline：
+
+`392063881a6ef0dd1776ac579f1a290a134fc49e`
+
+S0-v2 不是历史 S0 的重跑，不替代旧 receipt。它是新的 successor engineering qualification。
+
+## 4. S0-v2 必须完成的链路
+
+一个 Agent 在同一 branch 内实现完整基础链：
 
 ```text
-S0 contract/economic semantic migration
-    -> S0 qualification receipt
-    -> bind S0 qualified identity and receipt-bearing S1 working base separately
-    -> S1 durable end-to-end learnability qualification
-    -> S1 receipt/verdict
-    -> STOP
+canonical Brain observation
+ -> immutable content-addressed observation fact
+ -> authoritative transition/experience linkage
+ -> persistent replay selection
+ -> restart-safe replay materialization
+ -> joint nominal direction+risk batch
+ -> persisted true behavior log_mu
+ -> target joint log_pi on nominal action
+ -> separate Critic + boundary-aware bootstrap + V-trace
+ -> joint Actor/Critic update
+ -> durable exactly-once update provenance
+ -> child checkpoint
+ -> generation switch
+ -> SAME LOGICAL ACCOUNT continuation
 ```
 
-### 7.1 S0 已关闭的范围
+关键硬约束：
 
-S0 已完成以下迁移/合同资格：
+- qualification/training truth 不能来自 collector-private live `records`；
+- observation/hash mismatch fail closed；
+- executed action 不得替代 nominal action；
+- `log_mu` 不得事后重构；
+- FLAT risk 必须精确为 0；
+- 删除 live rollout Python 对象并重启后必须从 durable state 重建相同 replay identity；
+- child generation 不能用新 flat account 伪造 continuity；
+- exactly-once update/recovery 必须有 hostile interruption tests；
+- FINAL/fresh-data firewall 保持关闭。
 
-- 旧 promotion code 的 `UNRESOLVED_OWNER_DECISION` 迁移为 successor semantics；
-- B&H/FLAT 作为 parallel components；
-- model ordering 与 promotion rule 分离；
-- old receipts 保持原样并由 migration authority 说明历史/当前边界；
-- 预冻结 S1 observation sidecar、joint replay sample、task registry、run spec、seed/no-rescue/evidence rules。
+S0-v2 最大证据：
 
-Qualified implementation：`5760061d6c274e9f8796e6608e86bb173018148f`；workflow `34721332483` success，receipt 记录 15 个 focused tests 通过。带 receipt 的交接与 S1 working base 为 `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f`，不因前一 SHA 是合格代码身份而回退 checkout。
+`POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`
 
-上述冻结及 PASS 覆盖当时实际检查，不代表 S1 生成器、控制和运行参数已全部具体化。当前缺口及原编号下的修补见 [S0/S1 可执行性审阅](reviews/S0_S1_EXECUTABILITY_REVIEW_2026-09-13.md)；TODO 维护者遵守 [撰写角色原则](S_SERIES_TODO_AUTHORING_PRINCIPLES.md)。原 registry/run spec/receipt 保持原字节，具体化以显式补充或适用的后继版本交付。
+这不等于最终 known-answer learnability PASS。
 
-本次所查 S1 分支 `ai/r11-post-cc-s1-end-to-end-learnability-r0` 的 head 为 `9d9911432d1da419b9957d857867cf3c5c8d9d3d`，相对交接基线的净差异仅 S1 baseline JSON；不能据此声称主体实现或学习资格已完成。该快照的下一实现入口是 S1-002，S1-A/B 开发与具体任务/oracle 定义可继续推进。正式运行须先落实 manifest 和判定器。
+## 5. 单 Agent 的结束状态
 
-### 7.2 S1 要证明什么
+Implementer 必须持续推进全部 S0-v2 tasks，普通缺功能不是 blocker。完成后把 branch 留在：
 
-当前 CC canary 已证明“一次 update 能接通”，但仍不是 robust learnability evidence。主要对齐缺口是：
+`READY_FOR_SOL_REVIEW`
 
-- integration canary 的训练张量可来自 rollout 内存 `records`，尚未证明 learner 只依靠 durable replay 即可重建训练真值；
-- persistent experience 有 observation identity/hash，但需要 Brain-ready `market/account/execution` observation payload 的 durable materialization；
-- generic learner batch/API 主要是 categorical action，而 canonical Actor 是 `direction + conditional continuous risk` 联合分布；
-- 现有 component toys 不等于 full persistent loop 的多轮收敛证据。
+并提供 exact head SHA、diff inventory、测试结果、Shanxi workflow/run/job/artifact identities 以及 candidate machine-readable record。
 
-S1 必须建立：
+Implementer 不 merge，不自签 Sol reviewer acceptance，也不自动进入 successor S1。
 
-`durable observation fact -> persistent replay materialization -> joint action batch -> true log_mu / joint log_pi -> Critic/V-trace/Actor update -> exactly-once child checkpoint -> generation switch -> actual child behavior -> preregistered known-answer improvement`
+合法提前停止仅限：
 
-并通过多 seed、no-signal、shuffled-credit 等 negative controls。Loss 下降、checkpoint 改变、child 输出不同动作都不能单独构成 S1 PASS。
+- `CONTRACT_MISMATCH`
+- `EXECUTION_BLOCKED`
+- `HARDWARE_LIMIT`
+- current authority 无法解决的全新 owner scientific choice
 
-## 8. S1 之后的路线边界
+## 6. Sol 审核与 merge gate
 
-S1 结束即停。S2 historical execution canary、S3 小规模历史学习、条件性 S4 capacity、S5 economic confirmation 仍由 `POST_CC_SCIENTIFIC_PROGRAM_R0.md` 定义，但不能由 S0/S1 executor 自动启动。
+Sol 接到 branch 后必须独立核对：
 
-S4 不是必须阶段；是否扩容由 S3 证据决定。`BRAIN_CAPACITY_ROADMAP_3700X_1060.md` 只是容量规划建议，不是自动扩容授权。
+1. branch lineage / exact base / diff scope；
+2. frozen CC 与 historical S0 receipts 未被改写；
+3. observation/replay durable truth 与 restart reconstruction；
+4. canonical joint policy likelihood、risk density、log-Jacobian、direction indexing；
+5. `log_pi - log_mu` / V-trace ratio 与 boundary/bootstrap masks；
+6. nominal/permission/execution routing；
+7. gradient ownership；
+8. exactly-once update/checkpoint recovery；
+9. generation switch / same-account continuity；
+10. exact reviewed SHA 的 GitHub Actions -> Shanxi Docker evidence。
 
-后续所有真实 historical runs 继续要求：数据 authority、cohort、horizon、budget、seeds、replay/update 配置与 gate 在运行前冻结，并保持 synthetic qualification 与 market economic evidence 分层。
+有问题则要求 implementer 在同一 branch 修复；满足后由 Sol merge。
 
-历史 AC/BC TODO、Stage-4、Teacher/demonstration 与 CC 四线程 TODO 均作为 provenance/history 保留，不再是当前 execution authority。
+## 7. S0-v2 之后
+
+只有 S0-v2 经 Sol review/merge 后，才重新路由 successor S1 scientific qualification。后续 S1 应集中验证五类 known-answer tasks 与 negative controls：
+
+1. `ACCOUNT_DEPENDENT_ACTION`
+2. `DELAYED_CONSEQUENCE_CREDIT`
+3. `HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION`
+4. `OFF_POLICY_VTRACE_CORRECTION`
+5. `A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION`
+
+S0-v2 结束不自动授权 historical S2/S3、容量扩张、FINAL 或经济资格。
+
+## 8. 仍必须保持的最高科学原则
+
+- `Truth != Belief != Decision != Permission != Execution`；
+- requested target risk != confidence；
+- one logical account is continuous across chunk/restart/checkpoint/generation boundaries；
+- signed account economics / liability / failure facts remain real；
+- historical information is not expired merely because it is old；
+- recurrence由模型权重/replay隐式表达，不增加手工 cycle/regime/resonance 激活系统；
+- arithmetic expected return remains the current economic orientation；
+- no hidden strategic SL/TP/max-hold/cooldown；
+- FINAL sealed / fresh data forbidden until separately authorized。
+
+历史 AC/BC/Stage-4/Teacher/CC-thread/S0/S1 documents remain provenance/history unless the current routing documents explicitly name them as active authority.
