@@ -14,6 +14,8 @@
 
 **不要重新拆一套 S0/S1。** 当前 task numbering、hard gates、建议 successor surfaces 和 receipts 已由 `R11_POST_CC_S0_S1_TODO.md` 及两个 `docs/post_cc/` 任务包冻结为执行入口。
 
+撰写、修订或审阅 S 系列 TODO 时，必须读取 [TODO 撰写角色原则](docs/S_SERIES_TODO_AUTHORING_PRINCIPLES.md)；当前具体修补位置见 [S0/S1 可执行性审阅](docs/reviews/S0_S1_EXECUTABILITY_REVIEW_2026-09-13.md)。沿用现有编号，区分组件开发就绪与正式科学运行就绪；后者须具体化生成器、控制、判分、预算和种子。此要求不新增 owner 审批，不授权覆盖冻结文件，也不因后续功能待实现而停止已明确的开发。
+
 CC R11 integration 已通过 PR #99 合入 `main`。Merge commit：
 
 `daa889d758ce80c7d1ce73ea37110937e1b146c0`
@@ -111,12 +113,12 @@ Receipt 冻结 benchmark：
 
 B&H/FLAT 是两个并列 benchmark components，**没有 master precedence，也没有 master baseline winner**。模型间排序、单模型 baseline component 结果、promotion decision 是三个独立对象。此原则已经关闭，不再提交 owner。
 
-旧 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍保留其历史 unresolved 身份；S0 必须通过 successor contract/routing 显式迁移，禁止改写 frozen receipt 或假装历史语义从未存在。
+旧 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍保留其历史 unresolved 身份；S0 已通过 successor contract/routing 完成迁移并获得 PASS，禁止改写 frozen receipt 或假装历史语义从未存在。
 
 当前执行顺序：
 
-1. `S0_CONTRACT_MIGRATION_TODO.md`：关闭经济语义迁移，冻结 successor contract、S1 task registry/run spec/evidence rule，输出 S0 receipt；
-2. S0 PASS 后才冻结 S1 base；
+1. `S0_CONTRACT_MIGRATION_TODO.md`：已关闭，receipt 的证据范围为 `POST_CC_CONTRACT_MIGRATION_QUALIFIED`；
+2. S1 从带 S0 receipt 的交接 head `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f` 继续；它与 qualified implementation `5760061d6c274e9f8796e6608e86bb173018148f` 分别绑定，不能混为同一 checkout；
 3. `S1_END_TO_END_LEARNABILITY_TODO.md`：消灭 rollout-memory learner side channel，建立 durable observation/replay materialization、joint direction+risk learner，并通过多 seed known-answer + negative controls；
 4. S1 结束即停，不自动进入 S2/S3/S4/S5。
 

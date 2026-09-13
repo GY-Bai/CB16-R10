@@ -12,6 +12,8 @@ PR #99 merge commit：
 |---|---|
 | 当前精确状态与下一断点 | **[CURRENT_STATE](CURRENT_STATE.md)** |
 | 当前 S0/S1 可执行总控 TODO | **[R11_POST_CC_S0_S1_TODO](R11_POST_CC_S0_S1_TODO.md)** |
+| S 系列 TODO 撰写/修订角色原则 | **[S_SERIES_TODO_AUTHORING_PRINCIPLES](S_SERIES_TODO_AUTHORING_PRINCIPLES.md)** |
+| S0/S1 拆解可执行性与具体修补位置 | **[2026-09-13 审阅](reviews/S0_S1_EXECUTABILITY_REVIEW_2026-09-13.md)** |
 | S0 契约/经济语义迁移任务包 | **[S0_CONTRACT_MIGRATION_TODO](post_cc/S0_CONTRACT_MIGRATION_TODO.md)** |
 | S1 端到端可学习性任务包 | **[S1_END_TO_END_LEARNABILITY_TODO](post_cc/S1_END_TO_END_LEARNABILITY_TODO.md)** |
 | CC integration 最终交接 | **[CC_INTEGRATION_HANDOFF](CC_INTEGRATION_HANDOFF.md)** |
@@ -72,13 +74,15 @@ Receipt 冻结的 Shanxi benchmark：
 
 ## 后 CC 设计决定与当前执行入口
 
-双基准不设 master precedence；同合同下完整算术收益决定候选排序。有充分预登记证据的相对改善可晋升沙盒学习冠军；不额外要求同时击败 B&H 和 FLAT。旧 C-20 代码/receipt 保留历史身份，当前 S0 负责显式 successor migration，不改写历史 receipt。
+双基准不设 master precedence；同合同下完整算术收益决定候选排序。有充分预登记证据的相对改善可晋升沙盒学习冠军；不额外要求同时击败 B&H 和 FLAT。旧 C-20 代码/receipt 保留历史身份；S0 已完成显式 successor migration 并获得 PASS，没有改写历史 receipt。
 
 当前直接执行顺序是：
 
 `S0 contract migration -> S0 receipt -> freeze S1 base -> S1 end-to-end learnability -> S1 receipt`
 
 具体 task numbering、hard gates、文件建议和机器可读交付均已写入 `R11_POST_CC_S0_S1_TODO.md` 及两个 `docs/post_cc/` 任务包。Sol 不需要重新拆一套 S0/S1。
+
+当前 S1 已授权，从 receipt-bearing head `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f` 开发。S0 PASS 不等于 S1 任务生成器与全部运行自由度已充分具体化；正式学习资格前须落实上述审阅的 manifest/控制/判分修补，组件开发可以继续。
 
 S1 通过之前，不进入 S2/S3 historical learning；S4 capacity 与 S5 economic qualification 继续按 `POST_CC_SCIENTIFIC_PROGRAM_R0.md` 的条件推进。
 

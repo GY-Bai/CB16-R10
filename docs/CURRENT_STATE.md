@@ -1,6 +1,6 @@
 # 当前状态与接手断点
 
-核对日期：2026-09-12 UTC。CC R11 integration 已通过 PR #99 正式合入 `main`；integration merge commit 为：
+核对日期：2026-09-13 UTC；本次文档审阅基于 `main@8d37166f9fcc87d61affaf1319afe225d8754d1b`。CC R11 integration 已通过 PR #99 正式合入 `main`；integration merge commit 为：
 
 `daa889d758ce80c7d1ce73ea37110937e1b146c0`
 
@@ -112,15 +112,15 @@ Hard cutover 已完成。Canonical CC runtime 不得 import、兼容或 fallback
 
 不能升级为 ECONOMIC 或 TRANSFER。当前没有证明真实历史市场 edge、未来盈利性或跨时期迁移；FINAL 未打开，fresh market data 未使用。
 
-## 6. 双基准原则已关闭；当前缺口是实现迁移
+## 6. 双基准原则与 S0 实现迁移均已关闭
 
 B&H 和 FLAT 是两个并列 benchmark components，**没有 master precedence，也没有 master baseline winner**。同合同下的模型间完整算术收益排序、单模型 B&H/FLAT component 结果、promotion decision 是不同对象。详见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
 
-现有 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍反映历史 unresolved 契约。它们不被改写。S0 负责创建 successor ordering/component/promotion contracts、显式 adapter/migration/router，并证明 post-CC canonical path 不再把 B&H/FLAT disagreement 解释成 owner uncertainty。
+现有 `cc_economic_promotion_r0.py` 与旧 Thread-C/integration receipts 仍反映历史 unresolved 契约。它们不被改写。S0 已创建 successor ordering/component/promotion contracts、显式 adapter/migration/router；receipt 记录 post-CC canonical path 不再把 B&H/FLAT disagreement 解释成 owner uncertainty。
 
-因此不要再询问 owner “B&H 和 FLAT 谁优先”。当前问题是代码迁移与资格，不是原则选择。
+因此不要再询问 owner “B&H 和 FLAT 谁优先”。S0 receipt 的证据范围为 `POST_CC_CONTRACT_MIGRATION_QUALIFIED`，不能提升为 S1 可学习性或市场经济证据。
 
-## 7. 当前精确断点：S0 -> S1
+## 7. 当前精确断点：S0 PASS / S1 ACTIVE
 
 宽泛路线仍由 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md) 定义；**当前直接执行 authority 已进一步拆成：**
 
@@ -137,21 +137,27 @@ B&H 和 FLAT 是两个并列 benchmark components，**没有 master precedence�
 ```text
 S0 contract/economic semantic migration
     -> S0 qualification receipt
-    -> freeze exact S1 base at S0 qualified head
+    -> bind S0 qualified identity and receipt-bearing S1 working base separately
     -> S1 durable end-to-end learnability qualification
     -> S1 receipt/verdict
     -> STOP
 ```
 
-### 7.1 S0 要关闭什么
+### 7.1 S0 已关闭的范围
 
-S0 不是再讨论原则，而是处理当前 code-vs-doc mismatch：
+S0 已完成以下迁移/合同资格：
 
 - 旧 promotion code 的 `UNRESOLVED_OWNER_DECISION` 迁移为 successor semantics；
 - B&H/FLAT 作为 parallel components；
 - model ordering 与 promotion rule 分离；
 - old receipts 保持原样并由 migration authority 说明历史/当前边界；
 - 预冻结 S1 observation sidecar、joint replay sample、task registry、run spec、seed/no-rescue/evidence rules。
+
+Qualified implementation：`5760061d6c274e9f8796e6608e86bb173018148f`；workflow `34721332483` success，receipt 记录 15 个 focused tests 通过。带 receipt 的交接与 S1 working base 为 `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f`，不因前一 SHA 是合格代码身份而回退 checkout。
+
+上述冻结及 PASS 覆盖当时实际检查，不代表 S1 生成器、控制和运行参数已全部具体化。当前缺口及原编号下的修补见 [S0/S1 可执行性审阅](reviews/S0_S1_EXECUTABILITY_REVIEW_2026-09-13.md)；TODO 维护者遵守 [撰写角色原则](S_SERIES_TODO_AUTHORING_PRINCIPLES.md)。原 registry/run spec/receipt 保持原字节，具体化以显式补充或适用的后继版本交付。
+
+本次所查 S1 分支 `ai/r11-post-cc-s1-end-to-end-learnability-r0` 的 head 为 `9d9911432d1da419b9957d857867cf3c5c8d9d3d`，相对交接基线的净差异仅 S1 baseline JSON；不能据此声称主体实现或学习资格已完成。该快照的下一实现入口是 S1-002，S1-A/B 开发与具体任务/oracle 定义可继续推进。正式运行须先落实 manifest 和判定器。
 
 ### 7.2 S1 要证明什么
 

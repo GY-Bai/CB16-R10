@@ -15,6 +15,8 @@ Detailed packages:
 - S0: `docs/post_cc/S0_CONTRACT_MIGRATION_TODO.md`
 - S1: `docs/post_cc/S1_END_TO_END_LEARNABILITY_TODO.md`
 
+Authoring/review rules: [S-series TODO authoring principles](S_SERIES_TODO_AUTHORING_PRINCIPLES.md). The [2026-09-13 executability review](reviews/S0_S1_EXECUTABILITY_REVIEW_2026-09-13.md) maps concrete gaps to the existing task IDs. S0 PASS stands and S1-A/B development continues. Before formal S1 qualification, bind executable task/control definitions, scoring predicates, budgets and seed roles in an explicit compatible supplement or successor version as appropriate. Do not overwrite frozen registry/run-spec/receipt bytes or renumber the tasks. Implement and check S1-032 predicates before consuming formal results; final compilation and receipt remain in S1-E.
+
 Read together with:
 
 - `docs/ECONOMIC_ORDERING_AND_PROMOTION.md`
