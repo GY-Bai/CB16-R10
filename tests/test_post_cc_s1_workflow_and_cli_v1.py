@@ -21,8 +21,15 @@ def test_workflow_uses_shared_preflight_and_shanxi_runner():
 def test_qualification_is_gated_by_sol_authorization_and_has_no_scientific_overrides():
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "inputs.mode == 'qualification'" in text
-    assert "CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json" in text
-    assert "READY_FOR_S1_QUALIFICATION" in text
+    assert "verify_r11_post_cc_s1_qualification_authorization.py" in text
+    script = Path("scripts/verify_r11_post_cc_s1_qualification_authorization.py").read_text(encoding="utf-8")
+    assert "CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json" in (
+        Path("cb16_local_opt/post_cc_s1_qualification_v1.py").read_text(encoding="utf-8")
+    )
+    assert "require_qualification_authorization_v1" in script
+    assert "READY_FOR_S1_QUALIFICATION" in Path("cb16_local_opt/post_cc_s1_qualification_v1.py").read_text(
+        encoding="utf-8"
+    )
     for forbidden in ("seed:", "threshold:", "learning_rate:", "reward:", "budget:"):
         assert forbidden not in text
     assert "--mode qualification" in text
@@ -95,6 +102,7 @@ def test_artifact_writer_emits_required_s1_tree(tmp_path):
         integrity={"attacks": {}, "all_rejected": True},
         objective_audit={"all_checks_pass": True},
         fabricated_audit={"all_checks_pass": True},
+        failure_fact_audit={"all_checks_pass": True},
         mode="smoke",
         compiled=None,
     )

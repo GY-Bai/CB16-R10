@@ -78,7 +78,7 @@ def test_off_policy_reward_shuffle_preserves_multiset_and_breaks_pairing():
     context = spec.contexts[0]
     with tempfile.TemporaryDirectory() as root:
         sequence_ids = _collect_episodes(root, spec, context, 4, lineage="cc-s1-op-shuffle")
-        batch, _materialized = _materialize_batch_v1(
+        batch, _materialized, _manifest_ids = _materialize_batch_v1(
             root=root, sequence_ids=tuple(sequence_ids), target_policy_identity="cc-s1-target"
         )
         original_rewards = sorted(float(sample.reward) for sample in batch.samples)

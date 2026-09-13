@@ -134,6 +134,16 @@ def _aba_result(*, a1_reduction: float = 0.8, b_reduction: float = 0.8, a2_reduc
         "task_id": "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION",
         "manifest_sha256": MANIFEST_SHA,
         "unit_size": 128,
+        "retention_evidence": {
+            "phase_plan_completed": True,
+            "a1_collected_count": 32,
+            "a1_durable_sequence_count_after_b": 32,
+            "a1_eligible_for_generic_replay_after_b": True,
+            "a1_index_rows_still_in_uniform_eligible_pool": 32,
+            "no_age_based_expiry": True,
+            "eligibility_rule": "ALL_DURABLE_INDEX_ROWS_UNIFORM_NO_EXPIRY",
+            "a1_selected_during_b_phase_count": 32,
+        },
         "oracle": {
             "mean_oracle_return": (oracle_a + oracle_b) / 2.0,
             "contexts": {"A": {"oracle_return": oracle_a}, "B": {"oracle_return": oracle_b}},
@@ -184,6 +194,7 @@ def _audits_ok() -> dict:
     return {
         "FABRICATED_LOG_MU_REJECTION": {"all_checks_pass": True},
         "OBJECTIVE_FIREWALL": {"all_checks_pass": True},
+        "HIGH_BANKRUPTCY_FAILURE_FACT": {"all_checks_pass": True},
     }
 
 
@@ -358,10 +369,11 @@ def test_aba_predicate_known_answers_and_retention_boundary():
     assert evaluate_seed_predicate_v1(weak_retention)["checks"]["RETURN_A_PRE_A2_beats_baseline"] is False
     assert evaluate_seed_predicate_v1(weak_retention)["predicate_pass"] is False
     no_eligible_a1 = _aba_result()
-    for unit in no_eligible_a1["unit_evidence"]:
-        if 32 <= unit["unit_index"] < 64:
-            unit["sequence_ids"] = [f"B-{unit['unit_index']}"]
-    assert evaluate_seed_predicate_v1(no_eligible_a1)["checks"]["A1_samples_eligible_after_B"] is False
+    no_eligible_a1["retention_evidence"]["a1_durable_sequence_count_after_b"] = 0
+    no_eligible_a1["retention_evidence"]["a1_eligible_for_generic_replay_after_b"] = False
+    predicate_missing = evaluate_seed_predicate_v1(no_eligible_a1)
+    assert predicate_missing["checks"]["A1_facts_durable_after_B"] is False
+    assert predicate_missing["checks"]["A1_eligible_for_generic_replay_after_B"] is False
 
 
 def test_manifest_firewall_violation_fails_closed():

@@ -221,19 +221,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify Sol qualification authorization is recorded
+      - name: Verify Sol qualification authorization is bound to this runtime
         shell: bash
         run: |
           set -euo pipefail
-          FILE=authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json
-          test -f "$FILE" || { echo S1_QUALIFICATION_AUTHORIZATION_MISSING; exit 1; }
-          python3 - "$FILE" <<'PY'
+          OUT="$RUNNER_TEMP/s1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          PYTHON=$(python3 - "$OUT" <<'PY'
           import json, sys
-          payload = json.load(open(sys.argv[1]))
-          assert payload.get('status') == 'READY_FOR_S1_QUALIFICATION', payload
-          assert payload.get('reviewer_role') == 'SOL_INDEPENDENT_QUALIFICATION_REVIEW', payload
-          print('S1_QUALIFICATION_AUTHORIZED')
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
           PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/verify_r11_post_cc_s1_qualification_authorization.py \
+            --repo-root . \
+            --json-out "$RUNNER_TEMP/S1_QUALIFICATION_AUTHORIZATION_VERIFICATION.json"
 
       - name: Resolve verified canonical Python
         shell: bash

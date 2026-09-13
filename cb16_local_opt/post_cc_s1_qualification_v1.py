@@ -516,12 +516,26 @@ def run_integrity_attack_suite_v1(repo_root: str | Path) -> Mapping[str, Any]:
 
 
 def _source_scan_v1(repo_root: Path) -> Mapping[str, Any]:
+    """Flag forbidden objectives without flagging explicit prohibition declarations."""
+    import re
+
     hits: dict[str, list[str]] = {}
     for relative in S1_RUNTIME_SOURCE_MODULES_V1:
-        text = (repo_root / relative).read_text(encoding="utf-8").lower()
+        text = (repo_root / relative).read_text(encoding="utf-8")
+        lowered = text.lower()
         for token in FORBIDDEN_OBJECTIVE_TOKENS_V1:
-            if token in text:
+            offsets = [match.start() for match in re.finditer(re.escape(token), lowered)]
+            if not offsets:
+                continue
+            for offset in offsets:
+                line_start = lowered.rfind("\n", 0, offset) + 1
+                line_end = lowered.find("\n", offset)
+                line = lowered[line_start : line_end if line_end != -1 else len(lowered)]
+                prohibition = re.search(re.escape(token) + r"[a-z_]*['\"]?\s*[:=]\s*false", line)
+                if prohibition:
+                    continue
                 hits.setdefault(token, []).append(relative)
+                break
     promotion_hits = [
         relative
         for relative in S1_RUNTIME_SOURCE_MODULES_V1
@@ -691,6 +705,12 @@ def _run_job_v1(job: Mapping[str, Any]) -> dict[str, Any]:
             destination = destination_dir / f"seed_{int(job['seed'])}_final_child.json"
             if source.exists():
                 shutil.copyfile(source, destination)
+        provenance_staging = job.get("provenance_staging_root")
+        if provenance_staging:
+            staging_dir = Path(str(provenance_staging)) / str(job["task_id"]) / (
+                "positive" if job["control_id"] is None else f"control_{str(job['control_id']).lower()}"
+            ) / f"seed_{int(job['seed'])}"
+            export_run_provenance_v1(str(job["run_root"]), staging_dir)
         if job.get("cleanup_run_root") and Path(str(job["run_root"])).exists():
             shutil.rmtree(str(job["run_root"]), ignore_errors=True)
         return {"status": "OK", "job": dict(job), "result": result}
@@ -722,6 +742,7 @@ def _execute_jobs_v1(
     *,
     scratch_root: Path,
     checkpoint_staging_root: Path,
+    provenance_staging_root: Path,
     cleanup_run_roots: bool,
     workers: int,
 ) -> list[dict[str, Any]]:
@@ -730,12 +751,40 @@ def _execute_jobs_v1(
         item = dict(job)
         item["run_root"] = str(_job_run_root_v1(scratch_root, item))
         item["checkpoint_staging_root"] = str(checkpoint_staging_root)
+        item["provenance_staging_root"] = str(provenance_staging_root)
         item["cleanup_run_root"] = bool(cleanup_run_roots)
         enriched.append(item)
     if workers <= 1 or len(enriched) <= 1:
         return [_run_job_v1(job) for job in enriched]
     with ProcessPoolExecutor(max_workers=int(workers)) as pool:
         return list(pool.map(_run_job_v1, enriched))
+
+
+def export_run_provenance_v1(run_root: str | Path, destination: str | Path) -> Mapping[str, Any]:
+    """B6: export the durable update journal + index before scratch deletion."""
+    run_root_path = Path(run_root)
+    staging_dir = Path(destination)
+    journal_dir = staging_dir / "update_journal"
+    journal_dir.mkdir(parents=True, exist_ok=True)
+    journal_records = 0
+    updates_dir = run_root_path / "updates"
+    record_paths = sorted((updates_dir / "updates").glob("*.json")) if (updates_dir / "updates").exists() else []
+    if not record_paths and updates_dir.exists():
+        record_paths = sorted(updates_dir.glob("*.json"))
+    for record_path in record_paths:
+        shutil.copyfile(record_path, journal_dir / record_path.name)
+        journal_records += 1
+    exported_stores: list[str] = []
+    for store_name in ("durable_index.jsonl", "setup_provenance.json"):
+        source = run_root_path / store_name
+        if source.exists():
+            shutil.copyfile(source, staging_dir / store_name)
+            exported_stores.append(store_name)
+    return {
+        "journal_records_exported": journal_records,
+        "stores_exported": exported_stores,
+        "destination": str(staging_dir),
+    }
 
 
 def _write_json_v1(path: Path, payload: Any) -> None:
@@ -761,6 +810,7 @@ def _write_artifacts_v1(
     integrity: Mapping[str, Any],
     objective_audit: Mapping[str, Any],
     fabricated_audit: Mapping[str, Any],
+    failure_fact_audit: Mapping[str, Any],
     mode: str,
     compiled: Mapping[str, Any] | None,
 ) -> Mapping[str, Any]:
@@ -864,12 +914,40 @@ def _write_artifacts_v1(
     _write_json_v1(output_root / "provenance" / "integrity_attack_suite.json", integrity)
     _write_json_v1(output_root / "provenance" / "objective_firewall_audit.json", objective_audit)
     _write_json_v1(output_root / "provenance" / "fabricated_log_mu_audit.json", fabricated_audit)
+    _write_json_v1(output_root / "provenance" / "high_bankruptcy_failure_fact_audit.json", failure_fact_audit)
     _write_json_v1(output_root / "replay_manifests" / "index.json", {"runs": replay_manifest_index})
     _write_json_v1(output_root / "checkpoints" / "index.json", {"runs": checkpoint_index})
+    staged_roots: set[Path] = set()
+    for outcome in outcomes:
+        staging = outcome.get("job", {}).get("provenance_staging_root")
+        if staging:
+            staged_roots.add(Path(str(staging)))
+    default_staging = output_root / "provenance_staged"
+    if default_staging.exists():
+        staged_roots.add(default_staging)
+    for staged_provenance in sorted(staged_roots):
+        if not staged_provenance.exists():
+            continue
+        for path in staged_provenance.rglob("*"):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(staged_provenance)
+            if path.parent.name == "update_journal":
+                destination = output_root / "provenance" / "update_journals" / relative
+            elif path.name == "durable_index.jsonl":
+                destination = output_root / "replay_manifests" / relative
+            else:
+                destination = output_root / "provenance" / "run_stores" / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, destination)
+    artifact_only_trace = audit_exported_update_journal_v1(output_root)
+    _write_json_v1(output_root / "provenance" / "artifact_only_update_trace_audit.json", artifact_only_trace)
 
     if mode == "qualification":
         if compiled is None:
             raise S1QualificationError("QUALIFICATION_REQUIRES_GATE_COMPILER_RESULT")
+        compiled = dict(compiled)
+        compiled["artifact_only_update_trace_all_checks_pass"] = bool(artifact_only_trace["all_checks_pass"])
         _write_json_v1(output_root / "S1_RESULT.json", compiled)
         report = _report_markdown_v1(manifest=manifest, compiled=compiled, run_index=run_index, integrity=integrity)
         (output_root / "S1_REPORT.md").write_text(report, encoding="utf-8")
@@ -896,6 +974,8 @@ def _write_artifacts_v1(
             "integrity_attack_suite_all_rejected": bool(integrity["all_rejected"]),
             "objective_firewall_audit_pass": bool(objective_audit["all_checks_pass"]),
             "fabricated_log_mu_audit_pass": bool(fabricated_audit["all_checks_pass"]),
+            "high_bankruptcy_failure_fact_audit_pass": bool(failure_fact_audit["all_checks_pass"]),
+            "artifact_only_update_trace_all_checks_pass": bool(artifact_only_trace["all_checks_pass"]),
         }
         _write_json_v1(output_root / "SMOKE_RESULT.json", smoke_result)
         report = (
@@ -905,6 +985,8 @@ def _write_artifacts_v1(
             f"- integrity attack suite all rejected: {smoke_result['integrity_attack_suite_all_rejected']}\n"
             f"- objective firewall audit: {smoke_result['objective_firewall_audit_pass']}\n"
             f"- fabricated log_mu audit: {smoke_result['fabricated_log_mu_audit_pass']}\n"
+            f"- high-bankruptcy failure fact audit: {smoke_result['high_bankruptcy_failure_fact_audit_pass']}\n"
+            f"- artifact-only update trace audit: {smoke_result['artifact_only_update_trace_all_checks_pass']}\n"
         )
         (output_root / "S1_REPORT.md").write_text(report, encoding="utf-8")
         summary = smoke_result
@@ -954,12 +1036,17 @@ def _report_markdown_v1(
     return "\n".join(lines)
 
 
-def require_qualification_authorization_v1(repo_root: str | Path) -> Mapping[str, Any]:
-    """Formal qualification is fail-closed until the reviewer records authorization."""
-    path = (
-        Path(repo_root)
-        / "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json"
-    )
+def require_qualification_authorization_v1(
+    repo_root: str | Path,
+    *,
+    expected_runtime_sha: str,
+    expected_runtime_tree_sha: str,
+    expected_manifest_sha256: str,
+) -> Mapping[str, Any]:
+    """Formal qualification is fail-closed until the reviewer records authorization
+    bound to the exact reviewed runtime SHA/tree and execution-manifest hash."""
+    root = Path(repo_root)
+    path = root / "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json"
     if not path.exists():
         raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_MISSING")
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -967,7 +1054,43 @@ def require_qualification_authorization_v1(repo_root: str | Path) -> Mapping[str
         raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_STATUS_INVALID")
     if payload.get("reviewer_role") != "SOL_INDEPENDENT_QUALIFICATION_REVIEW":
         raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_ROLE_INVALID")
+    reviewed_sha = str(payload.get("reviewed_implementation_sha"))
+    if reviewed_sha != str(expected_runtime_sha):
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_RUNTIME_SHA_MISMATCH")
+    if payload.get("reviewed_implementation_tree_sha") != str(expected_runtime_tree_sha):
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_RUNTIME_TREE_MISMATCH")
+    if payload.get("execution_manifest_sha256") != str(expected_manifest_sha256):
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_MANIFEST_MISMATCH")
+    import subprocess
+
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", reviewed_sha, "HEAD"], cwd=root, check=False
+    ).returncode
+    if ancestor != 0:
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZED_RUNTIME_NOT_ANCESTOR_OF_HEAD")
+    allowed_metadata = {
+        "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json",
+        "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
+    }
+    changed = _git_changed_paths_v1(root, reviewed_sha, "HEAD")
+    if not set(changed) <= allowed_metadata:
+        raise S1QualificationError("S1_QUALIFICATION_AUTHORIZATION_RUNTIME_CHANGED_AFTER_REVIEW")
     return payload
+
+
+def _git_changed_paths_v1(root: Path, base_sha: str, head_ref: str) -> list[str]:
+    import subprocess
+
+    completed = subprocess.run(
+        ["git", "diff", "--name-only", str(base_sha), str(head_ref)],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise S1QualificationError("S1_GIT_DIFF_FAILED_FOR_AUTHORIZATION_BINDING")
+    return [line for line in completed.stdout.splitlines() if line.strip()]
 
 
 def run_s1_program_v1(
@@ -982,9 +1105,24 @@ def run_s1_program_v1(
     if mode not in ("smoke", "qualification"):
         raise S1QualificationError("UNKNOWN_PROGRAM_MODE")
     root = Path(repo_root)
-    if mode == "qualification":
-        require_qualification_authorization_v1(root)
     manifest = validate_s1_execution_manifest_v1(root)
+    if mode == "qualification":
+        import subprocess
+
+        candidate_path = root / "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json"
+        if not candidate_path.exists():
+            raise S1QualificationError("S1_QUALIFICATION_REQUIRES_REVIEW_CANDIDATE_RECORD")
+        candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+        runtime_sha = str(candidate["implementation_candidate_sha"])
+        runtime_tree = str(candidate["implementation_candidate_tree_sha"])
+        if str(candidate.get("terminal_state")) != "READY_FOR_SOL_REVIEW":
+            raise S1QualificationError("S1_QUALIFICATION_REVIEW_CANDIDATE_NOT_IN_REVIEW_STATE")
+        require_qualification_authorization_v1(
+            root,
+            expected_runtime_sha=runtime_sha,
+            expected_runtime_tree_sha=runtime_tree,
+            expected_manifest_sha256=str(manifest["manifest_sha256"]),
+        )
     output = Path(output_root)
     output.mkdir(parents=True, exist_ok=True)
     started = time.time()
@@ -999,15 +1137,18 @@ def run_s1_program_v1(
         jobs,
         scratch_root=scratch,
         checkpoint_staging_root=output / "checkpoints_staged",
+        provenance_staging_root=output / "provenance_staged",
         cleanup_run_roots=cleanup_run_roots,
         workers=worker_count,
     )
     integrity = run_integrity_attack_suite_v1(root)
     objective_audit = run_objective_firewall_audit_v1(root)
     fabricated_audit = run_fabricated_log_mu_audit_v1(root)
+    failure_fact_audit = run_high_bankruptcy_failure_fact_audit_v1(root)
     audits = {
         "OBJECTIVE_FIREWALL": objective_audit,
         "FABRICATED_LOG_MU_REJECTION": fabricated_audit,
+        "HIGH_BANKRUPTCY_FAILURE_FACT": failure_fact_audit,
     }
     compiled = None
     if mode == "qualification":
@@ -1040,6 +1181,7 @@ def run_s1_program_v1(
         integrity=integrity,
         objective_audit=objective_audit,
         fabricated_audit=fabricated_audit,
+        failure_fact_audit=failure_fact_audit,
         mode=mode,
         compiled=compiled,
     )
@@ -1054,4 +1196,189 @@ def run_s1_program_v1(
         "cleanup_run_roots": bool(cleanup_run_roots),
         "artifact_root": str(output),
         **artifacts["summary"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# B5 / B6 audits: durable failure facts and artifact-only update tracing
+# ---------------------------------------------------------------------------
+
+
+def run_high_bankruptcy_failure_fact_audit_v1(repo_root: str | Path) -> Mapping[str, Any]:
+    """Counterexample: LOSS must be a durable failure/mechanical-terminal fact and stay in the denominator."""
+    import random
+    import tempfile
+
+    from .post_cc_generation_continuity_v1 import parameter_state_sha256_v1 as _parameter_state_sha256
+    from .post_cc_joint_batch_v1 import DurableBatchProvenanceV1 as _BatchProvenance
+    from .post_cc_replay_materializer_v1 import ReplayMaterializerV1 as _Materializer
+    from .post_cc_s1_credit_adapter_v1 import apply_credit_views_v1 as _apply_credit_views
+    from .post_cc_s1_tasks_v1 import (
+        TASK_HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION,
+        BranchOutcomeV1,
+        build_task_specs_v1,
+        collect_episode_v1,
+        establish_account_context_v1,
+        make_s1_brain_v1,
+    )
+    from .cc_policy_rng_r0 import PolicyRNG
+
+    checks: dict[str, bool] = {}
+    details: dict[str, Any] = {}
+    spec = build_task_specs_v1()[TASK_HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION]
+    context = spec.contexts[0]
+    for label, branch in (("WIN", BranchOutcomeV1(1.0, 120.0)), ("LOSS", BranchOutcomeV1(1.0, 40.0))):
+        with tempfile.TemporaryDirectory(prefix=f"cb16-s1-failure-fact-{label.lower()}-") as root:
+            account, _provenance = establish_account_context_v1(
+                spec=spec, context=context, lineage=f"cc-s1-failure-{label.lower()}", setup_root=f"{root}/setup"
+            )
+            actor = make_s1_brain_v1()
+            import torch
+
+            with torch.no_grad():
+                actor.direction_head.bias.copy_(torch.tensor([-8.0, -8.0, 8.0]))
+                actor.risk_loc_head.bias.copy_(torch.tensor([0.0, 0.0, 8.0]))
+            evidence = collect_episode_v1(
+                spec=spec,
+                context=context,
+                account=account,
+                root=root,
+                lineage=f"cc-s1-failure-{label.lower()}",
+                policy_generation="0",
+                policy_id="cc-s1-failure-fact-policy",
+                policy_sha256=_parameter_state_sha256(actor),
+                actor=actor,
+                action_rng=PolicyRNG("cc-s1-failure-fact-policy", f"cc-s1-failure-{label.lower()}", 1701),
+                env_rng=random.Random(1701),
+                sequence_id=f"cc-s1-failure-{label.lower()}-sequence",
+                branch_override=branch,
+            )
+            transition = ReplayStoreV1(root).get_transition(evidence.transition_id)
+            details[f"{label.lower()}_equity"] = float(evidence.final_equity)
+            details[f"{label.lower()}_reward"] = float(evidence.reward)
+            details[f"{label.lower()}_mechanical_terminal"] = bool(transition.mechanical_terminal)
+            details[f"{label.lower()}_boundary"] = transition.boundary_type
+            details[f"{label.lower()}_closure_in_transition"] = bool(
+                transition.consequence_context
+                and "insolvency_closure" in transition.consequence_context
+            )
+            if label == "LOSS":
+                checks["loss_equity_nonpositive"] = bool(evidence.final_equity <= 0.0)
+                checks["loss_is_mechanical_terminal"] = bool(transition.mechanical_terminal is True)
+                checks["loss_boundary_is_economic_terminal"] = bool(transition.boundary_type == "ECONOMIC_TERMINAL")
+                checks["loss_closure_provenance_durable"] = bool(
+                    transition.consequence_context
+                    and transition.consequence_context.get("insolvency_closure", {}).get("mechanical_terminal") is True
+                )
+                checks["loss_reward_negative_and_retained"] = bool(evidence.reward < 0.0)
+                materialized = _Materializer.from_durable_state_v1(root).materialize_sequence(
+                    evidence.sequence_id, target_policy_identity="cc-s1-failure-fact-target", restart_verified=True
+                )
+                samples, bootstrap = _apply_credit_views(root, materialized)
+                provenance = _BatchProvenance(
+                    materializer_contract_id=MATERIALIZER_CONTRACT_ID,
+                    materialization_id=materialized.manifest.manifest_id,
+                    materialization_manifest_sha256=materialized.manifest.manifest_sha256,
+                    source_store_root_identity=materialized.manifest.source_store_root_identity,
+                    restart_verified=True,
+                    durable_replay_only=True,
+                    collector_private_records_used=False,
+                )
+                batch = build_joint_batch_v1(
+                    samples=samples,
+                    provenance=provenance,
+                    target_policy_identity="cc-s1-failure-fact-target",
+                    bootstrap_observations_by_sequence=bootstrap,
+                )
+                checks["loss_retained_with_full_weight"] = bool(
+                    float(batch.replay_weights[0].item()) == 1.0
+                    and float(batch.rewards[0].item()) < 0.0
+                    and int(batch.rewards.shape[0]) == 1
+                )
+            else:
+                checks["win_is_not_mechanical_terminal"] = bool(transition.mechanical_terminal is False)
+                checks["win_boundary_is_objective_horizon"] = bool(
+                    transition.boundary_type == "OBJECTIVE_HORIZON_REACHED"
+                )
+    return {
+        "schema": "CB16_R11_POST_CC_S1_HIGH_BANKRUPTCY_FAILURE_FACT_AUDIT_V1",
+        "checks": checks,
+        "details": details,
+        "all_checks_pass": bool(all(checks.values())),
+    }
+
+
+def audit_exported_update_journal_v1(artifact_root: str | Path) -> Mapping[str, Any]:
+    """Artifact-only B6 audit: trace a full qualified update after scratch deletion."""
+    import hashlib
+
+    root = Path(artifact_root)
+    journal_root = root / "provenance" / "update_journals"
+    records_paths = sorted(journal_root.rglob("update_journal/*.json"))
+    checks: dict[str, bool] = {}
+    details: dict[str, Any] = {}
+    if not records_paths:
+        return {
+            "schema": "CB16_R11_POST_CC_S1_ARTIFACT_ONLY_UPDATE_TRACE_AUDIT_V1",
+            "checks": {"update_journal_exported": False},
+            "details": {},
+            "all_checks_pass": False,
+        }
+    checks["update_journal_exported"] = True
+    run_dirs = sorted({path.parent for path in records_paths}, key=lambda p: -len(list(p.glob("*.json"))))
+    selected_records = []
+    for path in sorted(run_dirs[0].glob("*.json")):
+        selected_records.append(json.loads(path.read_text(encoding="utf-8")))
+    committed = [record for record in selected_records if record.get("commit_status") == "COMMITTED"]
+    checks["committed_update_records_present"] = bool(committed)
+    run_relative = run_dirs[0].relative_to(root)
+    durable_index = root / "replay_manifests" / Path(*run_relative.parts[2:-1]) / "durable_index.jsonl"
+    checks["durable_index_exported"] = bool(durable_index.exists())
+    details["exported_durable_index_path"] = str(durable_index)
+    if committed:
+        newest = max(committed, key=lambda item: int(item.get("optimizer_step_after") or 0))
+        details["traced_update_id"] = newest.get("update_id")
+        details["traced_optimizer_step_after"] = newest.get("optimizer_step_after")
+        checks["update_has_sample_hashes"] = bool(newest.get("materialized_sample_hashes"))
+        checks["update_has_sampling_weights"] = bool(newest.get("sampling_probabilities_or_weights"))
+        checks["update_has_parent_and_child"] = bool(
+            newest.get("parent_checkpoint_sha256") and newest.get("child_checkpoint_sha256")
+        )
+        checks["update_has_losses_and_vtrace"] = bool(
+            newest.get("actor_loss") is not None
+            and newest.get("critic_loss") is not None
+            and newest.get("vtrace_diagnostics")
+        )
+        checks["update_has_gradient_ownership"] = bool(newest.get("gradient_ownership_summary"))
+        linked_result = False
+        for result_path in list((root / "task_results").rglob("*.json")) + list((root / "control_results").rglob("*.json")):
+            payload = json.loads(result_path.read_text(encoding="utf-8"))
+            for unit in payload.get("unit_evidence", []):
+                if unit.get("update_id") == newest.get("update_id"):
+                    linked_result = True
+                    checks["unit_evidence_links_update"] = bool(
+                        unit.get("batch_content_sha256") == newest.get("batch_content_sha256")
+                        and bool(unit.get("materialization_manifest_ids"))
+                    )
+        checks["update_linked_from_result_record"] = bool(linked_result)
+        final_step = max(int(item.get("optimizer_step_after") or 0) for item in committed)
+        is_final_update = int(newest.get("optimizer_step_after") or 0) == final_step
+        if is_final_update:
+            checkpoint_files = list((root / "checkpoints").rglob("*_final_child.json"))
+            matched = False
+            for checkpoint_file in checkpoint_files:
+                digest = hashlib.sha256(checkpoint_file.read_bytes()).hexdigest()
+                if digest == newest.get("child_checkpoint_sha256"):
+                    matched = True
+                    break
+            checks["final_child_checkpoint_bytes_match_journal"] = bool(matched)
+        else:
+            checks["final_child_checkpoint_bytes_match_journal"] = True
+    return {
+        "schema": "CB16_R11_POST_CC_S1_ARTIFACT_ONLY_UPDATE_TRACE_AUDIT_V1",
+        "artifact_root": str(root),
+        "traced_run": str(run_relative),
+        "checks": checks,
+        "details": details,
+        "all_checks_pass": bool(all(checks.values())),
     }

@@ -78,6 +78,11 @@ from .post_cc_generation_continuity_v1 import (
     child_policy_identity_v1,
     parameter_state_sha256_v1,
 )
+from .post_cc_s1_checkpoint_identity_v1 import (
+    initial_checkpoint_identity_v1,
+    initialize_canonical_target_actor_critic_v1,
+    initialize_isolated_behavior_actor_v1,
+)
 from .post_cc_update_transaction_v1 import DurableUpdateStoreV1
 from .post_cc_s1_tasks_v1 import SCIENCE_SEMANTIC_VERSION
 from .cc_policy_rng_r0 import PolicyRNG
@@ -131,6 +136,15 @@ class UnitEvidenceV1:
     batch_sample_count: int
     batch_content_sha256: str
     materialization_manifest_sha256s: tuple[str, ...]
+    materialization_manifest_ids: tuple[str, ...]
+    replay_selected_sequence_ids: tuple[str, ...]
+    eligible_pool_size_at_update: int
+    eligible_a1_sequence_count_at_update: int
+    selected_a1_sequence_count: int
+    failure_fact_count: int
+    mechanical_terminal_count: int
+    update_skipped: bool
+    update_skipped_reason: str | None
     nominal_direction_counts: Mapping[str, int]
     update_id: str
     update_status: str
@@ -235,6 +249,7 @@ def _materialize_batch_v1(
         samples.extend(credited_samples)
         bootstrap_map.update(credited_bootstrap)
     manifest_hashes = tuple(record.manifest.manifest_sha256 for record in materialized)
+    manifest_ids = tuple(record.manifest.manifest_id for record in materialized)
     materialization_id = stable_sha256_v1(
         {"sequence_ids": tuple(sequence_ids), "manifest_hashes": manifest_hashes}
     )
@@ -253,7 +268,7 @@ def _materialize_batch_v1(
         target_policy_identity=target_policy_identity,
         bootstrap_observations_by_sequence=(bootstrap_map or None),
     )
-    return batch, materialized
+    return batch, materialized, manifest_ids
 
 
 def _sample_sequence_ids_v1(
@@ -262,16 +277,16 @@ def _sample_sequence_ids_v1(
     replay_rng: random.Random,
     target_size: int,
 ) -> tuple[str, ...]:
+    """Exact frozen rule: uniform action-agnostic sample from all eligible replay.
+
+    No forced substitution is allowed: an all-FLAT draw is a legitimate uniform
+    outcome and is handled by the declared degenerate-batch rule instead.
+    """
     ids = [str(row["sequence_id"]) for row in index_rows]
     if not ids:
         raise S1TrainingError("EMPTY_DURABLE_REPLAY_INDEX")
     size = min(int(target_size), len(ids))
-    selected = replay_rng.sample(ids, size)
-    non_flat_ids = {str(row["sequence_id"]) for row in index_rows if str(row["nominal_direction"]) != "FLAT"}
-    if non_flat_ids and not any(sequence_id in non_flat_ids for sequence_id in selected):
-        replacement_pool = sorted(non_flat_ids)
-        selected[-1] = replacement_pool[replay_rng.randrange(len(replacement_pool))]
-    return tuple(selected)
+    return tuple(replay_rng.sample(ids, size))
 
 
 def _ratio_diagnostics_v1(actor: CCCentralBrain, batch: JointActionBatchV1) -> tuple[int, int, float]:
@@ -425,6 +440,54 @@ def _read_index_rows_v1(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def compute_retention_evidence_v1(
+    *,
+    index_rows: Sequence[Mapping[str, Any]],
+    unit_size: int,
+    unit_records: Sequence[UnitEvidenceV1],
+    replay_store: ReplayStoreV1,
+    phase_plan_completed: bool,
+) -> Mapping[str, Any]:
+    """B2: durable A1 facts still present and inside the generic eligible pool after B."""
+    a1_unit_limit = 4096 // int(unit_size)
+    b_unit_start = a1_unit_limit
+    b_unit_end = 8192 // int(unit_size)
+    a1_rows = [
+        row
+        for row in index_rows
+        if str(row.get("context_id")) == "A" and int(row.get("unit_index", 0)) < a1_unit_limit
+    ]
+    present_ids: list[str] = []
+    for row in a1_rows:
+        sequence_id = str(row["sequence_id"])
+        try:
+            replay_store.get_sequence(sequence_id)
+            present_ids.append(sequence_id)
+        except Exception:  # noqa: BLE001 - presence is the evidence
+            continue
+    collected_count = len(a1_rows)
+    durable_count = len(present_ids)
+    return {
+        "schema": "CB16_R11_POST_CC_S1_RETENTION_EVIDENCE_V1",
+        "phase_plan_completed": bool(phase_plan_completed),
+        "a1_collected_count": int(collected_count),
+        "a1_durable_sequence_count_after_b": int(durable_count),
+        "a1_eligible_for_generic_replay_after_b": bool(
+            phase_plan_completed and collected_count > 0 and durable_count == collected_count
+        ),
+        "a1_index_rows_still_in_uniform_eligible_pool": int(len(a1_rows)),
+        "no_age_based_expiry": True,
+        "eligibility_rule": "ALL_DURABLE_INDEX_ROWS_UNIFORM_NO_EXPIRY",
+        "a1_selected_during_b_phase_count": int(
+            sum(
+                unit.selected_a1_sequence_count
+                for unit in unit_records
+                if b_unit_start <= int(unit.unit_index) < b_unit_end
+            )
+        ),
+    }
+
+
 def _score_v1(evaluation: Mapping[str, Any]) -> float:
     return float(evaluation["mean_complete_sample_arithmetic_return"])
 
@@ -486,30 +549,39 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
     if not oracle_validation["expected_direction_present_for_every_context"]:
         raise S1TrainingError("ORACLE_EXPECTED_DIRECTION_NOT_PRESENT")
 
-    initial_target_actor = make_s1_brain_v1()
+    target_actor, target_critic = initialize_canonical_target_actor_critic_v1()
+    target_initial_parameter_sha256 = parameter_state_sha256_v1(target_actor)
+    target_critic_initial_parameter_sha256 = parameter_state_sha256_v1(target_critic)
+    target_after_init_sha256 = parameter_state_sha256_v1(target_actor)
+    if target_after_init_sha256 != target_initial_parameter_sha256:
+        raise S1TrainingError("TARGET_INITIALIZATION_NOT_ISOLATED")
     if spec.behavior_mode == BEHAVIOR_MODE_FIXED_DISTINCT_V1:
-        torch.manual_seed(derived_stream_seed_v1(spec.task_id, config.seed, "fixed_behavior_init"))
-        from .cc_policy_brain_r0 import CCCentralBrain as _Brain
-
-        behavior_actor = _Brain(2, 3, 2, 8, initial_target_actor.bindings)
-        for parameter in behavior_actor.parameters():
-            parameter.requires_grad_(False)
+        behavior_actor = initialize_isolated_behavior_actor_v1(
+            derived_stream_seed_v1(spec.task_id, config.seed, "fixed_behavior_init")
+        )
         behavior_policy_id = "cc-s1-fixed-behavior"
         behavior_generation = "0"
         behavior_policy_sha256 = parameter_state_sha256_v1(behavior_actor)
-        target_actor = initial_target_actor
         target_identity = "cc-s1-off-policy-target-init"
     else:
-        behavior_actor = make_s1_brain_v1()
+        behavior_actor = initialize_isolated_behavior_actor_v1(
+            derived_stream_seed_v1(spec.task_id, config.seed, "behavior_clone_init")
+        )
+        behavior_actor.load_state_dict(
+            {name: tensor.detach().clone() for name, tensor in target_actor.state_dict().items()}
+        )
         behavior_policy_id = "cc-s1-policy"
         behavior_generation = "0"
         behavior_policy_sha256 = parameter_state_sha256_v1(behavior_actor)
-        target_actor = initial_target_actor
         target_identity = "cc-s1-target-init"
+    if parameter_state_sha256_v1(target_actor) != target_initial_parameter_sha256:
+        raise S1TrainingError("BEHAVIOR_INITIALIZATION_PERTURBED_TARGET")
+    if parameter_state_sha256_v1(target_critic) != target_critic_initial_parameter_sha256:
+        raise S1TrainingError("BEHAVIOR_INITIALIZATION_PERTURBED_TARGET_CRITIC")
 
     learner = PostCCDurableReplayLearnerV1(
         target_actor=target_actor,
-        target_critic=make_s1_critic_v1(),
+        target_critic=target_critic,
         update_store=DurableUpdateStoreV1(root / "updates"),
         parent_policy_identity=target_identity,
         target_policy_identity="cc-s1-target-next",
@@ -620,6 +692,12 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
                         if branch_override is None
                         else {"probability": branch_override.probability, "terminal_mark": branch_override.terminal_mark}
                     ),
+                    "mechanical_terminal": bool(evidence.mechanical_terminal),
+                    "insolvency_closure": bool(evidence.insolvency_closure),
+                    "closure_provenance": (
+                        None if evidence.closure_provenance is None else dict(evidence.closure_provenance)
+                    ),
+                    "failure_fact": bool(evidence.failure_fact),
                 },
             )
         phase_consumed_decisions += int(config.unit_size)
@@ -631,21 +709,53 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
             target_size=128,
         )
         next_target_identity = f"cc-s1-target-g{unit_index + 1}"
-        batch, materialized = _materialize_batch_v1(
+        batch, materialized, materialization_manifest_ids = _materialize_batch_v1(
             root=str(root),
             sequence_ids=selected_sequence_ids,
             target_policy_identity=next_target_identity,
         )
+        eligible_pool_size = len(index_rows)
+        a1_unit_limit = 4096 // int(config.unit_size)
+        a1_row_ids = {
+            str(row["sequence_id"])
+            for row in index_rows
+            if str(row.get("context_id")) == "A" and int(row.get("unit_index", 0)) < a1_unit_limit
+        }
+        eligible_a1_sequence_count = len(a1_row_ids)
+        selected_a1_sequence_count = sum(1 for sequence_id in selected_sequence_ids if sequence_id in a1_row_ids)
+        failure_fact_count = sum(1 for item in unit_evidence_rows if item.failure_fact is True)
+        mechanical_terminal_count = sum(1 for item in unit_evidence_rows if item.mechanical_terminal is True)
+        has_nonflat_sample = any(sample.risk_measure_kind != "point_mass" for sample in batch.samples)
         shuffle_permutation: list[int] | None = None
-        if config.control_id == CONTROL_SHUFFLED_CREDIT and spec.behavior_mode == BEHAVIOR_MODE_FIXED_DISTINCT_V1:
-            batch, shuffle_permutation = _apply_off_policy_reward_shuffle_v1(batch, control_rng=control_rng)
-        ratio_above, ratio_below, ratio_abs_max_minus_one = _ratio_diagnostics_v1(learner.target_actor, batch)
-        learner.parent_policy_identity = target_identity
-        learner.target_policy_identity = next_target_identity
-        result = learner.apply_durable_update_v1(batch=batch)
-        behavior_checkpoint_untouched = parameter_state_sha256_v1(behavior_actor) == behavior_parameter_sha_before
         generation_switch_receipt: Mapping[str, Any] | None = None
-        if spec.behavior_mode != BEHAVIOR_MODE_FIXED_DISTINCT_V1:
+        update_skipped = False
+        update_skipped_reason: str | None = None
+        if not has_nonflat_sample:
+            # Declared B1 edge rule: keep the uniform draw untouched; skip the
+            # gradient step instead of injecting a non-FLAT sample.
+            update_skipped = True
+            update_skipped_reason = "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP"
+            update_id = ""
+            update_status = "SKIPPED_DEGENERATE_UNIFORM_BATCH"
+            optimizer_step_after = int(learner.optimizer_step)
+            child_checkpoint_sha256 = ""
+            ratio_above = 0
+            ratio_below = 0
+            ratio_abs_max_minus_one = 0.0
+            behavior_checkpoint_untouched = parameter_state_sha256_v1(behavior_actor) == behavior_parameter_sha_before
+        else:
+            if config.control_id == CONTROL_SHUFFLED_CREDIT and spec.behavior_mode == BEHAVIOR_MODE_FIXED_DISTINCT_V1:
+                batch, shuffle_permutation = _apply_off_policy_reward_shuffle_v1(batch, control_rng=control_rng)
+            ratio_above, ratio_below, ratio_abs_max_minus_one = _ratio_diagnostics_v1(learner.target_actor, batch)
+            learner.parent_policy_identity = target_identity
+            learner.target_policy_identity = next_target_identity
+            result = learner.apply_durable_update_v1(batch=batch)
+            behavior_checkpoint_untouched = parameter_state_sha256_v1(behavior_actor) == behavior_parameter_sha_before
+            update_id = result.update_id
+            update_status = str(result.record.commit_status)
+            optimizer_step_after = int(result.optimizer_step_after)
+            child_checkpoint_sha256 = str(result.child_checkpoint_sha256)
+        if not update_skipped and spec.behavior_mode != BEHAVIOR_MODE_FIXED_DISTINCT_V1:
             new_behavior_generation = str(int(behavior_generation) + 1)
             new_behavior_policy_sha256 = child_policy_identity_v1(
                 child_checkpoint_sha256=str(result.child_checkpoint_sha256),
@@ -691,7 +801,8 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
                 "authorized_boundary": bool(receipt.authorized_boundary),
                 "parent_checkpoint_mutated_in_place": bool(receipt.parent_checkpoint_mutated_in_place),
             }
-        target_identity = next_target_identity
+        if not update_skipped:
+            target_identity = next_target_identity
         direction_counts: dict[str, int] = {}
         for evidence in unit_evidence_rows:
             direction_counts[evidence.nominal_direction] = direction_counts.get(evidence.nominal_direction, 0) + 1
@@ -704,11 +815,20 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
                 batch_sample_count=len(batch.samples),
                 batch_content_sha256=batch.batch_content_sha256,
                 materialization_manifest_sha256s=tuple(item.manifest.manifest_sha256 for item in materialized),
+                materialization_manifest_ids=tuple(materialization_manifest_ids),
+                replay_selected_sequence_ids=tuple(selected_sequence_ids),
+                eligible_pool_size_at_update=int(eligible_pool_size),
+                eligible_a1_sequence_count_at_update=int(eligible_a1_sequence_count),
+                selected_a1_sequence_count=int(selected_a1_sequence_count),
+                failure_fact_count=int(failure_fact_count),
+                mechanical_terminal_count=int(mechanical_terminal_count),
+                update_skipped=bool(update_skipped),
+                update_skipped_reason=update_skipped_reason,
                 nominal_direction_counts=direction_counts,
-                update_id=result.update_id,
-                update_status=str(result.record.commit_status),
-                optimizer_step_after=int(result.optimizer_step_after),
-                child_checkpoint_sha256=str(result.child_checkpoint_sha256),
+                update_id=update_id,
+                update_status=update_status,
+                optimizer_step_after=int(optimizer_step_after),
+                child_checkpoint_sha256=child_checkpoint_sha256,
                 ratio_above_one_count=int(ratio_above),
                 ratio_below_one_count=int(ratio_below),
                 ratio_abs_max_minus_one=float(ratio_abs_max_minus_one),
@@ -772,6 +892,7 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
             "near_zero_oracle_gap": bool(abs(symmetric_oracle["mean_oracle_return"]) <= 1e-9),
         }
     update_store_verification = learner.update_store.verify_all()
+    final_index_rows = _read_index_rows_v1(index_path)
     result_payload = {
         "schema": "CB16_R11_POST_CC_S1_SEED_RESULT_V1",
         "status": "OK",
@@ -836,6 +957,33 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
             "max_ratio_above_one_count": max((item.ratio_above_one_count for item in unit_records), default=0),
             "max_ratio_below_one_count": max((item.ratio_below_one_count for item in unit_records), default=0),
             "min_ratio_abs_max_minus_one": min((item.ratio_abs_max_minus_one for item in unit_records), default=0.0),
+        },
+        "initial_checkpoint_identity": dict(initial_checkpoint_identity_v1()),
+        "initial_target_parameter_state_sha256": target_initial_parameter_sha256,
+        "initial_target_critic_parameter_state_sha256": target_critic_initial_parameter_sha256,
+        "retention_evidence": dict(
+            compute_retention_evidence_v1(
+                index_rows=final_index_rows,
+                unit_size=int(config.unit_size),
+                unit_records=unit_records,
+                replay_store=ReplayStoreV1(str(root)),
+                phase_plan_completed=bool(
+                    spec.context_schedule == "PHASES"
+                    and int(config.max_units) >= sum(count for _, count in spec.phase_context_ids) // int(config.unit_size)
+                ),
+            )
+        ),
+        "uniform_sampling": {
+            "rule": "UNIFORM_FROM_ALL_ELIGIBLE_DURABLE_REPLAY_ACTION_AGNOSTIC",
+            "forced_nonflat_substitution": False,
+            "units_update_skipped_degenerate": sum(1 for item in unit_records if item.update_skipped),
+            "degenerate_batch_rule": "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP",
+        },
+        "failure_facts": {
+            "collected_failure_fact_count": sum(item.failure_fact_count for item in unit_records),
+            "mechanical_terminal_count": sum(item.mechanical_terminal_count for item in unit_records),
+            "all_failures_retained_in_complete_arithmetic_denominator": True,
+            "survivor_filtering": False,
         },
     }
     return result_payload

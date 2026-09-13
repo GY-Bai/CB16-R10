@@ -22,7 +22,11 @@ from typing import Any, Callable, Mapping, Sequence
 
 import torch
 
-from .account_economics_r0 import AccountEconomicsStateR0, make_account_economics_state_r0
+from .account_economics_r0 import (
+    AccountEconomicsStateR0,
+    make_account_economics_state_r0,
+    settle_negative_cash_to_liability_r0,
+)
 from .actor_critic_physics_adapter_r1 import Round2MechanicalExecutionConfigR1
 from .cc_clock_r0 import CCFourClockR0
 from .cc_environment_advance_r0 import CCEnvironmentIntervalR0, advance_environment_r0
@@ -36,7 +40,7 @@ from .cc_policy_distribution_r0 import (
 )
 from .cc_policy_rng_r0 import PolicyRNG
 from .cc_runtime_account_loop_r0 import CCContinuousAccountRuntimeR0, execute_via_frozen_r1_r0
-from .cc_runtime_boundary_r0 import COMPUTE_CHUNK, CONTINUE, OBJECTIVE_HORIZON_REACHED
+from .cc_runtime_boundary_r0 import COMPUTE_CHUNK, CONTINUE, ECONOMIC_TERMINAL, OBJECTIVE_HORIZON_REACHED
 from .cc_runtime_decision_schedule_r0 import CCDecisionScheduleR0
 from .cc_runtime_wire_r0 import CCPolicyDecisionV1
 from .post_cc_durable_collection_v1 import (
@@ -171,6 +175,7 @@ class TaskSpecV1:
     higher_ev_family_risk_high: float
     handcrafted_regime_activation: bool = False
     objective_orientation: str = "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA"
+    close_on_nonpositive_equity: bool = False
 
     def payload(self) -> Mapping[str, Any]:
         body = asdict(self)
@@ -351,6 +356,7 @@ def build_task_specs_v1() -> dict[str, TaskSpecV1]:
         higher_ev_family_directions=("LONG",),
         higher_ev_family_risk_low=0.85,
         higher_ev_family_risk_high=0.95,
+        close_on_nonpositive_equity=True,
     )
 
     off_policy = TaskSpecV1(
@@ -638,6 +644,68 @@ def expected_action_return_v1(
         )
         weighted_equity += float(branch.probability) * equity
     return (weighted_equity - reference) / reference
+
+
+def close_insolvent_account_v1(
+    account: AccountEconomicsStateR0,
+) -> tuple[AccountEconomicsStateR0, Mapping[str, Any]]:
+    """Policy-neutral insolvency/account-death closure with durable provenance.
+
+    The closure is deterministic: negative cash is legally settled to
+    liabilities first (equity-preserving), then economic responsibility is
+    closed so the canonical runtime reports ``mechanical_terminal = True`` on
+    an ``ECONOMIC_TERMINAL`` boundary.  Losses are never clamped or zeroed.
+    """
+    account.validate()
+    equity_at_closure = float(account.equity)
+    if equity_at_closure > 0.0:
+        raise ValueError("INSOLVENCY_CLOSURE_REQUIRES_NONPOSITIVE_EQUITY")
+    settlement_receipt: Mapping[str, Any] | None = None
+    closed = account
+    if account.cash < 0.0:
+        closed, receipt = settle_negative_cash_to_liability_r0(account)
+        settlement_receipt = {
+            "settlement_version": receipt.settlement_version,
+            "cash_before": float(receipt.cash_before),
+            "liabilities_before": float(receipt.liabilities_before),
+            "cash_after": float(receipt.cash_after),
+            "liabilities_after": float(receipt.liabilities_after),
+            "equity_before": float(receipt.equity_before),
+            "equity_after": float(receipt.equity_after),
+        }
+    closed = replace(closed, economic_responsibility_open=False)
+    closed.validate()
+    if abs(float(closed.equity) - equity_at_closure) > 1e-9:
+        raise RuntimeError("INSOLVENCY_CLOSURE_MUST_NOT_DESTROY_LOSS")
+    return closed, {
+        "adapter": "POLICY_NEUTRAL_INSOLVENCY_CLOSURE_V1",
+        "equity_at_closure": equity_at_closure,
+        "settlement": settlement_receipt,
+        "economic_responsibility_open_after": bool(closed.economic_responsibility_open),
+        "mechanical_terminal": True,
+        "boundary_type": ECONOMIC_TERMINAL,
+    }
+
+
+def failure_fact_for_action_branch_v1(
+    *,
+    spec: TaskSpecV1,
+    account: AccountEconomicsStateR0,
+    direction: str,
+    risk: float,
+    terminal_mark: float,
+    stage1_mark: float,
+    stage2_is_no_decision_advance: bool,
+) -> float:
+    return final_equity_for_action_branch_v1(
+        spec=spec,
+        account=account,
+        direction=direction,
+        risk=risk,
+        terminal_mark=terminal_mark,
+        stage1_mark=stage1_mark,
+        stage2_is_no_decision_advance=stage2_is_no_decision_advance,
+    )
 
 
 def expected_action_bankruptcy_frequency_v1(
@@ -1059,6 +1127,10 @@ class EpisodeEvidenceV1:
     zero_account_inputs: bool
     policy_generation_after_episode: str
     final_account: AccountEconomicsStateR0
+    mechanical_terminal: bool
+    insolvency_closure: bool
+    closure_provenance: Mapping[str, Any] | None
+    failure_fact: bool
 
     def payload(self) -> Mapping[str, Any]:
         return {"schema": "CB16_R11_POST_CC_S1_EPISODE_EVIDENCE_V1", **asdict(self)}
@@ -1183,11 +1255,16 @@ def collect_episode_v1(
             force_liquidate=True,
             boundary_type=OBJECTIVE_HORIZON_REACHED,
         )
-    transition = runtime.step(
-        stage1_interval,
-        callback,
-        expected_predecessor_token=runtime.predecessor_token,
-    )
+    runtime.begin_interval(stage1_interval, expected_predecessor_token=runtime.predecessor_token)
+    runtime.capture_decision(callback)
+    runtime.execute_pending()
+    runtime.advance_pending_environment()
+    closure_provenance: Mapping[str, Any] | None = None
+    if spec.close_on_nonpositive_equity and float(runtime.account.equity) <= 0.0:
+        closed_account, closure_provenance = close_insolvent_account_v1(runtime.account)
+        runtime.account = closed_account
+        runtime.pending_interval = replace(runtime.pending_interval, boundary_type=ECONOMIC_TERMINAL)
+    transition = runtime.publish_pending()
     reward = 0.0 if reward_mode == "ZERO" else (float(runtime.account.equity) - equity_before) / float(spec.reward_reference_equity)
     boundary_observation_ref: str | None = None
     if spec.credit_stage2_no_decision:
@@ -1205,6 +1282,9 @@ def collect_episode_v1(
         reward=float(reward),
         discount=DEFAULT_ARITHMETIC_DISCOUNT_V1,
         bootstrap_state_ref_or_null=boundary_observation_ref,
+        consequence_context=(
+            None if closure_provenance is None else {"insolvency_closure": dict(closure_provenance)}
+        ),
     )
     if spec.credit_stage2_no_decision:
         collector.finalize_sequence(
@@ -1306,6 +1386,10 @@ def collect_episode_v1(
             zero_account_inputs=bool(zero_account_inputs),
             policy_generation_after_episode=str(runtime.policy_generation),
             final_account=final_account,
+            mechanical_terminal=False,
+            insolvency_closure=False,
+            closure_provenance=None,
+            failure_fact=bool(float(final_account.equity) <= 0.0),
         )
     collector.finalize_sequence(
         sequence_id=sequence_id,
@@ -1347,6 +1431,10 @@ def collect_episode_v1(
         zero_account_inputs=bool(zero_account_inputs),
         policy_generation_after_episode=str(runtime.policy_generation),
         final_account=runtime.account,
+        mechanical_terminal=bool(transition.mechanical_terminal),
+        insolvency_closure=bool(closure_provenance is not None),
+        closure_provenance=closure_provenance,
+        failure_fact=bool(float(runtime.account.equity) <= 0.0),
     )
 
 

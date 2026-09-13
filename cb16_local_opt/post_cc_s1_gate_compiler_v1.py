@@ -124,25 +124,18 @@ def _aba_predicate_v1(result: Mapping[str, Any]) -> dict[str, Any]:
     a2_final_gap = oracle_a - post_a2_a
     a2_reduction = (a2_initial_gap - a2_final_gap) / a2_initial_gap if a2_initial_gap > STRICT_TOLERANCE else float("nan")
     retention_rise = post_b_a - baseline_a
-    a1_unit_records = [
-        unit for unit in result["unit_evidence"] if int(unit["unit_index"]) < 4096 // int(result["unit_size"])
-    ]
-    a1_sequence_ids = {sequence_id for unit in a1_unit_records for sequence_id in unit["sequence_ids"]}
-    b_phase_units = [
-        unit
-        for unit in result["unit_evidence"]
-        if int(unit["unit_index"]) >= 4096 // int(result["unit_size"])
-        and int(unit["unit_index"]) < 8192 // int(result["unit_size"])
-    ]
-    a1_samples_used_in_b = any(
-        len(a1_sequence_ids.intersection(set(unit["sequence_ids"]))) > 0 for unit in b_phase_units
-    )
+    retention = result.get("retention_evidence") or {}
+    a1_durable_count = int(retention.get("a1_durable_sequence_count_after_b", -1))
+    a1_collected_count = int(retention.get("a1_collected_count", -1))
+    a1_eligible = bool(retention.get("a1_eligible_for_generic_replay_after_b") is True)
     checks = {
         "A1_gap_reduction_ge_threshold": bool(a1_initial_gap > STRICT_TOLERANCE and a1_reduction >= GAP_REDUCTION_THRESHOLD),
         "B_gap_reduction_ge_threshold": bool(b_initial_gap > STRICT_TOLERANCE and b_reduction >= GAP_REDUCTION_THRESHOLD),
         "RETURN_A_PRE_A2_beats_baseline": bool(retention_rise > STRICT_TOLERANCE),
         "A2_gap_reduction_ge_threshold": bool(a2_initial_gap > STRICT_TOLERANCE and a2_reduction >= GAP_REDUCTION_THRESHOLD),
-        "A1_samples_eligible_after_B": bool(a1_samples_used_in_b),
+        "A1_facts_durable_after_B": bool(a1_collected_count > 0 and a1_durable_count == a1_collected_count),
+        "A1_eligible_for_generic_replay_after_B": bool(a1_eligible),
+        "no_age_based_expiry": bool(retention.get("no_age_based_expiry") is True),
         "no_handcrafted_regime_activation": bool(result["handcrafted_regime_activation"] is False),
     }
     return {
@@ -151,6 +144,7 @@ def _aba_predicate_v1(result: Mapping[str, Any]) -> dict[str, Any]:
         "b_reduction": b_reduction,
         "a2_reduction": a2_reduction,
         "retention_rise": retention_rise,
+        "a1_selected_during_b_phase_count": int(retention.get("a1_selected_during_b_phase_count", 0)),
         "predicate_pass": all(checks.values()),
         "initial_gap_positive": bool(a1_initial_gap > STRICT_TOLERANCE and b_initial_gap > STRICT_TOLERANCE),
     }
@@ -196,6 +190,11 @@ def evaluate_seed_predicate_v1(result: Mapping[str, Any]) -> dict[str, Any]:
         checks["higher_ev_family_mass_rises"] = all(rises.values())
         checks["no_survivor_filtering_objective"] = bool(
             result.get("objective_orientation") == "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA"
+        )
+        failure_facts = result.get("failure_facts", {})
+        checks["failures_retained_in_complete_arithmetic_denominator"] = bool(
+            failure_facts.get("all_failures_retained_in_complete_arithmetic_denominator") is True
+            and failure_facts.get("survivor_filtering") is False
         )
     elif task_id == "OFF_POLICY_VTRACE_CORRECTION":
         ratios = result["ratio_diagnostics"]
@@ -259,6 +258,8 @@ def _result_provenance_ok(result: Mapping[str, Any], manifest_sha256: str) -> bo
     for unit in result.get("unit_evidence", []):
         if unit.get("restart_sentinel", {}).get("restart_verified") is not True:
             return False
+        if unit.get("update_skipped") is True:
+            continue
         switch = unit.get("generation_switch_receipt")
         if result["task_id"] != "OFF_POLICY_VTRACE_CORRECTION" and result.get("control_id") is None:
             if not switch or switch.get("account_fully_preserved") is not True:
@@ -406,7 +407,7 @@ def compile_s1_gates_v1(
     details["INTEGRITY_ATTACK_MATRIX"] = dict(integrity)
     if not integrity_ok:
         contract_violations.append("INTEGRITY_ATTACK_MATRIX")
-    for audit_key in ("FABRICATED_LOG_MU_REJECTION", "OBJECTIVE_FIREWALL"):
+    for audit_key in ("FABRICATED_LOG_MU_REJECTION", "OBJECTIVE_FIREWALL", "HIGH_BANKRUPTCY_FAILURE_FACT"):
         audit = audits.get(audit_key, {})
         gates[f"AUDIT:{audit_key}"] = bool(audit.get("all_checks_pass") is True)
         details[f"AUDIT:{audit_key}"] = dict(audit)

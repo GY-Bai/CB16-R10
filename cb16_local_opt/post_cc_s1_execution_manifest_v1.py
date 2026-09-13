@@ -14,6 +14,11 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from .post_cc_s1_checkpoint_identity_v1 import (
+    CHECKPOINT_CODEC_ID_V1,
+    FROZEN_AUTHORITY_INITIAL_CHECKPOINT_SHA256_V1 as FROZEN_IC_SHA_V1,
+    initial_checkpoint_identity_v1,
+)
 from .post_cc_s1_tasks_v1 import (
     ACTOR_LEARNING_RATE_V1,
     ANALYTIC_VTRACE_TOLERANCE_V1,
@@ -99,6 +104,7 @@ def execution_manifest_payload_v1() -> dict[str, Any]:
                 "gap_reduction_threshold": float(spec.gap_reduction_threshold),
                 "behavior_mode": spec.behavior_mode,
                 "credit_stage2_no_decision": bool(spec.credit_stage2_no_decision),
+                "close_on_nonpositive_equity": bool(spec.close_on_nonpositive_equity),
                 "objective_orientation": spec.objective_orientation,
                 "handcrafted_regime_activation": bool(spec.handcrafted_regime_activation),
                 "execution": {
@@ -170,7 +176,9 @@ def execution_manifest_payload_v1() -> dict[str, Any]:
             "collection_unit_policy_decisions": int(QUALIFICATION_COLLECTION_UNIT_V1),
             "durable_learner_updates_per_collection_unit": 1,
             "replay_batch_target_samples": int(QUALIFICATION_REPLAY_BATCH_V1),
-            "replay_sampling": "UNIFORM_FROM_ALL_ELIGIBLE_DURABLE_REPLAY",
+            "replay_sampling": "UNIFORM_FROM_ALL_ELIGIBLE_DURABLE_REPLAY_ACTION_AGNOSTIC",
+            "replay_sampling_forced_nonflat_substitution": False,
+            "degenerate_uniform_batch_rule": "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP",
             "replay_age_expiry": False,
             "behavior_checkpoint_fixed_within_collection_unit": True,
             "child_becomes_behavior_only_through_committed_generation_switch": True,
@@ -182,6 +190,39 @@ def execution_manifest_payload_v1() -> dict[str, Any]:
             "environment_branches": "EXACT_FINITE_BRANCH_ENUMERATION",
             "failures_and_bankruptcies_remain_in_denominator": True,
             "evaluation_decisions_enter_training_replay": False,
+        },
+        "replay_retention_evidence": {
+            "rule": "A1_DURABLE_FACTS_PRESENT_AND_ELIGIBLE_IN_GENERIC_UNIFORM_POOL_AFTER_B",
+            "collected_vs_replay_selected_distinct": True,
+            "no_age_based_expiry": True,
+            "eligibility_rule": "ALL_DURABLE_INDEX_ROWS_UNIFORM_NO_EXPIRY",
+            "a1_replay_selection_is_informational_only": True,
+        },
+        "failure_facts": {
+            "bankruptcy_definition": "TERMINAL_EQUITY_LE_ZERO",
+            "insolvency_closure_rule": "EQUITY_LE_ZERO_CLOSE_ECONOMIC_RESPONSIBILITY_AND_ECONOMIC_TERMINAL_BOUNDARY",
+            "closure_adapter": "POLICY_NEUTRAL_INSOLVENCY_CLOSURE_V1",
+            "all_failures_remain_in_complete_arithmetic_denominator": True,
+            "survivor_filtering": False,
+        },
+        "authorization_binding": {
+            "required_fields": [
+                "reviewed_implementation_sha",
+                "reviewed_implementation_tree_sha",
+                "execution_manifest_sha256",
+                "status",
+                "reviewer_role",
+            ],
+            "required_status": "READY_FOR_S1_QUALIFICATION",
+            "runtime_changes_after_review_allowed_paths": [
+                "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json",
+                "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
+            ],
+        },
+        "artifact_provenance": {
+            "update_journal_export_required_before_scratch_cleanup": True,
+            "artifact_only_update_trace_audit_required": True,
+            "durable_index_export_required": True,
         },
         "model": {
             "actor_class": "CCCentralBrain",
@@ -197,7 +238,11 @@ def execution_manifest_payload_v1() -> dict[str, Any]:
             "trainable_parameter_total": 314,
             "frozen_market_organ": True,
             "initialization_seed": int(MODEL_INITIALIZATION_SEED_V1),
-            "frozen_initial_checkpoint_semantic_sha256_declared": FROZEN_INITIAL_CHECKPOINT_SEMANTIC_SHA256_V1,
+            "initialization_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
+            "behavior_initialization_isolation": "TORCH_RANDOM_FORK_RNG_ISOLATED",
+            "checkpoint_codec_id": CHECKPOINT_CODEC_ID_V1,
+            "frozen_initial_checkpoint_semantic_sha256_declared": FROZEN_IC_SHA_V1,
+            "frozen_initial_checkpoint_identity_verification": dict(initial_checkpoint_identity_v1()),
             "optimizer": {
                 "actor": {"type": "SGD", "learning_rate": float(ACTOR_LEARNING_RATE_V1)},
                 "critic": {"type": "SGD", "learning_rate": float(CRITIC_LEARNING_RATE_V1)},
