@@ -238,12 +238,15 @@ class _CountedConnection:
 
 def _instrumented_open(file: Any, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
     file_obj = _RAW_OPEN(file, mode, *args, **kwargs)
-    if isinstance(file, int) or "w" not in mode and "a" not in mode and "x" not in mode and "+" not in mode:
+    if isinstance(file, int):
         return file_obj
-    path = os.fspath(file) if not isinstance(file, int) else None
-    if path is None or not _is_monitored(str(path)):
+    write_like = any(flag in mode for flag in ("w", "a", "x", "+"))
+    if not write_like:
         return file_obj
-    return _CountedFile(file_obj, str(path))
+    path = str(os.fspath(file))
+    if path.startswith(str(_metrics_dir())):
+        return file_obj
+    return _CountedFile(file_obj, path)
 
 
 def _instrumented_sqlite_connect(database: Any, *args: Any, **kwargs: Any) -> Any:
@@ -268,8 +271,9 @@ def _instrumented_os_open(path: Any, flags: int, *args: Any, **kwargs: Any) -> i
     fd = _RAW_OS_OPEN(path, flags, *args, **kwargs)
     write_like = bool(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND))
     if write_like:
-        _FD_PATHS[fd] = str(os.fspath(path))
-        _record("os_open_write", str(os.fspath(path)))
+        resolved = str(os.fspath(path))
+        _FD_PATHS[fd] = resolved
+        _record("os_open_write", resolved)
     return fd
 
 
@@ -289,7 +293,7 @@ def _instrumented_os_close(fd: int) -> None:
 def _instrumented_fdopen(fd: int, *args: Any, **kwargs: Any) -> Any:
     file_obj = _RAW_OS_FDOPEN(fd, *args, **kwargs)
     path = _FD_PATHS.get(fd)
-    if path and _is_monitored(path):
+    if path and not path.startswith(str(_metrics_dir())):
         return _CountedFile(file_obj, path)
     return file_obj
 
