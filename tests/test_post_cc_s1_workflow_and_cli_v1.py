@@ -62,20 +62,20 @@ def test_smoke_evidence_is_explicitly_not_scientific_qualification():
     assert "S1_SMOKE_IS_ENGINEERING_EVIDENCE_ONLY_NOT_SCIENTIFIC_QUALIFICATION" in smoke_job
 
 
-def test_runner_fails_closed_on_initial_checkpoint_contract(tmp_path):
+def test_runner_fails_closed_without_sol_qualification_authorization(tmp_path):
     from cb16_local_opt.post_cc_s1_qualification_v1 import (
         S1QualificationError,
         run_s1_program_v1,
     )
 
-    # B4: the authority hash is not reproducible under the declared codec, so
-    # qualification must fail closed before any scientific execution.
+    # B4 is frozen and matching after Sol R3. Formal qualification must still
+    # fail closed until the separate reviewer-owned CI-C authorization exists.
     try:
         run_s1_program_v1(repo_root=".", mode="qualification", output_root=tmp_path, workers=1)
     except S1QualificationError as exc:
-        assert "INITIAL_CHECKPOINT_CONTRACT_MISMATCH" in str(exc)
-    else:  # pragma: no cover - must never run while B4 is unresolved
-        raise AssertionError("qualification must be blocked by the initial-checkpoint contract")
+        assert "S1_QUALIFICATION_AUTHORIZATION_MISSING" in str(exc)
+    else:  # pragma: no cover - CI-C must remain blocked before reviewer authorization
+        raise AssertionError("qualification must be blocked without Sol authorization")
 
 
 def test_artifact_writer_emits_required_s1_tree(tmp_path):
