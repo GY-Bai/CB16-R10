@@ -143,7 +143,7 @@
       "requested_resolution": "Sol/authority to confirm the intended construction/codec or version the frozen initial-checkpoint hash before CI-C."
     }
   ],
-  "record_binding_head_sha": null,
+  "record_binding_head_sha": "22ef5c79440fc895c1d36804a62c5996ee08003c",
   "review_history": [
     {
       "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
