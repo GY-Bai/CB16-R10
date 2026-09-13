@@ -126,12 +126,23 @@ def classify_qualification_v1(
 
     if contract_violations:
         return "CONTRACT_MISMATCH"
+
+    operational_flags = {
+        "execution_blocked": execution_blocked,
+        "hardware_limit": hardware_limit,
+        "evidence_insufficient": evidence_insufficient,
+    }
+    if any(type(value) is not bool for value in operational_flags.values()):
+        return "CONTRACT_MISMATCH"
+    if sum(1 for value in operational_flags.values() if value) > 1:
+        return "CONTRACT_MISMATCH"
     if hardware_limit:
         return "HARDWARE_LIMIT"
     if execution_blocked:
         return "EXECUTION_BLOCKED"
     if evidence_insufficient:
         return "EVIDENCE_INSUFFICIENT"
+
     gates = dict(mandatory_scientific_gates or {})
     if not gates:
         return "EVIDENCE_INSUFFICIENT"
