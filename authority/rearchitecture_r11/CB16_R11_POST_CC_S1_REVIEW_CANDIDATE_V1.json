@@ -4,7 +4,7 @@
   "candidate_state": {
     "implementation": {
       "local_development_tests": "58_S1_TESTS_PASS_LOCAL_DEV_ENV_ONLY_NOT_SHANXI_EVIDENCE",
-      "shanxi_ci_state": "PENDING_SOL_REVIEW",
+      "shanxi_ci_state": "PASS",
       "task_coverage_complete": true
     },
     "phase": "A_IMPLEMENTATION_CANDIDATE",
@@ -13,9 +13,52 @@
       "started": false
     },
     "shanxi_ci": {
-      "bounded_smoke": null,
-      "formal_qualification": null,
-      "implementation_suite": null
+      "bounded_smoke": {
+        "artifact_id": 10314630289,
+        "checkout_sha": "d38a78d2e8b4368236ab861aed955ac25a1fb2f7",
+        "checkout_tree_sha": "847388727a2265cf8520bc4fd591b0c0c034a8cf",
+        "conclusion": "success",
+        "duration_seconds": 149,
+        "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
+        "executed_jobs": 13,
+        "fabricated_log_mu_audit_pass": true,
+        "integrity_attack_suite_all_rejected": true,
+        "job_id": 103693241221,
+        "job_name": "S1 bounded smoke (engineering only)",
+        "not_scientific_qualification": true,
+        "objective_firewall_audit_pass": true,
+        "program_wall_seconds": 47.356651306152344,
+        "run_attempt": 1,
+        "run_id": 34745732978,
+        "runtime_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
+        "scratch_root": "/dev/shm/cb16-s1-34745732978-smoke",
+        "workers": 2
+      },
+      "formal_qualification": {
+        "gated_by": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
+        "required_status": "READY_FOR_S1_QUALIFICATION",
+        "started": false
+      },
+      "implementation_suite": {
+        "artifact_id": 10314196647,
+        "checkout_sha": "d38a78d2e8b4368236ab861aed955ac25a1fb2f7",
+        "checkout_tree_sha": "847388727a2265cf8520bc4fd591b0c0c034a8cf",
+        "conclusion": "success",
+        "duration_seconds": 249,
+        "gpu": "NVIDIA GeForce GTX 1060 6GB",
+        "job_id": 103693241233,
+        "job_name": "S1 implementation unit and invariant suite",
+        "python_version": "3.10.21",
+        "run_attempt": 1,
+        "run_id": 34745732978,
+        "runner": "shanxi-docker-r11",
+        "runtime_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
+        "tests_failed": 0,
+        "tests_passed": 146,
+        "torch_cuda_version": "12.6",
+        "torch_version": "2.8.0+cu126",
+        "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
+      }
     }
   },
   "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_PENDING_SHANXI_EXACT_SHA_EVIDENCE",
@@ -39,7 +82,7 @@
     "historical_market_corpus_accessed": false,
     "transfer_evidence_claimed": false
   },
-  "first_unfinished_item": "Attach exact-SHA Shanxi Docker CI-A / CI-B evidence to this record after the push for implementation candidate f4f5848f894b.",
+  "first_unfinished_item": "Sol R1 code review of runtime candidate e3007fc2d26923a99c51ec8708acf8e81c7b2392; formal qualification only after reviewer authorization.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
   "implementation_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
   "implementation_candidate_tree_sha": "348be5d04f9f7cebf2316b8bf6aa48025d9b19e9",
@@ -79,6 +122,22 @@
       "requested_state": "READY_FOR_SOL_CODE_REVIEW",
       "round": "R0",
       "submitted_by": "DS Flash"
+    },
+    {
+      "implementation_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
+      "notes": "Exact-SHA Shanxi CI-A (146 passed) and CI-B bounded smoke attached; no scientific verdict claimed.",
+      "requested_state": "READY_FOR_SOL_CODE_REVIEW",
+      "round": "R0",
+      "shanxi_ci": {
+        "artifact_ids": [
+          10314196647,
+          10314630289
+        ],
+        "bounded_smoke_job": 103693241221,
+        "implementation_suite_job": 103693241233,
+        "implementation_suite_run": 34745732978
+      },
+      "submitted_by": "DS Flash"
     }
   ],
   "schema": "CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1",
@@ -91,7 +150,7 @@
   ],
   "stage_identity": "CB16_R11_POST_CC_S1_END_TO_END_LEARNABILITY_R1",
   "status": "DS_IMPLEMENTATION_CANDIDATE_SUBMITTED_FOR_SOL_REVIEW",
-  "strongest_evidence_claimed_by_candidate": "IMPLEMENTATION_CANDIDATE_READY_FOR_SOL_CODE_REVIEW",
+  "strongest_evidence_claimed_by_candidate": "IMPLEMENTATION_CANDIDATE_WITH_EXACT_RUNTIME_SHA_SHANXI_UNIT_AND_BOUNDED_SMOKE_EVIDENCE_READY_FOR_SOL_CODE_REVIEW",
   "task_spec_hashes": {
     "ACCOUNT_DEPENDENT_ACTION": "bea74d0309bb17b69da115e8a16555c372a7d8464ab2ab21e1cf472c137f7cd0",
     "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "ea95e93921fe56920183df40861ec468aa43f06c733c83f647ac2e70366d9722",
@@ -101,11 +160,11 @@
   },
   "terminal_state": "READY_FOR_SOL_REVIEW",
   "unresolved_items": [
-    "No Shanxi Docker CI run has been recorded yet at this candidate SHA; push-triggered jobs will be attached in the next record update.",
     "Formal 5-seed qualification has not started; it is gated by reviewer-owned READY_FOR_S1_QUALIFICATION authorization.",
     "The frozen initial checkpoint semantic hash is treated as declared authority because the repository contains no codec generator.",
     "High-bankruptcy higher-EV family mass uses the manifest-declared risk band [0.85,0.95) for direction LONG; reviewer may require a different concretization before formal qualification.",
-    "Off-policy ratio both-sides evidence is required per seed during formal qualification; implementation records the counts but Phase A does not assert them."
+    "Off-policy ratio both-sides evidence is required per seed during formal qualification; Phase A records the counts but does not assert them.",
+    "Qualification envelope estimate from the Shanxi smoke (832 decisions, 47.4s wall, workers=2) is roughly 3-5 hours for the full 65-run program at workers=8; CI-C timeout is 360 minutes and the execution-only /dev/shm scratch root is used to avoid container-disk fsync cost."
   ],
   "vtrace_critic_status": "ANALYTIC_HAND_FIXTURE_IMPLEMENTED_TOLERANCE_1E-6"
 }
