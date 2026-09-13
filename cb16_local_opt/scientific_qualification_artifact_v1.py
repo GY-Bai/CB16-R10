@@ -23,6 +23,14 @@ def _safe_relative_path_v1(value: str) -> Path:
     return path
 
 
+def _resolved_under_root_v1(base: Path, relative: Path) -> Path:
+    resolved_base = base.resolve()
+    candidate = (resolved_base / relative).resolve()
+    if not candidate.is_relative_to(resolved_base):
+        raise QualificationArtifactError(f"ARTIFACT_ESCAPES_ROOT:{relative.as_posix()}")
+    return candidate
+
+
 def _sha256_file_v1(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -35,6 +43,8 @@ def build_artifact_manifest_v1(
     root: str | Path,
     required_relative_paths: Sequence[str],
 ) -> Mapping[str, Any]:
+    if not required_relative_paths:
+        raise QualificationArtifactError("ARTIFACT_REQUIREMENTS_EMPTY")
     base = Path(root)
     entries: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -44,7 +54,7 @@ def build_artifact_manifest_v1(
         if key in seen:
             raise QualificationArtifactError(f"DUPLICATE_ARTIFACT_PATH:{key}")
         seen.add(key)
-        full = base / relative
+        full = _resolved_under_root_v1(base, relative)
         if not full.is_file():
             raise QualificationArtifactError(f"REQUIRED_ARTIFACT_MISSING:{key}")
         entries.append({
@@ -76,14 +86,23 @@ def verify_artifact_manifest_v1(
             violations.append(f"DUPLICATE_ARTIFACT_PATH:{key}")
             continue
         seen.add(key)
-        full = base / relative
+        try:
+            full = _resolved_under_root_v1(base, relative)
+        except QualificationArtifactError:
+            violations.append(f"ARTIFACT_ESCAPES_ROOT:{key}")
+            continue
         if not full.is_file():
             violations.append(f"ARTIFACT_MISSING:{key}")
             continue
         checked += 1
         observed_size = int(full.stat().st_size)
         observed_sha = _sha256_file_v1(full)
-        if observed_size != int(entry.get("size_bytes", -1)):
+        try:
+            expected_size = int(entry.get("size_bytes", -1))
+        except (TypeError, ValueError):
+            violations.append(f"ARTIFACT_SIZE_INVALID:{key}")
+            expected_size = -1
+        if observed_size != expected_size:
             violations.append(f"ARTIFACT_SIZE_MISMATCH:{key}")
         if observed_sha != str(entry.get("sha256", "")):
             violations.append(f"ARTIFACT_SHA256_MISMATCH:{key}")
