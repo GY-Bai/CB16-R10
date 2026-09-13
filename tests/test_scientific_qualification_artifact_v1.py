@@ -26,3 +26,25 @@ def test_artifact_manifest_rejects_symlink_escape(tmp_path):
     link.symlink_to(outside)
     with pytest.raises(QualificationArtifactError, match="ARTIFACT_ESCAPES_ROOT"):
         build_artifact_manifest_v1(tmp_path, ["escape.json"])
+
+
+def test_artifact_manifest_rejects_null_required_path(tmp_path):
+    (tmp_path / "None").write_text("sentinel\n", encoding="utf-8")
+    with pytest.raises(QualificationArtifactError, match="ARTIFACT_PATH_INVALID"):
+        build_artifact_manifest_v1(tmp_path, [None])
+
+
+def test_artifact_manifest_rejects_plain_string_container(tmp_path):
+    (tmp_path / "proof.json").write_text("proof\n", encoding="utf-8")
+    with pytest.raises(QualificationArtifactError, match="ARTIFACT_REQUIREMENTS_CONTAINER_INVALID"):
+        build_artifact_manifest_v1(tmp_path, "proof.json")
+
+
+def test_artifact_verifier_rejects_null_entry_path(tmp_path):
+    (tmp_path / "None").write_text("sentinel\n", encoding="utf-8")
+    manifest = {
+        "schema": "CB16_QUALIFICATION_ARTIFACT_BYTE_MANIFEST_V1",
+        "entries": [{"path": None, "size_bytes": 9, "sha256": "not-used"}],
+    }
+    with pytest.raises(QualificationArtifactError, match="ARTIFACT_PATH_INVALID"):
+        verify_artifact_manifest_v1(tmp_path, manifest)
