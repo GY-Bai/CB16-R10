@@ -86,28 +86,31 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          trap 'printf "2\n" > "$RUNNER_TEMP/S1_QUALIFICATION_EXIT_CODE.txt"' ERR
           INVALID_ROOT="/dev/shm/cb16-s1-${S1_INVALID_PRIOR_RUN_ID}-qualification"
-          # Run 34776116151 is formally dispositioned CONTRACT_MISMATCH / execution-invalid.
+          # Run 34776116151 is formally dispositioned execution-invalid.
           # Its scratch was preserved only for diagnosis and is now safe to remove.
           rm -rf "$INVALID_ROOT"
           rm -rf "/dev/shm/cb16-s1-cic-diag-${S1_DIAGNOSTIC_RUN_ID}" || true
 
-          SCRATCH_ROOT="${CB16_CI_WORKER_ROOT}/s1-qualification-${GITHUB_RUN_ID}"
+          # RUNNER_TEMP is already writable by the self-hosted runner and resides on
+          # the host-backed disk rather than the 64 MiB /dev/shm tmpfs.
+          SCRATCH_ROOT="${RUNNER_TEMP}/s1-qualification-${GITHUB_RUN_ID}"
           rm -rf "$SCRATCH_ROOT"
           mkdir -p "$SCRATCH_ROOT"
           test -w "$SCRATCH_ROOT"
           echo "$SCRATCH_ROOT" > "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt"
 
           SHM_FREE=$(df -PB1 /dev/shm | awk 'NR==2 {print $4}')
-          DISK_FREE=$(df -PB1 "$CB16_CI_WORKER_ROOT" | awk 'NR==2 {print $4}')
+          DISK_FREE=$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2 {print $4}')
           echo "S1_RETRY_SHM_FREE_BYTES=$SHM_FREE"
           echo "S1_RETRY_DISK_FREE_BYTES=$DISK_FREE"
-          # Shared memory remains available to multiprocessing, but durable run stores no longer live there.
           test "$SHM_FREE" -ge 33554432
-          # Fail closed before scientific execution if the disk scratch cannot safely hold the formal campaign.
+          # Fail closed before scientific execution if writable runner disk cannot
+          # safely hold the formal campaign.
           test "$DISK_FREE" -ge 2147483648
-          df -h /dev/shm "$CB16_CI_WORKER_ROOT"
-          df -i /dev/shm "$CB16_CI_WORKER_ROOT"
+          df -h /dev/shm "$RUNNER_TEMP"
+          df -i /dev/shm "$RUNNER_TEMP"
 
           export SHM_FREE DISK_FREE SCRATCH_ROOT
           python3 - <<'PY'
@@ -124,6 +127,7 @@ jobs:
               'authorized_checkout_sha': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
               'authorized_checkout_tree': subprocess.check_output(['git','rev-parse','HEAD^{tree}'], text=True).strip(),
               'scratch_root': os.environ['SCRATCH_ROOT'],
+              'scratch_storage_class': 'WRITABLE_RUNNER_TEMP_HOST_DISK',
               'workers': 8,
               'mode': 'qualification',
               'shm_free_bytes_before_retry': int(os.environ['SHM_FREE']),
@@ -135,6 +139,7 @@ jobs:
           )
           print(json.dumps(receipt, indent=2, sort_keys=True))
           PY
+          trap - ERR
 
       - name: Run exact-manifest S1 formal qualification on disk scratch
         id: qualification
@@ -170,8 +175,8 @@ jobs:
         shell: bash
         run: |
           set +e
-          df -h /dev/shm "$CB16_CI_WORKER_ROOT" | tee "$RUNNER_TEMP/S1_POST_RUN_DF.txt"
-          df -i /dev/shm "$CB16_CI_WORKER_ROOT" | tee "$RUNNER_TEMP/S1_POST_RUN_DF_INODES.txt"
+          df -h /dev/shm "$RUNNER_TEMP" | tee "$RUNNER_TEMP/S1_POST_RUN_DF.txt"
+          df -i /dev/shm "$RUNNER_TEMP" | tee "$RUNNER_TEMP/S1_POST_RUN_DF_INODES.txt"
           exit 0
 
       - name: Upload S1 formal qualification artifacts and retry receipt
@@ -201,7 +206,7 @@ jobs:
           if [ -f "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt" ]; then
             SCRATCH_ROOT=$(cat "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt")
             case "$SCRATCH_ROOT" in
-              /cb16/worker/s1-qualification-*) rm -rf "$SCRATCH_ROOT" ;;
+              "$RUNNER_TEMP"/s1-qualification-*) rm -rf "$SCRATCH_ROOT" ;;
               *) echo "REFUSE_UNEXPECTED_SCRATCH_ROOT=$SCRATCH_ROOT"; exit 1 ;;
             esac
           fi
