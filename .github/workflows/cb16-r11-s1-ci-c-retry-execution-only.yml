@@ -27,7 +27,7 @@ jobs:
     name: S1 formal 5-seed qualification — disk scratch retry
     needs: shanxi-preflight
     runs-on: [self-hosted, shanxi-docker-r11]
-    timeout-minutes: 240
+    timeout-minutes: 360
     permissions:
       contents: read
     steps:
