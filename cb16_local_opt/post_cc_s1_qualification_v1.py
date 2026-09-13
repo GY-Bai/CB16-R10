@@ -677,6 +677,22 @@ def _run_job_v1(job: Mapping[str, Any]) -> dict[str, Any]:
     )
     try:
         result = run_seed_v1(config)
+        staging_root = job.get("checkpoint_staging_root")
+        final_child_sha = None
+        unit_evidence = result.get("unit_evidence", [])
+        if unit_evidence:
+            final_child_sha = unit_evidence[-1].get("child_checkpoint_sha256")
+        if staging_root and final_child_sha:
+            source = Path(str(job["run_root"])) / "updates" / "checkpoints" / f"{final_child_sha}.json"
+            destination_dir = Path(str(staging_root)) / str(job["task_id"]) / (
+                "positive" if job["control_id"] is None else f"control_{str(job['control_id']).lower()}"
+            )
+            destination_dir.mkdir(parents=True, exist_ok=True)
+            destination = destination_dir / f"seed_{int(job['seed'])}_final_child.json"
+            if source.exists():
+                shutil.copyfile(source, destination)
+        if job.get("cleanup_run_root") and Path(str(job["run_root"])).exists():
+            shutil.rmtree(str(job["run_root"]), ignore_errors=True)
         return {"status": "OK", "job": dict(job), "result": result}
     except Exception as exc:  # noqa: BLE001 - execution failures must be recorded
         return {
@@ -696,16 +712,25 @@ def _worker_count_v1(requested: int | None) -> int:
     return max(1, min(8, os.cpu_count() or 1))
 
 
-def _job_run_root_v1(output_root: Path, job: Mapping[str, Any]) -> Path:
+def _job_run_root_v1(scratch_root: Path, job: Mapping[str, Any]) -> Path:
     suffix = "positive" if job["control_id"] is None else f"control_{job['control_id'].lower()}"
-    return output_root / "runs" / str(job["task_id"]) / suffix / f"seed_{int(job['seed'])}"
+    return scratch_root / str(job["task_id"]) / suffix / f"seed_{int(job['seed'])}"
 
 
-def _execute_jobs_v1(jobs: Sequence[Mapping[str, Any]], *, output_root: Path, workers: int) -> list[dict[str, Any]]:
+def _execute_jobs_v1(
+    jobs: Sequence[Mapping[str, Any]],
+    *,
+    scratch_root: Path,
+    checkpoint_staging_root: Path,
+    cleanup_run_roots: bool,
+    workers: int,
+) -> list[dict[str, Any]]:
     enriched = []
     for job in jobs:
         item = dict(job)
-        item["run_root"] = str(_job_run_root_v1(output_root, item))
+        item["run_root"] = str(_job_run_root_v1(scratch_root, item))
+        item["checkpoint_staging_root"] = str(checkpoint_staging_root)
+        item["cleanup_run_root"] = bool(cleanup_run_roots)
         enriched.append(item)
     if workers <= 1 or len(enriched) <= 1:
         return [_run_job_v1(job) for job in enriched]
@@ -811,10 +836,20 @@ def _write_artifacts_v1(
         final_sha = unit_evidence[-1].get("child_checkpoint_sha256") if unit_evidence else None
         if final_sha:
             source = Path(job["run_root"]) / "updates" / "checkpoints" / f"{final_sha}.json"
+            destination = output_root / "checkpoints" / task_id / f"{seed}__{control_id or 'positive'}_final_child.json"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            staged_root = job.get("checkpoint_staging_root")
+            staged = (
+                Path(str(staged_root)) / task_id / (
+                    "positive" if control_id is None else f"control_{str(control_id).lower()}"
+                ) / f"seed_{seed}_final_child.json"
+                if staged_root
+                else None
+            )
             if source.exists():
-                destination = output_root / "checkpoints" / task_id / f"{seed}__{control_id or 'positive'}_final_child.json"
-                destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, destination)
+            elif staged is not None and staged.exists():
+                shutil.copyfile(staged, destination)
 
     _write_json_v1(
         output_root / "provenance" / "task_specs.json",
@@ -941,6 +976,7 @@ def run_s1_program_v1(
     mode: str,
     output_root: str | Path,
     workers: int | None = None,
+    scratch_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Execute the S1 program in exactly one of the two scientific modes."""
     if mode not in ("smoke", "qualification"):
@@ -956,7 +992,16 @@ def run_s1_program_v1(
     for job in jobs:
         job["manifest_sha256"] = manifest["manifest_sha256"]
     worker_count = _worker_count_v1(workers)
-    outcomes = _execute_jobs_v1(jobs, output_root=output, workers=worker_count)
+    scratch = Path(scratch_root) if scratch_root else (output / "runs")
+    scratch.mkdir(parents=True, exist_ok=True)
+    cleanup_run_roots = bool(scratch_root)
+    outcomes = _execute_jobs_v1(
+        jobs,
+        scratch_root=scratch,
+        checkpoint_staging_root=output / "checkpoints_staged",
+        cleanup_run_roots=cleanup_run_roots,
+        workers=worker_count,
+    )
     integrity = run_integrity_attack_suite_v1(root)
     objective_audit = run_objective_firewall_audit_v1(root)
     fabricated_audit = run_fabricated_log_mu_audit_v1(root)
@@ -1005,6 +1050,8 @@ def run_s1_program_v1(
         "workers": int(worker_count),
         "jobs": len(jobs),
         "wall_seconds": float(time.time() - started),
+        "scratch_root": str(scratch),
+        "cleanup_run_roots": bool(cleanup_run_roots),
         "artifact_root": str(output),
         **artifacts["summary"],
     }

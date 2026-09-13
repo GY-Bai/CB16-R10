@@ -30,6 +30,11 @@ def main() -> int:
     parser.add_argument("--mode", choices=("smoke", "qualification"), required=True)
     parser.add_argument("--output-root", default="artifacts/post_cc_s1")
     parser.add_argument("--workers", type=int, default=None)
+    parser.add_argument(
+        "--scratch-root",
+        default=None,
+        help="execution-only fast scratch root for durable run stores (e.g. /dev/shm/cb16-s1)",
+    )
     args = parser.parse_args()
     try:
         summary = run_s1_program_v1(
@@ -37,6 +42,7 @@ def main() -> int:
             mode=args.mode,
             output_root=args.output_root,
             workers=args.workers,
+            scratch_root=args.scratch_root,
         )
     except S1QualificationError as exc:
         print(json.dumps({"status": "CONTRACT_MISMATCH", "error": str(exc)}, indent=2, sort_keys=True))

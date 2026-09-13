@@ -190,7 +190,8 @@ jobs:
           PYTHONPATH=. "$PYTHON" scripts/run_r11_post_cc_s1_learnability.py \
             --mode smoke \
             --output-root "$RUNNER_TEMP/post_cc_s1_smoke" \
-            --workers 1
+            --scratch-root "/dev/shm/cb16-s1-${GITHUB_RUN_ID}-smoke" \
+            --workers 2
           echo "S1_SMOKE_IS_ENGINEERING_EVIDENCE_ONLY_NOT_SCIENTIFIC_QUALIFICATION"
           git rev-parse HEAD
           git rev-parse HEAD^{tree}
@@ -256,6 +257,7 @@ jobs:
           PYTHONPATH=. "$PYTHON" scripts/run_r11_post_cc_s1_learnability.py \
             --mode qualification \
             --output-root "$RUNNER_TEMP/post_cc_s1_qualification_${SHORT_SHA}" \
+            --scratch-root "/dev/shm/cb16-s1-${GITHUB_RUN_ID}-qualification" \
             --workers 8
           git rev-parse HEAD
           git rev-parse HEAD^{tree}

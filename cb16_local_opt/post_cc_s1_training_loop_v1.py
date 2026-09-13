@@ -23,12 +23,14 @@ No shortcut around any arrow feeds S1 qualification.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
+from datetime import datetime, timezone
 import gc
 import hashlib
 import json
 import math
 from pathlib import Path
 import random
+import time
 from typing import Any, Mapping, Sequence
 
 import torch
@@ -443,9 +445,15 @@ def _mean_oracle_v1(oracle: Mapping[str, Any]) -> float:
     return float(oracle["mean_oracle_return"])
 
 
+def _utc_now_v1() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
 def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
     """Run one frozen task/seed (or matched control) through the durable loop."""
     config.validate()
+    run_started = _utc_now_v1()
+    run_started_monotonic = time.monotonic()
     spec = config.spec
     root = Path(config.run_root)
     root.mkdir(parents=True, exist_ok=True)
@@ -767,6 +775,9 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
     result_payload = {
         "schema": "CB16_R11_POST_CC_S1_SEED_RESULT_V1",
         "status": "OK",
+        "run_started_utc": run_started,
+        "run_finished_utc": _utc_now_v1(),
+        "wall_seconds": float(time.monotonic() - run_started_monotonic),
         "evidence_class": SMOKE_ONLY_EVIDENCE_CLASS if config.mode == "smoke" else QUALIFICATION_EVIDENCE_CLASS,
         "mode": config.mode,
         "task_id": spec.task_id,

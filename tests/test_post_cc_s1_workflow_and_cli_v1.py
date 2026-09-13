@@ -33,7 +33,7 @@ def test_runner_cli_exposes_only_non_scientific_execution_knobs():
     assert 'choices=("smoke", "qualification")' in text
     for forbidden in ("--seed", "--threshold", "--reward", "--learning-rate", "--model", "--budget"):
         assert forbidden not in text
-    assert "--output-root" in text and "--workers" in text
+    assert "--output-root" in text and "--workers" in text and "--scratch-root" in text
 
 
 def test_smoke_evidence_is_explicitly_not_scientific_qualification():
@@ -43,7 +43,7 @@ def test_smoke_evidence_is_explicitly_not_scientific_qualification():
     qualification_job = text.split("s1-formal-qualification:")[1]
     assert "qualification" in qualification_job
     smoke_job = text.split("s1-bounded-smoke:")[1].split("s1-formal-qualification:")[0]
-    assert "--workers 1" in smoke_job
+    assert "--workers 2" in smoke_job
     assert "S1_SMOKE_IS_ENGINEERING_EVIDENCE_ONLY_NOT_SCIENTIFIC_QUALIFICATION" in smoke_job
 
 
