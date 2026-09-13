@@ -1,0 +1,217 @@
+name: CB16 R11 S1 CI-C Retry — Execution Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  S1_AUTHORIZED_HEAD: a974e2803ccc2693d67a0375e460da35837636a4
+  S1_INVALID_PRIOR_RUN_ID: '34776116151'
+  S1_DIAGNOSTIC_RUN_ID: '34776930235'
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  qualification-retry:
+    name: S1 formal 5-seed qualification — disk scratch retry
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 240
+    permissions:
+      contents: read
+    steps:
+      - name: Record execution-wrapper identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/S1_EXECUTION_WRAPPER_SHA.txt"
+          echo "S1_EXECUTION_WRAPPER_SHA=$GITHUB_SHA"
+
+      - name: Checkout exact authorized S1 head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.S1_AUTHORIZED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify exact authorized checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$S1_AUTHORIZED_HEAD"
+          echo "S1_RETRY_CHECKOUT_SHA=$(git rev-parse HEAD)"
+          echo "S1_RETRY_CHECKOUT_TREE=$(git rev-parse HEAD^{tree})"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_retry_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('S1_RETRY_PYTHON_READY')
+          PY
+
+      - name: Verify Sol qualification authorization remains exact
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_retry_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/verify_r11_post_cc_s1_qualification_authorization.py \
+            --repo-root . \
+            --json-out "$RUNNER_TEMP/S1_QUALIFICATION_AUTHORIZATION_VERIFICATION.json"
+
+      - name: Prepare execution-only disk scratch and resource guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          INVALID_ROOT="/dev/shm/cb16-s1-${S1_INVALID_PRIOR_RUN_ID}-qualification"
+          # Run 34776116151 is formally dispositioned CONTRACT_MISMATCH / execution-invalid.
+          # Its scratch was preserved only for diagnosis and is now safe to remove.
+          rm -rf "$INVALID_ROOT"
+          rm -rf "/dev/shm/cb16-s1-cic-diag-${S1_DIAGNOSTIC_RUN_ID}" || true
+
+          SCRATCH_ROOT="${CB16_CI_WORKER_ROOT}/s1-qualification-${GITHUB_RUN_ID}"
+          rm -rf "$SCRATCH_ROOT"
+          mkdir -p "$SCRATCH_ROOT"
+          test -w "$SCRATCH_ROOT"
+          echo "$SCRATCH_ROOT" > "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt"
+
+          SHM_FREE=$(df -PB1 /dev/shm | awk 'NR==2 {print $4}')
+          DISK_FREE=$(df -PB1 "$CB16_CI_WORKER_ROOT" | awk 'NR==2 {print $4}')
+          echo "S1_RETRY_SHM_FREE_BYTES=$SHM_FREE"
+          echo "S1_RETRY_DISK_FREE_BYTES=$DISK_FREE"
+          # Shared memory remains available to multiprocessing, but durable run stores no longer live there.
+          test "$SHM_FREE" -ge 33554432
+          # Fail closed before scientific execution if the disk scratch cannot safely hold the formal campaign.
+          test "$DISK_FREE" -ge 2147483648
+          df -h /dev/shm "$CB16_CI_WORKER_ROOT"
+          df -i /dev/shm "$CB16_CI_WORKER_ROOT"
+
+          export SHM_FREE DISK_FREE SCRATCH_ROOT
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          receipt = {
+              'schema': 'CB16_R11_S1_CIC_EXECUTION_RETRY_RECEIPT_V1',
+              'evidence_class': 'EXECUTION_ONLY_RETRY_BINDING',
+              'scientific_semantics_changed': False,
+              'prior_invalid_run_id': int(os.environ['S1_INVALID_PRIOR_RUN_ID']),
+              'diagnostic_run_id': int(os.environ['S1_DIAGNOSTIC_RUN_ID']),
+              'failure_root_cause': 'SHARED_MEMORY_CAPACITY_EXHAUSTED_DATABASE_OR_DISK_FULL',
+              'wrapper_event_sha': os.environ['GITHUB_SHA'],
+              'authorized_checkout_sha': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'authorized_checkout_tree': subprocess.check_output(['git','rev-parse','HEAD^{tree}'], text=True).strip(),
+              'scratch_root': os.environ['SCRATCH_ROOT'],
+              'workers': 8,
+              'mode': 'qualification',
+              'shm_free_bytes_before_retry': int(os.environ['SHM_FREE']),
+              'disk_free_bytes_before_retry': int(os.environ['DISK_FREE']),
+              'changed_scientific_fields': [],
+          }
+          Path(os.environ['RUNNER_TEMP'], 'S1_CIC_EXECUTION_RETRY_RECEIPT.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Run exact-manifest S1 formal qualification on disk scratch
+        id: qualification
+        shell: bash
+        run: |
+          set +e
+          SHORT_SHA=$(git rev-parse --short=12 HEAD)
+          OUT="$RUNNER_TEMP/s1_retry_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          SCRATCH_ROOT=$(cat "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt")
+          ARTIFACT_ROOT="$RUNNER_TEMP/post_cc_s1_qualification_${SHORT_SHA}"
+          printf '%s\n' "$ARTIFACT_ROOT" > "$RUNNER_TEMP/S1_FORMAL_ARTIFACT_ROOT.txt"
+
+          PYTHONPATH=. "$PYTHON" scripts/run_r11_post_cc_s1_learnability.py \
+            --mode qualification \
+            --output-root "$ARTIFACT_ROOT" \
+            --scratch-root "$SCRATCH_ROOT" \
+            --workers 8
+          RC=$?
+          printf '%s\n' "$RC" > "$RUNNER_TEMP/S1_QUALIFICATION_EXIT_CODE.txt"
+          echo "qualification_exit_code=$RC" >> "$GITHUB_OUTPUT"
+          echo "S1_QUALIFICATION_EXIT_CODE=$RC"
+          # Do not terminate here: non-PASS results must still upload their complete formal artifacts.
+          exit 0
+
+      - name: Snapshot post-run resources
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          df -h /dev/shm "$CB16_CI_WORKER_ROOT" | tee "$RUNNER_TEMP/S1_POST_RUN_DF.txt"
+          df -i /dev/shm "$CB16_CI_WORKER_ROOT" | tee "$RUNNER_TEMP/S1_POST_RUN_DF_INODES.txt"
+          exit 0
+
+      - name: Upload S1 formal qualification artifacts and retry receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s1-formal-qualification-execution-retry
+          path: |
+            ${{ runner.temp }}/post_cc_s1_qualification_*
+            ${{ runner.temp }}/S1_QUALIFICATION_AUTHORIZATION_VERIFICATION.json
+            ${{ runner.temp }}/S1_CIC_EXECUTION_RETRY_RECEIPT.json
+            ${{ runner.temp }}/S1_EXECUTION_WRAPPER_SHA.txt
+            ${{ runner.temp }}/S1_DISK_SCRATCH_ROOT.txt
+            ${{ runner.temp }}/S1_FORMAL_ARTIFACT_ROOT.txt
+            ${{ runner.temp }}/S1_QUALIFICATION_EXIT_CODE.txt
+            ${{ runner.temp }}/S1_POST_RUN_DF.txt
+            ${{ runner.temp }}/S1_POST_RUN_DF_INODES.txt
+            ${{ runner.temp }}/s1_retry_python.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Cleanup execution-only disk scratch
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [ -f "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt" ]; then
+            SCRATCH_ROOT=$(cat "$RUNNER_TEMP/S1_DISK_SCRATCH_ROOT.txt")
+            case "$SCRATCH_ROOT" in
+              /cb16/worker/s1-qualification-*) rm -rf "$SCRATCH_ROOT" ;;
+              *) echo "REFUSE_UNEXPECTED_SCRATCH_ROOT=$SCRATCH_ROOT"; exit 1 ;;
+            esac
+          fi
+
+      - name: Propagate formal qualification verdict
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$RUNNER_TEMP/S1_QUALIFICATION_EXIT_CODE.txt"
+          RC=$(cat "$RUNNER_TEMP/S1_QUALIFICATION_EXIT_CODE.txt")
+          echo "S1_FORMAL_QUALIFICATION_EXIT_CODE=$RC"
+          exit "$RC"
