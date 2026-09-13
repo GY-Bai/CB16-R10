@@ -1,175 +1,63 @@
 # CB16 agent 工作约定
 
-本文件适用于整个仓库。主要交流语言为中文，代码标识和版本化协议名称保持原样。
+本文件是仓库入口；详细规则以所列 role/framework 文档和当前 stage authority 为准。
 
-## 1. 先确定自己的角色
-
-所有 agent 必须先读：
+## 1. 必读顺序
 
 1. `docs/ROLES_AND_REVIEW_PROTOCOL.md`
-2. 与自己角色对应的 principle：
-   - Sol：`docs/SOL_ROLE_PRINCIPLES.md`
-   - DS Flash / implementation agent：`docs/DS_FLASH_ROLE_PRINCIPLES.md`
-3. 当前 stage 的 TODO、authority、receipt 和 candidate/review artifacts。
+2. `docs/SCIENTIFIC_QUALIFICATION_FRAMEWORK.md`
+3. Sol 读 `docs/SOL_ROLE_PRINCIPLES.md`；implementation agent 读 `docs/DS_FLASH_ROLE_PRINCIPLES.md`
+4. 当前 stage 的 TODO、Qualification Profile、authority、receipt、candidate/review artifacts
 
-当前 owner 指定的责任链：
+责任链：
 
 ```text
 owner/user
-  ↓ supervises
-Astra — documents/principles aligned to owner
-  ↓ supervises
-Sol — scientific gap → architecture-aware TODO → independent code review
-  ↓ supervises
-DS Flash — TODO → code/tests/exact-SHA CI evidence
+ -> Astra documents/principles
+ -> Sol scientific gap + qualification contract + TODO + independent review
+ -> DS code/tests/exact-SHA CI evidence
 ```
 
-implementation agent 自检、repo-guard 或绿色 CI 不能替代 Sol review；implementation agent 不自行 merge，不自行签发 reviewer receipt。
+绿色 CI、自检或 repo-guard 都不能替代 Sol review；implementation agent 不自行 merge 或签发 reviewer receipt。
 
-临时 ChatGPT sandbox 可用于静态准备/阅读，不替代 Shanxi runtime evidence。
+## 2. Qualification Framework
 
-## 2. Sol 的仓库工作方式
+资格审查只规定“能力声明如何被证明”，不得反向修改 task、seed、reward、model、threshold、sampling、budget、oracle 或 evidence ceiling。
 
-Sol 不得一边无边界扫描仓库、一边直接写 TODO。复杂 S-series authoring 按 `docs/SOL_ROLE_PRINCIPLES.md` 的 pipeline：
+复杂 stage 在交给 DS 前，Sol 必须先完成 Stage Qualification Profile，至少覆盖：claims/proof obligations、semantic trace、identity/RNG、edge cases、negative controls、machine gates、artifact proof、exact-SHA CI 和 reviewer gate。
+
+字段存在不等于 link 被证明；proof 名称不得强于机器实际验证内容。通用 verdict 只使用：`PASS / SCIENTIFIC_FAIL / CONTRACT_MISMATCH / EXECUTION_BLOCKED / HARDWARE_LIMIT / EVIDENCE_INSUFFICIENT`。
+
+## 3. Sol / DS 工作方式
+
+Sol 按以下顺序工作：
 
 ```text
 Scientific Gap Freeze
-→ Relevant Infrastructure Inventory
-→ Upstream/Downstream Interface Map
-→ Gap-to-Code Matrix
-→ Executable TODO
-→ Adversarial TODO Review
+-> Relevant Infra Inventory
+-> Interface Map
+-> Gap-to-Code Matrix
+-> Stage Qualification Profile
+-> Executable TODO
+-> Adversarial TODO Review
 ```
 
-Sol 只调查 task-local architecture slice。TODO 必须明确：可复用 infra、要新增/修改的 surface、上下游 producer/consumer、禁止重造路径、HIGH-risk identity/RNG/edge cases、formal gate、CI/artifact evidence。
+mandatory proof obligation 没有 consumer、gate 或 artifact proof 时，TODO 不得交给 DS 猜测。Sol-Reviewer 必须独立检查 actual diff 和 machine evidence。
 
-## 3. DS Flash / implementation agent 的仓库工作方式
+DS 必须 reuse-first；不得用局部 fallback 改 science，包括改 sampling、强塞 sample、跳过 frozen update、silent clamp、修改 reward/threshold/seed/model/optimizer/budget、扩大 replay eligibility、偷换 behavior/target/evaluation 或 nominal/executed identity、用旧 CI 为新 SHA 背书。未定义的 HIGH-risk semantic choice 交回 Sol。
 
-DS 必须 reuse-first。TODO 标为 `REUSE_AS_IS / DO_NOT_TOUCH / LEGACY_REFERENCE_ONLY` 的模块不能自行重写或旁路。
+## 4. 当前边界
 
-DS 不得用局部 fallback 改写 scientific semantics，包括但不限于：
+S0-v2 已 qualified 并合入 main。S1 End-to-End Learnability 仍通过 PR #102 独立 review；bounded smoke 不是 scientific qualification。
 
-- 改 sampling distribution；
-- 跳过冻结要求的 update；
-- silent clamp；
-- 改 reward/threshold/seed/model/optimizer/budget；
-- 扩大 replay eligibility；
-- behavior/target/evaluation 身份偷换；
-- nominal/executed action 偷换；
-- 用旧 CI 为新 SHA 背书。
+本框架不授权在 S1 active PR 中顺手做公共重构。公共 qualification primitives 应在独立 non-scientific extraction 工作中实现，并证明 behavior/semantic equivalence 后再供后续 stage 复用。
 
-遇到 TODO 未定义的 HIGH-risk semantic choice，报告给 Sol，不自行决定。
+## 5. 不可破坏的基础语义
 
-DS terminal handoff state 是 `READY_FOR_SOL_REVIEW`。
+`Truth != Belief != Decision != Permission != Execution`；nominal 与 executed action 分离；requested risk 不是 confidence；FLAT risk=0；true behavior `log_mu` 在 decision time 持久化；required account continuity 跨 restart/checkpoint/generation 保持；失败/负权益/terminal facts 保持事实；truncation 与 terminal 分离；禁止 handcrafted regime activation；历史 receipts 不回写；FINAL sealed，fresh market data 未经明确授权禁止。
 
-## 4. 当前 stage
+## 6. CI / evidence
 
-S0-v2 Durable Learnability Foundation 已被 Sol 验收并合入 main；其最高 evidence 为：
+runtime/code behavior 合并 main 前必须由 GitHub Actions -> Shanxi Docker 覆盖相关变更，并绑定 exact checkout SHA/tree、shared preflight、verified Python、focused tests/regressions、machine-readable artifact 与 firewall。临时 sandbox 只做静态准备；repo-guard alone 不是 runtime evidence。
 
-`POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`
-
-当前 active implementation/review stage 是 **S1 End-to-End Learnability**，工作通过 PR #102 在指定 S1 branch 上多轮修订。S1 正式 5-seed qualification 只有在 Sol 明确签发 `READY_FOR_S1_QUALIFICATION` authorization 后才能运行。
-
-当前实现 agent 不得重开 S0-v2 foundation，也不得把 S1 bounded smoke 当 scientific qualification。
-
-## 5. Historical authority 必须保持不可变
-
-CC R11 integration 已关闭。Canonical CC authority：
-
-- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json`
-- `authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`
-
-Historical post-CC S0 contract migration 已冻结：
-
-- `authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json`
-
-S0-v2 final authority：
-
-- `authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json`
-
-不得编辑历史 receipts 来满足新任务。需要修正 authority 时使用 versioned successor artifact，并由对应 reviewer/owner 权限冻结。
-
-## 6. Scientific semantics that must not change
-
-- `Truth != Belief != Decision != Permission != Execution`.
-- Nominal sampled action remains separate from permitted/executed action.
-- Requested target risk is not confidence.
-- Actor is categorical direction + conditional continuous target risk.
-- FLAT risk is exactly 0.
-- True behavior `log_mu` is computed/persisted at decision time and never reconstructed from execution.
-- Same logical account remains continuous across chunk/restart/checkpoint/generation boundaries where required.
-- Negative equity, liabilities, failures and terminal facts remain factual.
-- Compute truncation, chunk boundary, task horizon and mechanical/economic terminal are distinct.
-- Frozen market organ gradient ownership remains frozen.
-- Arithmetic expected return remains the current economic orientation.
-- B&H and FLAT are parallel benchmark components; no master precedence.
-- No handcrafted cycle/regime/resonance activation system.
-- No hidden strategic SL/TP/max-hold/cooldown.
-- FINAL remains sealed; fresh market data remains forbidden unless explicitly authorized.
-
-## 7. Canonical runtime and legacy firewall
-
-Selected CC topology remains:
-
-`CC_FAST_R0_A_ORACLE_PLUS_D_SCHEDULER_BOUNDED_CHUNK_WRITER`
-
-Thread A remains runtime/account/execution science authority; Thread D remains performance implementation authority。
-
-Canonical path must not silently fall back to historical performance runtime：
-
-- `gpu_inference_broker.py`
-- `multiprocess_trajectory_farm.py`
-- `vectorized_physics.py`
-
-这些 legacy modules 可作 reference，不能在没有新 authority 的情况下恢复成 canonical fallback。
-
-## 8. Pre-merge CI requirement
-
-runtime/code behavior 变更在合并 `main` 前必须通过 GitHub Actions → Shanxi Docker 的相关专项/冒烟测试，至少绑定：
-
-- exact checkout SHA/tree；
-- shared preflight / current runner contract；
-- verified canonical Python；
-- focused tests + required regressions；
-- machine-readable artifacts；
-- FINAL/fresh firewall。
-
-Repo-guard alone is insufficient for runtime evidence。
-
-纯说明性文档变更可只运行 repo-guard/static checks；不得把文档 CI 当 runtime evidence。
-
-## 9. HIGH-risk implementation surfaces
-
-Sol/DS 都应按 role principle 特别处理：
-
-- SHORT/FLAT/LONG mapping；
-- FLAT point mass / non-FLAT density；
-- risk transform/log-Jacobian；
-- `log_pi - log_mu` / V-trace；
-- boundary/bootstrap/terminal masks；
-- nominal vs execution routing；
-- behavior/target/evaluation identity；
-- observation/content hash；
-- exactly-once retry；
-- account lineage / generation switch；
-- RNG ownership / initialization order；
-- authorization SHA/tree/manifest binding；
-- provenance chain；
-- threshold equality / empty / missing / NaN / Inf；
-- any fallback that could change science or hide failure。
-
-## 10. Evidence ceilings
-
-Historical CC strongest evidence：
-
-`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`
-
-Historical S0 maximum evidence：
-
-`POST_CC_CONTRACT_MIGRATION_QUALIFIED`
-
-S0-v2 maximum evidence：
-
-`POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`
-
-S1 如果最终通过，其 evidence ceiling 只能按 S1 frozen TODO/authority 声称；不得自动提升为 ECONOMIC、TRANSFER、historical profitability 或 production readiness。
+任何 stage 只能声明其 frozen authority 允许的 evidence ceiling；synthetic qualification 不自动提升为 economic、transfer、historical profitability 或 production readiness。
