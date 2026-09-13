@@ -140,6 +140,8 @@ class PostCCDurableReplayLearnerV1:
         self.critic_opt = torch.optim.SGD(target_critic.parameters(), lr=self.critic_lr)
         self.optimizer_step = 0
         self.gradient_applications = 0
+        self.restart_required = False
+        self.restart_required_reason: str | None = None
 
     def parent_checkpoint_sha256(self) -> str:
         return parent_checkpoint_sha256_v1(
@@ -236,6 +238,10 @@ class PostCCDurableReplayLearnerV1:
         fault_at: str | None = None,
     ) -> DurableUpdateResultV1:
         """Apply one update; retries must pass the same durable batch."""
+        if self.restart_required:
+            raise PostCCLearnerError(
+                f"RESTART_REQUIRED_FROM_DURABLE_PARENT:{self.restart_required_reason or 'POST_MUTATION_FAILURE'}"
+            )
         batch.validate()
         if not isinstance(batch.provenance.restart_verified, bool) or batch.provenance.restart_verified is not True:
             raise PostCCLearnerError("RESTART_VERIFIED_DURABLE_BATCH_REQUIRED")
@@ -306,6 +312,11 @@ class PostCCDurableReplayLearnerV1:
         if record.commit_status != STATUS_PREPARED:
             raise PostCCLearnerError("UNKNOWN_TRANSACTION_STATUS")
 
+        # From here on the live optimizer may mutate.  Any failure in this
+        # region poisons the instance: a retry must reconstruct from the
+        # durable parent checkpoint, never apply another gradient in-place.
+        self.restart_required = True
+        self.restart_required_reason = "POST_MUTATION_FAILURE"
         before_frozen = self._frozen_snapshot()
         losses = joint_actor_critic_losses_v1(self.target_actor, self.target_critic, batch)
         self.actor_opt.zero_grad(set_to_none=True)
@@ -345,6 +356,8 @@ class PostCCDurableReplayLearnerV1:
         committed = self.update_store.commit(update_id, child_sha)
         if fault_at == "after_commit_before_ack":
             raise InjectedUpdateFaultV1(fault_at)
+        self.restart_required = False
+        self.restart_required_reason = None
         return DurableUpdateResultV1(
             update_id=update_id,
             applied=True,

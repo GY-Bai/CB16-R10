@@ -177,3 +177,32 @@ def test_update_id_rebinding_rejected(tmp_path: Path):
             behavior_policy_identities=original.behavior_policy_identities,
             optimizer_step_before=original.optimizer_step_before,
         )
+
+
+@pytest.mark.parametrize(
+    "fault_at",
+    ("after_gradient_before_stage", "after_stage_before_commit", "after_commit_before_ack"),
+)
+def test_same_instance_retry_after_mutation_fault_is_rejected(tmp_path: Path, fault_at: str):
+    batch = _setup_batch(tmp_path)
+    learner, store = _make_learner(tmp_path)
+    parent_payload = learner.export_parent_checkpoint_bytes()
+    with pytest.raises(InjectedUpdateFaultV1):
+        learner.apply_durable_update_v1(batch=batch, fault_at=fault_at)
+    update_id = next(store.updates_dir.glob("*.json")).stem
+    step_after_fault = learner.optimizer_step
+    gradients_after_fault = learner.gradient_applications
+    records_after_fault = sorted(store.updates_dir.glob("*.json"))
+    assert learner.restart_required is True
+    with pytest.raises(PostCCLearnerError, match="RESTART_REQUIRED_FROM_DURABLE_PARENT"):
+        learner.apply_durable_update_v1(batch=batch)
+    assert learner.optimizer_step == step_after_fault
+    assert learner.gradient_applications == gradients_after_fault
+    assert sorted(store.updates_dir.glob("*.json")) == records_after_fault
+
+    restarted = _restart(learner, tmp_path, parent_payload)
+    assert restarted.restart_required is False
+    result = restarted.apply_durable_update_v1(batch=batch)
+    assert result.optimizer_step_after == 1
+    assert restarted.gradient_applications == (1 if fault_at == "after_gradient_before_stage" else 0)
+    assert store.get_record(update_id).commit_status == STATUS_COMMITTED

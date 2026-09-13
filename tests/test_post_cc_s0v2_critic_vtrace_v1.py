@@ -173,3 +173,70 @@ def test_truncation_bootstraps_from_durable_next_observation_and_terminal_does_n
     batch_term = make_batch_v1((first_term, terminal))
     losses_term = joint_actor_critic_losses_v1(actor, SeparateCritic(7, 8), batch_term)
     assert losses_term.vtrace.vs[-1].item() == pytest.approx(0.0, abs=1e-6)
+
+
+def test_loss_path_propagates_mechanical_terminal_from_durable_batch(tmp_path: Path):
+    actor = make_brain()
+    first = make_joint_sample_v1(
+        root=tmp_path,
+        decision_index=0,
+        environment_time=0,
+        nominal_direction="LONG",
+        nominal_target_risk=0.4,
+        reward=0.01,
+        boundary_type="CONTINUE",
+    )
+    mechanical = make_joint_sample_v1(
+        root=tmp_path,
+        transition_id="cc-s0v2-mechanical-terminal-loss-path",
+        decision_index=1,
+        environment_time=1,
+        nominal_direction="LONG",
+        nominal_target_risk=0.4,
+        reward=0.02,
+        boundary_type="ECONOMIC_TERMINAL",
+        mechanical_terminal=True,
+    )
+    first, mechanical = _force_same_policy_for_samples(actor, (first, mechanical))
+    batch = make_batch_v1((first, mechanical))
+    losses = joint_actor_critic_losses_v1(actor, SeparateCritic(7, 8), batch)
+    decision = losses.bootstrap_decisions[-1]
+    assert decision.boundary_class == "TERMINAL"
+    assert decision.boundary_semantics == "MECHANICAL_TERMINAL"
+    assert decision.mechanical_terminal is True
+    assert decision.bootstrap_value == 0.0
+    assert losses.diagnostics["mechanical_terminal_sequence_count"] == 1
+    assert losses.diagnostics["boundary_semantics_by_sequence"] == (
+        "MECHANICAL_TERMINAL",
+    )
+    assert losses.vtrace.vs[-1].item() == pytest.approx(float(batch.rewards[-1].item()), abs=1e-6)
+
+    economic = replace(
+        mechanical,
+        transition_id="cc-s0v2-economic-terminal-loss-path",
+        mechanical_terminal=False,
+    )
+    economic = _force_same_policy_for_samples(actor, (first, economic))[1]
+    economic_batch = make_batch_v1((first, economic))
+    economic_losses = joint_actor_critic_losses_v1(actor, SeparateCritic(7, 8), economic_batch)
+    economic_decision = economic_losses.bootstrap_decisions[-1]
+    assert economic_decision.boundary_class == "TERMINAL"
+    assert economic_decision.boundary_semantics == "ECONOMIC_TERMINAL"
+    assert economic_decision.mechanical_terminal is False
+    assert economic_losses.diagnostics["mechanical_terminal_sequence_count"] == 0
+
+
+def test_loss_path_rejects_mechanical_terminal_tensor_mismatch(tmp_path: Path):
+    first = make_joint_sample_v1(root=tmp_path, decision_index=0, environment_time=0, boundary_type="CONTINUE")
+    mechanical = make_joint_sample_v1(
+        root=tmp_path,
+        transition_id="cc-s0v2-mechanical-terminal-mismatch",
+        decision_index=1,
+        environment_time=1,
+        boundary_type="ECONOMIC_TERMINAL",
+        mechanical_terminal=True,
+    )
+    batch = make_batch_v1((first, mechanical))
+    corrupted = replace(batch, mechanical_terminals=(True, True))
+    with pytest.raises(ValueError, match="MECHANICAL_TERMINAL_TENSOR_MISMATCH"):
+        joint_actor_critic_losses_v1(make_brain(), SeparateCritic(7, 8), corrupted)

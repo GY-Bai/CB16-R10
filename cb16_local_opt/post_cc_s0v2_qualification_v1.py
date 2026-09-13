@@ -36,6 +36,7 @@ from .post_cc_durable_collection_v1 import (
 from .post_cc_generation_continuity_v1 import (
     GenerationContinuityError,
     assert_same_logical_account_continuation_v1,
+    child_policy_identity_v1,
     commit_child_generation_v1,
     parameter_state_sha256_v1,
 )
@@ -54,6 +55,7 @@ from .post_cc_joint_policy_loss_v1 import (
 from .post_cc_learner_v1 import (
     InjectedUpdateFaultV1,
     PostCCDurableReplayLearnerV1,
+    PostCCLearnerError,
 )
 from .post_cc_observation_fact_v1 import (
     _check_no_future_information,
@@ -539,6 +541,27 @@ def _gate_critic_bootstrap_vtrace() -> tuple[bool, dict[str, Any]]:
         checks["terminal_vtrace_recurrence"] = bool(
             torch.allclose(losses.vtrace.vs, torch.stack([manual_first, manual_last]), atol=1e-6, rtol=1e-6)
         )
+        mechanical_second = replace(
+            second,
+            transition_id="qual-vtrace-mechanical-terminal",
+            mechanical_terminal=True,
+        )
+        first_mech, mechanical_second = _force_exact_same_policy(actor, (first, mechanical_second))
+        mechanical_batch = make_batch_v1((first_mech, mechanical_second))
+        mechanical_losses = joint_actor_critic_losses_v1(actor, SeparateCritic(7, 8), mechanical_batch)
+        mechanical_decision = mechanical_losses.bootstrap_decisions[-1]
+        checks["loss_path_mechanical_terminal_provenance"] = bool(
+            mechanical_decision.mechanical_terminal is True
+            and mechanical_decision.boundary_semantics == "MECHANICAL_TERMINAL"
+            and mechanical_decision.boundary_class == "TERMINAL"
+            and mechanical_decision.bootstrap_value == 0.0
+            and mechanical_losses.diagnostics["mechanical_terminal_sequence_count"] == 1
+        )
+        checks["loss_path_economic_terminal_provenance"] = bool(
+            losses.bootstrap_decisions[-1].mechanical_terminal is False
+            and losses.bootstrap_decisions[-1].boundary_semantics == "ECONOMIC_TERMINAL"
+            and losses.diagnostics["mechanical_terminal_sequence_count"] == 0
+        )
         truncation = replace(
             second,
             transition_id="qual-vtrace-truncation",
@@ -629,6 +652,18 @@ def _run_fault_scenario(fault_at: str) -> dict[str, Any]:
             raised = True
         update_id = next(learner.update_store.updates_dir.glob("*.json")).stem
         status_after_fault = learner.update_store.get_record(update_id).commit_status
+        step_after_fault = learner.optimizer_step
+        gradients_after_fault = learner.gradient_applications
+        records_after_fault = sorted(learner.update_store.updates_dir.glob("*.json"))
+        same_instance_retry_rejected = _raised(
+            lambda: learner.apply_durable_update_v1(batch=batch),
+            PostCCLearnerError,
+        )
+        same_instance_state_unchanged = (
+            learner.optimizer_step == step_after_fault
+            and learner.gradient_applications == gradients_after_fault
+            and sorted(learner.update_store.updates_dir.glob("*.json")) == records_after_fault
+        )
         restarted = PostCCDurableReplayLearnerV1.from_parent_checkpoint_bytes_v1(
             payload=parent_payload,
             target_actor=make_brain(),
@@ -648,12 +683,16 @@ def _run_fault_scenario(fault_at: str) -> dict[str, Any]:
         passed = (
             raised
             and status_after_fault == expected_status
+            and same_instance_retry_rejected
+            and same_instance_state_unchanged
             and result.optimizer_step_after == 1
             and restarted.gradient_applications == expected_gradient_applications
         )
         return {
             "fault_at": fault_at,
             "status_after_fault": status_after_fault,
+            "same_instance_retry_rejected": same_instance_retry_rejected,
+            "same_instance_state_unchanged": same_instance_state_unchanged,
             "final_status": learner.update_store.get_record(update_id).commit_status,
             "final_optimizer_step": result.optimizer_step_after,
             "recovery_gradient_applications": restarted.gradient_applications,
@@ -679,18 +718,25 @@ def _gate_same_account_generation_continuity() -> tuple[bool, dict[str, Any]]:
         runtime, _memory_token = restore_runtime_r0(runtime_seal, executor=make_executor())
         account_snapshot = runtime.account
         lineage_before = runtime.account_lineage_id
+        new_generation = "1"
+        new_policy_id = "cc-s0v2-policy-g1"
+        policy_identity = child_policy_identity_v1(
+            child_checkpoint_sha256=result.child_checkpoint_sha256,
+            policy_generation=new_generation,
+            policy_id=new_policy_id,
+        )
         receipt = commit_child_generation_v1(
             runtime,
-            child_checkpoint_sha256=result.child_checkpoint_sha256,
-            new_policy_generation="1",
-            new_policy_id="cc-s0v2-policy-g1",
-            new_policy_sha256=result.child_checkpoint_sha256,
+            update_store=learner.update_store,
+            update_id=result.update_id,
+            new_policy_generation=new_generation,
+            new_policy_id=new_policy_id,
+            new_policy_sha256=policy_identity,
             expected_account_snapshot=account_snapshot,
             boundary_type="OBJECTIVE_HORIZON_REACHED",
-            committed_update_record=result.record,
         )
         account_preserved = runtime.account == account_snapshot and runtime.account_lineage_id == lineage_before
-        child_rng = PolicyRNG("cc-s0v2-policy-g1", lineage_before, 20260913)
+        child_rng = PolicyRNG(new_policy_id, lineage_before, 20260913)
         collector = DurableObservationCollectorV1(
             td,
             science_semantic_version=SCIENCE_SEMANTIC_VERSION,
@@ -712,9 +758,9 @@ def _gate_same_account_generation_continuity() -> tuple[bool, dict[str, Any]]:
                 account_lineage_id=runtime.account_lineage_id,
                 decision_index=clocks.policy_decision_index,
                 environment_time=clocks.environment_time,
-                policy_generation="1",
-                policy_id="cc-s0v2-policy-g1",
-                policy_sha256=result.child_checkpoint_sha256,
+                policy_generation=new_generation,
+                policy_id=new_policy_id,
+                policy_sha256=policy_identity,
                 nominal=nominal,
             )
             child_box["decision"] = decision
@@ -726,8 +772,8 @@ def _gate_same_account_generation_continuity() -> tuple[bool, dict[str, Any]]:
             expected_predecessor_token=runtime.predecessor_token,
         )
         child_acted = (
-            child_box["decision"].policy_id == "cc-s0v2-policy-g1"
-            and child_box["decision"].policy_sha256 == result.child_checkpoint_sha256
+            child_box["decision"].policy_id == new_policy_id
+            and child_box["decision"].policy_sha256 == policy_identity
         )
         flat_rejected = _raised(
             lambda: assert_same_logical_account_continuation_v1(
@@ -738,12 +784,94 @@ def _gate_same_account_generation_continuity() -> tuple[bool, dict[str, Any]]:
             ),
             GenerationContinuityError,
         )
-        passed = bool(account_preserved and child_acted and flat_rejected and receipt.account_fully_preserved)
+        unrelated_policy_sha_rejected = _raised(
+            lambda: commit_child_generation_v1(
+                runtime,
+                update_store=learner.update_store,
+                update_id=result.update_id,
+                new_policy_generation=new_generation,
+                new_policy_id=new_policy_id,
+                new_policy_sha256="a" * 64,
+                expected_account_snapshot=runtime.account,
+                boundary_type="COMPUTE_CHUNK",
+            ),
+            GenerationContinuityError,
+        )
+        missing_authority_rejected = _raised(
+            lambda: commit_child_generation_v1(
+                runtime,
+                update_store=learner.update_store,
+                update_id="0" * 64,
+                new_policy_generation=new_generation,
+                new_policy_id=new_policy_id,
+                new_policy_sha256=policy_identity,
+                expected_account_snapshot=runtime.account,
+                boundary_type="COMPUTE_CHUNK",
+            ),
+            GenerationContinuityError,
+        )
+        prepared_rejected = False
+        staged_rejected = False
+        with tempfile.TemporaryDirectory(prefix="cb16-s0v2-gen-prep-") as prep_td:
+            _, prep_learner, prep_batch = _make_update_context(prep_td)
+            try:
+                prep_learner.apply_durable_update_v1(batch=prep_batch, fault_at="after_gradient_before_stage")
+            except InjectedUpdateFaultV1:
+                pass
+            prepared_id = next(prep_learner.update_store.updates_dir.glob("*.json")).stem
+            prepared_rejected = _raised(
+                lambda: commit_child_generation_v1(
+                    runtime,
+                    update_store=prep_learner.update_store,
+                    update_id=prepared_id,
+                    new_policy_generation=new_generation,
+                    new_policy_id=new_policy_id,
+                    new_policy_sha256=policy_identity,
+                    expected_account_snapshot=runtime.account,
+                    boundary_type="COMPUTE_CHUNK",
+                ),
+                GenerationContinuityError,
+            )
+        with tempfile.TemporaryDirectory(prefix="cb16-s0v2-gen-stage-") as stage_td:
+            _, staged_learner, staged_batch = _make_update_context(stage_td)
+            try:
+                staged_learner.apply_durable_update_v1(batch=staged_batch, fault_at="after_stage_before_commit")
+            except InjectedUpdateFaultV1:
+                pass
+            staged_id = next(staged_learner.update_store.updates_dir.glob("*.json")).stem
+            staged_rejected = _raised(
+                lambda: commit_child_generation_v1(
+                    runtime,
+                    update_store=staged_learner.update_store,
+                    update_id=staged_id,
+                    new_policy_generation=new_generation,
+                    new_policy_id=new_policy_id,
+                    new_policy_sha256=policy_identity,
+                    expected_account_snapshot=runtime.account,
+                    boundary_type="COMPUTE_CHUNK",
+                ),
+                GenerationContinuityError,
+            )
+        passed = bool(
+            account_preserved
+            and child_acted
+            and flat_rejected
+            and unrelated_policy_sha_rejected
+            and missing_authority_rejected
+            and prepared_rejected
+            and staged_rejected
+            and receipt.account_fully_preserved
+        )
         return passed, {
             "restart_restored_runtime": True,
             "account_preserved": account_preserved,
             "child_policy_acted": child_acted,
             "flat_account_substitution_rejected": flat_rejected,
+            "unrelated_runtime_policy_sha_rejected": unrelated_policy_sha_rejected,
+            "missing_committed_authority_rejected": missing_authority_rejected,
+            "prepared_authority_rejected": prepared_rejected,
+            "staged_authority_rejected": staged_rejected,
+            "child_policy_identity": policy_identity,
             "generation_switch_id": receipt.switch_id,
         }
 

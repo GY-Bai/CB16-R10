@@ -28,12 +28,15 @@ from .cc_runtime_boundary_r0 import (
     PROCESS_FAILURE,
     TRADING_DISABLED_PENDING_SETTLEMENT,
 )
-from .cc_runtime_generation_switch_r0 import CCGenerationSwitchR0, HEX64, switch_generation_r0
-from .post_cc_update_transaction_v1 import STATUS_COMMITTED, DurableLearningUpdateV1
+from .cc_runtime_generation_switch_r0 import HEX64, switch_generation_r0
+from .post_cc_update_transaction_v1 import STATUS_COMMITTED, DurableUpdateStoreV1
 
 
 class GenerationContinuityError(RuntimeError):
     pass
+
+
+CHILD_POLICY_IDENTITY_SCHEMA_V1 = "CB16_R11_S0V2_CHILD_POLICY_IDENTITY_V1"
 
 
 AUTHORIZED_SWITCH_BOUNDARIES = frozenset(
@@ -102,6 +105,30 @@ def _account_truth_hash_v1(account: AccountEconomicsStateR0) -> str:
     return hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
 
 
+def child_policy_identity_v1(
+    *,
+    child_checkpoint_sha256: str,
+    policy_generation: str,
+    policy_id: str,
+) -> str:
+    """Canonical runtime policy identity bound to a committed child checkpoint."""
+    if not isinstance(child_checkpoint_sha256, str) or HEX64.fullmatch(child_checkpoint_sha256) is None:
+        raise ValueError("child_checkpoint_sha256 must be 64-hex")
+    for name, value in (("policy_generation", policy_generation), ("policy_id", policy_id)):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{name} must be non-empty text")
+    return hashlib.sha256(
+        canonical_json_bytes(
+            {
+                "schema": CHILD_POLICY_IDENTITY_SCHEMA_V1,
+                "child_checkpoint_sha256": child_checkpoint_sha256,
+                "policy_generation": str(policy_generation),
+                "policy_id": str(policy_id),
+            }
+        )
+    ).hexdigest()
+
+
 def assert_same_logical_account_continuation_v1(
     *,
     account_lineage_id_before: str,
@@ -121,32 +148,55 @@ def assert_same_logical_account_continuation_v1(
 def commit_child_generation_v1(
     runtime: CCContinuousAccountRuntimeR0,
     *,
-    child_checkpoint_sha256: str,
+    update_store: DurableUpdateStoreV1,
+    update_id: str,
     new_policy_generation: str,
     new_policy_id: str,
     new_policy_sha256: str,
     expected_account_snapshot: AccountEconomicsStateR0,
     boundary_type: str,
-    committed_update_record: DurableLearningUpdateV1 | None = None,
 ) -> GenerationContinuityReceiptV1:
-    """Bind a committed child checkpoint at an authorized boundary."""
+    """Bind a durably COMMITTED child checkpoint at an authorized boundary.
+
+    Missing/PREPARED/STAGED authority is rejected.  The runtime policy SHA must
+    equal the canonical ``child_policy_identity_v1`` mapping of the committed
+    child checkpoint and the new generation/id; an unrelated hash is rejected.
+    """
     if not isinstance(runtime, CCContinuousAccountRuntimeR0):
         raise TypeError("runtime must be CCContinuousAccountRuntimeR0")
+    if not isinstance(update_store, DurableUpdateStoreV1):
+        raise TypeError("update_store must be DurableUpdateStoreV1")
+    if not isinstance(update_id, str) or not update_id.strip():
+        raise ValueError("update_id must be non-empty text")
     if runtime.phase != POST_STATE_PUBLISHED:
         raise GenerationContinuityError("GENERATION_SWITCH_REQUIRES_PUBLISHED_BOUNDARY")
-    if HEX64.fullmatch(child_checkpoint_sha256 or "") is None:
-        raise ValueError("child_checkpoint_sha256 must be 64-hex")
-    if committed_update_record is not None:
-        committed_update_record.validate()
-        if committed_update_record.commit_status != STATUS_COMMITTED:
-            raise GenerationContinuityError("CHILD_GENERATION_REQUIRES_COMMITTED_UPDATE")
-        if committed_update_record.child_checkpoint_sha256 != child_checkpoint_sha256:
-            raise GenerationContinuityError("CHILD_CHECKPOINT_NOT_THE_COMMITTED_CHILD")
     if boundary_type in FORBIDDEN_SWITCH_BOUNDARIES:
         raise GenerationContinuityError("GENERATION_SWITCH_BOUNDARY_FORBIDDEN")
     if boundary_type not in AUTHORIZED_SWITCH_BOUNDARIES:
         raise GenerationContinuityError("GENERATION_SWITCH_BOUNDARY_NOT_AUTHORIZED")
     expected_account_snapshot.validate()
+
+    committed_update = update_store.get_record(update_id)
+    if committed_update is None:
+        raise GenerationContinuityError("COMMITTED_CHILD_AUTHORITY_MISSING")
+    committed_update.validate()
+    if committed_update.commit_status != STATUS_COMMITTED:
+        raise GenerationContinuityError(
+            f"CHILD_GENERATION_REQUIRES_COMMITTED_UPDATE:{committed_update.commit_status}"
+        )
+    child_checkpoint_sha256 = committed_update.child_checkpoint_sha256
+    if child_checkpoint_sha256 is None or HEX64.fullmatch(child_checkpoint_sha256) is None:
+        raise GenerationContinuityError("COMMITTED_CHILD_CHECKPOINT_IDENTITY_INVALID")
+    # Prove the committed child checkpoint bytes are still durable and intact.
+    update_store.load_child_checkpoint(update_id)
+    expected_policy_sha256 = child_policy_identity_v1(
+        child_checkpoint_sha256=child_checkpoint_sha256,
+        policy_generation=new_policy_generation,
+        policy_id=new_policy_id,
+    )
+    if new_policy_sha256 != expected_policy_sha256:
+        raise GenerationContinuityError("RUNTIME_POLICY_IDENTITY_NOT_BOUND_TO_COMMITTED_CHILD")
+
     account_before = runtime.account
     if asdict(account_before) != asdict(expected_account_snapshot):
         raise GenerationContinuityError("GENERATION_EXPECTED_ACCOUNT_MISMATCH")

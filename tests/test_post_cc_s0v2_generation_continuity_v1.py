@@ -12,15 +12,19 @@ from cb16_local_opt.post_cc_generation_continuity_v1 import (
     GenerationContinuityError,
     assert_behavior_checkpoint_immutable_v1,
     assert_same_logical_account_continuation_v1,
+    child_policy_identity_v1,
     commit_child_generation_v1,
     parameter_state_sha256_v1,
 )
-from cb16_local_opt.post_cc_learner_v1 import PostCCDurableReplayLearnerV1
+from cb16_local_opt.post_cc_learner_v1 import InjectedUpdateFaultV1, PostCCDurableReplayLearnerV1
 from cb16_local_opt.post_cc_durable_collection_v1 import (
     DurableObservationCollectorV1,
     canonical_brain_vectors_from_account_v1,
 )
-from cb16_local_opt.post_cc_update_transaction_v1 import DurableUpdateStoreV1
+from cb16_local_opt.post_cc_update_transaction_v1 import (
+    DurableUpdateCorruptionError,
+    DurableUpdateStoreV1,
+)
 from tests.cc_s0v2_support import (
     DEMO_MARKET_SOURCE_IDENTITY,
     DEMO_MARKET_SOURCE_VERSION,
@@ -50,6 +54,14 @@ def _updated_learner(tmp_path: Path, collected):
     return learner, learner.apply_durable_update_v1(batch=batch)
 
 
+def _identity(result, *, generation: str = "1", policy_id: str = "cc-s0v2-policy-g1") -> str:
+    return child_policy_identity_v1(
+        child_checkpoint_sha256=result.child_checkpoint_sha256,
+        policy_generation=generation,
+        policy_id=policy_id,
+    )
+
+
 def test_authorized_generation_switch_preserves_account_and_child_acts(tmp_path: Path):
     collected = collect_durable_sequence_v1(tmp_path)
     behavior_sha = parameter_state_sha256_v1(collected.behavior_brain)
@@ -57,22 +69,28 @@ def test_authorized_generation_switch_preserves_account_and_child_acts(tmp_path:
     runtime = collected.runtime
     account_snapshot = copy.deepcopy(runtime.account)
     lineage_before = runtime.account_lineage_id
+    identity = _identity(result)
     receipt = commit_child_generation_v1(
         runtime,
-        child_checkpoint_sha256=result.child_checkpoint_sha256,
+        update_store=learner.update_store,
+        update_id=result.update_id,
         new_policy_generation="1",
         new_policy_id="cc-s0v2-policy-g1",
-        new_policy_sha256=result.child_checkpoint_sha256,
+        new_policy_sha256=identity,
         expected_account_snapshot=account_snapshot,
         boundary_type=COMPUTE_CHUNK,
-        committed_update_record=result.record,
     )
     assert receipt.account_fully_preserved is True
     assert receipt.account_truth_hash_before == receipt.account_truth_hash_after
+    assert receipt.child_checkpoint_sha256 == result.child_checkpoint_sha256
+    assert receipt.new_policy_sha256 == identity
     assert runtime.account_lineage_id == lineage_before
     assert runtime.policy_id == "cc-s0v2-policy-g1"
+    assert runtime.policy_sha256 == identity
     assert parameter_state_sha256_v1(collected.behavior_brain) == behavior_sha
-    assert assert_behavior_checkpoint_immutable_v1(collected.behavior_brain, expected_parameter_state_sha256=behavior_sha) is None
+    assert assert_behavior_checkpoint_immutable_v1(
+        collected.behavior_brain, expected_parameter_state_sha256=behavior_sha
+    ) is None
 
     child_rng = make_policy_rng(policy_id="cc-s0v2-policy-g1", account_lineage_id=lineage_before)
     collector = DurableObservationCollectorV1(
@@ -98,7 +116,7 @@ def test_authorized_generation_switch_preserves_account_and_child_acts(tmp_path:
             environment_time=clocks.environment_time,
             policy_generation="1",
             policy_id="cc-s0v2-policy-g1",
-            policy_sha256=result.child_checkpoint_sha256,
+            policy_sha256=identity,
             nominal=nominal,
         )
         box["decision"] = decision
@@ -110,21 +128,22 @@ def test_authorized_generation_switch_preserves_account_and_child_acts(tmp_path:
         expected_predecessor_token=runtime.predecessor_token,
     )
     assert box["decision"].policy_id == "cc-s0v2-policy-g1"
-    assert box["decision"].policy_sha256 == result.child_checkpoint_sha256
+    assert box["decision"].policy_sha256 == identity
     assert runtime.account_lineage_id == lineage_before
 
 
 def test_switch_at_forbidden_boundary_is_rejected(tmp_path: Path):
     collected = collect_durable_sequence_v1(tmp_path)
-    _, result = _updated_learner(tmp_path, collected)
+    learner, result = _updated_learner(tmp_path, collected)
     runtime = collected.runtime
     with pytest.raises(GenerationContinuityError, match="GENERATION_SWITCH_BOUNDARY_FORBIDDEN"):
         commit_child_generation_v1(
             runtime,
-            child_checkpoint_sha256=result.child_checkpoint_sha256,
+            update_store=learner.update_store,
+            update_id=result.update_id,
             new_policy_generation="1",
             new_policy_id="p1",
-            new_policy_sha256=result.child_checkpoint_sha256,
+            new_policy_sha256=_identity(result),
             expected_account_snapshot=copy.deepcopy(runtime.account),
             boundary_type=ECONOMIC_TERMINAL,
         )
@@ -134,13 +153,15 @@ def test_switch_outside_published_boundary_phase_is_rejected(tmp_path: Path):
     collected = collect_durable_sequence_v1(tmp_path)
     runtime = collected.runtime
     runtime.begin_interval(make_interval(101.0), expected_predecessor_token=runtime.predecessor_token)
+    learner, result = _updated_learner(tmp_path, collected)
     with pytest.raises(GenerationContinuityError, match="GENERATION_SWITCH_REQUIRES_PUBLISHED_BOUNDARY"):
         commit_child_generation_v1(
             runtime,
-            child_checkpoint_sha256="a" * 64,
+            update_store=learner.update_store,
+            update_id=result.update_id,
             new_policy_generation="1",
             new_policy_id="p1",
-            new_policy_sha256="a" * 64,
+            new_policy_sha256=_identity(result),
             expected_account_snapshot=copy.deepcopy(runtime.account),
             boundary_type=COMPUTE_CHUNK,
         )
@@ -148,6 +169,7 @@ def test_switch_outside_published_boundary_phase_is_rejected(tmp_path: Path):
 
 def test_new_flat_account_substitution_is_rejected(tmp_path: Path):
     collected = collect_durable_sequence_v1(tmp_path)
+    learner, result = _updated_learner(tmp_path, collected)
     account_before = collected.account_after_collection
     fresh_flat = make_account(account_id="new-flat-account")
     with pytest.raises(GenerationContinuityError, match="GENERATION_ACCOUNT_LEDGER_MUTATED_OR_REPLACED"):
@@ -160,10 +182,123 @@ def test_new_flat_account_substitution_is_rejected(tmp_path: Path):
     with pytest.raises(GenerationContinuityError, match="GENERATION_EXPECTED_ACCOUNT_MISMATCH"):
         commit_child_generation_v1(
             collected.runtime,
-            child_checkpoint_sha256="a" * 64,
+            update_store=learner.update_store,
+            update_id=result.update_id,
+            new_policy_generation="1",
+            new_policy_id="p1",
+            new_policy_sha256=child_policy_identity_v1(
+                child_checkpoint_sha256=result.child_checkpoint_sha256,
+                policy_generation="1",
+                policy_id="p1",
+            ),
+            expected_account_snapshot=fresh_flat,
+            boundary_type=COMPUTE_CHUNK,
+        )
+
+
+def test_missing_committed_update_authority_is_rejected(tmp_path: Path):
+    collected = collect_durable_sequence_v1(tmp_path)
+    learner, result = _updated_learner(tmp_path, collected)
+    with pytest.raises(GenerationContinuityError, match="COMMITTED_CHILD_AUTHORITY_MISSING"):
+        commit_child_generation_v1(
+            collected.runtime,
+            update_store=learner.update_store,
+            update_id="0" * 64,
+            new_policy_generation="1",
+            new_policy_id="cc-s0v2-policy-g1",
+            new_policy_sha256=_identity(result),
+            expected_account_snapshot=copy.deepcopy(collected.runtime.account),
+            boundary_type=COMPUTE_CHUNK,
+        )
+
+
+def test_prepared_update_authority_is_rejected(tmp_path: Path):
+    collected = collect_durable_sequence_v1(tmp_path)
+    batch = materialize_v1(tmp_path, collected.sequence_id, restart_verified=True).to_batch()
+    target = make_brain()
+    learner = PostCCDurableReplayLearnerV1(
+        target_actor=target,
+        target_critic=SeparateCritic(7, 8),
+        update_store=DurableUpdateStoreV1(tmp_path / "updates"),
+        parent_policy_identity="cc-s0v2-policy-g0",
+        target_policy_identity="cc-s0v2-target-policy-g1",
+        science_semantic_version=SCIENCE_SEMANTIC_VERSION,
+    )
+    with pytest.raises(InjectedUpdateFaultV1):
+        learner.apply_durable_update_v1(batch=batch, fault_at="after_gradient_before_stage")
+    update_id = next(learner.update_store.updates_dir.glob("*.json")).stem
+    with pytest.raises(GenerationContinuityError, match="CHILD_GENERATION_REQUIRES_COMMITTED_UPDATE:PREPARED"):
+        commit_child_generation_v1(
+            collected.runtime,
+            update_store=learner.update_store,
+            update_id=update_id,
             new_policy_generation="1",
             new_policy_id="p1",
             new_policy_sha256="a" * 64,
-            expected_account_snapshot=fresh_flat,
+            expected_account_snapshot=copy.deepcopy(collected.runtime.account),
+            boundary_type=COMPUTE_CHUNK,
+        )
+
+
+def test_staged_update_authority_is_rejected(tmp_path: Path):
+    collected = collect_durable_sequence_v1(tmp_path)
+    batch = materialize_v1(tmp_path, collected.sequence_id, restart_verified=True).to_batch()
+    learner = PostCCDurableReplayLearnerV1(
+        target_actor=make_brain(),
+        target_critic=SeparateCritic(7, 8),
+        update_store=DurableUpdateStoreV1(tmp_path / "updates"),
+        parent_policy_identity="cc-s0v2-policy-g0",
+        target_policy_identity="cc-s0v2-target-policy-g1",
+        science_semantic_version=SCIENCE_SEMANTIC_VERSION,
+    )
+    with pytest.raises(InjectedUpdateFaultV1):
+        learner.apply_durable_update_v1(batch=batch, fault_at="after_stage_before_commit")
+    update_id = next(learner.update_store.updates_dir.glob("*.json")).stem
+    with pytest.raises(GenerationContinuityError, match="CHILD_GENERATION_REQUIRES_COMMITTED_UPDATE:STAGED"):
+        commit_child_generation_v1(
+            collected.runtime,
+            update_store=learner.update_store,
+            update_id=update_id,
+            new_policy_generation="1",
+            new_policy_id="p1",
+            new_policy_sha256="a" * 64,
+            expected_account_snapshot=copy.deepcopy(collected.runtime.account),
+            boundary_type=COMPUTE_CHUNK,
+        )
+
+
+def test_unrelated_runtime_policy_sha_is_rejected(tmp_path: Path):
+    collected = collect_durable_sequence_v1(tmp_path)
+    learner, result = _updated_learner(tmp_path, collected)
+    with pytest.raises(
+        GenerationContinuityError,
+        match="RUNTIME_POLICY_IDENTITY_NOT_BOUND_TO_COMMITTED_CHILD",
+    ):
+        commit_child_generation_v1(
+            collected.runtime,
+            update_store=learner.update_store,
+            update_id=result.update_id,
+            new_policy_generation="1",
+            new_policy_id="cc-s0v2-policy-g1",
+            new_policy_sha256="a" * 64,
+            expected_account_snapshot=copy.deepcopy(collected.runtime.account),
+            boundary_type=COMPUTE_CHUNK,
+        )
+
+
+def test_committed_child_checkpoint_tamper_is_rejected(tmp_path: Path):
+    collected = collect_durable_sequence_v1(tmp_path)
+    learner, result = _updated_learner(tmp_path, collected)
+    checkpoint_path = learner.update_store._checkpoint_path(result.child_checkpoint_sha256)
+    checkpoint_path.write_bytes(b'{"corrupted":true}')
+    with pytest.raises(DurableUpdateCorruptionError, match="CHILD_CHECKPOINT_HASH_MISMATCH"):
+        commit_child_generation_v1(
+            collected.runtime,
+            update_store=learner.update_store,
+            update_id=result.update_id,
+            new_policy_generation="1",
+            new_policy_id="cc-s0v2-policy-g1",
+            new_policy_sha256=_identity(result),
+            expected_account_snapshot=copy.deepcopy(collected.runtime.account),
             boundary_type=COMPUTE_CHUNK,
         )

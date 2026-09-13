@@ -24,6 +24,7 @@ from .post_cc_joint_batch_v1 import (
     JointActionBatchV1,
     boundary_is_terminal_v1,
     boundary_requires_bootstrap_v1,
+    boundary_semantics_v1,
     classify_boundary_v1,
 )
 from .post_cc_joint_policy_loss_v1 import (
@@ -38,6 +39,7 @@ from .post_cc_joint_policy_loss_v1 import (
 class BoundaryBootstrapDecisionV1:
     boundary_type: str
     boundary_class: str
+    boundary_semantics: str
     bootstrap_value: float
     mechanical_terminal: bool
     uses_durable_next_observation: bool
@@ -73,6 +75,7 @@ def bootstrap_value_v1(
 def bootstrap_decision_v1(
     boundary_type: str, *, mechanical_terminal: bool, next_value: float | None
 ) -> BoundaryBootstrapDecisionV1:
+    semantics = boundary_semantics_v1(boundary_type, mechanical_terminal=mechanical_terminal)
     boundary_class = classify_boundary_v1(boundary_type, mechanical_terminal=mechanical_terminal)
     if boundary_class == BOUNDARY_CLASS_CONTINUE:
         raise ValueError("CONTINUE_BOUNDARY_HAS_NO_BOOTSTRAP")
@@ -82,6 +85,7 @@ def bootstrap_decision_v1(
         return BoundaryBootstrapDecisionV1(
             boundary_type=boundary_type,
             boundary_class=boundary_class,
+            boundary_semantics=semantics,
             bootstrap_value=0.0,
             mechanical_terminal=bool(mechanical_terminal),
             uses_durable_next_observation=False,
@@ -94,6 +98,7 @@ def bootstrap_decision_v1(
     return BoundaryBootstrapDecisionV1(
         boundary_type=boundary_type,
         boundary_class=boundary_class,
+        boundary_semantics=semantics,
         bootstrap_value=value,
         mechanical_terminal=bool(mechanical_terminal),
         uses_durable_next_observation=True,
@@ -134,8 +139,11 @@ def joint_actor_critic_losses_v1(
     vtrace_chunks: list[VTraceReturns] = []
     bootstrap_decisions: list[BoundaryBootstrapDecisionV1] = []
     for sequence_index, (start, end) in enumerate(batch.sequence_offsets):
-        sequence_boundary = batch.samples[end - 1].boundary_type
-        sequence_mechanical = False
+        final_sample = batch.samples[end - 1]
+        sequence_boundary = final_sample.boundary_type
+        sequence_mechanical = bool(batch.mechanical_terminals[end - 1])
+        if sequence_mechanical != bool(final_sample.mechanical_terminal):
+            raise ValueError("MECHANICAL_TERMINAL_TENSOR_MISMATCH")
         next_value = _sequence_bootstrap_value(critic, batch, sequence_index)
         bootstrap_decision = bootstrap_decision_v1(
             sequence_boundary,
@@ -180,6 +188,10 @@ def joint_actor_critic_losses_v1(
         "terminal_sequence_count": int(
             sum(1 for decision in bootstrap_decisions if decision.boundary_class == BOUNDARY_CLASS_TERMINAL)
         ),
+        "mechanical_terminal_sequence_count": int(
+            sum(1 for decision in bootstrap_decisions if decision.boundary_semantics == "MECHANICAL_TERMINAL")
+        ),
+        "boundary_semantics_by_sequence": tuple(decision.boundary_semantics for decision in bootstrap_decisions),
         "truncation_sequence_count": int(
             sum(1 for decision in bootstrap_decisions if decision.boundary_class == BOUNDARY_CLASS_TRUNCATION)
         ),
