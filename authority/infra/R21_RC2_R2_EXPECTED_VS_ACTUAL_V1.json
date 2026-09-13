@@ -1,0 +1,73 @@
+{
+  "schema": "CB16_R21_RC2_R2_EXPECTED_VS_ACTUAL_V1",
+  "status": "FINAL_FOR_R3_REVISION",
+  "task_id": "R2",
+  "recorded_at_utc": "2026-09-13T22:43:25Z",
+  "owner_approval_v1": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V1.json",
+  "owner_approval_v2": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V2.json",
+  "expected_under_option_d": {
+    "ssd_root_free_before_bytes": 34029350912,
+    "planned_reclaim_bytes": 35675709440,
+    "planned_migration_bytes": 92080054272,
+    "projected_free_after_cleanup_and_migration_bytes": 161785114624,
+    "fast_hot_quota_bytes": 120000000000,
+    "reserve_floor_bytes": 41785114624
+  },
+  "actual_at_stop": {
+    "ssd_root_free_before_bytes": 34029350912,
+    "actual_reclaim_free_delta_bytes": 17383804928,
+    "actual_migration_completed_free_delta_bytes": 70011768832,
+    "actual_free_bytes": 121424924672,
+    "migration_completed": [
+      "audiotransfer",
+      "photo_timeline"
+    ],
+    "migration_copied_but_source_not_removed": [
+      "recovered_photos"
+    ],
+    "migration_not_started": [
+      "photo_packs",
+      "photo_packs.tar.zst"
+    ],
+    "remaining_migration_source_bytes": 22340997120,
+    "projected_free_after_remaining_migration_bytes": 143765921792
+  },
+  "deltas": {
+    "reclaim_shortfall_bytes": 18291904512,
+    "projected_free_shortfall_vs_option_d_bytes": 18019192832,
+    "projected_free_after_revised_quota_and_reserve_bytes": 1980807168
+  },
+  "causes": [
+    {
+      "cause_id": "HARDLINK_ACCOUNTING",
+      "detail": "The conda package cache contained hardlinks shared with miniforge environments, so deleting /home/bgy/miniforge3/pkgs freed far less than its du-measured size."
+    },
+    {
+      "cause_id": "CRASH_VERIFICATION_GAP",
+      "detail": "/var/crash files are root-owned; the bgy-run checksum manifest was empty, so the pre-delete SHA256 verification for CLN-03 did not actually run. The archive remains on HDD with post-hoc root hash/size evidence and is classified CONTRACT_MISMATCH / EVIDENCE_INSUFFICIENT."
+    },
+    {
+      "cause_id": "ROOT_OWNED_MIGRATION_SOURCE",
+      "detail": "/home/bgy/photo_timeline was root-owned; the original bgy migration script failed closed on source removal and was completed through an authorized root helper with ownership preservation and SHA256 verification."
+    }
+  ],
+  "owner_revision": {
+    "revision": 2,
+    "fast_hot_quota_bytes": 100000000000,
+    "reserve_floor_bytes": 41785114624,
+    "reason": "Owner lowered quota to keep the approved reserve floor after the actual free-space outcome.",
+    "projected_free_after_revision_bytes": 1980807168
+  },
+  "classification": {
+    "option_d_v1_target_met": false,
+    "revised_v2_target_met_if_remaining_migration_completes": true,
+    "scientific_constants_changed": false,
+    "hdd_fast_hot_fallback_used": false
+  },
+  "required_follow_up": [
+    "Complete SHA256-verified migration of recovered_photos, photo_packs and photo_packs.tar.zst.",
+    "Record actual final free bytes before FAST_HOT creation.",
+    "Create FAST_HOT with quota 100000000000 and reserve floor 41785114624.",
+    "Never allow FAST_HOT usage to consume the reserve floor."
+  ]
+}
