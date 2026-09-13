@@ -20,6 +20,8 @@ from scripts.measure_r21_rc2_r4_write_path_v1 import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1.json"
+INVENTORY_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_INVENTORY_V1.json"
+RECEIPT_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_MEASUREMENT_RECEIPT_V1.json"
 INSTRUMENT_DIR = REPO_ROOT / "ci" / "r4_write_path_instrument"
 
 
@@ -27,6 +29,8 @@ class WritePathInventoryV1Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.spec = json.loads(SPEC_PATH.read_text(encoding="utf-8"))
+        cls.inventory = json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
+        cls.receipt = json.loads(RECEIPT_PATH.read_text(encoding="utf-8"))
 
     def test_spec_identity_and_required_surfaces(self) -> None:
         self.assertEqual(self.spec["schema"], "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1")
@@ -123,6 +127,55 @@ class WritePathInventoryV1Tests(unittest.TestCase):
             updates, source = _find_committed_updates(Path(tmp), paths)
         self.assertEqual(updates, 2)
         self.assertEqual(source, "observed_update_journal_ids")
+
+
+    def test_frozen_inventory_and_receipt_bind_evidence(self) -> None:
+        inventory = self.inventory
+        receipt = self.receipt
+        self.assertEqual(inventory["schema"], "CB16_R21_RC2_R4_WRITE_PATH_INVENTORY_V1")
+        self.assertEqual(inventory["status"], "PASS")
+        self.assertEqual(inventory["missing_required_surfaces"], [])
+        for surface in REQUIRED_SURFACES:
+            self.assertIn(surface, inventory["observed_surfaces"])
+        self.assertEqual(inventory["committed_updates"], 52)
+        self.assertEqual(inventory["physical_device"]["rotational"], False)
+        binding = inventory["evidence_binding"]
+        self.assertEqual(binding["run_id"], receipt["evidence"]["run_id"])
+        self.assertEqual(binding["artifact_id"], receipt["evidence"]["artifact_id"])
+        self.assertTrue(binding["artifact_digest"].startswith("sha256:"))
+        self.assertEqual(binding["runtime_authorization_head"], receipt["runtime_identity"]["authorization_head_sha"])
+        self.assertEqual(receipt["measurement_result"]["status"], "PASS")
+        self.assertEqual(receipt["measurement_result"]["missing_required_surfaces"], [])
+
+    def test_inventory_surfaces_have_required_measurement_fields(self) -> None:
+        for surface in self.inventory["surfaces"]:
+            for field in (
+                "surface",
+                "bytes_written",
+                "write_calls",
+                "bytes_per_update",
+                "writes_per_update",
+                "durable_sync_frequency_per_update",
+                "random_versus_sequential",
+                "physical_device",
+                "consumer",
+                "durability_requirement",
+                "bytes_measurement_method",
+            ):
+                self.assertIn(field, surface, surface.get("surface"))
+            if surface["surface"] in REQUIRED_SURFACES:
+                self.assertGreater(surface["write_calls"], 0, surface["surface"])
+                self.assertGreater(surface["bytes_per_update"], 0, surface["surface"])
+        sqlite = {entry["surface"]: entry for entry in self.inventory["surfaces"]}["sqlite_index"]
+        self.assertIn("SQLITE", sqlite["bytes_measurement_method"])
+        self.assertTrue(sqlite["measurement_limitations"])
+
+    def test_inventory_declares_scientific_boundary(self) -> None:
+        receipt = self.receipt
+        self.assertFalse(receipt["scientific_boundary"]["s1_scientific_constants_changed"])
+        self.assertFalse(receipt["scientific_boundary"]["s1_runtime_code_changed"])
+        self.assertFalse(receipt["scientific_boundary"]["final_holdout_accessed"])
+        self.assertFalse(receipt["scientific_boundary"]["training_or_qualification_started"])
 
 
 if __name__ == "__main__":
