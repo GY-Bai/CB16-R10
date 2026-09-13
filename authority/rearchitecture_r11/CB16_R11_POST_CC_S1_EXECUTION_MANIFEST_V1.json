@@ -1,0 +1,547 @@
+{
+  "analytic_vtrace_tolerance": 1e-06,
+  "artifact_provenance": {
+    "artifact_only_update_trace_audit_required": true,
+    "durable_index_export_required": true,
+    "update_journal_export_required_before_scratch_cleanup": true
+  },
+  "authority": {
+    "baseline": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_BASELINE_V1.json",
+    "run_spec": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json",
+    "s0v2_receipt": "authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json",
+    "task_registry": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_TASK_REGISTRY_V1.json"
+  },
+  "authorization_binding": {
+    "required_fields": [
+      "reviewed_implementation_sha",
+      "reviewed_implementation_tree_sha",
+      "execution_manifest_sha256",
+      "status",
+      "reviewer_role"
+    ],
+    "required_status": "READY_FOR_S1_QUALIFICATION",
+    "runtime_changes_after_review_allowed_paths": [
+      "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json",
+      "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json"
+    ]
+  },
+  "controls": [
+    {
+      "control_id": "NO_SIGNAL_OR_ZERO_REWARD_CONTROL",
+      "kind": "TRAINING_MATCHED",
+      "rule": "ZERO_DECLARED_TASK_REWARD_NO_LEARNABLE_ACTION_TO_REWARD_RELATION"
+    },
+    {
+      "control_id": "SHUFFLED_CREDIT_CONTROL",
+      "kind": "TRAINING_MATCHED",
+      "rule": "BREAK_DECISION_TO_CONSEQUENCE_PAIRING_PRESERVING_MARGINALS"
+    },
+    {
+      "control_id": "RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL",
+      "kind": "TRAINING_MATCHED",
+      "rule": "TARGET_ASSIGNMENT_INDEPENDENT_OF_ACTOR_VISIBLE_CAUSAL_INPUTS"
+    },
+    {
+      "control_id": "ACCOUNT_INPUT_ABLATION",
+      "kind": "TRAINING_MATCHED",
+      "rule": "ZERO_ACCOUNT_AND_EXECUTION_INPUTS_MARKET_ONLY_ABLATION"
+    },
+    {
+      "control_id": "OBJECTIVE_FIREWALL",
+      "kind": "INTEGRITY_ONLY",
+      "rule": "ARITHMETIC_COMPLETE_SAMPLE_OBJECTIVE_DENOMINATOR_AUDIT"
+    },
+    {
+      "control_id": "FABRICATED_LOG_MU_REJECTION",
+      "kind": "INTEGRITY_ONLY",
+      "rule": "FABRICATED_RECONSTRUCTED_LOG_MU_MUST_FAIL_CLOSED"
+    }
+  ],
+  "evaluation_population": {
+    "environment_branches": "EXACT_FINITE_BRANCH_ENUMERATION",
+    "evaluation_decisions_enter_training_replay": false,
+    "failures_and_bankruptcies_remain_in_denominator": true,
+    "nominal_actions_per_context": 2048,
+    "rng": "DEDICATED_DETERMINISTIC_EVALUATION_STREAM"
+  },
+  "failure_facts": {
+    "all_failures_remain_in_complete_arithmetic_denominator": true,
+    "bankruptcy_definition": "TERMINAL_EQUITY_LE_ZERO",
+    "closure_adapter": "POLICY_NEUTRAL_INSOLVENCY_CLOSURE_V1",
+    "insolvency_closure_rule": "EQUITY_LE_ZERO_CLOSE_ECONOMIC_RESPONSIBILITY_AND_ECONOMIC_TERMINAL_BOUNDARY",
+    "survivor_filtering": false
+  },
+  "firewall": {
+    "FINAL_opened": false,
+    "economic_evidence_claimed": false,
+    "fresh_data_used": false,
+    "historical_market_corpus_accessed": false,
+    "transfer_evidence_claimed": false
+  },
+  "gap_reduction_threshold": 0.5,
+  "manifest_sha256": "481e6390236320b5ee2c0425da15bbf3d54162c815b6660acbde262cd8b4968f",
+  "maximum_false_positive_control_seeds": 1,
+  "maximum_policy_decisions_per_task_per_seed": 100000,
+  "minimum_positive_seeds_passing": 4,
+  "model": {
+    "actor_class": "CCCentralBrain",
+    "actor_dimensions": {
+      "account": 3,
+      "execution": 2,
+      "hidden": 8,
+      "market": 2
+    },
+    "actor_frozen_parameter_count": 16,
+    "actor_source_path": "cb16_local_opt/cc_policy_brain_r0.py",
+    "actor_trainable_parameter_count": 241,
+    "behavior_initialization_isolation": "TORCH_RANDOM_FORK_RNG_ISOLATED",
+    "checkpoint_codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+    "critic_class": "SeparateCritic",
+    "critic_hidden": 8,
+    "critic_input_dim": 7,
+    "critic_source_path": "cb16_local_opt/cc_critic_value_r0.py",
+    "critic_trainable_parameter_count": 73,
+    "frozen_initial_checkpoint_identity_verification": {
+      "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+      "computed_actor_only_sha256": "42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f",
+      "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+      "construction_order": "ACTOR_THEN_CRITIC_SINGLE_SEED_STREAM",
+      "contract_state": "CONTRACT_MISMATCH",
+      "declared_frozen_sha256": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
+      "declared_hash_reproduced": false,
+      "initialization_seed": 1701
+    },
+    "frozen_initial_checkpoint_semantic_sha256_declared": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
+    "frozen_market_organ": true,
+    "initialization_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
+    "initialization_seed": 1701,
+    "optimizer": {
+      "actor": {
+        "learning_rate": 0.01,
+        "type": "SGD"
+      },
+      "critic": {
+        "learning_rate": 0.01,
+        "type": "SGD"
+      },
+      "optimizer_change_after_results": false
+    },
+    "trainable_parameter_total": 314
+  },
+  "off_policy": {
+    "algorithm": "V_TRACE",
+    "c_bar": 1.0,
+    "executed_action_substitution_for_policy_likelihood": false,
+    "pg_rho_bar": 1.0,
+    "rho_bar": 1.0,
+    "target_log_pi_recomputed_from_nominal_action": true,
+    "true_behavior_log_mu_required": true
+  },
+  "oracle_comparator_class": {
+    "comparator": "HIGHEST_COMPLETE_SAMPLE_ARITHMETIC_RETURN_MEMBER",
+    "directions": [
+      "LONG",
+      "SHORT"
+    ],
+    "flat_risk": 0.0,
+    "risk_values": [
+      0.1,
+      0.3,
+      0.5,
+      0.7,
+      0.9
+    ]
+  },
+  "parent": {
+    "accepted_s0v2_merge_sha": "fc80b472236e7a4df8094563f8adac826fc42231",
+    "s0v2_receipt_required_status": "QUALIFIED",
+    "s0v2_receipt_required_verdict": "PASS"
+  },
+  "replay_retention_evidence": {
+    "a1_replay_selection_is_informational_only": true,
+    "collected_vs_replay_selected_distinct": true,
+    "eligibility_rule": "ALL_DURABLE_INDEX_ROWS_UNIFORM_NO_EXPIRY",
+    "no_age_based_expiry": true,
+    "rule": "A1_DURABLE_FACTS_PRESENT_AND_ELIGIBLE_IN_GENERIC_UNIFORM_POOL_AFTER_B"
+  },
+  "schema": "CB16_R11_POST_CC_S1_EXECUTION_MANIFEST_V1",
+  "science_semantic_version": "CB16_R11_POST_CC_SCIENCE_SEMANTIC_V1",
+  "scope": "SYNTHETIC_ONLY",
+  "seeds": [
+    1701,
+    1702,
+    1703,
+    1704,
+    1705
+  ],
+  "status": "FROZEN_EXECUTION_CONCRETIZATION_UNDER_S1_V1_CONTRACTS",
+  "strict_tolerance": 1e-09,
+  "tasks": [
+    {
+      "action_semantics": "Canonical direction plus conditional target risk.",
+      "behavior_mode": "CHILD_SWITCH_AFTER_COMMITTED_UPDATE",
+      "close_on_nonpositive_equity": false,
+      "context_schedule": "UNIFORM_CONTEXT_RNG",
+      "contexts": [
+        {
+          "account_kind": "HELD_LONG_SETUP",
+          "context_id": "HELD_LONG",
+          "decision_mark": 100.0,
+          "oracle_direction_expected": "LONG",
+          "setup_direction": "LONG",
+          "setup_risk": 0.5,
+          "stage1_mark": 100.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 100.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        },
+        {
+          "account_kind": "HELD_SHORT_SETUP",
+          "context_id": "HELD_SHORT",
+          "decision_mark": 100.0,
+          "oracle_direction_expected": "SHORT",
+          "setup_direction": "SHORT",
+          "setup_risk": 0.5,
+          "stage1_mark": 100.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 100.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        }
+      ],
+      "credit_stage2_no_decision": false,
+      "declared_controls": [
+        "ACCOUNT_INPUT_ABLATION",
+        "NO_SIGNAL_OR_ZERO_REWARD_CONTROL"
+      ],
+      "environment_version": "POST_CC_S1_ACCOUNT_DEPENDENT_ACTION_V1",
+      "execution": {
+        "fee_rate": 0.001,
+        "initial_margin_rate": 0.5,
+        "maintenance_margin_rate": 0.25,
+        "max_gross_leverage": 2.0,
+        "reward_reference_equity": 1000.0,
+        "slippage_bps": 0.0
+      },
+      "gap_reduction_threshold": 0.5,
+      "handcrafted_regime_activation": false,
+      "higher_ev_family": {
+        "directions": [],
+        "risk_high": 0.0,
+        "risk_low": 0.0
+      },
+      "horizon_semantics": "One scored policy decision followed by a flat-price terminal mark; no cross-episode account stitching.",
+      "known_answer": "Optimal action depends on Account input even when Market is identical.",
+      "objective_orientation": "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA",
+      "observation_semantics": "Same market observation paired with distinct reachable account states requiring distinct optimal joint actions.",
+      "phase_context_ids": [],
+      "reward_semantics": "Finite-horizon arithmetic equity delta under declared initial-capital denominator.",
+      "spec_hash": "b3691e98bc195059944823e8b03fb08034031df5a28342b72126986e737f7d8a",
+      "task_id": "ACCOUNT_DEPENDENT_ACTION",
+      "training_decisions": 16384
+    },
+    {
+      "action_semantics": "Canonical joint action.",
+      "behavior_mode": "CHILD_SWITCH_AFTER_COMMITTED_UPDATE",
+      "close_on_nonpositive_equity": false,
+      "context_schedule": "UNIFORM_CONTEXT_RNG",
+      "contexts": [
+        {
+          "account_kind": "GENESIS",
+          "context_id": "UP_SIGNAL",
+          "decision_mark": 101.0,
+          "oracle_direction_expected": "LONG",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 101.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 111.0
+            }
+          ],
+          "stage2_is_no_decision_advance": true
+        },
+        {
+          "account_kind": "GENESIS",
+          "context_id": "DOWN_SIGNAL",
+          "decision_mark": 99.0,
+          "oracle_direction_expected": "SHORT",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 99.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 89.0
+            }
+          ],
+          "stage2_is_no_decision_advance": true
+        }
+      ],
+      "credit_stage2_no_decision": true,
+      "declared_controls": [
+        "SHUFFLED_CREDIT_CONTROL",
+        "NO_SIGNAL_OR_ZERO_REWARD_CONTROL"
+      ],
+      "environment_version": "POST_CC_S1_DELAYED_CONSEQUENCE_CREDIT_V1",
+      "execution": {
+        "fee_rate": 0.0,
+        "initial_margin_rate": 0.5,
+        "maintenance_margin_rate": 0.25,
+        "max_gross_leverage": 2.0,
+        "reward_reference_equity": 1000.0,
+        "slippage_bps": 0.0
+      },
+      "gap_reduction_threshold": 0.5,
+      "handcrafted_regime_activation": false,
+      "higher_ev_family": {
+        "directions": [],
+        "risk_high": 0.0,
+        "risk_low": 0.0
+      },
+      "horizon_semantics": "One early decision, a compute chunk boundary, a later no-decision advance and terminal liquidation.",
+      "known_answer": "The early action maximizing complete-horizon arithmetic return.",
+      "objective_orientation": "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA",
+      "observation_semantics": "Early decision has no direct label; the consequence arrives after a later no-decision account transition and a durable chunk boundary.",
+      "phase_context_ids": [],
+      "reward_semantics": "Arithmetic account consequence retained on the same logical account lineage.",
+      "spec_hash": "8b73e0e58119858e5c442d81d9870b9363de7afb168927f55d14df42e2b2f5ae",
+      "task_id": "DELAYED_CONSEQUENCE_CREDIT",
+      "training_decisions": 16384
+    },
+    {
+      "action_semantics": "At least two reachable canonical actions differ in full-sample arithmetic expectation and bankruptcy frequency.",
+      "behavior_mode": "CHILD_SWITCH_AFTER_COMMITTED_UPDATE",
+      "close_on_nonpositive_equity": true,
+      "context_schedule": "SINGLE_CONTEXT",
+      "contexts": [
+        {
+          "account_kind": "GENESIS",
+          "context_id": "TWO_BRANCH_TERMINAL",
+          "decision_mark": 100.0,
+          "oracle_direction_expected": "LONG",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 100.0,
+          "stage2_branches": [
+            {
+              "probability": 0.8,
+              "terminal_mark": 120.0
+            },
+            {
+              "probability": 0.2,
+              "terminal_mark": 40.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        }
+      ],
+      "credit_stage2_no_decision": false,
+      "declared_controls": [
+        "OBJECTIVE_FIREWALL",
+        "RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL"
+      ],
+      "environment_version": "POST_CC_S1_HIGH_BANKRUPTCY_HIGHER_EXPECTATION_V1",
+      "execution": {
+        "fee_rate": 0.0,
+        "initial_margin_rate": 0.5,
+        "maintenance_margin_rate": 0.25,
+        "max_gross_leverage": 2.0,
+        "reward_reference_equity": 1000.0,
+        "slippage_bps": 0.0
+      },
+      "gap_reduction_threshold": 0.5,
+      "handcrafted_regime_activation": false,
+      "higher_ev_family": {
+        "directions": [
+          "LONG"
+        ],
+        "risk_high": 0.95,
+        "risk_low": 0.85
+      },
+      "horizon_semantics": "One scored decision, two exact terminal branches and mechanical liquidation.",
+      "known_answer": "The higher complete-sample arithmetic expectation action wins even with higher bankruptcy frequency.",
+      "objective_orientation": "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA",
+      "observation_semantics": "Synthetic outcomes expose no privileged winner label to the learner.",
+      "phase_context_ids": [],
+      "reward_semantics": "Complete-sample arithmetic expected return; all failures remain in the denominator.",
+      "spec_hash": "6de37febd0a718089e7beb998989a669f72ee0f09858319f09509c1ff60c8753",
+      "task_id": "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION",
+      "training_decisions": 16384
+    },
+    {
+      "action_semantics": "Persisted nominal joint behavior action; executed action appears only as consequence context.",
+      "behavior_mode": "FIXED_DISTINCT_BEHAVIOR_CHECKPOINT",
+      "close_on_nonpositive_equity": false,
+      "context_schedule": "UNIFORM_CONTEXT_RNG",
+      "contexts": [
+        {
+          "account_kind": "GENESIS",
+          "context_id": "OFF_POLICY_UP",
+          "decision_mark": 102.0,
+          "oracle_direction_expected": "LONG",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 102.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 112.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        },
+        {
+          "account_kind": "GENESIS",
+          "context_id": "OFF_POLICY_DOWN",
+          "decision_mark": 98.0,
+          "oracle_direction_expected": "SHORT",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 98.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 88.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        }
+      ],
+      "credit_stage2_no_decision": false,
+      "declared_controls": [
+        "FABRICATED_LOG_MU_REJECTION",
+        "SHUFFLED_CREDIT_CONTROL"
+      ],
+      "environment_version": "POST_CC_S1_OFF_POLICY_VTRACE_V1",
+      "execution": {
+        "fee_rate": 0.0,
+        "initial_margin_rate": 0.5,
+        "maintenance_margin_rate": 0.25,
+        "max_gross_leverage": 2.0,
+        "reward_reference_equity": 1000.0,
+        "slippage_bps": 0.0
+      },
+      "gap_reduction_threshold": 0.5,
+      "handcrafted_regime_activation": false,
+      "higher_ev_family": {
+        "directions": [],
+        "risk_high": 0.0,
+        "risk_low": 0.0
+      },
+      "horizon_semantics": "One decision with explicit terminal boundary and persisted true behavior log_mu.",
+      "known_answer": "Known target/behavior log-probability ratios plus learnable policy improvement.",
+      "objective_orientation": "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA",
+      "observation_semantics": "Behavior-policy trajectories are replayed under a deliberately different target policy.",
+      "phase_context_ids": [],
+      "reward_semantics": "Task-specific arithmetic reward frozen before collection.",
+      "spec_hash": "72f9bf512aa95e8e6ad0ae0ef1c2d9a9a5ef93744e4dfa637eef2304a89334c9",
+      "task_id": "OFF_POLICY_VTRACE_CORRECTION",
+      "training_decisions": 16384
+    },
+    {
+      "action_semantics": "Canonical joint action learned through weights and retained replay.",
+      "behavior_mode": "CHILD_SWITCH_AFTER_COMMITTED_UPDATE",
+      "close_on_nonpositive_equity": false,
+      "context_schedule": "PHASES",
+      "contexts": [
+        {
+          "account_kind": "GENESIS",
+          "context_id": "A",
+          "decision_mark": 101.0,
+          "oracle_direction_expected": "LONG",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 101.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 111.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        },
+        {
+          "account_kind": "GENESIS",
+          "context_id": "B",
+          "decision_mark": 99.0,
+          "oracle_direction_expected": "SHORT",
+          "setup_direction": null,
+          "setup_risk": null,
+          "stage1_mark": 99.0,
+          "stage2_branches": [
+            {
+              "probability": 1.0,
+              "terminal_mark": 89.0
+            }
+          ],
+          "stage2_is_no_decision_advance": false
+        }
+      ],
+      "credit_stage2_no_decision": false,
+      "declared_controls": [
+        "NO_SIGNAL_OR_ZERO_REWARD_CONTROL",
+        "RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL"
+      ],
+      "environment_version": "POST_CC_S1_ABA_RETENTION_V1",
+      "execution": {
+        "fee_rate": 0.0,
+        "initial_margin_rate": 0.5,
+        "maintenance_margin_rate": 0.25,
+        "max_gross_leverage": 2.0,
+        "reward_reference_equity": 1000.0,
+        "slippage_bps": 0.0
+      },
+      "gap_reduction_threshold": 0.5,
+      "handcrafted_regime_activation": false,
+      "higher_ev_family": {
+        "directions": [],
+        "risk_high": 0.0,
+        "risk_low": 0.0
+      },
+      "horizon_semantics": "A1 4096, B 4096 and returning A2 4096 policy decisions within the frozen maximum.",
+      "known_answer": "Old A experience remains available to weights and replay so returning A meets the frozen retention-or-relearning criterion.",
+      "objective_orientation": "COMPLETE_SAMPLE_ARITHMETIC_EQUITY_DELTA",
+      "observation_semantics": "Recurring synthetic A/B/A conditions distinguishable only through causal market observation; no phase label or detector input.",
+      "phase_context_ids": [
+        [
+          "A",
+          4096
+        ],
+        [
+          "B",
+          4096
+        ],
+        [
+          "A",
+          4096
+        ]
+      ],
+      "reward_semantics": "Arithmetic task return under the active synthetic condition.",
+      "spec_hash": "3eee9e90f293894ec2de58915c12e1e0b2f257648ced51b09652e48ccce406f8",
+      "task_id": "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION",
+      "training_decisions": 12288
+    }
+  ],
+  "training_schedule": {
+    "behavior_checkpoint_fixed_within_collection_unit": true,
+    "child_becomes_behavior_only_through_committed_generation_switch": true,
+    "collection_unit_policy_decisions": 128,
+    "degenerate_uniform_batch_rule": "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP",
+    "durable_learner_updates_per_collection_unit": 1,
+    "policy_decisions_early_stop_on_success": false,
+    "qualification_policy_decisions": 16384,
+    "replay_age_expiry": false,
+    "replay_batch_target_samples": 128,
+    "replay_sampling": "UNIFORM_FROM_ALL_ELIGIBLE_DURABLE_REPLAY_ACTION_AGNOSTIC",
+    "replay_sampling_forced_nonflat_substitution": false
+  }
+}
