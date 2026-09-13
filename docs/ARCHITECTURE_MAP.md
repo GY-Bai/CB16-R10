@@ -50,6 +50,19 @@ Final-account checksum：`29d33e7639029f40c6edfb1c7fe9fff26e4af3f418cf5109a066a5
 
 Strongest evidence：`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`。不是 ECONOMIC/TRANSFER evidence；FINAL 未开启，fresh market data 未使用。
 
+## Infra contract and engineering debt
+
+Shanxi Docker runner 的 live contract 见：
+
+- `docs/infra/SHANXI_DOCKER_RUNNER_CONTRACT.md`
+- `authority/infra/SHANXI_DOCKER_RUNNER_SNAPSHOT_V1.json`
+
+当前已确认的 storage/I/O 工程债、历史 R2 SSD/HDD tiering 原则和后续升级 TODO 见：
+
+- `docs/infra/INFRA_ENGINEERING_DEBT_TODO.md`
+
+该 engineering debt 不改变当前 scientific authority；storage saturation / runner I/O bottleneck 必须按 execution/infra 问题处理，不能被解释为 scientific verdict。
+
 ## Historical map
 
 Stage-4、AC/BC、Teacher/demonstration 和旧 runtime/performance 文档仍保留为 provenance/history。若它们与 integration spec/receipt 的当前 routing 冲突，以 integration authority 为准；历史 scientific verdict 不被追溯改写。
