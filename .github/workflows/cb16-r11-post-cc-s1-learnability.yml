@@ -1,0 +1,278 @@
+name: CB16 R11 Post-CC S1 Learnability
+
+on:
+  push:
+    branches:
+      - ai/r11-post-cc-s1-end-to-end-learnability-r1
+    paths:
+      - "cb16_local_opt/post_cc_s1_*.py"
+      - "cb16_local_opt/post_cc_*.py"
+      - "cb16_local_opt/cc_policy_brain_r0.py"
+      - "cb16_local_opt/cc_policy_distribution_r0.py"
+      - "cb16_local_opt/cc_vtrace_r0.py"
+      - "cb16_local_opt/cc_critic_value_r0.py"
+      - "cb16_local_opt/cc_runtime_account_loop_r0.py"
+      - "cb16_local_opt/cc_runtime_generation_switch_r0.py"
+      - "tests/test_post_cc_s1_*.py"
+      - "tests/test_post_cc_s0v2_*.py"
+      - "scripts/run_r11_post_cc_s1_learnability.py"
+      - "scripts/verify_r11_post_cc_s1_record_binding.py"
+      - "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_*.json"
+      - ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "smoke (engineering only) or qualification (requires Sol authorization) or record_binding"
+        type: choice
+        required: true
+        default: smoke
+        options:
+          - smoke
+          - qualification
+          - record_binding
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  s1-implementation-suite:
+    name: S1 implementation unit and invariant suite
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout S1 implementation branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/s1_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('S1_PYTHON_ENV_READY')
+          PY
+
+      - name: Verify S1 lineage, frozen receipts and firewalls
+        shell: bash
+        run: |
+          set -euo pipefail
+          PARENT=fc80b472236e7a4df8094563f8adac826fc42231
+          test "$(git merge-base HEAD "$PARENT")" = "$PARENT" || { echo S1_PARENT_LINEAGE_FAIL; exit 1; }
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_POST_CC_S1_TASK_REGISTRY_V1.json)" = "d21aece618403322bfc9bb5752b18960ecf73ec4"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_POST_CC_S1_RUN_SPEC_V1.json)" = "ed4aba2271aacea38f1184550e6f29bda3178a53"
+          test "$(git rev-parse HEAD:authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json)" = "49217af92d358337e04afa6e13cf0c96d81eece7"
+          test ! -e data/2025-09
+          test ! -e final_holdout
+          echo S1_LINEAGE_AND_FIREWALL_PASS
+
+      - name: Run focused S1 and S0v2 regression suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" -m pytest -q \
+            tests/test_post_cc_s1_*.py \
+            tests/test_post_cc_s0v2_*.py \
+            tests/test_cc_policy_brain_r0.py \
+            tests/test_cc_policy_distribution_r0.py \
+            tests/test_cc_vtrace_r0.py \
+            tests/test_cc_critic_value_r0.py \
+            tests/test_cc_vtrace_r0.py \
+            tests/test_cc_runtime_account_loop_r0.py
+          PYTHONPATH=. "$PYTHON" -m compileall -q cb16_local_opt scripts tests
+
+      - name: Upload S1 implementation suite evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s1-implementation-suite
+          path: |
+            ${{ runner.temp }}/s1_python.json
+            ${{ runner.temp }}/s1_docker_preflight.json
+          if-no-files-found: error
+          retention-days: 30
+
+  s1-bounded-smoke:
+    name: S1 bounded smoke (engineering only)
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout S1 implementation branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/run_r11_post_cc_s1_learnability.py \
+            --mode smoke \
+            --output-root "$RUNNER_TEMP/post_cc_s1_smoke" \
+            --workers 1
+          echo "S1_SMOKE_IS_ENGINEERING_EVIDENCE_ONLY_NOT_SCIENTIFIC_QUALIFICATION"
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
+
+      - name: Upload S1 bounded smoke artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s1-bounded-smoke
+          path: |
+            ${{ runner.temp }}/post_cc_s1_smoke
+            ${{ runner.temp }}/s1_python.json
+          if-no-files-found: error
+          retention-days: 30
+
+  s1-formal-qualification:
+    name: S1 formal 5-seed qualification
+    needs: shanxi-preflight
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'qualification'
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout S1 implementation branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Sol qualification authorization is recorded
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE=authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json
+          test -f "$FILE" || { echo S1_QUALIFICATION_AUTHORIZATION_MISSING; exit 1; }
+          python3 - "$FILE" <<'PY'
+          import json, sys
+          payload = json.load(open(sys.argv[1]))
+          assert payload.get('status') == 'READY_FOR_S1_QUALIFICATION', payload
+          assert payload.get('reviewer_role') == 'SOL_INDEPENDENT_QUALIFICATION_REVIEW', payload
+          print('S1_QUALIFICATION_AUTHORIZED')
+          PY
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+
+      - name: Run exact-manifest S1 formal qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHORT_SHA=$(git rev-parse --short=12 HEAD)
+          OUT="$RUNNER_TEMP/s1_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/run_r11_post_cc_s1_learnability.py \
+            --mode qualification \
+            --output-root "$RUNNER_TEMP/post_cc_s1_qualification_${SHORT_SHA}" \
+            --workers 8
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
+
+      - name: Upload S1 formal qualification artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s1-formal-qualification
+          path: |
+            ${{ runner.temp }}/post_cc_s1_qualification_*
+            ${{ runner.temp }}/s1_python.json
+          if-no-files-found: error
+          retention-days: 90
+
+  s1-record-binding-verification:
+    name: S1 record-binding head verification
+    needs: shanxi-preflight
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'record_binding'
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout record-binding candidate head
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify candidate record binds this exact runtime identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/verify_r11_post_cc_s1_record_binding.py \
+            --repo-root . \
+            --json-out "$RUNNER_TEMP/S1_RECORD_BINDING_VERIFICATION.json"
+
+      - name: Upload record-binding verification evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s1-record-binding-verification
+          path: |
+            ${{ runner.temp }}/S1_RECORD_BINDING_VERIFICATION.json
+            ${{ runner.temp }}/s1_python.json
+          if-no-files-found: error
+          retention-days: 90
