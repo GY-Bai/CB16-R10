@@ -79,7 +79,7 @@
     "transfer_evidence_claimed": false
   },
   "gap_reduction_threshold": 0.5,
-  "manifest_sha256": "481e6390236320b5ee2c0425da15bbf3d54162c815b6660acbde262cd8b4968f",
+  "manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532",
   "maximum_false_positive_control_seeds": 1,
   "maximum_policy_decisions_per_task_per_seed": 100000,
   "minimum_positive_seeds_passing": 4,
@@ -105,7 +105,7 @@
       "codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
       "computed_actor_only_sha256": "42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f",
       "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
-      "construction_order": "ACTOR_THEN_CRITIC_SINGLE_SEED_STREAM",
+      "construction_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
       "contract_state": "CONTRACT_MISMATCH",
       "declared_frozen_sha256": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
       "declared_hash_reproduced": false,
@@ -126,7 +126,11 @@
       },
       "optimizer_change_after_results": false
     },
-    "trainable_parameter_total": 314
+    "qualification_hard_fail_closed_until_successor_frozen": true,
+    "qualification_requires_sol_frozen_successor_authority": true,
+    "successor_candidate_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+    "trainable_parameter_total": 314,
+    "versioned_corrective_authority_path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1.json"
   },
   "off_policy": {
     "algorithm": "V_TRACE",
@@ -532,10 +536,10 @@
     }
   ],
   "training_schedule": {
+    "all_flat_batch_rule": "ONE_DURABLE_UPDATE_WITH_SUPPORT_AWARE_GRADIENT_AUDIT",
     "behavior_checkpoint_fixed_within_collection_unit": true,
     "child_becomes_behavior_only_through_committed_generation_switch": true,
     "collection_unit_policy_decisions": 128,
-    "degenerate_uniform_batch_rule": "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP",
     "durable_learner_updates_per_collection_unit": 1,
     "policy_decisions_early_stop_on_success": false,
     "qualification_policy_decisions": 16384,

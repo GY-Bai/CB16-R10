@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import torch
@@ -100,12 +101,91 @@ def initial_checkpoint_identity_v1() -> Mapping[str, Any]:
     return {
         "codec_id": CHECKPOINT_CODEC_ID_V1,
         "initialization_seed": FROZEN_INITIALIZATION_SEED_V1,
-        "construction_order": "ACTOR_THEN_CRITIC_SINGLE_SEED_STREAM",
+        "construction_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
         "declared_frozen_sha256": FROZEN_AUTHORITY_INITIAL_CHECKPOINT_SHA256_V1,
         "computed_actor_only_sha256": actor_only,
         "computed_actor_plus_critic_sha256": actor_critic,
         "declared_hash_reproduced": bool(reproduced),
         "contract_state": "MATCH" if reproduced else "CONTRACT_MISMATCH",
+    }
+
+
+def write_initial_checkpoint_identity_artifact_v1(path: str | Path) -> Mapping[str, Any]:
+    """Emit the machine-readable exact-SHA Shanxi checkpoint identity artifact."""
+    import platform
+
+    identity = dict(initial_checkpoint_identity_v1())
+    payload = {
+        "schema": "CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1",
+        "status": "EMITTED",
+        "role": "PRE_QUALIFICATION_VERSIONED_AUTHORITY_CORRECTION_EVIDENCE",
+        "codec_id": identity["codec_id"],
+        "initialization_seed": identity["initialization_seed"],
+        "construction_order": identity["construction_order"],
+        "modules": ["actor", "critic"],
+        "declared_frozen_sha256": identity["declared_frozen_sha256"],
+        "computed_actor_only_sha256": identity["computed_actor_only_sha256"],
+        "computed_actor_plus_critic_sha256": identity["computed_actor_plus_critic_sha256"],
+        "declared_hash_reproduced": identity["declared_hash_reproduced"],
+        "contract_state": identity["contract_state"],
+        "historical_v1_mutated": False,
+        "environment": {
+            "python_version": platform.python_version(),
+            "torch_version": torch.__version__,
+            "platform": platform.platform(),
+        },
+    }
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
+    return payload
+
+
+def load_corrective_authority_v1(repo_root: str | Path) -> Mapping[str, Any] | None:
+    path = (
+        Path(repo_root)
+        / "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1.json"
+    )
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def effective_initial_checkpoint_contract_v1(repo_root: str | Path) -> Mapping[str, Any]:
+    """Resolve the effective S1 initial-checkpoint contract.
+
+    * historical V1 remains the declared fallback and stays non-reproducible;
+    * a Sol-frozen versioned corrective authority can supersede it, but only if
+      it binds the exact computed Actor+Critic hash/codec/seed/order.
+    """
+    identity = dict(initial_checkpoint_identity_v1())
+    authority = load_corrective_authority_v1(repo_root)
+    if authority is None:
+        return {
+            "contract_state": identity["contract_state"],
+            "authority_source": "HISTORICAL_V1_DECLARED",
+            "authority_status": "MISSING_VERSIONED_CORRECTIVE_AUTHORITY",
+            "effective_frozen_sha256": identity["declared_frozen_sha256"],
+            "computed_actor_plus_critic_sha256": identity["computed_actor_plus_critic_sha256"],
+            "codec_id": identity["codec_id"],
+        }
+    frozen_sha = authority.get("frozen_actor_plus_critic_sha256")
+    matches = bool(
+        frozen_sha == identity["computed_actor_plus_critic_sha256"]
+        and authority.get("codec_id") == identity["codec_id"]
+        and int(authority.get("initialization_seed", -1)) == int(identity["initialization_seed"])
+        and authority.get("construction_order") == identity["construction_order"]
+    )
+    frozen_by_sol = authority.get("status") == "FROZEN_BY_SOL"
+    return {
+        "contract_state": "MATCH" if (frozen_by_sol and matches) else "CONTRACT_MISMATCH",
+        "authority_source": "VERSIONED_CORRECTIVE_AUTHORITY",
+        "authority_status": authority.get("status"),
+        "effective_frozen_sha256": frozen_sha,
+        "computed_actor_plus_critic_sha256": identity["computed_actor_plus_critic_sha256"],
+        "codec_id": identity["codec_id"],
+        "frozen_by_sol": bool(frozen_by_sol),
+        "binding_matches_computed_identity": bool(matches),
     }
 
 

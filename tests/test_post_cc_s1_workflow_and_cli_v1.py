@@ -8,6 +8,14 @@ WORKFLOW = Path(".github/workflows/cb16-r11-post-cc-s1-learnability.yml")
 RUNNER_SCRIPT = Path("scripts/run_r11_post_cc_s1_learnability.py")
 
 
+def test_workflow_has_exact_sha_checkpoint_identity_job():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "s1-checkpoint-identity:" in text
+    assert "cb16-r11-post-cc-s1-checkpoint-identity" in text
+    assert "emit_r11_post_cc_s1_checkpoint_identity.py" in text
+    assert "S1_INITIAL_CHECKPOINT_IDENTITY.json" in text
+
+
 def test_workflow_uses_shared_preflight_and_shanxi_runner():
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "uses: ./.github/workflows/_cb16-shanxi-preflight.yml" in text

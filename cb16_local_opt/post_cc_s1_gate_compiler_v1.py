@@ -365,8 +365,9 @@ def compile_s1_gates_v1(
                 elif not gate:
                     scientific_failures.append(f"CONTROL:{control_key}")
             elif control_id in ("OBJECTIVE_FIREWALL", "FABRICATED_LOG_MU_REJECTION"):
-                audit_key = f"{control_key}"
-                audit = audits.get(audit_key, {})
+                # Canonical contract: the runner supplies these global audits by
+                # control_id.  A task-scoped key is accepted only as a fallback.
+                audit = audits.get(control_id) or audits.get(control_key) or {}
                 gate = bool(audit.get("all_checks_pass") is True)
                 gates[f"CONTROL:{control_key}"] = gate
                 details[f"CONTROL:{control_key}"] = dict(audit)

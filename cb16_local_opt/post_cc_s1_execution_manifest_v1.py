@@ -178,7 +178,7 @@ def execution_manifest_payload_v1() -> dict[str, Any]:
             "replay_batch_target_samples": int(QUALIFICATION_REPLAY_BATCH_V1),
             "replay_sampling": "UNIFORM_FROM_ALL_ELIGIBLE_DURABLE_REPLAY_ACTION_AGNOSTIC",
             "replay_sampling_forced_nonflat_substitution": False,
-            "degenerate_uniform_batch_rule": "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP",
+            "all_flat_batch_rule": "ONE_DURABLE_UPDATE_WITH_SUPPORT_AWARE_GRADIENT_AUDIT",
             "replay_age_expiry": False,
             "behavior_checkpoint_fixed_within_collection_unit": True,
             "child_becomes_behavior_only_through_committed_generation_switch": True,
@@ -243,6 +243,12 @@ def execution_manifest_payload_v1() -> dict[str, Any]:
             "checkpoint_codec_id": CHECKPOINT_CODEC_ID_V1,
             "frozen_initial_checkpoint_semantic_sha256_declared": FROZEN_IC_SHA_V1,
             "frozen_initial_checkpoint_identity_verification": dict(initial_checkpoint_identity_v1()),
+            "versioned_corrective_authority_path": (
+                "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1.json"
+            ),
+            "successor_candidate_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+            "qualification_requires_sol_frozen_successor_authority": True,
+            "qualification_hard_fail_closed_until_successor_frozen": True,
             "optimizer": {
                 "actor": {"type": "SGD", "learning_rate": float(ACTOR_LEARNING_RATE_V1)},
                 "critic": {"type": "SGD", "learning_rate": float(CRITIC_LEARNING_RATE_V1)},

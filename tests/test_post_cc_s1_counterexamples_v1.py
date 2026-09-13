@@ -57,7 +57,8 @@ def test_b1_sampler_never_forces_nonflat_into_uniform_draw():
     assert "nonflat-c" not in actual  # old code would have substituted it back in
 
 
-def test_b1_degenerate_all_flat_batch_skips_gradient_without_changing_sampling(monkeypatch):
+def test_b1_all_flat_batch_still_performs_exactly_one_durable_update(monkeypatch):
+    """R2-C1: a legal all-FLAT uniform batch must still produce one durable update."""
     spec = T.build_task_specs_v1()[T.TASK_DELAYED_CONSEQUENCE_CREDIT]
     original_sampler = loop._sample_sequence_ids_v1
 
@@ -68,14 +69,18 @@ def test_b1_degenerate_all_flat_batch_skips_gradient_without_changing_sampling(m
         return original_sampler(index_rows=index_rows, replay_rng=replay_rng, target_size=target_size)
 
     monkeypatch.setattr(loop, "_sample_sequence_ids_v1", flat_only_sampler)
-    with tempfile.TemporaryDirectory(prefix="cb16-s1-b1-degenerate-") as root:
+    with tempfile.TemporaryDirectory(prefix="cb16-s1-b1-all-flat-") as root:
         result = run_seed_v1(_tiny_config(spec, root, max_units=3, unit_size=4))
-    assert result["uniform_sampling"]["units_update_skipped_degenerate"] >= 1
-    assert result["optimizer"]["optimizer_step_final"] == 0
+    assert result["uniform_sampling"]["units_update_skipped_degenerate"] == 0
+    assert result["optimizer"]["optimizer_step_final"] == 3
+    assert len(result["unit_evidence"]) == 3
     for unit in result["unit_evidence"]:
-        if unit["update_skipped"]:
-            assert unit["update_skipped_reason"] == "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP"
-            assert unit["selected_a1_sequence_count"] == 0 or True
+        assert unit["update_skipped"] is False
+        assert unit["update_status"] == "COMMITTED"
+        assert unit["child_checkpoint_sha256"]
+        assert unit["generation_switch_receipt"] is not None
+        assert unit["risk_density_support_present"] is False
+        assert set(unit["batch_nominal_direction_counts"]) == {"FLAT"}
 
 
 def test_b2_retention_uses_durable_index_not_selected_ids():
@@ -159,3 +164,31 @@ def test_b5_high_bankruptcy_loss_is_durable_failure_fact_and_in_denominator():
     assert audit["checks"]["loss_retained_with_full_weight"] is True
     assert audit["details"]["loss_equity"] <= 0.0
     assert audit["details"]["loss_reward"] < 0.0
+
+
+def test_c3_off_policy_evaluation_follows_target_not_frozen_behavior():
+    """R2-C3: OFF_POLICY INITIAL/FINAL must evaluate the learned target policy."""
+    spec = T.build_task_specs_v1()[T.TASK_OFF_POLICY_VTRACE_CORRECTION]
+    with tempfile.TemporaryDirectory(prefix="cb16-s1-c3-") as root:
+        result = run_seed_v1(
+            S1SeedRunConfigV1(
+                spec=spec,
+                seed=1701,
+                run_root=root,
+                mode="smoke",
+                control_id=None,
+                unit_size=2,
+                max_units=2,
+                evaluation_population=4,
+                manifest_sha256="0" * 64,
+            )
+        )
+    identities = result["evaluation_policy_identities"]
+    assert identities["INITIAL"] == result["initial_target_parameter_state_sha256"]
+    assert identities["FINAL"] == result["target_final_identity"]["parameter_state_sha256"]
+    assert identities["FINAL"] != result["behavior_final_identity"]["parameter_state_sha256"]
+    # fixed distinct behavior must not move at all
+    behavior_ids = {unit["behavior_identity_before"] for unit in result["unit_evidence"]}
+    behavior_ids.update(unit["behavior_identity_after"] for unit in result["unit_evidence"])
+    assert len(behavior_ids) == 1
+    assert result["behavior_final_identity"]["policy_id"] == "cc-s1-fixed-behavior"

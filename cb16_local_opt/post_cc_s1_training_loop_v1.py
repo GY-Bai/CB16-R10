@@ -145,6 +145,8 @@ class UnitEvidenceV1:
     mechanical_terminal_count: int
     update_skipped: bool
     update_skipped_reason: str | None
+    batch_nominal_direction_counts: Mapping[str, int]
+    risk_density_support_present: bool
     nominal_direction_counts: Mapping[str, int]
     update_id: str
     update_status: str
@@ -579,6 +581,33 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
     if parameter_state_sha256_v1(target_critic) != target_critic_initial_parameter_sha256:
         raise S1TrainingError("BEHAVIOR_INITIALIZATION_PERTURBED_TARGET_CRITIC")
 
+    initial_target_state = {
+        name: tensor.detach().clone() for name, tensor in target_actor.state_dict().items()
+    }
+    evaluation_actor = initialize_isolated_behavior_actor_v1(
+        derived_stream_seed_v1(spec.task_id, config.seed, "evaluation_actor_init")
+    )
+
+    def target_state_snapshot() -> dict[str, Any]:
+        return {
+            name: tensor.detach().clone() for name, tensor in learner.target_actor.state_dict().items()
+        }
+
+    def evaluate_target_policy(state: Mapping[str, Any], checkpoint_id: str) -> Mapping[str, Any]:
+        evaluation_actor.load_state_dict({name: tensor.clone() for name, tensor in state.items()})
+        identity = parameter_state_sha256_v1(evaluation_actor)
+        evaluation = _evaluate_v1(
+            spec=spec,
+            accounts=accounts,
+            actor=evaluation_actor,
+            seed=config.seed,
+            checkpoint_id=checkpoint_id,
+            population=config.evaluation_population,
+            zero_account_inputs=zero_account_inputs,
+        )
+        evaluation["evaluation_policy_parameter_state_sha256"] = identity
+        return evaluation
+
     learner = PostCCDurableReplayLearnerV1(
         target_actor=target_actor,
         target_critic=target_critic,
@@ -594,16 +623,9 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
     zero_account_inputs = config.control_id == CONTROL_ACCOUNT_ABLATION
     reward_mode = "ZERO" if config.control_id == CONTROL_NO_SIGNAL else "RAW"
 
+    initial_parent_checkpoint_sha256 = learner.parent_checkpoint_sha256()
     checkpoints: dict[str, Any] = {}
-    checkpoints["INITIAL"] = _evaluate_v1(
-        spec=spec,
-        accounts=accounts,
-        actor=behavior_actor,
-        seed=config.seed,
-        checkpoint_id="INITIAL",
-        population=config.evaluation_population,
-        zero_account_inputs=zero_account_inputs,
-    )
+    checkpoints["INITIAL"] = evaluate_target_policy(initial_target_state, "INITIAL")
 
     unit_records: list[UnitEvidenceV1] = []
     phase_plan = spec.phase_context_ids if spec.context_schedule == "PHASES" else ()
@@ -725,37 +747,24 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
         selected_a1_sequence_count = sum(1 for sequence_id in selected_sequence_ids if sequence_id in a1_row_ids)
         failure_fact_count = sum(1 for item in unit_evidence_rows if item.failure_fact is True)
         mechanical_terminal_count = sum(1 for item in unit_evidence_rows if item.mechanical_terminal is True)
-        has_nonflat_sample = any(sample.risk_measure_kind != "point_mass" for sample in batch.samples)
         shuffle_permutation: list[int] | None = None
         generation_switch_receipt: Mapping[str, Any] | None = None
         update_skipped = False
         update_skipped_reason: str | None = None
-        if not has_nonflat_sample:
-            # Declared B1 edge rule: keep the uniform draw untouched; skip the
-            # gradient step instead of injecting a non-FLAT sample.
-            update_skipped = True
-            update_skipped_reason = "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP"
-            update_id = ""
-            update_status = "SKIPPED_DEGENERATE_UNIFORM_BATCH"
-            optimizer_step_after = int(learner.optimizer_step)
-            child_checkpoint_sha256 = ""
-            ratio_above = 0
-            ratio_below = 0
-            ratio_abs_max_minus_one = 0.0
-            behavior_checkpoint_untouched = parameter_state_sha256_v1(behavior_actor) == behavior_parameter_sha_before
-        else:
-            if config.control_id == CONTROL_SHUFFLED_CREDIT and spec.behavior_mode == BEHAVIOR_MODE_FIXED_DISTINCT_V1:
-                batch, shuffle_permutation = _apply_off_policy_reward_shuffle_v1(batch, control_rng=control_rng)
-            ratio_above, ratio_below, ratio_abs_max_minus_one = _ratio_diagnostics_v1(learner.target_actor, batch)
-            learner.parent_policy_identity = target_identity
-            learner.target_policy_identity = next_target_identity
-            result = learner.apply_durable_update_v1(batch=batch)
-            behavior_checkpoint_untouched = parameter_state_sha256_v1(behavior_actor) == behavior_parameter_sha_before
-            update_id = result.update_id
-            update_status = str(result.record.commit_status)
-            optimizer_step_after = int(result.optimizer_step_after)
-            child_checkpoint_sha256 = str(result.child_checkpoint_sha256)
-        if not update_skipped and spec.behavior_mode != BEHAVIOR_MODE_FIXED_DISTINCT_V1:
+        if config.control_id == CONTROL_SHUFFLED_CREDIT and spec.behavior_mode == BEHAVIOR_MODE_FIXED_DISTINCT_V1:
+            batch, shuffle_permutation = _apply_off_policy_reward_shuffle_v1(batch, control_rng=control_rng)
+        ratio_above, ratio_below, ratio_abs_max_minus_one = _ratio_diagnostics_v1(learner.target_actor, batch)
+        learner.parent_policy_identity = target_identity
+        learner.target_policy_identity = next_target_identity
+        # Frozen schedule: exactly one durable update per complete collection
+        # unit, including legal all-FLAT uniform batches (support-aware audit).
+        result = learner.apply_durable_update_v1(batch=batch)
+        behavior_checkpoint_untouched = parameter_state_sha256_v1(behavior_actor) == behavior_parameter_sha_before
+        update_id = result.update_id
+        update_status = str(result.record.commit_status)
+        optimizer_step_after = int(result.optimizer_step_after)
+        child_checkpoint_sha256 = str(result.child_checkpoint_sha256)
+        if spec.behavior_mode != BEHAVIOR_MODE_FIXED_DISTINCT_V1:
             new_behavior_generation = str(int(behavior_generation) + 1)
             new_behavior_policy_sha256 = child_policy_identity_v1(
                 child_checkpoint_sha256=str(result.child_checkpoint_sha256),
@@ -801,9 +810,11 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
                 "authorized_boundary": bool(receipt.authorized_boundary),
                 "parent_checkpoint_mutated_in_place": bool(receipt.parent_checkpoint_mutated_in_place),
             }
-        if not update_skipped:
-            target_identity = next_target_identity
+        target_identity = next_target_identity
         direction_counts: dict[str, int] = {}
+        batch_direction_counts: dict[str, int] = {}
+        for sample in batch.samples:
+            batch_direction_counts[sample.nominal_direction] = batch_direction_counts.get(sample.nominal_direction, 0) + 1
         for evidence in unit_evidence_rows:
             direction_counts[evidence.nominal_direction] = direction_counts.get(evidence.nominal_direction, 0) + 1
         unit_records.append(
@@ -822,8 +833,12 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
                 selected_a1_sequence_count=int(selected_a1_sequence_count),
                 failure_fact_count=int(failure_fact_count),
                 mechanical_terminal_count=int(mechanical_terminal_count),
-                update_skipped=bool(update_skipped),
-                update_skipped_reason=update_skipped_reason,
+                update_skipped=False,
+                update_skipped_reason=None,
+                batch_nominal_direction_counts=batch_direction_counts,
+                risk_density_support_present=bool(
+                    result.gradient_ownership_summary.get("risk_density_support_present", True)
+                ),
                 nominal_direction_counts=direction_counts,
                 update_id=update_id,
                 update_status=update_status,
@@ -844,32 +859,12 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
             phase_end_units = sum(int(count) for _, count in phase_plan[: phase_index + 1]) // int(config.unit_size)
             if checkpoint_after_unit == phase_end_units:
                 if phase_index == 0:
-                    checkpoints["POST_A1"] = _evaluate_v1(
-                        spec=spec, accounts=accounts, actor=behavior_actor, seed=config.seed,
-                        checkpoint_id="POST_A1", population=config.evaluation_population,
-                        zero_account_inputs=zero_account_inputs,
-                    )
+                    checkpoints["POST_A1"] = evaluate_target_policy(target_state_snapshot(), "POST_A1")
                 elif phase_index == 1:
-                    checkpoints["POST_B"] = _evaluate_v1(
-                        spec=spec, accounts=accounts, actor=behavior_actor, seed=config.seed,
-                        checkpoint_id="POST_B", population=config.evaluation_population,
-                        zero_account_inputs=zero_account_inputs,
-                    )
+                    checkpoints["POST_B"] = evaluate_target_policy(target_state_snapshot(), "POST_B")
                 elif phase_index == len(phase_plan) - 1:
-                    checkpoints["POST_A2"] = _evaluate_v1(
-                        spec=spec, accounts=accounts, actor=behavior_actor, seed=config.seed,
-                        checkpoint_id="POST_A2", population=config.evaluation_population,
-                        zero_account_inputs=zero_account_inputs,
-                    )
-    checkpoints["FINAL"] = _evaluate_v1(
-        spec=spec,
-        accounts=accounts,
-        actor=behavior_actor,
-        seed=config.seed,
-        checkpoint_id="FINAL",
-        population=config.evaluation_population,
-        zero_account_inputs=zero_account_inputs,
-    )
+                    checkpoints["POST_A2"] = evaluate_target_policy(target_state_snapshot(), "POST_A2")
+    checkpoints["FINAL"] = evaluate_target_policy(target_state_snapshot(), "FINAL")
     control_frozen_realization: Mapping[str, Any] | None = None
     if config.control_id == CONTROL_RANDOM_IMPOSSIBLE:
         from dataclasses import replace as _replace
@@ -878,7 +873,7 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
         symmetric_evaluation = _evaluate_v1(
             spec=symmetric_spec,
             accounts=accounts,
-            actor=behavior_actor,
+            actor=evaluation_actor,
             seed=config.seed,
             checkpoint_id="CONTROL_FROZEN_REALIZATION",
             population=config.evaluation_population,
@@ -917,6 +912,10 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
         "oracle": oracle,
         "oracle_validation": oracle_validation,
         "checkpoints": checkpoints,
+        "evaluation_policy_identities": {
+            checkpoint_id: record.get("evaluation_policy_parameter_state_sha256")
+            for checkpoint_id, record in checkpoints.items()
+        },
         "setup_provenance": setup_provenance,
         "unit_evidence": [dict(item.payload()) for item in unit_records],
         "unit_evidence_sha256s": [item.content_sha256 for item in unit_records],
@@ -925,6 +924,10 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
             "final_update_store_verification": dict(update_store_verification),
             "behavior_checkpoint_untouched_every_unit": all(item.behavior_checkpoint_untouched for item in unit_records),
         },
+        "initial_parent_checkpoint_sha256": initial_parent_checkpoint_sha256,
+        "committed_updates_count": sum(
+            1 for item in unit_records if item.update_status == "COMMITTED"
+        ),
         "optimizer": {
             "actor_lr": float(learner.actor_lr),
             "critic_lr": float(learner.critic_lr),
@@ -976,8 +979,8 @@ def run_seed_v1(config: S1SeedRunConfigV1) -> dict[str, Any]:
         "uniform_sampling": {
             "rule": "UNIFORM_FROM_ALL_ELIGIBLE_DURABLE_REPLAY_ACTION_AGNOSTIC",
             "forced_nonflat_substitution": False,
-            "units_update_skipped_degenerate": sum(1 for item in unit_records if item.update_skipped),
-            "degenerate_batch_rule": "UNIFORM_BATCH_HAS_NO_NONFLAT_SAMPLE_SKIP_GRADIENT_STEP",
+            "units_update_skipped_degenerate": 0,
+            "all_flat_batch_rule": "ONE_DURABLE_UPDATE_WITH_SUPPORT_AWARE_GRADIENT_AUDIT",
         },
         "failure_facts": {
             "collected_failure_fact_count": sum(item.failure_fact_count for item in unit_records),

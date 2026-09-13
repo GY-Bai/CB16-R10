@@ -107,10 +107,29 @@ jobs:
           changed = [line for line in subprocess.check_output(
               ['git', 'diff', '--name-only', implementation_sha, 'HEAD'], text=True
           ).splitlines() if line.strip()]
-          allowed = {'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json'}
+          allowed = {
+              'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json',
+              'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1.json',
+          }
           assert set(changed) <= allowed, changed
           print('S1_RUNTIME_TREE_IDENTITY_BOUND', implementation_sha)
           PY
+
+      - name: Emit exact-SHA initial checkpoint identity artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/emit_r11_post_cc_s1_checkpoint_identity.py \
+            --json-out "$RUNNER_TEMP/S1_INITIAL_CHECKPOINT_IDENTITY.json"
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
 
       - name: Run focused S1 and S0v2 regression suites
         shell: bash
@@ -141,8 +160,51 @@ jobs:
           path: |
             ${{ runner.temp }}/s1_python.json
             ${{ runner.temp }}/s1_docker_preflight.json
+            ${{ runner.temp }}/S1_INITIAL_CHECKPOINT_IDENTITY.json
           if-no-files-found: error
           retention-days: 30
+
+
+  s1-checkpoint-identity:
+    name: S1 initial checkpoint identity (exact SHA)
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r11]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact S1 candidate head
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/s1_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/emit_r11_post_cc_s1_checkpoint_identity.py \
+            --json-out "$RUNNER_TEMP/S1_INITIAL_CHECKPOINT_IDENTITY.json"
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
+
+      - name: Upload exact-SHA checkpoint identity artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r11-post-cc-s1-checkpoint-identity
+          path: |
+            ${{ runner.temp }}/S1_INITIAL_CHECKPOINT_IDENTITY.json
+            ${{ runner.temp }}/s1_python.json
+          if-no-files-found: error
+          retention-days: 90
 
   s1-bounded-smoke:
     name: S1 bounded smoke (engineering only)
@@ -170,7 +232,10 @@ jobs:
           changed = [line for line in subprocess.check_output(
               ['git', 'diff', '--name-only', implementation_sha, 'HEAD'], text=True
           ).splitlines() if line.strip()]
-          allowed = {'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json'}
+          allowed = {
+              'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json',
+              'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1.json',
+          }
           assert set(changed) <= allowed, changed
           print('S1_RUNTIME_TREE_IDENTITY_BOUND', implementation_sha)
           PY

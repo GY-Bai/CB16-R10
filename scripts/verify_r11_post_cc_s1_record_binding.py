@@ -28,7 +28,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 CANDIDATE_PATH = "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json"
-ALLOWED_METADATA_ONLY_PATHS = {CANDIDATE_PATH}
+ALLOWED_METADATA_ONLY_PATHS = {
+    CANDIDATE_PATH,
+    "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_INITIAL_CHECKPOINT_IDENTITY_V1.json",
+}
 
 EXIT_OK = 0
 EXIT_BINDING_FAILED = 1
