@@ -1,0 +1,121 @@
+{
+  "schema": "CB16_R11_S0V2_RECEIPT_V1",
+  "status": "QUALIFIED",
+  "stage_identity": "CB16_R11_S0V2_DURABLE_LEARNABILITY_FOUNDATION_R0",
+  "review_round": "R2",
+  "reviewer_role": "SOL_INDEPENDENT_QUALIFICATION_REVIEW",
+  "review_verdict": "PASS",
+  "scientific_code_baseline_sha": "392063881a6ef0dd1776ac579f1a290a134fc49e",
+  "task_document_handoff_sha": "134e9cc128a8cd664d9ae2539b06f78d994e064d",
+  "reviewed_record_binding_sha": "787431a15563f7a1f205b258d1bf49a27695002f",
+  "reviewed_record_binding_tree_sha": "8ac4c0d334285b66aef637d3d8e00741bb63f3c2",
+  "runtime_test_workflow_candidate_sha": "8ac88f834cd4b467f2daa61a136a01d0b68a5785",
+  "runtime_test_workflow_candidate_tree_sha": "669a81cac5fab4646cdab9cc293950e50bde4334",
+  "r1_review": {
+    "review_commit_sha": "f363344a4b53d63721aa6f7dd60fbed28da7e840",
+    "verdict": "CHANGES_REQUIRED",
+    "blockers": {
+      "B1_actual_loss_path_mechanical_terminal_provenance": "CLOSED",
+      "B2_generation_switch_committed_child_authority": "CLOSED",
+      "B3_same_instance_post_mutation_retry": "CLOSED"
+    }
+  },
+  "r2_independent_review": {
+    "branch_lineage_and_diff_scope": "PASS",
+    "historical_receipt_immutability": "PASS",
+    "high_density_formula_and_branch_review": "PASS",
+    "durable_only_replay_and_restart": "PASS",
+    "nominal_action_and_true_log_mu_integrity": "PASS",
+    "critic_bootstrap_vtrace_boundary_semantics": "PASS",
+    "exactly_once_recovery": "PASS",
+    "committed_child_generation_authority": "PASS",
+    "same_account_generation_continuity": "PASS",
+    "exact_sha_shanxi_evidence": "PASS",
+    "candidate_record_consistency": "PASS"
+  },
+  "r1_blocker_closure_evidence": {
+    "B1": {
+      "mechanical_terminal_read_from_durable_final_sample": true,
+      "boundary_semantics_preserved_in_actual_loss_path": true,
+      "mechanical_terminal_counterexample": true,
+      "economic_terminal_counterexample": true
+    },
+    "B2": {
+      "durable_update_store_required": true,
+      "update_id_required": true,
+      "missing_authority_rejected": true,
+      "prepared_authority_rejected": true,
+      "staged_authority_rejected": true,
+      "committed_checkpoint_bytes_reverified": true,
+      "runtime_policy_identity_bound_to_child": true,
+      "unrelated_policy_sha_rejected": true
+    },
+    "B3": {
+      "post_mutation_failure_marks_restart_required": true,
+      "same_instance_retry_rejected": true,
+      "same_instance_state_unchanged_on_retry_attempt": true,
+      "durable_parent_restart_required": true,
+      "final_optimizer_step_exactly_once": true
+    }
+  },
+  "shanxi_evidence": {
+    "runtime_candidate_run": {
+      "workflow_run_id": 34741816806,
+      "run_attempt": 1,
+      "checkout_sha": "8ac88f834cd4b467f2daa61a136a01d0b68a5785",
+      "checkout_tree_sha": "669a81cac5fab4646cdab9cc293950e50bde4334",
+      "preflight_job_id": 103682665312,
+      "business_job_id": 103682679229,
+      "runner": "shanxi-docker-r11",
+      "tests": "119 passed in 77.80s",
+      "qualification_gates": "16/16 PASS",
+      "artifact_id": 10313545447,
+      "artifact_sha256": "71f6d9264e9327451250e33745a975cee5c9cc041d3c5cfad2eb380d44099289"
+    },
+    "record_binding_head_run": {
+      "workflow_run_id": 34742010342,
+      "run_attempt": 1,
+      "checkout_sha": "787431a15563f7a1f205b258d1bf49a27695002f",
+      "checkout_tree_sha": "8ac4c0d334285b66aef637d3d8e00741bb63f3c2",
+      "preflight_job_id": 103683176262,
+      "business_job_id": 103683188989,
+      "runner": "shanxi-docker-r11",
+      "tests": "119 passed in 75.40s",
+      "qualification_gates": "16/16 PASS",
+      "artifact_id": 10313111511,
+      "artifact_sha256": "f468197099fc9cae412714d50d7b5d86b13cb1e225a48ee99efb71f4dd15c38b"
+    },
+    "environment": {
+      "python_version": "3.10.21",
+      "torch_version": "2.8.0+cu126",
+      "gpu": "NVIDIA GeForce GTX 1060 6GB"
+    }
+  },
+  "historical_authority_immutability": {
+    "CB16_R11_CC_INTEGRATION_RECEIPT_V1_git_blob_sha1": "3fea57a6c5d3a0a2ad5d88d99e6041b7fe9973e5",
+    "CB16_R11_CC_THREAD_C_RECEIPT_V1_git_blob_sha1": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc",
+    "CB16_R11_POST_CC_S0_RECEIPT_V1_git_blob_sha1": "5cd6d3ac74d6241d70588f0d8b58a1d74bba0da2",
+    "modified": false
+  },
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false,
+    "ECONOMIC_evidence_claimed": false,
+    "TRANSFER_evidence_claimed": false,
+    "end_to_end_learnability_claimed": false,
+    "legacy_performance_fallback_used": false
+  },
+  "strongest_justified_evidence_level": "POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED",
+  "explicit_non_claims": [
+    "NOT_S1_END_TO_END_LEARNABILITY_QUALIFICATION",
+    "NOT_ECONOMIC_EVIDENCE",
+    "NOT_TRANSFER_EVIDENCE",
+    "FINAL_NOT_OPENED",
+    "NO_FRESH_MARKET_DATA_USED"
+  ],
+  "merge_authorization": {
+    "sol_acceptance": true,
+    "may_merge_to_main": true,
+    "s1_may_start_only_from_exact_accepted_merged_main_base": true
+  }
+}
