@@ -1,0 +1,111 @@
+{
+  "accepted_parent_sha": "fc80b472236e7a4df8094563f8adac826fc42231",
+  "authoritative_sol_todo": "docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md",
+  "candidate_state": {
+    "implementation": {
+      "local_development_tests": "58_S1_TESTS_PASS_LOCAL_DEV_ENV_ONLY_NOT_SHANXI_EVIDENCE",
+      "shanxi_ci_state": "PENDING_SOL_REVIEW",
+      "task_coverage_complete": true
+    },
+    "phase": "A_IMPLEMENTATION_CANDIDATE",
+    "qualification": {
+      "reason": "AWAITING_SOL_READY_FOR_S1_QUALIFICATION",
+      "started": false
+    },
+    "shanxi_ci": {
+      "bounded_smoke": null,
+      "formal_qualification": null,
+      "implementation_suite": null
+    }
+  },
+  "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_PENDING_SHANXI_EXACT_SHA_EVIDENCE",
+  "environment_versions": {
+    "ACCOUNT_DEPENDENT_ACTION": "POST_CC_S1_ACCOUNT_DEPENDENT_ACTION_V1",
+    "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "POST_CC_S1_ABA_RETENTION_V1",
+    "DELAYED_CONSEQUENCE_CREDIT": "POST_CC_S1_DELAYED_CONSEQUENCE_CREDIT_V1",
+    "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION": "POST_CC_S1_HIGH_BANKRUPTCY_HIGHER_EXPECTATION_V1",
+    "OFF_POLICY_VTRACE_CORRECTION": "POST_CC_S1_OFF_POLICY_VTRACE_V1"
+  },
+  "exactly_once_status": "REUSED_S0V2_AND_EXTENDED_INTEGRITY_MATRIX_13_ATTACKS_ALL_REJECTED_LOCALLY",
+  "execution_manifest": {
+    "git_blob_sha1": "5f9cb5781d8ef3f96239dfadf139902afe01e6a5",
+    "path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_EXECUTION_MANIFEST_V1.json",
+    "sha256": "85ba028c03ca575390f1497adb72fad95939b5b20bad504ba2ceccdbaae8e4e7"
+  },
+  "firewall": {
+    "FINAL_opened": false,
+    "economic_evidence_claimed": false,
+    "fresh_data_used": false,
+    "historical_market_corpus_accessed": false,
+    "transfer_evidence_claimed": false
+  },
+  "first_unfinished_item": "Attach exact-SHA Shanxi Docker CI-A / CI-B evidence to this record after the push for implementation candidate f4f5848f894b.",
+  "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
+  "implementation_candidate_sha": "f4f5848f894bd5078e0b2113d37c2c6be6bb822c",
+  "implementation_candidate_tree_sha": "cd0454090127ec6e52f0a71346e85a2d4892c46c",
+  "model_optimizer_identity": {
+    "actor_class": "CCCentralBrain",
+    "actor_dimensions": {
+      "account": 3,
+      "execution": 2,
+      "hidden": 8,
+      "market": 2
+    },
+    "actor_frozen_parameter_count": 16,
+    "actor_trainable_parameter_count": 241,
+    "critic_class": "SeparateCritic",
+    "critic_hidden": 8,
+    "critic_input_dim": 7,
+    "critic_parameter_count": 73,
+    "declared_hash_note": "The frozen run spec declares this semantic hash with codec SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1; no generator script exists in the repository, so the candidate records it as declared authority and binds the runtime identity by class/dimensions/parameter counts and per-run parameter-state sha256 instead of claiming reproduction.",
+    "declared_hash_reproducible_in_repo": false,
+    "frozen_initial_checkpoint_semantic_sha256_declared": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
+    "initialization_seed": 1701,
+    "optimizer": {
+      "actor": "SGD@0.01",
+      "critic": "SGD@0.01"
+    }
+  },
+  "per_task_per_seed_result_references": {},
+  "positive_control_aggregate_verdicts": {
+    "status": "NOT_RUN_AWAITING_SOL_QUALIFICATION_AUTHORIZATION"
+  },
+  "qualified_runtime_sha": null,
+  "record_binding_head_sha": null,
+  "review_history": [
+    {
+      "implementation_candidate_sha": "f4f5848f894bd5078e0b2113d37c2c6be6bb822c",
+      "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO.",
+      "requested_state": "READY_FOR_SOL_CODE_REVIEW",
+      "round": "R0",
+      "submitted_by": "DS Flash"
+    }
+  ],
+  "schema": "CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1",
+  "seed_list": [
+    1701,
+    1702,
+    1703,
+    1704,
+    1705
+  ],
+  "stage_identity": "CB16_R11_POST_CC_S1_END_TO_END_LEARNABILITY_R1",
+  "status": "DS_IMPLEMENTATION_CANDIDATE_SUBMITTED_FOR_SOL_REVIEW",
+  "strongest_evidence_claimed_by_candidate": "IMPLEMENTATION_CANDIDATE_READY_FOR_SOL_CODE_REVIEW",
+  "task_spec_hashes": {
+    "ACCOUNT_DEPENDENT_ACTION": "bea74d0309bb17b69da115e8a16555c372a7d8464ab2ab21e1cf472c137f7cd0",
+    "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "ea95e93921fe56920183df40861ec468aa43f06c733c83f647ac2e70366d9722",
+    "DELAYED_CONSEQUENCE_CREDIT": "3f71c1bfb8a48175228163aafae7927530e4c405b8137d7c24745b59fa93849e",
+    "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION": "5240494effcba5d34cfd1796911328dcce5b1ea5f72e10d2e68821bddae5ae4b",
+    "OFF_POLICY_VTRACE_CORRECTION": "8295b4aa6fff1ecb6d87daaa1fa9cb5d77b389275e83eae39f51440479768bbd"
+  },
+  "terminal_state": "READY_FOR_SOL_REVIEW",
+  "unresolved_items": [
+    "No Shanxi Docker CI run has been recorded yet at this candidate SHA; push-triggered jobs will be attached in the next record update.",
+    "Formal 5-seed qualification has not started; it is gated by reviewer-owned READY_FOR_S1_QUALIFICATION authorization.",
+    "The frozen initial checkpoint semantic hash is treated as declared authority because the repository contains no codec generator.",
+    "High-bankruptcy higher-EV family mass uses the manifest-declared risk band [0.85,0.95) for direction LONG; reviewer may require a different concretization before formal qualification.",
+    "Off-policy ratio both-sides evidence is required per seed during formal qualification; implementation records the counts but Phase A does not assert them."
+  ],
+  "vtrace_critic_status": "ANALYTIC_HAND_FIXTURE_IMPLEMENTED_TOLERANCE_1E-6"
+}
