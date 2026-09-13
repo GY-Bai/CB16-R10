@@ -1,0 +1,39 @@
+{
+  "schema": "CB16_R21_RC2_R2_OWNER_APPROVAL_V1",
+  "status": "APPROVED",
+  "task_id": "R2",
+  "source_proposal": "authority/infra/R21_RC2_R2_FAST_HOT_PROVISION_PROPOSAL_V1.json",
+  "source_inventory": "authority/infra/R21_RC2_R2_SSD_CAPACITY_INVENTORY_V1.json",
+  "approved_by_owner": "bgy",
+  "approved_at_utc": "2026-09-13T21:44:20Z",
+  "owner_statement": "Owner bgy selected option D_COMBINED_RECLAIM_AND_MIGRATION and authorized execution of the corresponding R3 host change plan.",
+  "selected_option_id": "D_COMBINED_RECLAIM_AND_MIGRATION",
+  "selected_candidate_ids": [
+    "CACHE_UV",
+    "CACHE_PIP",
+    "CONDA_PKG_CACHE",
+    "LOG_JOURNAL",
+    "CRASH_DUMPS",
+    "APT_CACHE",
+    "SNAP_DISABLED_REVISIONS",
+    "MIGRATE_AUDIO",
+    "MIGRATE_PHOTO_TIMELINE",
+    "MIGRATE_RECOVERED_PHOTOS",
+    "MIGRATE_PHOTO_PACKS",
+    "MIGRATE_PHOTO_PACKS_TAR"
+  ],
+  "reclaimed_or_migrated_bytes": 127755763712,
+  "fast_hot_quota_bytes": 120000000000,
+  "reserve_floor_bytes": 41785114624,
+  "migration_destination_root": "/data/cb16_hdd/home_archive",
+  "migration_integrity_requirement": "COPY_THEN_SHA256_VERIFY_THEN_REMOVE_SOURCE",
+  "authorize_r3_host_change_plan": true,
+  "constraints": [
+    "Do not change S1 scientific constants, seeds, reward, model, optimizer, budget, evaluation or thresholds.",
+    "Do not touch the current cb16-runner-r11 container or its runner volume.",
+    "Do not use HDD as a FAST_HOT fallback.",
+    "Migration requires copy and integrity verification before SSD source removal.",
+    "Unrelated host services and paths remain out of scope.",
+    "The exact R3 operations must be frozen in the R3 task-local plan before they are applied."
+  ]
+}

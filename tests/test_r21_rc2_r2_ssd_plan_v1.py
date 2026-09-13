@@ -9,6 +9,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INVENTORY_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_SSD_CAPACITY_INVENTORY_V1.json"
 PROPOSAL_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_FAST_HOT_PROVISION_PROPOSAL_V1.json"
+APPROVAL_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R2_OWNER_APPROVAL_V1.json"
 DECISION_PATH = REPO_ROOT / "docs" / "infra" / "R21_RC2_R2_OWNER_DECISION_REQUEST.md"
 
 NEVER_DELETE_VOLUMES = {
@@ -59,6 +60,7 @@ class SSDPlanV1Tests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.inventory = json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
         cls.proposal = json.loads(PROPOSAL_PATH.read_text(encoding="utf-8"))
+        cls.approval = json.loads(APPROVAL_PATH.read_text(encoding="utf-8"))
         cls.decision_text = DECISION_PATH.read_text(encoding="utf-8")
 
     def test_schemas_and_pending_owner_state(self) -> None:
@@ -177,6 +179,22 @@ class SSDPlanV1Tests(unittest.TestCase):
         self.assertIn("S1 scientific manifest", rules)
         self.assertIn("unchanged", rules)
         self.assertFalse(any("reward" in entry["path"].lower() for entry in self.inventory["reclaim_candidates"]))
+
+    def test_owner_approval_binds_option_d_exactly(self) -> None:
+        option_d = {option["option_id"]: option for option in self.proposal["options"]}["D_COMBINED_RECLAIM_AND_MIGRATION"]
+        approval = self.approval
+        self.assertEqual(approval["schema"], "CB16_R21_RC2_R2_OWNER_APPROVAL_V1")
+        self.assertEqual(approval["status"], "APPROVED")
+        self.assertEqual(approval["approved_by_owner"], "bgy")
+        self.assertEqual(approval["selected_option_id"], "D_COMBINED_RECLAIM_AND_MIGRATION")
+        self.assertEqual(approval["selected_candidate_ids"], option_d["candidate_ids"])
+        self.assertEqual(approval["reclaimed_or_migrated_bytes"], option_d["reclaimed_or_migrated_bytes"])
+        self.assertEqual(approval["fast_hot_quota_bytes"], option_d["proposed_fast_hot_quota_bytes"])
+        self.assertEqual(approval["reserve_floor_bytes"], option_d["reserve_floor_bytes"])
+        self.assertEqual(approval["migration_destination_root"], option_d["migration_destination_root"])
+        self.assertEqual(approval["migration_integrity_requirement"], option_d["migration_integrity_requirement"])
+        self.assertTrue(approval["authorize_r3_host_change_plan"])
+        self.assertIn("scientific constants", " ".join(approval["constraints"]))
 
     def test_hostile_arithmetic_mutation_is_rejected(self) -> None:
         mutated = json.loads(json.dumps(self.proposal))

@@ -190,6 +190,8 @@
       "proposed_fast_hot_quota_human": "111.76 GiB",
       "reserve_floor_bytes": 41785114624,
       "reserve_floor_human": "38.92 GiB",
+      "migration_destination_root": "/data/cb16_hdd/home_archive",
+      "migration_integrity_requirement": "COPY_THEN_SHA256_VERIFY_THEN_REMOVE_SOURCE",
       "risk": "MEDIUM_HIGH",
       "pros": [
         "Largest available FAST_HOT capacity without new hardware.",
