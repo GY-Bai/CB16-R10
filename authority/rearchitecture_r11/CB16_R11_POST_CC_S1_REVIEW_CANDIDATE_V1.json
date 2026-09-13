@@ -101,8 +101,8 @@
   },
   "first_unfinished_item": "Sol R2 review of the B1-B7 closure package; B4 requires an authority decision before CI-C.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
-  "implementation_candidate_sha": "119b70d41c305c70c0f190da487d2c50d4fbc942",
-  "implementation_candidate_tree_sha": "c956fef2c2488a1c6e506119f0641d365ad882ac",
+  "implementation_candidate_sha": "1d0785d406c865f81e3ed750a48a3e4208eff6ae",
+  "implementation_candidate_tree_sha": "076d3e2063f545f40974cb3e02e8da3ab0000f33",
   "model_optimizer_identity": {
     "actor_class": "CCCentralBrain",
     "actor_dimensions": {
@@ -143,7 +143,7 @@
       "requested_resolution": "Sol/authority to confirm the intended construction/codec or version the frozen initial-checkpoint hash before CI-C."
     }
   ],
-  "record_binding_head_sha": "22ef5c79440fc895c1d36804a62c5996ee08003c",
+  "record_binding_head_sha": null,
   "review_history": [
     {
       "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
@@ -169,7 +169,7 @@
       "verdict": "CHANGES_REQUIRED"
     },
     {
-      "implementation_candidate_sha": "119b70d41c305c70c0f190da487d2c50d4fbc942",
+      "implementation_candidate_sha": "1d0785d406c865f81e3ed750a48a3e4208eff6ae",
       "notes": "B1-B7 response: B1/B2/B3/B5/B6/B7 closed with counterexample tests; B4 codec verification implemented, RNG isolation fixed, authority hash mismatch reported as CONTRACT_MISMATCH per review instruction.",
       "requested_state": "READY_FOR_SOL_REVIEW",
       "round": "R2",
