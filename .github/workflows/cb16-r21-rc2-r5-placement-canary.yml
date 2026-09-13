@@ -1,0 +1,121 @@
+name: CB16 R21 RC2 R5 Placement Canary
+
+on:
+  push:
+    branches:
+      - ai/r21-rc2-r5-placement-canary
+    paths:
+      - "scripts/run_r21_rc2_r5_placement_canary_v1.py"
+      - "tests/test_r21_rc2_r5_placement_canary_v1.py"
+      - "authority/infra/R21_RC2_R5_PLACEMENT_CANARY_SPEC_V1.json"
+      - "authority/infra/R21_RC2_R5_ACCEPTED_CANARY_REFERENCE_V1.json"
+      - ".github/workflows/cb16-r21-rc2-r5-placement-canary.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  S1_AUTHORIZED_HEAD: a974e2803ccc2693d67a0375e460da35837636a4
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  r5-placement-canary:
+    name: R5 placement-only accepted-runtime canary
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r21]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout R5 branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/r5_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/r5_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('R5_PYTHON_ENV_READY')
+          PY
+
+      - name: Extract exact authorized S1 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin ai/r11-post-cc-s1-end-to-end-learnability-r1
+          test "$(git rev-parse FETCH_HEAD)" = "$S1_AUTHORIZED_HEAD"
+          S1_ROOT="$RUNNER_TEMP/s1_runtime_r5"
+          rm -rf "$S1_ROOT"
+          mkdir -p "$S1_ROOT"
+          git archive FETCH_HEAD | tar -x -C "$S1_ROOT"
+          test -f "$S1_ROOT/scripts/run_r11_post_cc_s1_learnability.py"
+
+      - name: Run R5 comparison tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/r5_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" -m pytest -q tests/test_r21_rc2_r5_placement_canary_v1.py
+
+      - name: Run placement-only accepted-runtime canary
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/r5_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/run_r21_rc2_r5_placement_canary_v1.py \
+            --s1-root "$RUNNER_TEMP/s1_runtime_r5" \
+            --reference authority/infra/R21_RC2_R5_ACCEPTED_CANARY_REFERENCE_V1.json \
+            --fast-hot-root /cb16/fast_hot \
+            --run-id "$GITHUB_RUN_ID" \
+            --workers 8 \
+            --json-out "$RUNNER_TEMP/R5_PLACEMENT_CANARY.json"
+
+      - name: Upload R5 placement-canary evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r21-rc2-r5-placement-canary
+          path: |
+            ${{ runner.temp }}/R5_PLACEMENT_CANARY.json
+            ${{ runner.temp }}/r5_python.json
+            ${{ runner.temp }}/r5_docker_preflight.json
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,64 @@
+{
+  "schema": "CB16_R21_RC2_R5_PLACEMENT_CANARY_SPEC_V1",
+  "status": "FROZEN_FOR_EXECUTION",
+  "task_id": "R5",
+  "purpose": "Run the accepted S1 runtime unchanged on the qualified R21 Recovery execution surface, with FAST_HOT scratch, and compare semantic/provenance outputs with the accepted bounded canary.",
+  "s1_runtime_identity": {
+    "authorization_head_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532"
+  },
+  "accepted_bound_canary_reference": {
+    "source_run_id": 34766129495,
+    "source_job_id": 103747318992,
+    "source_artifact_id": 10320927426,
+    "source_artifact_digest": "sha256:1d469ecb2ac2d3455a9cc81553530366d55ab449ad4e67ef4766921b901f2084",
+    "source_checkout_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reference_path": "authority/infra/R21_RC2_R5_ACCEPTED_CANARY_REFERENCE_V1.json"
+  },
+  "execution": {
+    "mode": "bounded_s1_smoke_placement_only",
+    "workers": 8,
+    "scratch_root": "/cb16/fast_hot/r5/<run_id>/scratch",
+    "output_root": "/cb16/fast_hot/r5/<run_id>/output",
+    "s1_runtime_changes_allowed": false,
+    "scientific_manifest_changes_allowed": false,
+    "host_changes_allowed": false
+  },
+  "gates": [
+    {
+      "gate_id": "SEMANTIC_PROVENANCE_EQUIVALENCE",
+      "source": "normalized SMOKE_RESULT.json + artifact-only trace audit + run_index stable fields + task_specs hash",
+      "required": true,
+      "verdict_on_mismatch": "CONTRACT_MISMATCH"
+    },
+    {
+      "gate_id": "FAST_HOT_NON_ROTATIONAL",
+      "required": true,
+      "verdict_on_mismatch": "CONTRACT_MISMATCH"
+    },
+    {
+      "gate_id": "NO_HDD_FALLBACK",
+      "required": true,
+      "verdict_on_mismatch": "CONTRACT_MISMATCH"
+    },
+    {
+      "gate_id": "NO_SUSTAINED_BACKLOG_GROWTH",
+      "required": true,
+      "measurement_status": "NOT_MEASURED_IN_BOUNDED_SMOKE",
+      "verdict": "EVIDENCE_INSUFFICIENT"
+    },
+    {
+      "gate_id": "HOT_DURABLE_BOUNDARY_LATENCY_P50_P99",
+      "required": true,
+      "measurement_status": "NOT_MEASURED_IN_BOUNDED_SMOKE",
+      "verdict": "EVIDENCE_INSUFFICIENT"
+    }
+  ],
+  "decision_rule": {
+    "semantic_mismatch": "CONTRACT_MISMATCH",
+    "semantic_match_but_perf_gate_not_measured": "EVIDENCE_INSUFFICIENT + SOL_REVIEW_REQUIRED_BEFORE_R6_OR_ALTERNATE",
+    "all_applicable_targets_measured_and_pass": "PASS -> skip R6 and proceed to R7"
+  }
+}
