@@ -167,3 +167,124 @@ Sol 不仅交付 TODO，还必须审查 DS Flash 对应的代码产物。写任�
 重点包括公式符号/索引/梯度/裁剪、比较方向/等号/布尔组合、空 mask/零分母/NaN、账户终止与计算截断、信用时序和 gate 聚合。详细矩阵与审核交付见 [三层协议](ROLES_AND_REVIEW_PROTOCOL.md)。测试不能用被测函数本身生成期望答案。Sol 的审查记录绑定代码 SHA、相关 CI 证据、问题处置与接受/退回结论；缺少必要审核或 Shanxi 验证的代码不能进入 main。
 
 用户审核 Astra 的文档；Astra 审核 Sol 的 TODO；Sol 审核 DS Flash 的代码。模型换代、赶进度或 commit 数量都不改变这条责任链。
+
+## 16. SW-15：按实现可靠性风险分级，而不是给所有 task 同一种 TODO 密度
+
+S1 Phase-A R1→R3 的经验复盘见 [S1 DS Flash Reliability Retrospective](reviews/S1_DS_FLASH_RELIABILITY_RETROSPECTIVE_2026-09-13.md)。这份复盘只总结本项目观察，不构成通用模型能力排名。
+
+TODO 中的 implementation task 应标注：
+
+- `LOW`：局部 schema、serialization、简单 adapter、确定性 wiring；
+- `MEDIUM`：单模块状态机、durable store、restart/reopen、局部 lifecycle；
+- `HIGH`：数学、RNG、cross-module identity、authority、provenance、formal gate/verdict、任何会改变 sampling/budget/schedule 的 fallback。
+
+`HIGH` task 不能只写目标与正例，至少还要给：独立 counterexample、关键边界、禁止 fallback、真实 consumer、formal gate 和需要保存的 artifact 证据。TODO 的详细程度应随 semantic risk 增加，而不是随代码行数增加。
+
+## 17. SW-16：跨层 invariant 必须写成 semantic trace matrix
+
+凡一个事实跨 collection / replay / learner / evaluator / gate / artifact 三层以上，TODO 必须明确：
+
+```text
+semantic fact
+→ producer
+→ durable field/hash
+→ transformation/materialization
+→ learner/evaluator consumer
+→ formal gate
+→ artifact proof
+→ one corruption/counterexample that must fail
+```
+
+只列字段名不够。作者必须说明 consumer 如何使用它、哪一个 gate 证明什么。如果表中某一格为空，不得使用 `complete / verified / proven` 一类结论名。
+
+特别要求：
+
+- A→B→A retention 要区分“新采集 ID”“eligible replay pool”“实际 sampled ID”；
+- OFF_POLICY 要区分 behavior / target / evaluation policy；
+- nominal action / executed action 必须分别标出 producer 和 consumer；
+- provenance 必须证明 link，而不是只证明字段存在。
+
+## 18. SW-17：每个 HIGH task 发布 identity ledger、RNG ledger 与 edge-case decision table
+
+### Identity ledger
+
+至少按适用范围列：scientific baseline、runtime implementation SHA/tree、record-binding head、manifest hash、behavior policy、target policy、evaluation policy、parent/child checkpoint、reviewed SHA/tree、merged SHA/tree、successor base。
+
+禁止用一个泛化的 `head` 或 `policy` 字段代替多个不同 authority identity。
+
+### RNG ledger
+
+每个随机流说明 owner、seed derivation、是否跨 seed 改变、必须与哪些流隔离、是否允许修改全局 RNG。网络初始化同时冻结构造顺序与 hash codec；`manual_seed` 单独一行不构成初始化合同。
+
+### Edge-case decision table
+
+至少覆盖适用的：empty set、all-FLAT/all-one-class、exact threshold equality、NaN/Inf、missing durable record、terminal vs truncation、stale SHA/manifest、partial-mutation retry。
+
+每一项必须预先指定：
+
+- `PROCESS`；
+- `ZERO-CONTRIBUTION`；
+- `FAIL-CLOSED / CONTRACT_MISMATCH`；或
+- 合法的 `SCIENTIFIC_FAIL`。
+
+DS 不得为局部方便自行发明第五种行为。尤其禁止用“强制补 sample”“跳过冻结要求的 update”“silent clamp”“换 evaluation 对象”等语义型 fallback 解决局部异常。
+
+## 19. SW-18：formal path 必须在正式科学结果前做 production-shape canary
+
+isolated unit fixture 不能替代正式组合路径。若阶段包含 gate compiler / qualification runner / authorization / artifact auditor，在授权正式科学运行前，TODO 必须要求至少一次：
+
+- 使用真实 execution manifest 的 schema/shape；
+- 使用真实 runner 提供的 audit key 形状；
+- 调用真实 gate compiler；
+- 输入人工构造的 synthetic PASS/FAIL/boundary records；
+- 覆盖 qualification-only branch，但不产生正式训练科学结果。
+
+该 canary 的目的只是检验 wiring、fail-closed 和 classification，不允许成为调节科学 threshold/model/reward 的结果源。
+
+若声称 restart-safe / durable / artifact-only provenance，还必须做 artifact-destruction counterexample：导出后移除原 run root，只从 artifact 审计；再破坏一个中间 link，最终 verdict 必须 fail closed。
+
+## 20. SW-19：proof 名称不能强于实际机器证明
+
+任何 `*_verified / *_complete / *_proven` gate 或字段，TODO 必须枚举其子命题。实现与测试必须逐项覆盖。
+
+例如 `checkpoint_chain_verified` 不能只表示 optimizer step 连续。至少要说明是否验证：
+
+- initial parent；
+- every update parent+child；
+- `child_N == parent_(N+1)` 或等价 state-content binding；
+- optimizer step continuity；
+- final child bytes 与 journal；
+- generation-switch adoption（若该任务声称它属于 chain）。
+
+如果只能证明较弱性质，应给较弱名称，而不是把布尔值设成 true。
+
+## 21. SW-20：修复 blocker 前必须做 fix-impact matrix
+
+每次 `CHANGES_REQUIRED` 后，DS 在改代码前至少写明：
+
+```text
+changed invariant
+unchanged frozen contracts
+possible collateral effects
+new counterexample
+required rerun scope
+```
+
+Sol 的 TODO/PR review 应显式要求这一点。目的不是增加文档负担，而是防止“修 sampler 却改 update schedule”这种二次改义。
+
+修复若触及 sampling、budget、schedule、reward、model、threshold、seed、oracle 或 evidence ceiling，即使原 blocker 很小，也必须停下来按 authority/versioning 规则处理，不能包装成普通 bugfix。
+
+## 22. SW-21：用结构化 TODO 降低返修轮数，但不取消 Sol review
+
+对 DS Flash 这类实现角色，降低返修轮数的主要办法不是写更长散文，而是把 reviewer 隐含检查提前外显：
+
+- 公式 → 独立标量答案；
+- cross-layer fact → semantic trace matrix；
+- 多 identity → identity ledger；
+- 多随机流 → RNG ledger；
+- 稀有边界 → decision table；
+- formal gate → production-shape canary；
+- durable claim → artifact destruction + corruption；
+- blocker 修复 → fix-impact matrix。
+
+局部、确定、schema 化的代码可以让 DS 自主实现；跨层 proof、authority 和 scientific verdict 必须按 HIGH task 写法。即使这些要求全部满足，Sol 仍必须独立审查实际 diff 与 Shanxi evidence。目标是把 review 从“首次发现隐藏科学语义”尽量前移为“验证实现是否满足已明确合同”，从而提升一次通过率，而不是取消多轮 review 的安全价值。
