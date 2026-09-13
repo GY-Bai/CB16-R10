@@ -8,7 +8,9 @@ on:
       - "ci/r4_write_path_instrument/**"
       - "scripts/measure_r21_rc2_r4_write_path_v1.py"
       - "tests/test_r21_rc2_r4_write_path_v1.py"
-      - "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1.json"
+      - "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V2.json"
+      - "authority/infra/R21_RC2_R4_UPSTREAM_REUSE_AUDIT_V1.json"
+      - "docs/infra/R21_RC2_UPSTREAM_REUSE_AND_MEASUREMENT_RULES.md"
       - ".github/workflows/cb16-r21-rc2-r4-writepath-inventory.yml"
   workflow_dispatch:
 

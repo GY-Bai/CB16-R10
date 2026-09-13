@@ -143,14 +143,11 @@ def _aggregate(metrics_dir: Path) -> tuple[dict[str, dict[str, dict[str, Any]]],
 
 def _count_ops(summary: dict[str, dict[str, dict[str, Any]]], category: str) -> dict[str, Any]:
     ops = summary.get(category, {})
-    sqlite_commit_calls = int(ops.get("sqlite_commit", {}).get("count", 0))
     return {
-        "write_calls": int(ops.get("write", {}).get("count", 0))
-        + int(ops.get("os_write", {}).get("count", 0))
-        + sqlite_commit_calls,
-        "bytes_written": int(ops.get("write", {}).get("bytes", 0))
-        + int(ops.get("os_write", {}).get("bytes", 0))
-        + int(ops.get("sqlite_bytes_estimate", {}).get("bytes", 0)),
+        "application_direct_write_calls": int(ops.get("write", {}).get("count", 0))
+        + int(ops.get("os_write", {}).get("count", 0)),
+        "application_direct_write_bytes": int(ops.get("write", {}).get("bytes", 0))
+        + int(ops.get("os_write", {}).get("bytes", 0)),
         "flush_calls": int(ops.get("flush", {}).get("count", 0)),
         "fsync_calls": int(ops.get("fsync", {}).get("count", 0)),
         "fsync_duration_ns": int(ops.get("fsync", {}).get("duration_ns", 0)),
@@ -159,16 +156,17 @@ def _count_ops(summary: dict[str, dict[str, dict[str, Any]]], category: str) -> 
         "sqlite_commit_duration_ns": int(ops.get("sqlite_commit", {}).get("duration_ns", 0)),
         "sqlite_locked_errors": int(ops.get("sqlite_locked_error", {}).get("count", 0)),
         "sqlite_wal_pragma_calls": int(ops.get("sqlite_wal_pragma", {}).get("count", 0)),
+        "sqlite_page_growth_estimate_bytes": int(ops.get("sqlite_page_growth_estimate", {}).get("bytes", 0)),
+        "sqlite_wal_growth_estimate_bytes": int(ops.get("sqlite_wal_growth_estimate", {}).get("bytes", 0)),
         "open_write_calls": int(ops.get("os_open_write", {}).get("count", 0)),
-        "mkstemp_calls": int(ops.get("mkstemp", {}).get("count", 0)),
     }
 
 
 def _classify_access(stats: dict[str, Any]) -> str:
-    if stats["write_calls"] <= 0:
-        return "NO_WRITES_OBSERVED"
-    average = stats["bytes_written"] / stats["write_calls"]
-    if average <= 65536 and stats["fsync_calls"] >= stats["write_calls"]:
+    if stats["application_direct_write_calls"] <= 0:
+        return "NO_DIRECT_WRITES_OBSERVED"
+    average = stats["application_direct_write_bytes"] / stats["application_direct_write_calls"]
+    if average <= 65536 and stats["fsync_calls"] >= stats["application_direct_write_calls"]:
         return "RANDOM_OR_SMALL_FSYNC_HEAVY"
     if average >= 1048576:
         return "SEQUENTIAL_LARGE"
@@ -178,13 +176,14 @@ def _classify_access(stats: dict[str, Any]) -> str:
 def _surface_report(category: str, summary: dict[str, dict[str, dict[str, Any]]], updates: int, mount: dict[str, Any]) -> dict[str, Any]:
     stats = _count_ops(summary, category)
     durable_syncs = stats["fsync_calls"] + stats["sqlite_commit_calls"]
+    sqlite_estimate_total = stats["sqlite_page_growth_estimate_bytes"] + stats["sqlite_wal_growth_estimate_bytes"]
     return {
         "surface": category,
         "consumer": SURFACE_CONSUMERS.get(category, "unclassified"),
-        "bytes_written": stats["bytes_written"],
-        "write_calls": stats["write_calls"],
-        "bytes_per_update": (stats["bytes_written"] / updates) if updates else None,
-        "writes_per_update": (stats["write_calls"] / updates) if updates else None,
+        "application_direct_write_bytes": stats["application_direct_write_bytes"],
+        "application_direct_write_calls": stats["application_direct_write_calls"],
+        "application_direct_write_bytes_per_update": (stats["application_direct_write_bytes"] / updates) if updates else None,
+        "application_direct_writes_per_update": (stats["application_direct_write_calls"] / updates) if updates else None,
         "durable_syncs": durable_syncs,
         "durable_sync_frequency_per_update": (durable_syncs / updates) if updates else None,
         "fsync_calls": stats["fsync_calls"],
@@ -196,17 +195,22 @@ def _surface_report(category: str, summary: dict[str, dict[str, dict[str, Any]]]
             else None
         ),
         "sqlite_locked_errors": stats["sqlite_locked_errors"],
+        "sqlite_page_growth_estimate_bytes": stats["sqlite_page_growth_estimate_bytes"],
+        "sqlite_page_growth_estimate_bytes_per_update": (stats["sqlite_page_growth_estimate_bytes"] / updates) if updates else None,
+        "sqlite_wal_growth_estimate_bytes": stats["sqlite_wal_growth_estimate_bytes"],
+        "sqlite_wal_growth_estimate_bytes_per_update": (stats["sqlite_wal_growth_estimate_bytes"] / updates) if updates else None,
+        "sqlite_estimate_total_bytes": sqlite_estimate_total,
         "wal_or_checkpoint_activity": stats["sqlite_wal_pragma_calls"],
         "random_versus_sequential": _classify_access(stats),
         "physical_device": mount,
         "durability_requirement": DURABILITY_REQUIREMENTS.get(category, "unclassified"),
         "bytes_measurement_method": (
-            "SQLITE_PAGE_GROWTH_AND_WAL_ESTIMATE_PLUS_PYTHON_WRITES"
+            "DIRECT_PYTHON_FILE_WRITE_INTERCEPTION; SQLITE_FIELDS_ARE_PAGE_AND_WAL_GROWTH_ESTIMATES"
             if category == "sqlite_index"
-            else "PYTHON_FILE_WRITE_INTERCEPTION"
+            else "DIRECT_PYTHON_FILE_WRITE_INTERCEPTION"
         ),
         "measurement_limitations": (
-            ["SQLITE_C_LEVEL_WRITES_ESTIMATED_FROM_PAGE_GROWTH_AND_WAL_FILE_SIZE"]
+            ["SQLITE_DIRECT_BYTES_NOT_INTERCEPTED; PAGE_AND_WAL_GROWTH_ARE_ESTIMATES; DEVICE_SECTORS_REPORTED_SEPARATELY"]
             if category == "sqlite_index"
             else []
         ),
@@ -220,34 +224,74 @@ def _run_instrumentation_canary(python: str, instrument_dir: Path, canary_root: 
     env["PYTHONPATH"] = os.pathsep.join(item for item in (str(instrument_dir), env.get("PYTHONPATH", "")) if item)
     env["CB16_R4_METRICS_DIR"] = str(metrics)
     env["CB16_R4_MONITORED_ROOTS"] = str(canary_root)
-    code = (
-        "import os, pathlib, sqlite3;"
-        "root=pathlib.Path(os.environ['CB16_R4_MONITORED_ROOTS']);"
-        "out=root/'output'; out.mkdir(parents=True, exist_ok=True);"
-        "p=out/'.artifact.tmp-canary'; f=p.open('wb'); f.write(b'artifact-canary'); f.flush(); os.fsync(f.fileno()); f.close(); os.replace(p, out/'artifact.json');"
-        "prov=root/'output'/'provenance_staged'; prov.mkdir(parents=True, exist_ok=True);"
-        "q=prov/'.prov.tmp-canary'; f=q.open('wb'); f.write(b'prov-canary'); f.flush(); os.fsync(f.fileno()); f.close(); os.replace(q, prov/'prov.jsonl');"
-        "scratch=root/'scratch'; scratch.mkdir(parents=True, exist_ok=True);"
-        "c=sqlite3.connect(str(scratch/'index.sqlite3')); c.execute('create table t(x)'); c.commit(); c.close();"
+    code = "\n".join(
+        [
+            "import builtins, io, os, pathlib, sqlite3, tempfile",
+            "root = pathlib.Path(os.environ['CB16_R4_MONITORED_ROOTS'])",
+            "scratch = root / 'scratch'; scratch.mkdir(parents=True, exist_ok=True)",
+            "out = root / 'output'; out.mkdir(parents=True, exist_ok=True)",
+            "obs = scratch / 'observations'; obs.mkdir(parents=True, exist_ok=True)",
+            "replay = scratch / 'replay'; replay.mkdir(parents=True, exist_ok=True)",
+            "updates = scratch / 'updates'; updates.mkdir(parents=True, exist_ok=True)",
+            "checkpoints = scratch / 'checkpoints'; checkpoints.mkdir(parents=True, exist_ok=True)",
+            "generation = scratch / 'generation_switch_receipts'; generation.mkdir(parents=True, exist_ok=True)",
+            "with builtins.open(obs / 'builtin.bin', 'wb') as f: f.write(b'0123456789abcde')",
+            "with io.open(replay / 'io.bin', 'wb') as f: f.write(b'0123456789a')",
+            "with (updates / ('a' * 64 + '.json')).open('wb') as f: f.write(b'12345')",
+            "(checkpoints / 'text.json').write_text('1234567', encoding='utf-8')",
+            "fd = os.open(str(generation / 'raw.bin'), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)",
+            "os.write(fd, b'123456789'); os.close(fd)",
+            "prov = out / 'provenance_staged'; prov.mkdir(parents=True, exist_ok=True)",
+            "fd, tmp = tempfile.mkstemp(prefix='.atomic-', dir=str(prov))",
+            "handle = os.fdopen(fd, 'wb'); handle.write(b'atomic-12'); handle.flush(); os.fsync(handle.fileno()); handle.close()",
+            "os.replace(tmp, prov / 'atomic.jsonl')",
+            "with builtins.open(out / 'artifact.json', 'wb') as f: f.write(b'artifact')",
+            "with builtins.open(root / 'metrics' / 'self-exclusion.txt', 'w', encoding='utf-8') as f: f.write('aaa')",
+            "conn = sqlite3.connect(str(scratch / 'index.sqlite3')); conn.execute('create table t(x int)'); conn.execute('insert into t values (1)'); conn.commit(); conn.close()",
+        ]
     )
     process = subprocess.run([python, "-c", code], env=env, text=True, capture_output=True, check=False)
     summary, paths = _aggregate(metrics)
-    artifact = summary.get("artifact_staging", {}).get("write", {})
-    provenance = summary.get("provenance", {}).get("write", {})
-    sqlite_commits = summary.get("sqlite_index", {}).get("sqlite_commit", {}).get("count", 0)
-    ok = process.returncode == 0 and int(artifact.get("bytes", 0)) > 0 and int(provenance.get("bytes", 0)) > 0 and int(sqlite_commits) > 0
+    expected_exact = {
+        "observation_store": {"application_direct_write_calls": 1, "application_direct_write_bytes": 15},
+        "replay_materialization": {"application_direct_write_calls": 1, "application_direct_write_bytes": 11},
+        "update_journal": {"application_direct_write_calls": 1, "application_direct_write_bytes": 5},
+        "checkpoint_store": {"application_direct_write_calls": 1, "application_direct_write_bytes": 7},
+        "generation_continuity": {"application_direct_write_calls": 1, "application_direct_write_bytes": 9},
+        "provenance": {"application_direct_write_calls": 1, "application_direct_write_bytes": 9, "replace_calls": 1},
+        "artifact_staging": {"application_direct_write_calls": 1, "application_direct_write_bytes": 8},
+    }
+    observed_exact = {category: _count_ops(summary, category) for category in expected_exact}
+    exact_match = all(
+        all(int(observed_exact[category].get(field, 0)) == value for field, value in fields.items())
+        for category, fields in expected_exact.items()
+    )
+    sqlite_stats = _count_ops(summary, "sqlite_index")
+    sqlite_ok = int(sqlite_stats["sqlite_commit_calls"]) >= 1 and int(sqlite_stats["sqlite_page_growth_estimate_bytes"]) > 0
+    metrics_self_exclusion = not any("/metrics/self-exclusion.txt" in item for item in paths)
+    ok = process.returncode == 0 and exact_match and sqlite_ok and metrics_self_exclusion
     return {
         "status": "PASS" if ok else "FAIL",
         "returncode": process.returncode,
         "stdout": process.stdout,
         "stderr": process.stderr,
+        "exact_count_match": exact_match,
+        "sqlite_estimate_activity": sqlite_ok,
+        "metrics_self_exclusion": metrics_self_exclusion,
+        "expected_exact": expected_exact,
+        "observed_exact": observed_exact,
         "summary": summary,
         "observed_paths": sorted(paths),
     }
 
 
-def measurement_status(exit_code: int, committed_updates: int, missing_surfaces: list[str]) -> str:
-    if exit_code != 0 or committed_updates <= 0 or missing_surfaces:
+def measurement_status(
+    exit_code: int,
+    committed_updates: int,
+    missing_surfaces: list[str],
+    canary_status: str = "PASS",
+) -> str:
+    if exit_code != 0 or committed_updates <= 0 or missing_surfaces or canary_status != "PASS":
         return "EVIDENCE_INSUFFICIENT"
     return "PASS"
 
@@ -351,12 +395,13 @@ def main(argv: list[str] | None = None) -> int:
         return any(
             entry.get(name, 0)
             for name in (
-                "bytes_written",
-                "write_calls",
+                "application_direct_write_bytes",
+                "application_direct_write_calls",
                 "fsync_calls",
                 "durable_syncs",
                 "sqlite_commit_calls",
-                "open_write_calls",
+                "sqlite_page_growth_estimate_bytes",
+                "sqlite_wal_growth_estimate_bytes",
                 "replace_calls",
             )
         )
@@ -377,7 +422,7 @@ def main(argv: list[str] | None = None) -> int:
                 "rotational": True if name == "sda" else (False if name == "sdb" else None),
             }
 
-    status = measurement_status(process.returncode, updates, missing_surfaces)
+    status = measurement_status(process.returncode, updates, missing_surfaces, canary["status"])
     paths_by_category: dict[str, list[str]] = {}
     for item in unique_paths:
         category, _, observed_path = item.partition("|")
@@ -408,6 +453,15 @@ def main(argv: list[str] | None = None) -> int:
         "scientific_manifest_changed": False,
         "s1_runtime_changed": False,
         "instrumentation_canary": canary,
+        "measurement_integrity": {
+            "canary_status": canary["status"],
+            "exact_count_match": canary.get("exact_count_match"),
+            "sqlite_estimate_activity": canary.get("sqlite_estimate_activity"),
+            "metrics_self_exclusion": canary.get("metrics_self_exclusion"),
+            "direct_application_bytes_status": "EXACT_FOR_INTERCEPTED_PYTHON_FILE_WRITES",
+            "sqlite_bytes_status": "ESTIMATED_PAGE_AND_WAL_GROWTH_NOT_DIRECT_BYTES",
+            "device_bytes_status": "DEVICE_SECTOR_COUNTER_DELTA_REPORTED_SEPARATELY",
+        },
     }
     text = json.dumps(report, indent=2, sort_keys=True)
     args.json_out.parent.mkdir(parents=True, exist_ok=True)

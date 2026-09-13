@@ -172,29 +172,39 @@ class _CountedFile:
 
 
 class _CountedConnection:
-    __slots__ = ("_conn", "_path", "_last_sqlite_bytes")
+    __slots__ = ("_conn", "_path", "_last_page_bytes", "_last_wal_bytes")
 
     def __init__(self, conn: Any, path: str) -> None:
         self._conn = conn
         self._path = path
-        self._last_sqlite_bytes = self._sqlite_bytes_estimate()
+        self._last_page_bytes, self._last_wal_bytes = self._sqlite_state()
 
-    def _sqlite_bytes_estimate(self) -> int:
-        path = Path(self._path) if self._path else None
-        total = 0
+    def _sqlite_state(self) -> tuple[int, int]:
+        page_bytes = 0
+        wal_bytes = 0
         try:
             page_count = int(self._conn.execute("PRAGMA page_count").fetchone()[0])
             page_size = int(self._conn.execute("PRAGMA page_size").fetchone()[0])
-            total += page_count * page_size
+            page_bytes = page_count * page_size
         except Exception:
-            pass
-        if path is not None:
-            for candidate in (path, Path(str(path) + "-wal")):
-                try:
-                    total += candidate.stat().st_size
-                except OSError:
-                    pass
-        return total
+            page_bytes = 0
+        if self._path:
+            try:
+                wal_bytes = Path(str(self._path) + "-wal").stat().st_size
+            except OSError:
+                wal_bytes = 0
+        return page_bytes, wal_bytes
+
+    def _record_sqlite_growth(self) -> None:
+        page_bytes, wal_bytes = self._sqlite_state()
+        page_delta = max(0, page_bytes - self._last_page_bytes)
+        wal_delta = max(0, wal_bytes - self._last_wal_bytes)
+        self._last_page_bytes = page_bytes
+        self._last_wal_bytes = wal_bytes
+        if page_delta:
+            _record("sqlite_page_growth_estimate", self._path, bytes_count=page_delta)
+        if wal_delta:
+            _record("sqlite_wal_growth_estimate", self._path, bytes_count=wal_delta)
 
     def _record_sql(self, sql: str, duration_ns: int) -> None:
         statement = sql.strip().split(None, 1)[0].upper() if sql.strip() else "UNKNOWN"
@@ -237,22 +247,14 @@ class _CountedConnection:
             return self._conn.commit()
         finally:
             _record("sqlite_commit", self._path, duration_ns=time.monotonic_ns() - start)
-            current = self._sqlite_bytes_estimate()
-            delta = max(0, current - self._last_sqlite_bytes)
-            self._last_sqlite_bytes = current
-            if delta:
-                _record("sqlite_bytes_estimate", self._path, bytes_count=delta)
+            self._record_sqlite_growth()
 
     def rollback(self) -> None:
         _record("sqlite_rollback", self._path)
         return self._conn.rollback()
 
     def close(self) -> None:
-        current = self._sqlite_bytes_estimate()
-        delta = max(0, current - self._last_sqlite_bytes)
-        self._last_sqlite_bytes = current
-        if delta:
-            _record("sqlite_bytes_estimate", self._path, bytes_count=delta)
+        self._record_sqlite_growth()
         return self._conn.close()
 
     def __enter__(self) -> "_CountedConnection":
@@ -287,7 +289,7 @@ def _instrumented_path_open(
     errors: str | None = None,
     newline: str | None = None,
 ) -> Any:
-    file_obj = _RAW_PATH_OPEN(self, mode, buffering, encoding, errors, newline)
+    file_obj = _RAW_OPEN(self, mode, buffering, encoding, errors, newline)
     write_like = any(flag in mode for flag in ("w", "a", "x", "+"))
     if not write_like:
         return file_obj

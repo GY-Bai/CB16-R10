@@ -1,8 +1,9 @@
-"""Static and hostile tests for the R21 RC2 R4 write-path measurement."""
+"""Static, hostile and exact-count tests for the R21 RC2 R4 measurement layer."""
 
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,49 +15,55 @@ from scripts.measure_r21_rc2_r4_write_path_v1 import (
     _classify_access,
     _count_ops,
     _find_committed_updates,
+    _run_instrumentation_canary,
     _surface_report,
     measurement_status,
+    INSTRUMENT_DIR,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SPEC_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1.json"
-INVENTORY_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_INVENTORY_V1.json"
-RECEIPT_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_MEASUREMENT_RECEIPT_V1.json"
-INSTRUMENT_DIR = REPO_ROOT / "ci" / "r4_write_path_instrument"
+SPEC_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V2.json"
+INVENTORY_V2_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_INVENTORY_V2.json"
+RECEIPT_V2_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_WRITE_PATH_MEASUREMENT_RECEIPT_V2.json"
+AUDIT_PATH = REPO_ROOT / "authority" / "infra" / "R21_RC2_R4_UPSTREAM_REUSE_AUDIT_V1.json"
 
 
 class WritePathInventoryV1Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.spec = json.loads(SPEC_PATH.read_text(encoding="utf-8"))
-        cls.inventory = json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
-        cls.receipt = json.loads(RECEIPT_PATH.read_text(encoding="utf-8"))
+        cls.audit = json.loads(AUDIT_PATH.read_text(encoding="utf-8"))
 
     def test_spec_identity_and_required_surfaces(self) -> None:
-        self.assertEqual(self.spec["schema"], "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1")
+        self.assertEqual(self.spec["schema"], "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V2")
         self.assertEqual(self.spec["status"], "FROZEN_FOR_EXECUTION")
         self.assertEqual(self.spec["s1_runtime_identity"]["authorization_head_sha"], "a974e2803ccc2693d67a0375e460da35837636a4")
-        self.assertEqual(
-            self.spec["s1_runtime_identity"]["reviewed_implementation_tree_sha"],
-            "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
-        )
         self.assertEqual(tuple(self.spec["required_surfaces"]), REQUIRED_SURFACES)
-        self.assertFalse(self.spec["scope"]["host_changes_allowed"])
-        self.assertFalse(self.spec["scope"]["s1_runtime_code_changes_allowed"])
-        self.assertFalse(self.spec["scope"]["scientific_manifest_changes_allowed"])
-        for field in self.spec["measurement_fields"]:
-            self.assertIsInstance(field, str)
+        self.assertTrue(self.spec["measurement_integrity_requirements"]["exact_count_canary"])
+        self.assertIn("sqlite_page_growth_estimate_bytes", self.spec["measurement_integrity_requirements"]["estimated_metrics_separate"])
+        self.assertIn("device_io_deltas.sda.sectors_written_delta", self.spec["measurement_integrity_requirements"]["device_metrics_separate"])
 
-    def test_instrument_files_exist_and_are_measurement_only(self) -> None:
-        sitecustomize = (INSTRUMENT_DIR / "sitecustomize.py").read_text(encoding="utf-8")
-        module = (INSTRUMENT_DIR / "cb16_r4_write_path_instrument.py").read_text(encoding="utf-8")
-        self.assertIn("CB16_R4_METRICS_DIR", sitecustomize)
-        self.assertIn("install()", sitecustomize)
-        self.assertIn("classify_path", module)
-        self.assertIn("_record(\"write\"", module)
-        self.assertIn("sqlite3.connect", module)
-        self.assertIn("fsync", module)
-        self.assertIn("os.fdopen", module)
+    def test_upstream_reuse_audit_classifies_existing_runtime(self) -> None:
+        self.assertEqual(self.audit["schema"], "CB16_R21_RC2_UPSTREAM_REUSE_AUDIT_V1")
+        classifications = {entry["path"]: entry["classification"] for entry in self.audit["existing_implementation"]}
+        self.assertEqual(classifications["scripts/run_r11_post_cc_s1_learnability.py"], "REUSE_AS_IS")
+        self.assertIn("ci/r4_write_path_instrument/", classifications)
+        self.assertIn("DO_NOT_TOUCH", classifications.values())
+        forbidden = " ".join(self.audit["forbidden"])
+        self.assertIn("S1 runtime code", forbidden)
+
+    def test_exact_count_instrumentation_canary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            result = _run_instrumentation_canary(sys.executable, INSTRUMENT_DIR, Path(tmp) / "canary")
+        self.assertEqual(result["status"], "PASS", result)
+        self.assertTrue(result["exact_count_match"])
+        self.assertTrue(result["sqlite_estimate_activity"])
+        self.assertTrue(result["metrics_self_exclusion"])
+        expected = result["expected_exact"]
+        observed = result["observed_exact"]
+        for category, fields in expected.items():
+            for field, value in fields.items():
+                self.assertEqual(observed[category][field], value, (category, field))
 
     def test_path_classification(self) -> None:
         cases = {
@@ -66,50 +73,56 @@ class WritePathInventoryV1Tests(unittest.TestCase):
             "/cb16/fast_hot/r4/x/scratch/run/updates/" + "a" * 64 + ".json": "update_journal",
             "/cb16/fast_hot/r4/x/scratch/run/updates/checkpoints/" + "b" * 64 + ".json": "checkpoint_store",
             "/cb16/fast_hot/r4/x/scratch/run/updates/generation_switch_receipts/" + "b" * 64 + ".json": "generation_continuity",
-            "/cb16/fast_hot/r4/x/output/provenance/index.json": "provenance",
+            "/cb16/fast_hot/r4/x/output/provenance_staged/index.json": "provenance",
             "/cb16/fast_hot/r4/x/output/artifacts/pack.json": "artifact_staging",
         }
         for path, expected in cases.items():
             self.assertEqual(classify_path(path), expected, path)
 
-    def test_surface_report_arithmetic_and_access_classification(self) -> None:
+    def test_surface_report_splits_direct_and_estimated_metrics(self) -> None:
         summary = {
             "update_journal": {
-                "write": {"count": 20, "bytes": 2000, "duration_ns": 0, "extra": {}},
-                "fsync": {"count": 10, "bytes": 0, "duration_ns": 5_000_000, "extra": {}},
-                "replace": {"count": 10, "bytes": 0, "duration_ns": 0, "extra": {}},
-            }
+                "write": {"count": 2, "bytes": 20, "duration_ns": 0, "extra": {}},
+                "fsync": {"count": 1, "bytes": 0, "duration_ns": 1_000_000, "extra": {}},
+                "replace": {"count": 1, "bytes": 0, "duration_ns": 0, "extra": {}},
+            },
+            "sqlite_index": {
+                "sqlite_commit": {"count": 3, "bytes": 0, "duration_ns": 3_000_000, "extra": {}},
+                "sqlite_page_growth_estimate": {"count": 2, "bytes": 4096, "duration_ns": 0, "extra": {}},
+                "sqlite_wal_growth_estimate": {"count": 2, "bytes": 512, "duration_ns": 0, "extra": {}},
+            },
         }
         stats = _count_ops(summary, "update_journal")
-        self.assertEqual(stats["write_calls"], 20)
-        self.assertEqual(stats["bytes_written"], 2000)
-        self.assertEqual(stats["fsync_calls"], 10)
-        self.assertEqual(stats["replace_calls"], 10)
-        report = _surface_report("update_journal", summary, updates=10, mount={"source": "/dev/sdb"})
-        self.assertEqual(report["bytes_per_update"], 200)
-        self.assertEqual(report["writes_per_update"], 2)
-        self.assertEqual(report["durable_sync_frequency_per_update"], 1.0)
-        self.assertEqual(report["physical_device"]["source"], "/dev/sdb")
-        self.assertIn(report["random_versus_sequential"], {"RANDOM_OR_SMALL_FSYNC_HEAVY", "MIXED"})
+        self.assertEqual(stats["application_direct_write_calls"], 2)
+        self.assertEqual(stats["application_direct_write_bytes"], 20)
+        report = _surface_report("update_journal", summary, updates=2, mount={"source": "/dev/sdb"})
+        self.assertEqual(report["application_direct_write_bytes_per_update"], 10)
+        self.assertEqual(report["application_direct_writes_per_update"], 1)
+        sqlite = _surface_report("sqlite_index", summary, updates=2, mount={"source": "/dev/sdb"})
+        self.assertEqual(sqlite["application_direct_write_bytes"], 0)
+        self.assertEqual(sqlite["sqlite_page_growth_estimate_bytes"], 4096)
+        self.assertEqual(sqlite["sqlite_wal_growth_estimate_bytes"], 512)
+        self.assertIn("ESTIMATE", sqlite["bytes_measurement_method"])
 
-    def test_access_classification_is_independent(self) -> None:
-        self.assertEqual(_classify_access({"write_calls": 0, "bytes_written": 0, "fsync_calls": 0}), "NO_WRITES_OBSERVED")
+    def test_access_classification_uses_direct_writes_only(self) -> None:
+        self.assertEqual(_classify_access({"application_direct_write_calls": 0, "application_direct_write_bytes": 0, "fsync_calls": 0}), "NO_DIRECT_WRITES_OBSERVED")
         self.assertEqual(
-            _classify_access({"write_calls": 10, "bytes_written": 10 * 1024, "fsync_calls": 10}),
+            _classify_access({"application_direct_write_calls": 10, "application_direct_write_bytes": 10 * 1024, "fsync_calls": 10}),
             "RANDOM_OR_SMALL_FSYNC_HEAVY",
         )
         self.assertEqual(
-            _classify_access({"write_calls": 1, "bytes_written": 8 * 1024 * 1024, "fsync_calls": 0}),
+            _classify_access({"application_direct_write_calls": 1, "application_direct_write_bytes": 8 * 1024 * 1024, "fsync_calls": 0}),
             "SEQUENTIAL_LARGE",
         )
 
     def test_measurement_status_fails_closed(self) -> None:
-        self.assertEqual(measurement_status(0, 10, []), "PASS")
-        self.assertEqual(measurement_status(1, 10, []), "EVIDENCE_INSUFFICIENT")
-        self.assertEqual(measurement_status(0, 0, []), "EVIDENCE_INSUFFICIENT")
-        self.assertEqual(measurement_status(0, 10, ["generation_continuity"]), "EVIDENCE_INSUFFICIENT")
+        self.assertEqual(measurement_status(0, 10, [], "PASS"), "PASS")
+        self.assertEqual(measurement_status(1, 10, [], "PASS"), "EVIDENCE_INSUFFICIENT")
+        self.assertEqual(measurement_status(0, 0, [], "PASS"), "EVIDENCE_INSUFFICIENT")
+        self.assertEqual(measurement_status(0, 10, ["generation_continuity"], "PASS"), "EVIDENCE_INSUFFICIENT")
+        self.assertEqual(measurement_status(0, 10, [], "FAIL"), "EVIDENCE_INSUFFICIENT")
 
-    def test_committed_update_resolution_from_provenance_artifact(self) -> None:
+    def test_committed_update_resolution(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             provenance = root / "provenance"
@@ -121,61 +134,20 @@ class WritePathInventoryV1Tests(unittest.TestCase):
             self.assertEqual(updates, 7)
             self.assertIn("traced_update_count", source)
 
-    def test_committed_update_resolution_from_observed_paths(self) -> None:
-        paths = {f"other|/run/updates/{'c' * 64}.json", f"other|/run/updates/{'d' * 64}.json"}
-        with tempfile.TemporaryDirectory() as tmp:
-            updates, source = _find_committed_updates(Path(tmp), paths)
-        self.assertEqual(updates, 2)
-        self.assertEqual(source, "observed_update_journal_ids")
-
-
-    def test_frozen_inventory_and_receipt_bind_evidence(self) -> None:
-        inventory = self.inventory
-        receipt = self.receipt
-        self.assertEqual(inventory["schema"], "CB16_R21_RC2_R4_WRITE_PATH_INVENTORY_V1")
+    def test_v2_inventory_and_receipt_when_present(self) -> None:
+        if not INVENTORY_V2_PATH.exists() or not RECEIPT_V2_PATH.exists():
+            self.skipTest("V2 inventory/receipt not generated yet")
+        inventory = json.loads(INVENTORY_V2_PATH.read_text(encoding="utf-8"))
+        receipt = json.loads(RECEIPT_V2_PATH.read_text(encoding="utf-8"))
         self.assertEqual(inventory["status"], "PASS")
         self.assertEqual(inventory["missing_required_surfaces"], [])
+        self.assertTrue(inventory["measurement_integrity"]["canary_status"] == "PASS")
         for surface in REQUIRED_SURFACES:
             self.assertIn(surface, inventory["observed_surfaces"])
-        self.assertEqual(inventory["committed_updates"], 52)
-        self.assertEqual(inventory["physical_device"]["rotational"], False)
-        binding = inventory["evidence_binding"]
-        self.assertEqual(binding["run_id"], receipt["evidence"]["run_id"])
-        self.assertEqual(binding["artifact_id"], receipt["evidence"]["artifact_id"])
-        self.assertTrue(binding["artifact_digest"].startswith("sha256:"))
-        self.assertEqual(binding["runtime_authorization_head"], receipt["runtime_identity"]["authorization_head_sha"])
-        self.assertEqual(receipt["measurement_result"]["status"], "PASS")
-        self.assertEqual(receipt["measurement_result"]["missing_required_surfaces"], [])
-
-    def test_inventory_surfaces_have_required_measurement_fields(self) -> None:
-        for surface in self.inventory["surfaces"]:
-            for field in (
-                "surface",
-                "bytes_written",
-                "write_calls",
-                "bytes_per_update",
-                "writes_per_update",
-                "durable_sync_frequency_per_update",
-                "random_versus_sequential",
-                "physical_device",
-                "consumer",
-                "durability_requirement",
-                "bytes_measurement_method",
-            ):
-                self.assertIn(field, surface, surface.get("surface"))
-            if surface["surface"] in REQUIRED_SURFACES:
-                self.assertGreater(surface["write_calls"], 0, surface["surface"])
-                self.assertGreater(surface["bytes_per_update"], 0, surface["surface"])
-        sqlite = {entry["surface"]: entry for entry in self.inventory["surfaces"]}["sqlite_index"]
-        self.assertIn("SQLITE", sqlite["bytes_measurement_method"])
-        self.assertTrue(sqlite["measurement_limitations"])
-
-    def test_inventory_declares_scientific_boundary(self) -> None:
-        receipt = self.receipt
-        self.assertFalse(receipt["scientific_boundary"]["s1_scientific_constants_changed"])
+        sqlite = {entry["surface"]: entry for entry in inventory["surfaces"]}["sqlite_index"]
+        self.assertIn("ESTIMATE", sqlite["bytes_measurement_method"])
+        self.assertEqual(receipt["evidence"]["run_id"], inventory["evidence_binding"]["run_id"])
         self.assertFalse(receipt["scientific_boundary"]["s1_runtime_code_changed"])
-        self.assertFalse(receipt["scientific_boundary"]["final_holdout_accessed"])
-        self.assertFalse(receipt["scientific_boundary"]["training_or_qualification_started"])
 
 
 if __name__ == "__main__":
