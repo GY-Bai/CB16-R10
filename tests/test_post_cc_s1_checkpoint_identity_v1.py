@@ -1,4 +1,4 @@
-"""B4 R3: versioned corrective checkpoint authority + exact-SHA identity artifact."""
+"""B4 R3/R4: versioned corrective checkpoint authority + exact-SHA identity artifact."""
 
 from __future__ import annotations
 
@@ -40,10 +40,12 @@ def test_historical_v1_authority_is_not_mutated():
     assert corrective["legacy_declared_sha256"] == "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021"
 
 
-def test_draft_corrective_authority_keeps_qualification_blocked():
+def test_sol_frozen_corrective_authority_is_effective():
     contract = dict(effective_initial_checkpoint_contract_v1("."))
-    assert contract["contract_state"] == "CONTRACT_MISMATCH"
-    assert contract["authority_status"] == "DS_PROPOSED_PENDING_SOL_FREEZE"
+    assert contract["contract_state"] == "MATCH"
+    assert contract["authority_status"] == "FROZEN_BY_SOL"
+    assert contract["frozen_by_sol"] is True
+    assert contract["binding_matches_computed_identity"] is True
     assert contract["computed_actor_plus_critic_sha256"] == (
         "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a"
     )
