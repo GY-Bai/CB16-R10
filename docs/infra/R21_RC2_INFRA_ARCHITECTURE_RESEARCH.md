@@ -1,515 +1,248 @@
 # R21 RC2 Infra Architecture Research
 
-> Status: **RESEARCH / PROPOSED DIRECTION / NOT YET IMPLEMENTATION AUTHORITY**  
+> Status: **OWNER / ASTRA DIRECTION ACCEPTED — SOL ARCHITECTURE BASELINE**  
 > Date: 2026-09-13  
-> Owner goal: rebuild CB16 Infra so formal science can use the available CPU/GPU/memory without being serialized by unsafe Docker control or single-HDD random I/O.
+> Implementation authority: **NO** — implementation is authorized task-by-task in `R21_RC2_INFRA_UPGRADE_TODO.md`.  
+> S1 relationship: PR #102 remains draft/frozen until the Recovery stage supplies a qualified execution surface.
 
-This document is a research/architecture input for R21 RC2. It does not modify frozen S1 science, and it does not yet authorize privileged host changes.
+This document records the accepted architecture direction for R21 RC2. It does not change frozen S1 science and does not by itself authorize host mutation, storage cleanup, Docker reconfiguration, or a storage-backend rewrite.
 
-## 1. Problem statement
+## 1. Revised objective
 
-Current S1 qualification exposed two separate Infra gaps:
+S1 qualification exposed two independent infrastructure gaps:
 
-1. **Control-plane gap** — GitHub Actions can execute inside the runner container but does not safely control the host's Docker lifecycle, mount placement, storage class, shared-memory size, CPU/memory/GPU assignment, or I/O policy. Giving the normal science runner direct access to the Docker daemon would create an unacceptable privilege boundary.
-2. **Data-plane gap** — durable replay/update/provenance writes are routed through one mechanical HDD. The workload is dominated by random writes, SQLite transactions and fsync/fdatasync latency rather than compute.
+1. the current Shanxi runner is not yet a fully versioned and reproducible execution surface;
+2. durable replay/update/provenance traffic ultimately lands on a single mechanical HDD and becomes I/O-bound before CPU or memory are saturated.
 
-R21 RC2 should solve both. A storage rewrite without a safe control plane will remain operationally fragile; a powerful Docker control plane without storage tiering will just reproduce the same I/O bottleneck faster.
+The immediate objective is therefore **not** to build a general infrastructure platform. It is to restore the smallest independently qualified execution surface that can run the already-frozen S1 experiment. Broader automation and storage evolution follow only when evidence justifies them.
 
----
+## 2. Owner/Astra decision freeze
 
-# 2. Security finding: do not expose the Docker socket to the science runner
+| Decision | Accepted direction | Boundary |
+|---|---|---|
+| Constrained OIDC control plane | Long-term accepted | Not required before S1 resumes; first version must expose a small allowlisted operation set and cannot redefine its own authorization policy. |
+| Separate/private Infra repository | Long-term preferred | Repository privacy alone is not an approval boundary; actual GitHub plan/features and actor identity separation must be audited first. |
+| SSD `FAST_HOT` | Accepted; highest Recovery priority | Capacity inventory and explicit owner-approved cleanup/provision plan come first. No implicit authorization to delete, format or repartition storage. |
+| Storage candidates | Evidence-triggered competition | SQLite + SSD first. Valkey, JetStream or RocksDB open only when a frozen target is missed and measured evidence identifies a relevant bottleneck. |
+| Exactly-once / provenance | Hard invariant | Must cover logical events, replay visibility, effective learning updates, checkpoint/generation state and proof; message de-duplication alone is insufficient. |
 
-Docker's default daemon access model is effectively all-or-nothing. A process that can freely control a rootful Docker daemon can normally create privileged containers, mount host filesystems and obtain host-equivalent authority. Docker provides authorization plugins because direct daemon access is otherwise too coarse.
+Project preference after correctness: when a solution meets the frozen performance targets with explicit headroom, prefer the operationally simpler qualified solution.
 
-GitHub separately warns that persistent self-hosted runners are not clean ephemeral trust boundaries and can be persistently compromised by workflow code. GitHub recommends ephemeral/JIT runners for stronger isolation and advises particular caution for self-hosted runners serving public repositories.
+## 3. Two-stage architecture
 
-Therefore R21 RC2 should explicitly forbid:
+### 3.1 RC2-Recovery — direct S1 dependency
 
-```text
-science runner -> /var/run/docker.sock
-science workflow -> arbitrary docker CLI against host daemon
-science workflow -> arbitrary host bind mounts
-science workflow -> arbitrary privileged/container exec
-```
-
-Giving Sol more flexibility should mean **more declarative control through a constrained interface**, not raw root access.
-
-References:
-
-- GitHub Secure use reference: https://docs.github.com/en/actions/reference/security/secure-use
-- GitHub self-hosted runner reference: https://docs.github.com/en/actions/reference/runners/self-hosted-runners
-- Docker authorization plugins: https://docs.docker.com/engine/extend/plugins_authorization
-- OPA Docker authorization: https://openpolicyagent.org/docs/docker-authorization
-
----
-
-# 3. Recommended control-plane shape
-
-## 3.1 Three trust domains
+Recovery contains only work required to remove already-demonstrated blockers:
 
 ```text
-GitHub / policy plane
-        |
-        | OIDC signed job identity
-        v
-R21 Infra Control Plane
-(root-owned, narrow API, policy-checked)
-        |
-        | allowlisted declarative operations
-        v
-Docker / storage / cgroup host authority
-        |
-        +------------------------------+
-        |                              |
-        v                              v
-unprivileged science runner      infra services
-(no Docker socket)               Valkey/NATS/RocksDB/etc.
+versioned runner contract
+-> permission/shared-memory correction
+-> SSD capacity inventory
+-> bounded SSD FAST_HOT
+-> real write-path instrumentation
+-> accepted-runtime placement-only canary
+-> conditional SQLite physical batching only if needed
+-> persistence/restart/provenance qualification
+-> Sol review
+-> S1 CI-C reauthorization
 ```
 
-### A. Science plane
+A task belongs in Recovery only when it removes a demonstrated blocker or is necessary to qualify the next Recovery gate.
 
-Runs model/science code only.
+### 3.2 RC2-Evolution — not an S1 prerequisite
 
-- non-root;
-- no host Docker socket;
-- no arbitrary host filesystem access;
-- receives only approved `/cb16/*` mounts;
-- receives CPU/GPU/memory/shm/storage classes decided by a versioned runner profile;
-- science jobs cannot mutate their own host privilege profile.
+Evolution includes:
 
-### B. Infra control plane
+- constrained OIDC infrastructure broker;
+- separate privileged control identity;
+- possible private Infra repository;
+- broader automatic Docker/resource orchestration;
+- Valkey Streams, NATS JetStream or RocksDB challengers;
+- stronger host-level failure qualification;
+- long-term ephemeral/JIT science runners.
 
-A small root-owned host service, tentatively `cb16-infra-broker`, is the only component allowed to perform privileged Docker/storage operations.
+Once Recovery is qualified, Evolution must not hold frozen S1 science hostage.
 
-The broker should expose a **small operation vocabulary**, not arbitrary shell commands or arbitrary Docker JSON.
+## 4. Long-term control-plane direction
 
-Allowed operation classes should look like:
+Science jobs should remain unprivileged and should not receive direct host Docker authority. Greater Sol flexibility should come from a declarative, policy-constrained interface that accepts versioned resource profiles rather than arbitrary host paths or raw Docker options.
+
+Preferred long-term trust split:
 
 ```text
-inspect_sanitized_inventory(profile)
-validate_storage_profile(profile_id)
-apply_runner_profile(versioned_profile_id)
-start_known_service(service_profile_id)
-stop_known_service(service_profile_id)
-recreate_science_runner(versioned_profile_id)
-set_resource_profile(cpu/memory/pids/shm/gpu/io)
-prepare_job_storage(run_id, storage_profile_id)
-cleanup_job_storage(run_id)
-collect_resource_telemetry(run_id)
+GitHub policy identity
+        -> constrained R21 control service
+        -> allowlisted runner/service/resource profile
+        -> unprivileged science execution surface
 ```
 
-Forbidden API surface:
+GitHub OIDC is suitable for short-lived caller authentication because it can bind repository/ref/workflow/run identity without requiring a long-lived host-management credential in the science workflow.
 
-```text
-run arbitrary shell
-arbitrary docker run arguments
-arbitrary bind mount source
-read arbitrary host file
-return secret values
-mount Docker socket into a workload
-arbitrary docker exec
-privileged=true unless a separately frozen profile requires it
-```
-
-### C. GitHub policy plane
-
-A workflow requests a GitHub OIDC JWT (`id-token: write`) and sends it to the broker. The broker verifies GitHub's signature and exact claims before accepting any privileged operation.
-
-The broker should bind at least:
-
-- immutable repository identity / repository id;
-- exact approved ref;
-- protected environment;
-- exact reusable workflow identity (`job_workflow_ref` / workflow SHA where available);
-- expected audience;
-- optionally actor / owner constraints;
-- expiry and run identity.
-
-GitHub's OIDC model lets external services issue short-lived authorization based on these signed workflow claims without storing a long-lived host credential in GitHub.
+OIDC proves caller identity; it does not by itself make readable data unreadable or prove process isolation.
 
 References:
 
 - GitHub OIDC: https://docs.github.com/en/actions/concepts/security/openid-connect
-- GitHub OIDC with Vault: https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-hashicorp-vault
-- HashiCorp validated GitHub Actions + Vault pattern: https://developer.hashicorp.com/validated-patterns/vault/retrieve-vault-secrets-from-github-actions
+- Docker authorization: https://docs.docker.com/engine/extend/plugins_authorization
+- OPA Docker authorization: https://openpolicyagent.org/docs/docker-authorization
 
----
+## 5. Secret boundary correction
 
-# 4. Strong recommendation: split science runner from privileged control runner
+A credential that is readable by the science process is not “usable but unreadable” merely because it arrived through a mounted file.
 
-The component that recreates or changes the science runner must not be the same process/container that it is trying to destroy or reconfigure.
+If a future operation requires a credential to be usable but not readable by science code, the credential must remain inside a separate controlled service boundary and science code should call a narrow interface instead of receiving the credential value.
 
-Recommended topology:
+Therefore secret-isolation claims must be based on actual process/service permissions, not on OIDC or mount naming alone.
 
-```text
-shanxi-r21-science
-  - unprivileged
-  - receives science jobs
-  - ephemeral/JIT preferred over time
-  - no Docker socket
+## 6. GitHub approval boundary correction
 
-shanxi-r21-infra-control
-  - separate runner identity
-  - only accepts infra-control workflow
-  - no science payload execution
-  - talks to cb16-infra-broker
+A private Infra repository remains a useful long-term separation mechanism, but it does not automatically prove independent approval. Before relying on protected environments or required reviewers, RC2-Evolution must audit:
 
-cb16-infra-broker
-  - host service
-  - actual privileged Docker/storage/cgroup authority
-  - validates OIDC/policy
-```
+- current GitHub plan/repository visibility support;
+- which protection features are actually available;
+- whether the human owner and automation use distinguishable identities;
+- whether a privileged workflow could alter the policy that authorizes itself.
 
-Because the CB16 source repository is a science/code surface, a stronger long-term boundary is a **separate private infra-control repository** whose only purpose is to host reviewed R21 control workflows and versioned infra profiles. A privileged workflow should not be writable through normal science PRs.
+This audit is an Evolution task, not a Recovery prerequisite.
 
-If a separate private repository is not immediately available, an interim same-repo control workflow must at minimum be `workflow_dispatch` only, reference a protected GitHub Environment with required review/prevent-self-review, be pinned to main/exact reusable workflow identity, and still use the broker rather than the raw Docker socket.
+## 7. Physical storage architecture
 
----
-
-# 5. Secret handling: host secrets should stay on the host
-
-The broker must not provide an API such as `get_secret(name)`.
-
-Instead, use **secret profiles by reference**:
+Historical R2 already established the physical principle that should be restored:
 
 ```text
-workflow requests: secret_profile = SCIENCE_RUNNER_NETWORK_V1
-broker resolves host-owned secret files internally
-broker mounts/injects only into the approved child container
-workflow never receives the value
+SSD / NVMe -> small random + WAL/journal/index/fsync-heavy hot state
+HDD        -> large immutable sequential/cold payload
+one rotating spindle -> one physical sequential payload-writer lane
 ```
 
-For credentials that must be consumed directly by a workflow, prefer short-lived credentials obtained through GitHub OIDC. HashiCorp Vault is a strong optional candidate because it can validate GitHub OIDC claims and issue minute-scale tokens without a static GitHub secret.
+The current Docker layout flattened runner work/temp and Docker volumes onto one HDD. Recovery first restores physical tiering; it does not begin by adding another database service.
 
-R21 RC2 does not require Vault to exist on day one. The minimum safe architecture is:
+## 8. SQLite remains the first candidate
 
-- host-owned secret material remains unreadable to science runner;
-- OIDC authenticates privileged control requests;
-- broker never logs secret values;
-- profiles reference secrets by opaque id only;
-- no personal SSH key or broad PAT is inserted into the runner.
+SQLite WAL permits one active writer per database, but that fact alone does not prove SQLite locking is the present dominant bottleneck. Multiple databases and files can collectively saturate one physical HDD even without contending on the same database lock.
 
----
+Recovery must first measure the real write path: bytes, write frequency, durability calls, WAL/checkpoint behavior, lock wait and physical-device pressure.
 
-# 6. Docker resource control that R21 RC2 should expose
+### 8.1 Placement-only comes before runtime rewrite
 
-Docker already supports the resource dimensions CB16 needs. The broker/profile layer should expose a validated subset:
+The first Recovery execution test keeps the accepted S1 runtime unchanged and changes only the qualified execution surface:
 
-- CPU limit / CPU shares / cpuset;
-- memory hard and soft reservations;
-- swap/swappiness policy;
-- pids limit;
-- `/dev/shm` size;
-- GPU assignment;
-- block-I/O weight;
-- per-device read/write BPS or IOPS limits where useful;
-- mount/storage profile;
-- network profile;
-- read-only root filesystem/capability/security options.
-
-Reference: https://docs.docker.com/engine/containers/resource_constraints/
-
-The R21 abstraction should be declarative, for example:
-
-```json
-{
-  "profile_id": "R21_SCIENCE_QUALIFICATION_RC2",
-  "cpu_class": "SCIENCE_FULL_HOST_BOUNDED",
-  "memory_class": "SCIENCE_HIGH",
-  "gpu_class": "GTX1060_SINGLE",
-  "shm_class": "SCIENCE_2G",
-  "hot_storage_class": "FAST_HOT_V1",
-  "cold_storage_class": "COLD_HDD_V1",
-  "io_policy": "HOT_RANDOM_COLD_SEQUENTIAL_V1"
-}
+```text
+accepted runtime
++ versioned runner/resource profile
++ compliant shared memory
++ SSD FAST_HOT
 ```
 
-The workflow selects an approved profile id. It should not supply raw host paths, arbitrary device names or unlimited Docker flags.
+If this meets the frozen performance, backlog, recovery and semantic gates, no storage rewrite is justified.
 
----
+### 8.2 SQLite batching is conditional and creates a new implementation identity
 
-# 7. Storage architecture: Redis-like front layer is plausible, but only if its authority is explicit
+If measurement still shows SQLite transaction/durability frequency as the limiting factor, a bounded single-writer/batch design may be implemented.
 
-The owner's idea of a Redis-like high-frequency layer in front of SQLite targets a real issue: SQLite still serializes writers. WAL improves reader/writer concurrency and turns writes into a more sequential log, but SQLite documents that a WAL database still has only one writer at a time.
+The firewall is:
+
+```text
+physical write batching != semantic event batching != learner-update batching
+```
+
+Physical batching may not change account/path ordering, replay eligibility timing, learner-update boundaries, checkpoint/generation timing, policy-version attribution or provenance identity.
+
+Any commit-protocol or writer-path code change creates a new implementation identity and requires fresh implementation review and semantic-equivalence qualification even though the scientific S1 manifest remains frozen.
 
 Reference: https://sqlite.org/wal.html
 
-A memory-first service can absorb concurrent producers and let a materializer batch many logical events into fewer SQLite transactions. **But this only helps if it actually reduces synchronous SQLite commit frequency.**
+## 9. Evidence-triggered challengers
 
-Bad design:
+Valkey Streams, NATS JetStream and RocksDB remain approved research candidates, but are not implemented in parallel by default.
 
-```text
-worker -> Redis -> immediately commit same event to SQLite
-```
+A challenger opens only after SQLite + SSD is correct but misses a pre-frozen target and the measured bottleneck explains why that challenger is relevant.
 
-This adds another hop while preserving the same SQLite fsync pressure.
+### Valkey
 
-Useful design:
+Freeze exact version and AOF policy. `appendfsync everysec` is not equivalent to an every-commit durable boundary. If `WAITAOF` participates in the durability boundary, returned acknowledgement counts must satisfy the required local/replica counts; timeout or insufficient counts are not a successful durable acknowledgement.
 
-```text
-N workers
-   -> durable ingress log / queue
-   -> bounded batching + idempotent materializer
-   -> metadata store
-   -> cold sequential payload writer
-```
+References: https://valkey.io/topics/persistence/ and https://valkey.io/topics/streams-intro/
 
-The critical question is what proves a write is durable before the producer is allowed to forget it.
+### NATS JetStream
 
----
+A `PubAck` proves only the guarantee supplied by the selected NATS version and persistence configuration. Exact server version, storage/persist mode, sync policy, replication and fault model must be frozen before it can be compared with CB16 durability requirements.
 
-# 8. Redis vs Valkey
+References: https://docs.nats.io/learn/jetstream/publishing , https://docs.nats.io/learn/jetstream/policies , https://docs.nats.io/reference/config/jetstream
 
-For a new R21 open-source dependency, **Valkey should be evaluated before Redis**.
+### RocksDB
 
-Valkey is a Linux Foundation project under the BSD 3-Clause license and remains protocol/command compatible with the Redis OSS lineage. It supports Streams, consumer groups, RDB and AOF persistence.
+Freeze exact version and write options. WAL enabled with default asynchronous write behavior is not automatically an fsync-at-commit guarantee. The selected authority boundary must state when synchronous WAL persistence is required and all write-status results must be checked.
 
-References:
+References: https://github.com/facebook/rocksdb/wiki/Write-Ahead-Log-(WAL) and https://github.com/facebook/rocksdb/wiki/WAL-Performance
 
-- https://valkey.io/
-- https://valkey.io/topics/streams-intro/
-- https://valkey.io/topics/persistence/
+## 10. Exactly-once is an end-to-end property
 
-## 8.1 Why Valkey Streams fits CB16
-
-Valkey Streams gives:
-
-- ordered append-only event ids;
-- multiple producers;
-- consumer groups;
-- pending-entry tracking;
-- replay;
-- crash recovery of stream/consumer state when persistence is configured;
-- bounded retention controls.
-
-A possible R21 path is:
+R21 qualification must distinguish at least:
 
 ```text
-worker events
-   -> Valkey Stream on SSD
-   -> single/bounded materializer
-   -> SQLite/RocksDB metadata
-   -> HDD immutable pack writer
+logical event committed exactly once
+experience becomes replay-visible at the frozen semantic point
+learner update becomes effective exactly once
+parent -> child checkpoint transition is unique
+child generation adoption is unique
+required proof remains reconstructable
 ```
 
-## 8.2 Important durability warning
+Message de-duplication alone does not prove an effective learner update happened once.
 
-`appendfsync everysec` can lose roughly the most recent second in a severe crash. That does **not** match CB16's current exactly-once/durable-update expectations if the producer treats the Valkey acknowledgment as final authority.
+## 11. Scientific identity vs implementation identity
 
-For a semantics-preserving candidate, R21 must benchmark a stronger policy such as:
+The S1 scientific manifest remains frozen: seeds, task definitions, reward, model/optimizer scientific settings, budget, evaluation and gates do not change during Recovery.
 
-- AOF with `appendfsync always`, which can still group concurrent commands into fewer fsyncs; and/or
-- explicit AOF durability confirmation (`WAITAOF` where applicable);
-- stable event ids and idempotent materialization.
+Execution-surface changes such as mount placement, shared-memory sizing or resource profiles can be qualified without changing the accepted runtime code identity when the runtime itself is untouched.
 
-If Valkey is only a non-authoritative cache and SQLite remains the durability boundary for each event, it will not solve the current commit bottleneck.
+A storage-engine replacement, commit-protocol rewrite, SQLite batch-writer rewrite or replay-visibility code change creates a new implementation identity and cannot inherit old runtime code acceptance.
 
----
+## 12. Failure-model taxonomy
 
-# 9. NATS JetStream: strong candidate for the durable ingress-log role
+Qualification must state what fault class was actually tested:
 
-JetStream is closer to a purpose-built event log than a general cache.
+| Fault class | Scope of evidence |
+|---|---|
+| `PROCESS_CRASH` | process-level restart/replay/idempotence |
+| `CONTAINER_RESTART` | container lifecycle plus persisted-storage recovery |
+| `HOST_REBOOT` | controlled host-reboot recovery; separate operational authorization required |
+| `POWER_LOSS` | abrupt power-loss durability; not implied by process/container tests |
 
-Useful properties:
+A PASS for one fault class may not be promoted to a stronger untested class.
 
-- persistent streams;
-- server `PubAck` confirming accepted storage under durable/default persistence mode;
-- asynchronous producer batching;
-- durable consumers;
-- explicit ack/redelivery;
-- publication deduplication via stable message ids;
-- replay and backpressure.
+Recovery may qualify process and container restart without claiming host-reboot or power-loss proof.
 
-References:
+## 13. Selection rule
 
-- https://docs.nats.io/concepts/jetstream
-- https://docs.nats.io/learn/jetstream/publishing.md
-- https://docs.nats.io/learn/jetstream/delivery-and-acknowledgment
+Storage selection order is:
 
-Potential shape:
+1. semantic/durability equivalence;
+2. effective-update exactly-once and recovery correctness;
+3. pre-frozen performance targets with explicit headroom;
+4. operational simplicity;
+5. additional throughput/latency margin;
+6. CPU/RAM/maintenance burden.
+
+If SQLite + SSD meets all required targets with margin, the default is to keep it and defer additional services.
+
+## 14. Evidence rule
+
+All implementation/runtime evidence must flow through:
 
 ```text
-N science workers
-   -> JetStream durable event log on SSD
-   -> materializer consumer
-   -> RocksDB / SQLite projection
-   -> sequential cold pack writer
+GitHub Actions -> authorized Shanxi Docker execution surface -> durable artifacts/receipts -> Sol review
 ```
 
-For CB16 this maps naturally to immutable event/provenance production, but it adds a broker service and a second event identity model. Its de-duplication and acknowledged consumption must be mapped carefully onto CB16 update ids and exactly-once semantics.
+Host-side inventory or provisioning may be performed only by an executor explicitly authorized for the corresponding RC2 task. Host changes must also be represented by versioned repository definitions and machine-readable before/after receipts; host observations alone are not sufficient runtime qualification evidence.
 
----
+Failures retain the existing taxonomy: `PASS`, `SCIENTIFIC_FAIL`, `CONTRACT_MISMATCH`, `EXECUTION_BLOCKED`, `HARDWARE_LIMIT`, `EVIDENCE_INSUFFICIENT`.
 
-# 10. RocksDB: strongest embedded candidate for hot metadata / high-write state
+## 15. Current conclusion
 
-RocksDB is worth evaluating because its write path is already built around:
+R21 RC2 is governed by one principle:
 
-- memtables;
-- sequential WAL;
-- WriteBatch;
-- group commit;
-- concurrent writer coordination;
-- background flush/compaction;
-- separate `wal_dir`, allowing WAL to be placed on faster storage.
+> Restore the smallest independently qualified execution surface that removes the demonstrated blocker and lets frozen S1 science run again. Continue control-plane and storage evolution only when evidence justifies the additional complexity.
 
-References:
-
-- https://github.com/facebook/rocksdb/wiki/RocksDB-Overview
-- https://github.com/facebook/rocksdb/wiki/Write-Ahead-Log-(WAL)
-- https://github.com/facebook/rocksdb/wiki/WAL-Performance
-- https://github.com/facebook/rocksdb/wiki/Pipelined-Write
-
-RocksDB can potentially replace the highest-frequency SQLite KV/catalog workload while SQLite remains a derived reporting/query projection.
-
-Candidate shape:
-
-```text
-workers
-   -> RocksDB WriteBatch / WAL on SSD
-   -> memtable
-   -> SST / archive placement
-   -> optional SQLite reporting projection
-```
-
-Important cost: RocksDB moves complexity from SQLite locking to LSM flush/compaction management. Compaction on the HDD could create another I/O problem, so WAL/SST placement and background-job limits must be benchmarked on the real Shanxi topology.
-
----
-
-# 11. SQLite should remain a baseline, not be assumed obsolete
-
-Before adding a service, R21 should benchmark a simpler baseline:
-
-```text
-N workers
- -> one bounded in-process/interprocess writer queue
- -> one SQLite WAL writer on SSD
- -> large transactions / prepared batches
- -> checkpoint managed separately
-```
-
-SQLite WAL already provides sequential WAL writes, concurrent readers and fewer fsyncs; its key limit is one active writer. If one dedicated writer on SSD can satisfy the required throughput, this is operationally much simpler than introducing Valkey/NATS.
-
-Therefore R21 RC2 should treat **SQLite-on-SSD with one batched writer** as the baseline that every more complex solution must beat.
-
----
-
-# 12. Candidate matrix
-
-| Candidate | Role | Main strength | Main risk | Recommended R21 status |
-|---|---|---|---|---|
-| SQLite WAL + single batch writer | baseline durable metadata | simplest; current semantics closest | one writer; must batch well | **Benchmark first** |
-| Valkey Streams + AOF strong durability | high-frequency ingress/event buffer | memory speed, stream consumers, group fsync | must define durable authority; RAM/AOF rewrite | **Strong candidate** |
-| NATS JetStream | durable ingress log | explicit pub/ack/replay/dedup/backpressure | new broker + identity mapping | **Strong candidate** |
-| RocksDB | hot embedded metadata store | group commit, WAL+memtable, high write throughput | compaction/LSM tuning | **Strong candidate** |
-| Redis as volatile cache | cache only | easy, fast | does not remove durability bottleneck | **Not sufficient** |
-| direct concurrent SQLite writers on HDD | current anti-pattern | none for this host | seek/fsync contention | **Reject** |
-
----
-
-# 13. Recommended R21 RC2 data-plane research topology
-
-Do not choose one database prematurely. Build a common benchmark adapter and compare three production-shaped paths:
-
-```text
-Path A — Minimum change
-workers -> bounded queue -> single SQLite WAL writer on SSD
-
-Path B — Durable log + projection
-workers -> Valkey Streams OR JetStream on SSD
-        -> materializer -> SQLite metadata on SSD
-        -> HDD sequential payload writer
-
-Path C — Embedded high-throughput store
-workers -> RocksDB WAL/memtable on SSD
-        -> optional SQLite reporting projection
-        -> HDD sequential payload writer
-```
-
-All paths must retain exactly the same logical update ids, content hashes, replay eligibility, checkpoint/generation facts and artifact proof. Performance cannot be accepted until semantic equivalence passes.
-
----
-
-# 14. One physical HDD still means one physical cold writer
-
-R21 does not repeal the historical R2 rule.
-
-Even if Valkey, NATS or RocksDB removes hot metadata pressure from the HDD, large cold payload writes should still converge through one bounded sequential writer lane per spindle:
-
-```text
-compute/learner workers
-        |
-        +-> fast durable hot layer on SSD
-        |
-        +-> bounded cold-payload queue
-                      |
-                      v
-             single HDD pack writer
-```
-
-The HDD should become boring: large reads and large sequential append, not transaction metadata.
-
----
-
-# 15. R21 RC2 observability requirements
-
-A formal run should emit an execution receipt that binds scientific evidence to physical execution conditions.
-
-At minimum collect:
-
-- container profile id/hash;
-- image digest;
-- CPU/memory/pids/shm/GPU profile;
-- hot/cold mount identities and physical storage class;
-- disk rotational flag and filesystem;
-- free space/inodes before run;
-- device util/await/queue depth over time;
-- process D-state count;
-- CPU user/system/iowait;
-- per-service queue lag;
-- SQLite WAL/checkpoint metrics or equivalent;
-- Valkey/NATS/RocksDB persistence/queue metrics if used;
-- cold writer queue depth and bytes;
-- artifact/checkpoint/provenance semantic hashes.
-
-A run that silently falls back from SSD hot storage to HDD should fail closed before science starts.
-
----
-
-# 16. Recommended security decision for RC2
-
-Preferred long-term design:
-
-```text
-private infra-control repo
-        |
-protected manual workflow + GitHub Environment
-        |
-GitHub OIDC short-lived identity
-        |
-cb16-infra-broker (root-owned host service)
-        |
-versioned allowlisted R21 profiles
-        |
-Docker + storage + cgroups
-```
-
-Science workflows remain in CB16 and use only the resulting unprivileged execution surface.
-
-OPA Docker authorization can be used as an additional defense if direct authenticated Docker Engine API access is ever introduced, but it should be **defense in depth**, not the primary reason raw Docker daemon access becomes acceptable. Docker notes authorization plugin limits around upgraded/streaming connections; a narrow broker API is easier to reason about for CB16.
-
----
-
-# 17. Proposed R21 RC2 decisions to freeze after owner/Astra review
-
-1. No raw Docker socket in science runner.
-2. Separate science runner and infra-control identity.
-3. Privileged operations go through a narrow broker and versioned profiles.
-4. GitHub OIDC is the primary secretless authentication mechanism for control requests.
-5. Host secrets are referenced by profile id and never returned to workflow code.
-6. Restore SSD hot / HDD cold storage classes.
-7. Preserve one physical cold writer lane per rotating HDD.
-8. Benchmark SQLite-batched baseline, Valkey/JetStream durable-log paths and RocksDB hot-store path.
-9. Redis-like layer is accepted only if its durability boundary is explicit and it reduces downstream commits.
-10. No science constant may be changed to compensate for Infra throughput.
-
-These decisions should become an executable R21 RC2 TODO only after the owner/Astra confirms the architecture direction.
+Task ordering, host-access authority and Recovery performance gates are defined in `docs/infra/R21_RC2_INFRA_UPGRADE_TODO.md`.
