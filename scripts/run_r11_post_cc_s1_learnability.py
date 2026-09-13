@@ -17,7 +17,17 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from cb16_local_opt.post_cc_s1_qualification_v1 import S1QualificationError, run_s1_program_v1
+from cb16_local_opt import post_cc_s1_qualification_v1 as qualification_v1
+from cb16_local_opt.post_cc_s1_provenance_audit_r4_v1 import (
+    install_r4_provenance_hooks_v1,
+)
+
+# R4 closes only S1-026/B6 provenance evidence.  Install before entering the
+# canonical program so ProcessPool workers and artifact compilation use the
+# strengthened exporter/auditor without changing frozen scientific semantics.
+install_r4_provenance_hooks_v1(qualification_v1)
+S1QualificationError = qualification_v1.S1QualificationError
+run_s1_program_v1 = qualification_v1.run_s1_program_v1
 
 EXIT_OK = 0
 EXIT_NOT_PASS = 1
