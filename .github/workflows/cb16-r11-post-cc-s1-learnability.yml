@@ -95,6 +95,23 @@ jobs:
           test ! -e final_holdout
           echo S1_LINEAGE_AND_FIREWALL_PASS
 
+      - name: Verify candidate runtime tree identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, subprocess
+          record = json.load(open('authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json'))
+          implementation_sha = record['implementation_candidate_sha']
+          assert subprocess.run(['git', 'merge-base', '--is-ancestor', implementation_sha, 'HEAD']).returncode == 0
+          changed = [line for line in subprocess.check_output(
+              ['git', 'diff', '--name-only', implementation_sha, 'HEAD'], text=True
+          ).splitlines() if line.strip()]
+          allowed = {'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json'}
+          assert set(changed) <= allowed, changed
+          print('S1_RUNTIME_TREE_IDENTITY_BOUND', implementation_sha)
+          PY
+
       - name: Run focused S1 and S0v2 regression suites
         shell: bash
         run: |
@@ -140,6 +157,23 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify candidate runtime tree identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, subprocess
+          record = json.load(open('authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json'))
+          implementation_sha = record['implementation_candidate_sha']
+          assert subprocess.run(['git', 'merge-base', '--is-ancestor', implementation_sha, 'HEAD']).returncode == 0
+          changed = [line for line in subprocess.check_output(
+              ['git', 'diff', '--name-only', implementation_sha, 'HEAD'], text=True
+          ).splitlines() if line.strip()]
+          allowed = {'authority/rearchitecture_r11/CB16_R11_POST_CC_S1_REVIEW_CANDIDATE_V1.json'}
+          assert set(changed) <= allowed, changed
+          print('S1_RUNTIME_TREE_IDENTITY_BOUND', implementation_sha)
+          PY
 
       - name: Resolve verified canonical Python
         shell: bash
