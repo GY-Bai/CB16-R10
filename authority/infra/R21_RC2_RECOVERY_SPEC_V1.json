@@ -667,10 +667,10 @@
       "github_actions_required": false,
       "host_session": "NONE",
       "host_container_change": false,
+      "host_session_authorization_required": false,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": false,
         "note": "No owner approval required for a repository-only contract freeze."
       },
       "new_runtime_implementation_identity": false,
@@ -694,11 +694,11 @@
       "github_actions_required": true,
       "host_session": "READ_ONLY",
       "host_container_change": false,
+      "host_session_authorization_required": true,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": true,
-        "note": "Read-only host session is explicitly required and must stay read-only."
+        "note": "Read-only host session is explicitly required and must stay read-only; this is session authorization, not host-change owner approval."
       },
       "new_runtime_implementation_identity": false,
       "required_artifact_ids": [
@@ -723,10 +723,10 @@
       "github_actions_required": false,
       "host_session": "READ_ONLY",
       "host_container_change": false,
+      "host_session_authorization_required": true,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": true,
-        "task_local_authorization_required": true,
         "note": "R3 is blocked until the owner approves the concrete R2 capacity and provision proposal."
       },
       "new_runtime_implementation_identity": false,
@@ -756,10 +756,10 @@
       "github_actions_required": true,
       "host_session": "CHANGE_REQUIRED",
       "host_container_change": true,
+      "host_session_authorization_required": true,
       "owner_approval": {
         "before_execution": true,
         "before_dependent_change": false,
-        "task_local_authorization_required": true,
         "note": "The owner must approve the exact task-local host and container changes before execution."
       },
       "new_runtime_implementation_identity": false,
@@ -786,10 +786,10 @@
       "github_actions_required": true,
       "host_session": "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED",
       "host_container_change": false,
+      "host_session_authorization_required": true,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": true,
         "note": "A read-only host session is allowed only when device telemetry cannot be collected from the runner."
       },
       "new_runtime_implementation_identity": false,
@@ -825,10 +825,10 @@
       "github_actions_required": true,
       "host_session": "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED",
       "host_container_change": false,
+      "host_session_authorization_required": true,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": true,
         "note": "Read-only host telemetry is allowed only if needed; no host change."
       },
       "new_runtime_implementation_identity": false,
@@ -863,10 +863,10 @@
       "github_actions_required": true,
       "host_session": "NONE_NORMALLY",
       "host_container_change": false,
+      "host_session_authorization_required": false,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": false,
         "note": "Sol authority gates task opening; no blanket owner approval is implied."
       },
       "new_runtime_implementation_identity": true,
@@ -904,11 +904,11 @@
       "github_actions_required": true,
       "host_session": "TASK_LIMITED_CHANGE_ONLY_FOR_CONTAINER_LEVEL_RECOVERY",
       "host_container_change": true,
+      "host_session_authorization_required": true,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": true,
-        "note": "Only the R21 Recovery components named in the task-local plan are in scope for the external container restart boundary."
+        "note": "Only the R21 Recovery components named in the task-local plan are in scope for the external container restart boundary; task-limited host authorization is required."
       },
       "new_runtime_implementation_identity": "DEPENDS_ON_R6",
       "testable_fault_classes": [
@@ -941,10 +941,10 @@
       "github_actions_required": false,
       "host_session": "EVIDENCE_READ",
       "host_container_change": false,
+      "host_session_authorization_required": false,
       "owner_approval": {
         "before_execution": false,
         "before_dependent_change": false,
-        "task_local_authorization_required": false,
         "note": "Reviewer-owned; DS does not self-certify or merge."
       },
       "new_runtime_implementation_identity": false,

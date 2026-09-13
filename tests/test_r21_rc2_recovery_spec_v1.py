@@ -45,6 +45,7 @@ class RecoverySpecV1Tests(unittest.TestCase):
                 "github_actions_required",
                 "host_session",
                 "host_container_change",
+                "host_session_authorization_required",
                 "owner_approval",
                 "new_runtime_implementation_identity",
                 "required_artifact_ids",
@@ -84,29 +85,39 @@ class RecoverySpecV1Tests(unittest.TestCase):
 
     def test_authority_matrix_values_match_todo_v2(self) -> None:
         expected = {
-            "R0": (False, "NONE", False, False, False, False),
-            "R1": (True, "READ_ONLY", False, False, False, False),
-            "R2": (False, "READ_ONLY", False, False, True, False),
-            "R3": (True, "CHANGE_REQUIRED", True, True, False, False),
-            "R4": (True, "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED", False, False, False, False),
-            "R5": (True, "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED", False, False, False, False),
-            "R6": (True, "NONE_NORMALLY", False, False, False, True),
+            "R0": (False, "NONE", False, False, False, False, False),
+            "R1": (True, "READ_ONLY", False, True, False, False, False),
+            "R2": (False, "READ_ONLY", False, True, False, True, False),
+            "R3": (True, "CHANGE_REQUIRED", True, True, True, False, False),
+            "R4": (True, "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED", False, True, False, False, False),
+            "R5": (True, "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED", False, True, False, False, False),
+            "R6": (True, "NONE_NORMALLY", False, False, False, False, True),
             "R7": (
                 True,
                 "TASK_LIMITED_CHANGE_ONLY_FOR_CONTAINER_LEVEL_RECOVERY",
+                True,
                 True,
                 False,
                 False,
                 "DEPENDS_ON_R6",
             ),
-            "R8": (False, "EVIDENCE_READ", False, False, False, False),
+            "R8": (False, "EVIDENCE_READ", False, False, False, False, False),
         }
         for task_id, values in expected.items():
             task = self.tasks[task_id]
-            github_actions, host_session, host_change, owner_before, owner_before_dependent, new_identity = values
+            (
+                github_actions,
+                host_session,
+                host_change,
+                host_session_authorization,
+                owner_before,
+                owner_before_dependent,
+                new_identity,
+            ) = values
             self.assertEqual(task["github_actions_required"], github_actions)
             self.assertEqual(task["host_session"], host_session)
             self.assertEqual(task["host_container_change"], host_change)
+            self.assertEqual(task["host_session_authorization_required"], host_session_authorization)
             self.assertEqual(task["owner_approval"]["before_execution"], owner_before)
             self.assertEqual(task["owner_approval"]["before_dependent_change"], owner_before_dependent)
             self.assertEqual(task["new_runtime_implementation_identity"], new_identity)
@@ -241,8 +252,7 @@ class RecoverySpecV1Tests(unittest.TestCase):
         task = self.tasks["R7"]
         self.assertEqual(task["testable_fault_classes"], ["PROCESS_CRASH", "CONTAINER_RESTART"])
         self.assertEqual(task["not_claimed_without_separate_authorization"], ["HOST_REBOOT", "POWER_LOSS"])
-        self.assertIn("task_local_authorization_required", task["owner_approval"])
-        self.assertTrue(task["owner_approval"]["task_local_authorization_required"])
+        self.assertTrue(task["host_session_authorization_required"])
 
     def test_s1_relationship_keeps_pr_102_frozen_until_r8(self) -> None:
         relationship = self.spec["scope"]["s1_relationship"]
