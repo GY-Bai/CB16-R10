@@ -41,8 +41,8 @@
   },
   "first_unfinished_item": "Attach exact-SHA Shanxi Docker CI-A / CI-B evidence to this record after the push for implementation candidate f4f5848f894b.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
-  "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
-  "implementation_candidate_tree_sha": "b1b76360d111b03d59d59d3f52a45913618916c1",
+  "implementation_candidate_sha": "b8ed8d6c171caf3b669a97050a1ee25ade0a274f",
+  "implementation_candidate_tree_sha": "e18f72a1aa79bf8d9eb8145c71e155906a37993f",
   "model_optimizer_identity": {
     "actor_class": "CCCentralBrain",
     "actor_dimensions": {
@@ -71,11 +71,11 @@
     "status": "NOT_RUN_AWAITING_SOL_QUALIFICATION_AUTHORIZATION"
   },
   "qualified_runtime_sha": null,
-  "record_binding_head_sha": "effec6e900e07fe97f9c197ad1418433cbb43304",
+  "record_binding_head_sha": null,
   "review_history": [
     {
-      "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
-      "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO.",
+      "implementation_candidate_sha": "b8ed8d6c171caf3b669a97050a1ee25ade0a274f",
+      "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO; adds fail-closed qualification authorization gate and control-pairing tests.",
       "requested_state": "READY_FOR_SOL_CODE_REVIEW",
       "round": "R0",
       "submitted_by": "DS Flash"
