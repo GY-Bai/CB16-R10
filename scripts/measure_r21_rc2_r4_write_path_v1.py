@@ -198,6 +198,39 @@ def _surface_report(category: str, summary: dict[str, dict[str, dict[str, Any]]]
     }
 
 
+def _run_instrumentation_canary(python: str, instrument_dir: Path, canary_root: Path) -> dict[str, Any]:
+    metrics = canary_root / "metrics"
+    metrics.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(item for item in (str(instrument_dir), env.get("PYTHONPATH", "")) if item)
+    env["CB16_R4_METRICS_DIR"] = str(metrics)
+    env["CB16_R4_MONITORED_ROOTS"] = str(canary_root)
+    code = (
+        "import os, pathlib, sqlite3;"
+        "root=pathlib.Path(os.environ['CB16_R4_MONITORED_ROOTS']);"
+        "out=root/'output'; out.mkdir(parents=True, exist_ok=True);"
+        "p=out/'.artifact.tmp-canary'; f=p.open('wb'); f.write(b'artifact-canary'); f.flush(); os.fsync(f.fileno()); f.close(); os.replace(p, out/'artifact.json');"
+        "prov=root/'output'/'provenance_staged'; prov.mkdir(parents=True, exist_ok=True);"
+        "q=prov/'.prov.tmp-canary'; f=q.open('wb'); f.write(b'prov-canary'); f.flush(); os.fsync(f.fileno()); f.close(); os.replace(q, prov/'prov.jsonl');"
+        "scratch=root/'scratch'; scratch.mkdir(parents=True, exist_ok=True);"
+        "c=sqlite3.connect(str(scratch/'index.sqlite3')); c.execute('create table t(x)'); c.commit(); c.close();"
+    )
+    process = subprocess.run([python, "-c", code], env=env, text=True, capture_output=True, check=False)
+    summary, paths = _aggregate(metrics)
+    artifact = summary.get("artifact_staging", {}).get("write", {})
+    provenance = summary.get("provenance", {}).get("write", {})
+    sqlite_commits = summary.get("sqlite_index", {}).get("sqlite_commit", {}).get("count", 0)
+    ok = process.returncode == 0 and int(artifact.get("bytes", 0)) > 0 and int(provenance.get("bytes", 0)) > 0 and int(sqlite_commits) > 0
+    return {
+        "status": "PASS" if ok else "FAIL",
+        "returncode": process.returncode,
+        "stdout": process.stdout,
+        "stderr": process.stderr,
+        "summary": summary,
+        "observed_paths": sorted(paths),
+    }
+
+
 def measurement_status(exit_code: int, committed_updates: int, missing_surfaces: list[str]) -> str:
     if exit_code != 0 or committed_updates <= 0 or missing_surfaces:
         return "EVIDENCE_INSUFFICIENT"
@@ -248,6 +281,21 @@ def main(argv: list[str] | None = None) -> int:
     metrics = run_root / "instrument" / "metrics"
     for path in (scratch, output, metrics):
         path.mkdir(parents=True, exist_ok=True)
+
+    canary = _run_instrumentation_canary(sys.executable, INSTRUMENT_DIR, run_root / "instrument" / "canary")
+    if canary["status"] != "PASS":
+        report = {
+            "schema": "CB16_R21_RC2_R4_WRITE_PATH_INVENTORY_V1",
+            "task_id": "R4",
+            "status": "EVIDENCE_INSUFFICIENT",
+            "measured_at_utc": _now(),
+            "reason": "INSTRUMENTATION_CANARY_FAILED",
+            "canary": canary,
+        }
+        args.json_out.parent.mkdir(parents=True, exist_ok=True)
+        args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 1
 
     disk_before = _diskstats()
     env = dict(os.environ)
@@ -344,6 +392,7 @@ def main(argv: list[str] | None = None) -> int:
         "s1_stderr_path": str(run_root / "s1_smoke_stderr.txt"),
         "scientific_manifest_changed": False,
         "s1_runtime_changed": False,
+        "instrumentation_canary": canary,
     }
     text = json.dumps(report, indent=2, sort_keys=True)
     args.json_out.parent.mkdir(parents=True, exist_ok=True)

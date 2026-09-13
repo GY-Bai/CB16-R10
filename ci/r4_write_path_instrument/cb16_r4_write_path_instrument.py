@@ -12,6 +12,7 @@ import builtins
 import io
 import json
 import os
+import pathlib
 import re
 import sqlite3
 import tempfile
@@ -21,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 _RAW_OPEN = io.open
+_RAW_PATH_OPEN = pathlib.Path.open
 _RAW_SQLITE_CONNECT = sqlite3.connect
 _RAW_FSYNC = os.fsync
 _RAW_REPLACE = os.replace
@@ -249,6 +251,24 @@ def _instrumented_open(file: Any, mode: str = "r", *args: Any, **kwargs: Any) ->
     return _CountedFile(file_obj, path)
 
 
+def _instrumented_path_open(
+    self: Path,
+    mode: str = "r",
+    buffering: int = -1,
+    encoding: str | None = None,
+    errors: str | None = None,
+    newline: str | None = None,
+) -> Any:
+    file_obj = _RAW_PATH_OPEN(self, mode, buffering, encoding, errors, newline)
+    write_like = any(flag in mode for flag in ("w", "a", "x", "+"))
+    if not write_like:
+        return file_obj
+    path = str(self)
+    if path.startswith(str(_metrics_dir())):
+        return file_obj
+    return _CountedFile(file_obj, path)
+
+
 def _instrumented_sqlite_connect(database: Any, *args: Any, **kwargs: Any) -> Any:
     conn = _RAW_SQLITE_CONNECT(database, *args, **kwargs)
     path = os.fspath(database) if isinstance(database, (str, bytes, os.PathLike)) else ""
@@ -348,6 +368,7 @@ def install() -> None:
     _INSTALLED = True
     builtins.open = _instrumented_open
     io.open = _instrumented_open
+    pathlib.Path.open = _instrumented_path_open
     sqlite3.connect = _instrumented_sqlite_connect
     os.fsync = _instrumented_fsync
     os.open = _instrumented_os_open
