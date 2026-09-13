@@ -208,17 +208,21 @@ Missing later-wave functionality is **not** a reason to stop. It is the work to 
 
 # 7. S1 execution discipline
 
-An Agent working S1 must:
+The owner now assigns Astra to document alignment and TODO review, Sol to TODO authoring and code review, and DS Flash to code execution; the owner reviews Astra, Astra reviews Sol, and Sol reviews DS Flash. Read [the role and review protocol](ROLES_AND_REVIEW_PROTOCOL.md). This updates execution ownership, not existing task IDs or frozen science.
+
+The code executor working S1 must:
 
 1. verify branch lineage and S0 receipt integrity;
 2. identify the first unfinished S1 task;
 3. implement it;
 4. add tests;
-5. run tests;
+5. commit/push the candidate branch as needed to run relevant tests through GitHub Actions on Shanxi Docker, with shared preflight and verified canonical Python; verify the actual checkout SHA and executed test scope;
 6. commit/push actual S1 code;
 7. continue to the next task/wave if execution capacity remains.
 
-A normal S1 execution session must leave durable commits beyond `ec30185...`, unless it stops under a legitimate classified blocker.
+A normal S1 code-execution session must leave meaningful durable progress beyond `ec30185...`, unless it stops under a legitimate classified blocker. Reviewer/document-author sessions deliver their corresponding review/spec artifacts; they are not required to invent code commits.
+
+Before any runtime-changing code reaches main, Sol must independently review the formula/control-flow/boundary implementation and the covering Shanxi CI evidence, and record acceptance for the reviewed SHA. DS self-review, repo-guard success, or the old Stage-4 Main Smoke alone cannot qualify new S1 behavior. Temporary ChatGPT sandbox business tests are not an alternative execution route. See [TODO principles SW-13/14](S_SERIES_TODO_AUTHORING_PRINCIPLES.md) for the authoring obligation.
 
 A report that only says:
 
@@ -314,7 +318,7 @@ Do not rescue `SCIENTIFIC_FAIL` by changing seeds, thresholds, task distribution
 
 # 12. Immediate Agent handoff
 
-The next Agent must **not** re-run the old S0/S1 decomposition.
+The next Agent must **not** re-run the old S0/S1 decomposition. Identify its assigned role first: the implementation steps below apply to the code executor; Sol maintains/reviews the task and code artifacts, and Astra reviews TODO alignment.
 
 It should:
 

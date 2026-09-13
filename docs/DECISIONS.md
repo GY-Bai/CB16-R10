@@ -1,6 +1,6 @@
 # 设计决策与修订关系
 
-本记录用于防止不同 Agent 从旧聊天、旧 TODO 或历史实验推导出互相冲突的目标。日期：2026-09-12。
+本记录用于防止不同 Agent 从旧聊天、旧 TODO 或历史实验推导出互相冲突的目标。更新日期：2026-09-13；各决策保留自己的适用时间与历史身份。
 
 当前机器可读 authority：
 
@@ -108,7 +108,17 @@ PR #99 已合入 `main`；merge commit 为 `daa889d758ce80c7d1ce73ea37110937e1b1
 
 2026-09-12 用户要求落实下一 scientific program / historical execution / capacity experiment / economic qualification。采用 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)：S0 后继评价契约与精确 spec → S1 实际端到端可学习性 → S2 真实已授权历史接入 → S3 小规模历史学习 → 按诊断进入 S4 容量 → S5 冻结候选经济确认。S4 非必经；不以加参数代替闭环归因资格。
 
-文档角色负责研究顺序与理念边界；sol 负责 TODO、实现和版本化运行参数。起始预算与统计门槛为本次设计建议，运行前冻结；不把它们伪称为用户逐项指定。保留失败、账户连续、FINAL/fresh firewall 与旧 receipt。本轮没有运行这些新科学阶段，也没有批准真实账户部署。
+当时分工为文档角色负责研究顺序与理念边界，sol 负责 TODO、实现和版本化运行参数；后续角色分工现由 D-15 更新。起始预算与统计门槛为当时设计建议，运行前冻结；不把它们伪称为用户逐项指定。保留失败、账户连续、FINAL/fresh firewall 与旧 receipt。该设计发布当时没有运行这些新科学阶段，也没有批准真实账户部署；后续实际阶段进度见 `CURRENT_STATE.md`。
+
+## D-15 三层产物对齐与监督 — 2026-09-13 用户明确确认
+
+Astra 用文档向用户对齐，Sol 用 TODO 向文档对齐，DS Flash 用代码向 TODO 对齐。用户审核 Astra 的文档，Astra 审核 Sol 的 TODO，Sol 审核 DS Flash 的代码产物。此决定更新 D-14 中把 TODO 与默认代码执行均交给 sol 的分工，不改变科学目标和冻结历史证据。
+
+## D-16 Shanxi CI 与合并前逻辑审查 — 2026-09-13 用户明确要求
+
+运行变更合并 main 前通过 GitHub Actions CI 在 Shanxi Docker 执行相关冒烟/专项测试；临时沙盒只做阅读、编辑、静态准备，不在那里猜测或替代真实运行。TODO 必须落实适用 workflow、测试覆盖、资源与精确提交证据。纯说明性文档变更按角色协议做静态检查，不虚报 runtime PASS。
+
+鉴于用户观察到 DS Flash 的高密度逻辑可靠性问题，Sol 必须重点审核公式转代码、大小比较、直接条件分支、边界和 verdict 聚合；独立答案/反例与真实 CI 均必要，执行者自检不代替 Sol 结论。这里是项目内审查政策，不是未经验证的模型排名。具体责任、交接和合并条件见 [角色与审核协议](ROLES_AND_REVIEW_PROTOCOL.md)。本轮仅发布文档规则，没有配置新的 GitHub 平台保护或触发业务运行。
 
 ## 运行语义迁移登记
 

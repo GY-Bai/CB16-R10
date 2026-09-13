@@ -11,6 +11,7 @@ PR #99 merge commit：
 | 问题 | 当前入口 |
 |---|---|
 | 当前精确状态与下一断点 | **[CURRENT_STATE](CURRENT_STATE.md)** |
+| Astra / Sol / DS Flash 分工、审核与 Shanxi CI | **[ROLES_AND_REVIEW_PROTOCOL](ROLES_AND_REVIEW_PROTOCOL.md)** |
 | 当前 S0/S1 可执行总控 TODO | **[R11_POST_CC_S0_S1_TODO](R11_POST_CC_S0_S1_TODO.md)** |
 | S 系列 TODO 撰写/修订角色原则 | **[S_SERIES_TODO_AUTHORING_PRINCIPLES](S_SERIES_TODO_AUTHORING_PRINCIPLES.md)** |
 | S0/S1 拆解可执行性与具体修补位置 | **[2026-09-13 审阅](reviews/S0_S1_EXECUTABILITY_REVIEW_2026-09-13.md)** |
@@ -39,6 +40,8 @@ PR #99 merge commit：
 | 原 AC/BC 设计历史 | [AC TODO](R11_ACTOR_CRITIC_CODE_ALIGNMENT_TODO.md) / [BC Round 2 TODO](R11_BC_ROUND2_CODE_ALIGNMENT_TODO.md) |
 
 ## 当前 CC 结论
+
+当前协作关系由用户明确指定：Astra 用文档向用户对齐，Sol 用 TODO 向文档对齐，DS Flash 用代码向 TODO 对齐；分别由用户、Astra、Sol 监督审核。运行变更合并 main 前必须有覆盖变更的 GitHub Actions → Shanxi Docker 测试及 Sol 代码审核，尤其检查公式实现和复杂条件分支。详见上述角色协议；repo-guard 或执行者自检不能代替这两项证据。
 
 四个 CC threads 从冻结 implementation base `89d62bf966f476e598f0e2f5c5e8e03c15a8db51` 独立实现后，由唯一 integration join 完成 W-01..W-05 binding、closed-loop wiring、equivalence、performance selection 与 hard cutover。
 

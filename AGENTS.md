@@ -2,6 +2,14 @@
 
 本文件适用于整个仓库。主要交流语言为中文，代码标识和版本化协议名称保持原样。
 
+## 用户指定的角色与审核链
+
+必须先明确本次角色并读取 [三层对齐与审核协议](docs/ROLES_AND_REVIEW_PROTOCOL.md)：**Astra 用文档向用户对齐；Sol 用 TODO 向文档对齐；DS Flash 用代码向 TODO 对齐。用户审核 Astra 文档，Astra 审核 Sol TODO，Sol 审核 DS Flash 代码产物。** Astra 本角色不负责业务代码实现；代码执行者不能自行代签上游审核。
+
+Sol 必须在 TODO 中标出公式转代码、复杂比较/直接条件分支、mask/空值/边界和 verdict 逻辑，合并 main 前独立审查实际实现与反例。DS Flash 的自检和绿色 CI 不替代 Sol 审核。此要求源于用户项目经验，不是模型能力排名。
+
+运行变更合并 main 前须经 **GitHub Actions → Shanxi Docker** 的相关冒烟/专项测试，复用共享 preflight、`[self-hosted, shanxi-docker-r11]` 与 verified canonical Python。临时沙盒用于读写与静态准备，不在那里运行业务冒烟/训练或推测 Shanxi 的结果。仅 repo-guard 通过不是 runtime PASS；必须核对实际 checkout SHA、job/runner、测试执行及产物。Main Smoke 当前手动触发且只覆盖旧 Stage-4 测试，S1 新代码须有相应覆盖。纯说明性文档按协议做静态检查，不声称已跑 runtime。
+
 ## 接手顺序
 
 1. 阅读 `docs/CURRENT_STATE.md`。

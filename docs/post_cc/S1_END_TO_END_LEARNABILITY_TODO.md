@@ -22,6 +22,8 @@ This evidence does **not** imply ECONOMIC or TRANSFER capability.
 
 # 0. Critical execution rule — S1 is not blocked
 
+Owner role update, 2026-09-13: Astra aligns documents with the owner and reviews Sol TODOs; Sol aligns TODOs with those documents and reviews DS Flash code; DS Flash implements the TODOs. The owner reviews Astra documents. Read [the role and review protocol](../ROLES_AND_REVIEW_PROTOCOL.md) and [TODO principles SW-13/14](../S_SERIES_TODO_AUTHORING_PRINCIPLES.md). Implementation instructions below address the code executor; they do not turn Astra/Sol review-only work into code assignments or bypass upstream review.
+
 S0 is already qualified and receipt-backed. S1 is authorized to implement.
 
 The following are **not** reasons to stop:
@@ -206,7 +208,7 @@ S1-A Durable Data Plane
 
 An agent may continue across waves in one session. If work is split across agents, each wave must leave durable commits and tests so the next agent continues from code rather than re-performing status review.
 
-**Required progress rule:** after implementation begins, a normal execution session must leave actual S1 commits beyond `ec30185...`, unless it terminates under one of the explicit early-stop classifications in Section 0.
+**Required progress rule:** after implementation begins, a normal code-execution session must leave meaningful S1 implementation progress beyond `ec30185...`, unless it terminates under one of the explicit early-stop classifications in Section 0. Document/TODO/code-review sessions instead deliver their assigned review/spec artifacts. Commit count or a self-reported PASS is not progress evidence.
 
 ---
 
@@ -596,6 +598,8 @@ Do not issue the final S1 verdict at S1-C.
 
 ## S1-021 — Unified S1 runner
 
+The runner's bounded smoke and subsequent qualification must be invoked through GitHub Actions on `[self-hosted, shanxi-docker-r11]`, using the existing shared preflight, Docker execution contract and verified canonical Python. Bind the workflow, checkout SHA, actual test coverage, budget and evidence outputs. Implement any missing S1 workflow coverage here/in S1-D; the manually dispatched legacy Main Smoke does not cover the new learner. Do not run substitute business smoke/training in the temporary ChatGPT sandbox.
+
 Recommended surface:
 
 `scripts/run_r11_post_cc_s1_learnability.py`
@@ -853,12 +857,14 @@ Then:
 2. do not re-run status-only prerequisite analysis already settled by receipt unless verifying integrity;
 3. implement the first unfinished wave;
 4. add focused tests;
-5. run them;
+5. push the candidate branch as needed and run relevant tests through GitHub Actions on Shanxi Docker; inspect actual steps, checkout SHA, results and required artifacts;
 6. commit/push working code;
 7. continue to the next wave if execution capacity remains;
 8. report the exact first unfinished task only after durable progress has been made, unless a legitimate early-stop condition occurs.
 
 A handoff that only says “S1 cannot yet receive a receipt because later work is unfinished” is **not task completion**.
+
+Before main merge, Sol must review DS Flash's actual diff, especially formulas translated into code, comparison direction/equality, boolean branching, mask/empty-value fallbacks, temporal credit and gate aggregation. Use independent expected answers and boundary/negative examples, then record the reviewed SHA, covering CI run and acceptance/unresolved findings. DS's own tests and report do not substitute for this review. A later runtime change requires the affected review and CI to be refreshed. This is a code acceptance requirement; it does not rewrite the frozen scientific PASS/FAIL rules or require a valid scientific FAIL to be rescued.
 
 ---
 

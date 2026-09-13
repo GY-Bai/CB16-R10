@@ -13,6 +13,8 @@ Receipt 冻结的完整 runtime qualification code head 为 `fc7adaae66da5b7735a
 
 后续纯文档维护提交不改变上述 science identity、qualified runtime 或 receipt 内容。
 
+**2026-09-13 用户补充的协作规则：** Astra 文档向用户对齐、Sol TODO 向文档对齐、DS Flash 代码向 TODO 对齐；用户审核 Astra，Astra 审核 Sol，Sol 审核 DS。运行变更在 main 合并前经 GitHub Actions 调度 Shanxi Docker 的相关测试，并由 Sol 重点审查公式/比较/分支/边界。入口见 [角色与审核协议](ROLES_AND_REVIEW_PROTOCOL.md) 及 [TODO 原则 SW-13/14](S_SERIES_TODO_AUTHORING_PRINCIPLES.md)。本次文档补充不声称新增 S1 实现、运行资格或平台 required-check 配置。
+
 ## 1. CC 已完成什么
 
 CC 四线程已完成独立实现、integration join、closed-loop qualification、reference-vs-fast equivalence、hostile/recovery qualification、Shanxi 性能选择和 hard cutover。

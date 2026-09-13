@@ -1,6 +1,6 @@
 # 最高理念对齐规则
 
-日期：2026-09-12。本文把用户已确认目标转成可审阅的行为要求；不替代运行 authority，也不因为实现完成而自动提升科学证据。
+日期：2026-09-13。本文把用户已确认目标转成可审阅的行为要求；不替代运行 authority，也不因为实现完成而自动提升科学证据。
 
 **当前状态更新：** AC/BC/CC 四线程均已成为历史实施 provenance；CC R11 integration 已通过 PR #99 合入 `main`。当前实现/运行 authority 以 `CB16_R11_CC_INTEGRATION_SPEC_V1.json`、`CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`、`CURRENT_STATE.md` 为准。
 
@@ -9,9 +9,9 @@
 新 Agent 不再从 AC TODO 或 CC 四线程 TODO 作为“待实施清单”开始。推荐顺序：
 
 1. `CURRENT_STATE.md`
-2. `CC_INTEGRATION_HANDOFF.md`
-3. integration spec / receipt
-4. 本页与 `COMPONENT_REQUIREMENTS.md`
+2. `ROLES_AND_REVIEW_PROTOCOL.md` 与当前 `R11_POST_CC_S0_S1_TODO.md`
+3. 适用的 S0 receipt / S1 任务包，再读 `CC_INTEGRATION_HANDOFF.md` 和 integration spec / receipt
+4. 本页与 `COMPONENT_REQUIREMENTS.md`；TODO 作者另读 `S_SERIES_TODO_AUTHORING_PRINCIPLES.md`
 5. 再按具体新任务读取算法、历史 TODO、Stage-4、performance 或 capacity 文档。
 
 AC/BC/CC task numbering 现在主要用于历史追溯；未来新任务如需改变 science semantics，应创建新的版本化任务/authority，而不是在旧编号上静默改义。
@@ -101,3 +101,11 @@ CC 已在 synthetic known-answer canary 中接通 policy -> execution -> account
 常规工程选择由执行 Agent 在已有授权内处理。只有改变用户目标、经济 master ranking 含义或未来部署权限的选择才提交 owner。O-01 已在本轮后续沙盒设计中关闭：两基准不设主次，完整算术收益排名与基准诊断、晋升证据分开；有证据的相对改善可以晋升沙盒冠军。见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
 
 当前科学路线见 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)。先做新评价语义迁移与实际可学习性，再做历史闭环及条件性容量研究；不回到旧四线程实施，不把文档决定写成已通过的运行结果。
+
+## 7. 理念如何逐层落到代码 — 用户已明确
+
+**Astra 用文档向用户对齐；Sol 用 TODO 向文档对齐；DS Flash 用代码向 TODO 对齐。用户监督审核 Astra 文档，Astra 监督审核 Sol TODO，Sol 监督审核 DS Flash 代码。** 完整职责及交付见 [三层对齐与审核协议](ROLES_AND_REVIEW_PROTOCOL.md)。
+
+Astra 负责保持用户目标与文档一致、审查任务可执行性；Sol 必须把理念翻译成具体数学/验收约定，并独立审查实现；DS 在任务边界内写代码、修复和提供真实 CI 证据。任务缺项由相应上游补齐，不通过下游静默解释来改变目标。
+
+用户要求特别防范 DS Flash 的公式翻译、比较方向和复杂直接条件分支错误，Sol 在 main 合并前按独立解析答案、决策表和关键反例审查实际代码。运行验证必须通过 GitHub Actions → Shanxi Docker；临时沙盒阅读/编辑/静态检查不构成远端运行证据。绿色 CI、模型自述和文档完整性各自都不能替代这条审核链。
