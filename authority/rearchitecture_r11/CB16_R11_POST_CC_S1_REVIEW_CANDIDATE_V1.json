@@ -3,77 +3,78 @@
   "authoritative_sol_todo": "docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md",
   "candidate_state": {
     "implementation": {
-      "local_development_tests": "58_S1_TESTS_PASS_LOCAL_DEV_ENV_ONLY_NOT_SHANXI_EVIDENCE",
-      "shanxi_ci_state": "PASS",
+      "local_development_tests": "82_S1_TESTS_PASS_LOCAL_DEV_ENV_ONLY_NOT_SHANXI_EVIDENCE",
+      "shanxi_ci_state": "PENDING_SOL_REVIEW",
       "task_coverage_complete": true
     },
-    "phase": "A_IMPLEMENTATION_CANDIDATE",
-    "qualification": {
-      "reason": "AWAITING_SOL_READY_FOR_S1_QUALIFICATION",
-      "started": false
+    "latest_ci_head_sha": null,
+    "phase": "A_IMPLEMENTATION_CANDIDATE_R1",
+    "r1_blocker_closure": {
+      "B1_uniform_replay_sampling": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b1_sampler_never_forces_nonflat_into_uniform_draw",
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b1_degenerate_all_flat_batch_skips_gradient_without_changing_sampling"
+        ],
+        "fix": "removed forced non-FLAT substitution; degenerate all-FLAT uniform draw skips the gradient step with a recorded reason",
+        "state": "CLOSED"
+      },
+      "B2_aba_retention_evidence": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b2_retention_uses_durable_index_not_selected_ids"
+        ],
+        "fix": "collected vs replay-selected IDs separated; durable-index presence + generic-pool eligibility computed after B; gate consumes retention_evidence",
+        "state": "CLOSED"
+      },
+      "B3_authorization_binding": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_qualification_authorization_v1.py"
+        ],
+        "fix": "authorization binds reviewed_implementation_sha/tree + execution_manifest_sha256; runtime must be an ancestor of HEAD with only review/auth metadata changed",
+        "state": "CLOSED"
+      },
+      "B4_initial_checkpoint_identity": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b4_frozen_codec_verification_reports_contract_state_honestly",
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b4_target_initialization_is_isolated_from_behavior_rng",
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b4_seed_run_records_identical_target_initialization_across_seeds"
+        ],
+        "fix": "declared codec implemented and actually evaluated; target Actor+Critic initialization isolated from behavior RNG; authority hash not reproduced under the declared codec and therefore reported instead of substituted",
+        "requires_authority_resolution": true,
+        "state": "CONTRACT_MISMATCH_REPORTED"
+      },
+      "B5_high_bankruptcy_failure_fact": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_counterexamples_v1.py::test_b5_high_bankruptcy_loss_is_durable_failure_fact_and_in_denominator"
+        ],
+        "fix": "policy-neutral insolvency closure adapter closes economic responsibility, emits ECONOMIC_TERMINAL/mechanical_terminal durable facts, keeps the loss in the complete arithmetic denominator",
+        "state": "CLOSED"
+      },
+      "B6_update_provenance": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_artifact_provenance_v1.py::test_update_journal_survives_scratch_deletion_and_is_auditable"
+        ],
+        "fix": "durable update journal + index exported before scratch deletion; artifact-only trace audit verifies one full update without scratch",
+        "state": "CLOSED"
+      },
+      "B7_candidate_record_binding": {
+        "counterexample_tests": [
+          "tests/test_post_cc_s1_record_binding_v1.py::test_stale_record_binding_is_rejected",
+          "tests/test_post_cc_s1_record_binding_v1.py::test_evidence_from_a_different_runtime_is_rejected",
+          "tests/test_post_cc_s1_record_binding_v1.py::test_dirty_runtime_after_implementation_candidate_is_rejected"
+        ],
+        "fix": "CI-D requires implementation/runtime ancestry, manifest hashes, latest_ci_head_sha freshness, per-entry runtime + checkout binding, and record-binding head consistency; stale records fail",
+        "state": "CLOSED"
+      }
     },
     "shanxi_ci": {
-      "bounded_smoke": {
-        "artifact_id": 10314233594,
-        "checkout_sha": "7e3e178810c1f181d8a01ae4693978d31bd5fa97",
-        "checkout_tree_sha": "5411091e9797963bfcfc6f6b956521654a6bfce0",
-        "conclusion": "success",
-        "duration_seconds": 142,
-        "evidence_class": "SMOKE_ONLY_ENGINEERING_EVIDENCE",
-        "executed_jobs": 13,
-        "fabricated_log_mu_audit_pass": true,
-        "integrity_attack_suite_all_rejected": true,
-        "job_id": 103696586248,
-        "job_name": "S1 bounded smoke (engineering only)",
-        "not_scientific_qualification": true,
-        "objective_firewall_audit_pass": true,
-        "program_wall_seconds": 46.67992973327637,
-        "run_attempt": 1,
-        "run_id": 34746971506,
-        "runtime_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
-        "scratch_root": "/dev/shm/cb16-s1-34746971506-smoke",
-        "workers": 2
-      },
+      "bounded_smoke": {},
       "formal_qualification": {
         "gated_by": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
         "required_status": "READY_FOR_S1_QUALIFICATION",
         "started": false
       },
-      "implementation_suite": {
-        "artifact_id": 10314073817,
-        "checkout_sha": "7e3e178810c1f181d8a01ae4693978d31bd5fa97",
-        "checkout_tree_sha": "5411091e9797963bfcfc6f6b956521654a6bfce0",
-        "conclusion": "success",
-        "duration_seconds": 248,
-        "gpu": "NVIDIA GeForce GTX 1060 6GB",
-        "job_id": 103696586242,
-        "job_name": "S1 implementation unit and invariant suite",
-        "python_version": "3.10.21",
-        "run_attempt": 1,
-        "run_id": 34746971506,
-        "runner": "shanxi-docker-r11",
-        "runtime_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
-        "tests_failed": 0,
-        "tests_passed": 147,
-        "tests_skipped": 0,
-        "torch_cuda_version": "12.6",
-        "torch_version": "2.8.0+cu126",
-        "workflow": ".github/workflows/cb16-r11-post-cc-s1-learnability.yml"
-      },
-      "record_binding_verification": {
-        "artifact_id": 10314910361,
-        "conclusion": "success",
-        "duration_seconds": 88,
-        "job_id": 103696592424,
-        "job_name": "S1 record-binding head verification",
-        "reuse_of_qualified_artifacts_allowed": true,
-        "run_attempt": 1,
-        "run_id": 34746973146,
-        "runtime_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
-        "status": "PASS",
-        "verified_head_sha": "7e3e178810c1f181d8a01ae4693978d31bd5fa97",
-        "verified_head_tree_sha": "5411091e9797963bfcfc6f6b956521654a6bfce0"
-      }
+      "implementation_suite": {},
+      "record_binding_verification": {}
     }
   },
   "durability_restart_status": "IMPLEMENTED_UNIT_TESTED_PENDING_SHANXI_EXACT_SHA_EVIDENCE",
@@ -86,10 +87,10 @@
   },
   "exactly_once_status": "REUSED_S0V2_AND_EXTENDED_INTEGRITY_MATRIX_13_ATTACKS_ALL_REJECTED_LOCALLY",
   "execution_manifest": {
-    "git_blob_sha1": "5f9cb5781d8ef3f96239dfadf139902afe01e6a5",
-    "manifest_payload_sha256": "85ba028c03ca575390f1497adb72fad95939b5b20bad504ba2ceccdbaae8e4e7",
+    "git_blob_sha1": "40b0d3d5f275441261ab45f046b394c253a37d47",
+    "manifest_payload_sha256": "481e6390236320b5ee2c0425da15bbf3d54162c815b6660acbde262cd8b4968f",
     "path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_EXECUTION_MANIFEST_V1.json",
-    "sha256": "0a16c3161dcd7a094bae519b0cd236690bfaa654b985802ba1375213fc226afa"
+    "sha256": "606567b0d733d4222a52bc1bcedf1421cbfaae2b43d4348e622cac78bf4cb478"
   },
   "firewall": {
     "FINAL_opened": false,
@@ -98,10 +99,10 @@
     "historical_market_corpus_accessed": false,
     "transfer_evidence_claimed": false
   },
-  "first_unfinished_item": "Sol R1 code review of runtime candidate 3ee53f6576ea39e151e7377e4b9f46c2c63d1eee; formal qualification only after reviewer records READY_FOR_S1_QUALIFICATION.",
+  "first_unfinished_item": "Sol R2 review of the B1-B7 closure package; B4 requires an authority decision before CI-C.",
   "generation_account_continuity_status": "COMMITTED_CHILD_SWITCH_BEFORE_BEHAVIOUR_ADOPTION",
-  "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
-  "implementation_candidate_tree_sha": "23a6d5ac645cc660129e7fc460e0e7daf381e3c7",
+  "implementation_candidate_sha": "119b70d41c305c70c0f190da487d2c50d4fbc942",
+  "implementation_candidate_tree_sha": "c956fef2c2488a1c6e506119f0641d365ad882ac",
   "model_optimizer_identity": {
     "actor_class": "CCCentralBrain",
     "actor_dimensions": {
@@ -112,14 +113,18 @@
     },
     "actor_frozen_parameter_count": 16,
     "actor_trainable_parameter_count": 241,
+    "behavior_initialization_isolation": "TORCH_RANDOM_FORK_RNG_ISOLATED",
+    "checkpoint_codec_id": "SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1",
+    "computed_actor_only_sha256": "42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f",
+    "computed_actor_plus_critic_sha256": "adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a",
+    "contract_state": "CONTRACT_MISMATCH",
     "critic_class": "SeparateCritic",
     "critic_hidden": 8,
     "critic_input_dim": 7,
     "critic_parameter_count": 73,
-    "declared_hash_note": "The frozen run spec declares this semantic hash with codec SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1; no generator script exists in the repository, so the candidate records it as declared authority and binds the runtime identity by class/dimensions/parameter counts and per-run parameter-state sha256 instead of claiming reproduction.",
-    "declared_hash_reproducible_in_repo": false,
+    "declared_hash_reproduced": false,
     "frozen_initial_checkpoint_semantic_sha256_declared": "32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021",
-    "initialization_seed": 1701,
+    "initialization_order": "ACTOR_THEN_CRITIC_SINGLE_FROZEN_SEED_STREAM",
     "optimizer": {
       "actor": "SGD@0.01",
       "critic": "SGD@0.01"
@@ -130,48 +135,44 @@
     "status": "NOT_RUN_AWAITING_SOL_QUALIFICATION_AUTHORIZATION"
   },
   "qualified_runtime_sha": null,
-  "record_binding_head_sha": "c881f3e03479f318f9c9f6b438c8cb9ac3a143ac",
+  "r1_contract_issues": [
+    {
+      "blocker": "B4",
+      "classification": "CONTRACT_MISMATCH",
+      "detail": "The frozen run spec declares SORTED_STATE_DICT_NAME_SHAPE_DTYPE_FLOAT_VALUE_JSON_V1 and hash 32928a6b2fea2346d303c9b61e8f86dee66099e973e7391372836b4f8a706021. The declared codec was implemented and evaluated on the canonical isolated initialization; it produces actor-only 42a861c980b0ac3976936e9b75015a151c0eb65bf6a8ea1c205b90bf4e1e4c7f and actor+critic adb3c6d4b52cd6bc04a8036702e28f45e0c888c43dbbbb4983f2e093a57eea1a. Neither matches the authority value under any tested construction/seeding order, so the mismatch is reported rather than substituted.",
+      "requested_resolution": "Sol/authority to confirm the intended construction/codec or version the frozen initial-checkpoint hash before CI-C."
+    }
+  ],
+  "record_binding_head_sha": null,
   "review_history": [
     {
-      "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
-      "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO; fail-closed qualification authorization gate, control-pairing tests, execution-only scratch root for Qualification mode.",
+      "implementation_candidate_sha": "64a1c0e75862f83c37d0e18991cce1cdf569364a",
+      "notes": "Initial S1-013..033 implementation candidate per Sol S1 R1 TODO.",
       "requested_state": "READY_FOR_SOL_CODE_REVIEW",
       "round": "R0",
       "submitted_by": "DS Flash"
     },
     {
-      "implementation_candidate_sha": "e3007fc2d26923a99c51ec8708acf8e81c7b2392",
-      "notes": "Exact-SHA Shanxi CI-A (146 passed) and CI-B bounded smoke attached; no scientific verdict claimed.",
-      "requested_state": "READY_FOR_SOL_CODE_REVIEW",
-      "round": "R0",
-      "shanxi_ci": {
-        "artifact_ids": [
-          10314196647,
-          10314630289
-        ],
-        "bounded_smoke_job": 103693241221,
-        "implementation_suite_job": 103693241233,
-        "implementation_suite_run": 34745732978
-      },
-      "submitted_by": "DS Flash"
+      "blockers": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7"
+      ],
+      "notes": "Sol R1 deep code review; no qualification authorization; no CI-C; no merge.",
+      "review_record": "PR #102 comment 5652313128",
+      "reviewer": "Sol",
+      "round": "R1",
+      "verdict": "CHANGES_REQUIRED"
     },
     {
-      "implementation_candidate_sha": "3ee53f6576ea39e151e7377e4b9f46c2c63d1eee",
-      "notes": "Final Phase-A evidence: 147 focused S1+S0v2 tests passed on Shanxi Docker, bounded smoke executed the full durable loop for all five tasks plus controls, and CI-D record binding returned PASS. No scientific verdict claimed.",
-      "requested_state": "READY_FOR_SOL_CODE_REVIEW",
-      "round": "R0",
-      "shanxi_ci": {
-        "artifact_ids": [
-          10314073817,
-          10314233594,
-          10314910361
-        ],
-        "bounded_smoke_job": 103696586248,
-        "implementation_suite_job": 103696586242,
-        "implementation_suite_run": 34746971506,
-        "record_binding_job": 103696592424,
-        "record_binding_run": 34746973146
-      },
+      "implementation_candidate_sha": "119b70d41c305c70c0f190da487d2c50d4fbc942",
+      "notes": "B1-B7 response: B1/B2/B3/B5/B6/B7 closed with counterexample tests; B4 codec verification implemented, RNG isolation fixed, authority hash mismatch reported as CONTRACT_MISMATCH per review instruction.",
+      "requested_state": "READY_FOR_SOL_REVIEW",
+      "round": "R2",
       "submitted_by": "DS Flash"
     }
   ],
@@ -183,23 +184,23 @@
     1704,
     1705
   ],
+  "sol_r1_review_comment_id": 5652313128,
   "stage_identity": "CB16_R11_POST_CC_S1_END_TO_END_LEARNABILITY_R1",
-  "status": "DS_IMPLEMENTATION_CANDIDATE_SUBMITTED_FOR_SOL_REVIEW",
-  "strongest_evidence_claimed_by_candidate": "IMPLEMENTATION_CANDIDATE_WITH_EXACT_RUNTIME_SHA_SHANXI_UNIT_AND_BOUNDED_SMOKE_EVIDENCE_READY_FOR_SOL_CODE_REVIEW",
+  "status": "DS_IMPLEMENTATION_CANDIDATE_R1_SUBMITTED_FOR_SOL_REVIEW",
+  "strongest_evidence_claimed_by_candidate": "B1_B3_B5_B6_B7_CLOSED_B4_CONTRACT_MISMATCH_REPORTED_PENDING_SOL_R2",
   "task_spec_hashes": {
-    "ACCOUNT_DEPENDENT_ACTION": "bea74d0309bb17b69da115e8a16555c372a7d8464ab2ab21e1cf472c137f7cd0",
-    "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "ea95e93921fe56920183df40861ec468aa43f06c733c83f647ac2e70366d9722",
-    "DELAYED_CONSEQUENCE_CREDIT": "3f71c1bfb8a48175228163aafae7927530e4c405b8137d7c24745b59fa93849e",
-    "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION": "5240494effcba5d34cfd1796911328dcce5b1ea5f72e10d2e68821bddae5ae4b",
-    "OFF_POLICY_VTRACE_CORRECTION": "8295b4aa6fff1ecb6d87daaa1fa9cb5d77b389275e83eae39f51440479768bbd"
+    "ACCOUNT_DEPENDENT_ACTION": "b3691e98bc195059944823e8b03fb08034031df5a28342b72126986e737f7d8a",
+    "A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION": "3eee9e90f293894ec2de58915c12e1e0b2f257648ced51b09652e48ccce406f8",
+    "DELAYED_CONSEQUENCE_CREDIT": "8b73e0e58119858e5c442d81d9870b9363de7afb168927f55d14df42e2b2f5ae",
+    "HIGH_BANKRUPTCY_HIGHER_ARITHMETIC_EXPECTATION": "6de37febd0a718089e7beb998989a669f72ee0f09858319f09509c1ff60c8753",
+    "OFF_POLICY_VTRACE_CORRECTION": "72f9bf512aa95e8e6ad0ae0ef1c2d9a9a5ef93744e4dfa637eef2304a89334c9"
   },
   "terminal_state": "READY_FOR_SOL_REVIEW",
   "unresolved_items": [
-    "Formal 5-seed qualification has not started; it is gated by reviewer-owned READY_FOR_S1_QUALIFICATION authorization.",
-    "The frozen initial checkpoint semantic hash is treated as declared authority because the repository contains no codec generator.",
-    "High-bankruptcy higher-EV family mass uses the manifest-declared risk band [0.85,0.95) for direction LONG; reviewer may require a different concretization before formal qualification.",
-    "Off-policy ratio both-sides evidence is required per seed during formal qualification; Phase A records the counts but does not assert them.",
-    "Qualification envelope estimate: Shanxi smoke consumed 46.7s wall (832 decisions, workers=2, /dev/shm scratch); the full 65-run program at workers=8 is estimated roughly 3-5 hours against the CI-C 360-minute timeout."
+    "B4 authority hash is not reproducible under its declared codec; CONTRACT_MISMATCH reported and awaiting authority resolution.",
+    "Formal 5-seed qualification has not started and remains gated by reviewer-owned authorization bound to the exact runtime SHA/tree and manifest hash.",
+    "HIGH_BANKRUPTCY success family direction=LONG, risk in [0.85,0.95) is accepted and frozen by Sol R1; it will not be changed under this scientific identity.",
+    "Off-policy ratio both-sides evidence is required per seed during formal qualification; Phase A records counts but does not assert a result."
   ],
   "vtrace_critic_status": "ANALYTIC_HAND_FIXTURE_IMPLEMENTED_TOLERANCE_1E-6"
 }
