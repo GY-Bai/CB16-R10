@@ -1,0 +1,90 @@
+{
+  "schema": "CB16_R11_S0V2_BASELINE_V1",
+  "status": "FROZEN",
+  "stage_identity": "CB16_R11_S0V2_DURABLE_LEARNABILITY_FOUNDATION_R0",
+  "implementation_branch": "ai/r11-s0v2-durable-learnability-foundation-r0",
+  "scientific_code_baseline_sha": "392063881a6ef0dd1776ac579f1a290a134fc49e",
+  "task_document_handoff_sha": "134e9cc128a8cd664d9ae2539b06f78d994e064d",
+  "task_authoring_commits": [
+    "bab4aa10",
+    "19555cdb",
+    "af0c173c",
+    "1f043466",
+    "7a26634f",
+    "dfc837d6",
+    "134e9cc1"
+  ],
+  "baseline_rule": "task_authoring_commits_are_documentation_and_navigation_only; they do not change frozen science/code identity",
+  "historical_post_cc_s0_receipt": {
+    "path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json",
+    "git_blob_sha1": "5cd6d3ac74d6241d70588f0d8b58a1d74bba0da2",
+    "evidence": "POST_CC_CONTRACT_MIGRATION_QUALIFIED",
+    "immutable": true
+  },
+  "parent_cc": {
+    "integration_spec": {
+      "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json",
+      "git_blob_sha1": "47f52f96dda1790cf7fca484d2e6516e0a44ca1a"
+    },
+    "integration_receipt": {
+      "path": "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json",
+      "git_blob_sha1": "3fea57a6c5d3a0a2ad5d88d99e6041b7fe9973e5"
+    },
+    "thread_c_receipt": {
+      "path": "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
+      "git_blob_sha1": "bbddafb75878dfe98ef36c5ced71e4e3a36e5ddc"
+    },
+    "qualified_integration_head_sha": "fc7adaae66da5b7735a3ab6aee7a8c7bd3721ed2",
+    "strongest_evidence": "INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE"
+  },
+  "frozen_successor_contracts": {
+    "observation_contract": {
+      "path": "cb16_local_opt/post_cc_observation_contract_v1.py",
+      "git_blob_sha1": "3f1a4da067000f1f5bbbd506306b50178936cc72",
+      "contract_id": "PostCCObservationFactV1"
+    },
+    "joint_replay_contract": {
+      "path": "cb16_local_opt/post_cc_joint_replay_contract_v1.py",
+      "git_blob_sha1": "81dd07d5b41f4ba6d34ecd084ab3307e48a9fb7e",
+      "contract_id": "PostCCJointReplaySampleV1"
+    }
+  },
+  "canonical_cc_implementation": {
+    "brain": {
+      "path": "cb16_local_opt/cc_policy_brain_r0.py",
+      "git_blob_sha1": "9f63082aacc4c03c877996527465cabe28185e90",
+      "class": "CCCentralBrain",
+      "market_dim": 2,
+      "account_dim": 3,
+      "execution_dim": 2,
+      "hidden": 8,
+      "trainable_parameter_count": 241,
+      "frozen_market_organ_parameter_count": 16
+    },
+    "policy_distribution": {
+      "path": "cb16_local_opt/cc_policy_distribution_r0.py",
+      "git_blob_sha1": "3c97f6a548fbd0969a54ce1a0ec2823cb5d87f94",
+      "direction_order": ["SHORT", "FLAT", "LONG"],
+      "flat_semantics": "POINT_MASS_EXACT_ZERO",
+      "nonflat_semantics": "CONTINUOUS_DENSITY_OPEN_INTERVAL"
+    },
+    "runtime_account_loop": {
+      "path": "cb16_local_opt/cc_runtime_account_loop_r0.py",
+      "git_blob_sha1": "562f26bcaa60b6e4c30ca6f0a8d596db895d5172"
+    },
+    "runtime_generation_switch": {
+      "path": "cb16_local_opt/cc_runtime_generation_switch_r0.py",
+      "git_blob_sha1": "4eb6f4f6da88cb3370c1d54ca8afd54c4af18d75"
+    },
+    "learner_transaction_reference": {
+      "path": "cb16_local_opt/cc_learner_transaction_r0.py",
+      "git_blob_sha1": "c6092a2218820aee21a6d443757c589d7a126740"
+    }
+  },
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false
+  },
+  "declared_evidence_ceiling": "POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED",
+  "evidence_ceiling_note": "foundation qualification only; not ECONOMIC, TRANSFER or end-to-end known-answer learnability evidence"
+}

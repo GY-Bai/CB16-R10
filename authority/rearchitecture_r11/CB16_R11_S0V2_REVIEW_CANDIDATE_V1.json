@@ -1,0 +1,112 @@
+{
+  "schema": "CB16_R11_S0V2_REVIEW_CANDIDATE_V1",
+  "status": "PENDING_SHANXI_QUALIFICATION",
+  "stage_identity": "CB16_R11_S0V2_DURABLE_LEARNABILITY_FOUNDATION_R0",
+  "implementation_branch": "ai/r11-s0v2-durable-learnability-foundation-r0",
+  "baseline_manifest": {
+    "path": "authority/rearchitecture_r11/CB16_R11_S0V2_BASELINE_V1.json",
+    "scientific_code_baseline_sha": "392063881a6ef0dd1776ac579f1a290a134fc49e",
+    "task_document_handoff_sha": "134e9cc128a8cd664d9ae2539b06f78d994e064d"
+  },
+  "implementer_candidate_sha": "PENDING_COMMIT",
+  "candidate_record_commit_note": "runtime/test/workflow candidate identity is recorded once the implementation commit exists; later commits bind only CI run identities",
+  "changed_implementation_surfaces": [
+    "authority/rearchitecture_r11/CB16_R11_S0V2_BASELINE_V1.json",
+    "cb16_local_opt/post_cc_observation_fact_v1.py",
+    "cb16_local_opt/post_cc_observation_store_v1.py",
+    "cb16_local_opt/post_cc_durable_collection_v1.py",
+    "cb16_local_opt/post_cc_joint_replay_v1.py",
+    "cb16_local_opt/post_cc_replay_materializer_v1.py",
+    "cb16_local_opt/post_cc_joint_batch_v1.py",
+    "cb16_local_opt/post_cc_joint_policy_loss_v1.py",
+    "cb16_local_opt/post_cc_critic_vtrace_v1.py",
+    "cb16_local_opt/post_cc_update_transaction_v1.py",
+    "cb16_local_opt/post_cc_learner_v1.py",
+    "cb16_local_opt/post_cc_generation_continuity_v1.py",
+    "cb16_local_opt/post_cc_s0v2_qualification_v1.py",
+    "cb16_local_opt/post_cc_s0v2_synthetic_fixture_v1.py",
+    "scripts/run_r11_s0v2_foundation_qualification.py",
+    ".github/workflows/cb16-r11-s0v2-foundation-qualification.yml",
+    "tests/cc_s0v2_support.py",
+    "tests/test_post_cc_s0v2_observation_fact_v1.py",
+    "tests/test_post_cc_s0v2_observation_store_v1.py",
+    "tests/test_post_cc_s0v2_durable_collection_v1.py",
+    "tests/test_post_cc_s0v2_joint_batch_v1.py",
+    "tests/test_post_cc_s0v2_joint_policy_loss_v1.py",
+    "tests/test_post_cc_s0v2_critic_vtrace_v1.py",
+    "tests/test_post_cc_s0v2_learner_v1.py",
+    "tests/test_post_cc_s0v2_generation_continuity_v1.py"
+  ],
+  "frozen_surfaces_untouched": [
+    "authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_CC_THREAD_C_RECEIPT_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_POST_CC_S0_BASELINE_V1.json",
+    "authority/rearchitecture_r11/CB16_R11_POST_CC_S0_SPEC_V1.json"
+  ],
+  "implementation_summary": {
+    "durable_observation_fact": "PostCCObservationFactV1 codec and canonical Brain observation builder",
+    "immutable_observation_store": "content-addressed SQLite-indexed durable store with conflict/corruption fail-closed",
+    "durable_collection_binding": "observation persisted before transition linkage; no-decision advances raw-only",
+    "durable_joint_replay": "transition/sequence records preserving nominal action and decision-time log_mu",
+    "replay_materializer": "restart reconstruction from durable stores only",
+    "joint_batch": "canonical tensors plus fail-closed nominal-action, time-order, provenance and boundary validation",
+    "joint_likelihood": "vectorized target joint log_pi matched against frozen scalar contract",
+    "critic_bootstrap_vtrace": "explicit terminal/truncation boundary classes with separate Critic and V-trace path",
+    "learner": "durable-replay-only target update with frozen market organ and authorized path gradient ownership",
+    "exactly_once": "PREPARED/STAGED/COMMITTED journal with hostile interruption recovery",
+    "generation_switch": "committed child checkpoint bound at authorized boundary with same logical account continuation"
+  },
+  "local_development_result": {
+    "status": "PASS",
+    "note": "local CPU development evidence only; not a substitute for Shanxi Docker qualification",
+    "s0v2_focused_tests_collected": 60,
+    "s0v2_plus_regression_tests_collected": 107,
+    "s0v2_plus_regression_tests_passed": 107,
+    "s0v2_foundation_runner": "PASS"
+  },
+  "shanxi_evidence": {
+    "workflow_path": ".github/workflows/cb16-r11-s0v2-foundation-qualification.yml",
+    "workflow_run_id": null,
+    "run_attempt": null,
+    "job_id": null,
+    "runner": null,
+    "actual_checkout_sha": null,
+    "checkout_tree_sha": null,
+    "artifact_id": null,
+    "artifact_name": "cb16-r11-s0v2-foundation-qualification",
+    "artifact_sha256": null,
+    "status": "PENDING"
+  },
+  "compiled_gates": [
+    "S0V2_BASELINE_IDENTITY_PASS",
+    "S0V2_HISTORICAL_RECEIPT_IMMUTABILITY_PASS",
+    "S0V2_OBSERVATION_FACT_INTEGRITY_PASS",
+    "S0V2_OBSERVATION_STORE_RESTART_PASS",
+    "S0V2_OBSERVATION_RUNTIME_LINKAGE_PASS",
+    "S0V2_DURABLE_REPLAY_RECONSTRUCTION_PASS",
+    "S0V2_JOINT_BATCH_INVARIANTS_PASS",
+    "S0V2_NOMINAL_ACTION_LIKELIHOOD_PASS",
+    "S0V2_TRUE_LOG_MU_INTEGRITY_PASS",
+    "S0V2_CRITIC_BOOTSTRAP_VTRACE_PASS",
+    "S0V2_GRADIENT_OWNERSHIP_PASS",
+    "S0V2_EXACTLY_ONCE_UPDATE_RECOVERY_PASS",
+    "S0V2_CHILD_CHECKPOINT_IMMUTABILITY_PASS",
+    "S0V2_SAME_ACCOUNT_GENERATION_CONTINUITY_PASS",
+    "S0V2_FINAL_FRESH_FIREWALL_PASS",
+    "S0V2_LEGACY_PERFORMANCE_FIREWALL_PASS"
+  ],
+  "firewall": {
+    "FINAL_opened": false,
+    "fresh_data_used": false,
+    "ECONOMIC_evidence_claimed": false,
+    "TRANSFER_evidence_claimed": false,
+    "end_to_end_learnability_claimed": false
+  },
+  "strongest_evidence_requested": "POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED",
+  "unresolved_issues": [
+    "Independent Sol review of the actual diff, formulas, comparisons, masks, boundaries and exact-SHA Shanxi evidence is required.",
+    "No merge to main and no successor S1 work has been performed."
+  ],
+  "terminal_state": "PENDING_SHANXI_QUALIFICATION"
+}
