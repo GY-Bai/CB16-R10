@@ -61,7 +61,7 @@ class WritePathInventoryV1Tests(unittest.TestCase):
             "/cb16/fast_hot/r4/x/scratch/run/replay/material.json": "replay_materialization",
             "/cb16/fast_hot/r4/x/scratch/run/updates/" + "a" * 64 + ".json": "update_journal",
             "/cb16/fast_hot/r4/x/scratch/run/updates/checkpoints/" + "b" * 64 + ".json": "checkpoint_store",
-            "/cb16/fast_hot/r4/x/output/generation_switch/receipt.json": "generation_continuity",
+            "/cb16/fast_hot/r4/x/scratch/run/updates/generation_switch_receipts/" + "b" * 64 + ".json": "generation_continuity",
             "/cb16/fast_hot/r4/x/output/provenance/index.json": "provenance",
             "/cb16/fast_hot/r4/x/output/artifacts/pack.json": "artifact_staging",
         }

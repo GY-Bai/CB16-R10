@@ -51,11 +51,40 @@ def _metrics_dir() -> Path:
 
 
 def classify_path(path: str) -> str:
-    """Map an absolute path to an R4 measured write-path surface."""
+    """Map an absolute path to an R4 measured write-path surface.
+
+    Scratch paths describe runtime writable surfaces; output paths describe
+    exported artifact staging. Generation-switch receipts are matched before
+    the generic update-journal rule.
+    """
     text = str(path)
-    if "checkpoints" in text or text.endswith("/checkpoints") or "checkpoint" in text:
+    if "/scratch/" in text:
+        if "generation_switch_receipts" in text:
+            return "generation_continuity"
+        if "checkpoints" in text:
+            return "checkpoint_store"
+        if "/updates/" in text:
+            return "update_journal"
+        if "observ" in text:
+            return "observation_store"
+        if "durable_sequences" in text or "replay" in text or "material" in text:
+            return "replay_materialization"
+        if "index.sqlite3" in text or text.endswith("-wal") or text.endswith("-shm") or "sqlite" in text:
+            return "sqlite_index"
+        if "durable_index" in text or "update_resolution" in text:
+            return "update_journal"
+        return "other"
+    if "generation_switch_receipts" in text:
+        return "generation_continuity"
+    if "provenance_staged" in text or "/output/provenance/" in text:
+        if "update_journal" in text or "/update_journals/" in text:
+            return "artifact_staging"
+        return "provenance"
+    if "/output/" in text or "checkpoints_staged" in text:
+        return "artifact_staging"
+    if "checkpoint" in text:
         return "checkpoint_store"
-    if "/updates/" in text or UPDATE_JOURNAL_RE.search(text):
+    if "/updates/" in text:
         return "update_journal"
     if "index.sqlite3" in text or text.endswith("-wal") or text.endswith("-shm") or "sqlite" in text:
         return "sqlite_index"
@@ -63,16 +92,8 @@ def classify_path(path: str) -> str:
         return "observation_store"
     if "material" in text or "replay" in text:
         return "replay_materialization"
-    if "generation" in text or "continuity" in text or "switch" in text:
-        return "generation_continuity"
     if "provenance" in text:
         return "provenance"
-    if "artifact" in text or "/output/" in text:
-        return "artifact_staging"
-    if "batch" in text:
-        return "joint_batch"
-    if "learner" in text or "critic" in text:
-        return "learner"
     return "other"
 
 

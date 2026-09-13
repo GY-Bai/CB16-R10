@@ -110,6 +110,7 @@ jobs:
             --json-out "$RUNNER_TEMP/R4_WRITE_PATH_INVENTORY.json"
 
       - name: Upload R4 write-path evidence
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: cb16-r21-rc2-r4-writepath-inventory
