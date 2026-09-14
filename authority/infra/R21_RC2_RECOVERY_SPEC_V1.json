@@ -1,0 +1,1039 @@
+{
+  "schema": "CB16_R21_RC2_RECOVERY_SPEC_V1",
+  "spec_version": "V1",
+  "status": "DS_PROPOSED_PENDING_SOL_REVIEW",
+  "authored_by_role": "DS_FLASH",
+  "review_owner_role": "SOL_REVIEWER",
+  "stage_identity": "CB16_R21_RC2_RECOVERY",
+  "source_authority": {
+    "architecture_research": "docs/infra/R21_RC2_INFRA_ARCHITECTURE_RESEARCH.md",
+    "execution_todo": "docs/infra/R21_RC2_INFRA_UPGRADE_TODO.md",
+    "task_audit_receipt": "docs/infra/R21_RC2_SOL_TASK_AUDIT_RECEIPT.md",
+    "live_runner_contract": "docs/infra/SHANXI_DOCKER_RUNNER_CONTRACT.md",
+    "live_runner_snapshot": "authority/infra/SHANXI_DOCKER_RUNNER_SNAPSHOT_V1.json",
+    "infra_engineering_debt": "docs/infra/INFRA_ENGINEERING_DEBT_TODO.md",
+    "qualification_constitution": "docs/qualification/QUALIFICATION_CONSTITUTION.md",
+    "verdict_primitive": "cb16_local_opt/scientific_qualification_contract_v1.py"
+  },
+  "scope": {
+    "purpose": "Restore the smallest independently qualified execution surface that removes the demonstrated blocker and lets the frozen S1 science run again.",
+    "direct_dependency_of": "frozen S1 CI-C",
+    "recovery_sequence": [
+      "R0",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8"
+    ],
+    "recovery_in_scope": [
+      "versioned runner contract",
+      "permission and shared-memory correction",
+      "SSD capacity inventory",
+      "bounded SSD FAST_HOT",
+      "real write-path instrumentation",
+      "accepted-runtime placement-only canary",
+      "conditional SQLite physical batching only if evidence requires it",
+      "persistence, restart and provenance qualification",
+      "Sol review and S1 CI-C reauthorization"
+    ],
+    "evolution_out_of_scope": [
+      "constrained OIDC infrastructure broker",
+      "separate privileged control identity",
+      "private Infra repository",
+      "broader automatic Docker/resource orchestration",
+      "Valkey Streams, NATS JetStream or RocksDB challengers",
+      "stronger host-level failure qualification",
+      "long-term ephemeral or JIT science runners"
+    ],
+    "host_mutation_authorized_by_this_spec": false,
+    "s1_science_change_authorized": false,
+    "storage_challenger_authorized": false,
+    "s1_relationship": {
+      "pr_102_state": "DRAFT_OR_EXECUTION_FROZEN_UNTIL_R8",
+      "s1_ci_c_allowed_after": "R8",
+      "recovery_may_not_change_s1_scientific_constants": true,
+      "recovery_evidence_is_not_s1_scientific_evidence": true
+    }
+  },
+  "frozen_scientific_identity": {
+    "rule": "The S1 scientific manifest and all scientific constants remain frozen throughout RC2-Recovery.",
+    "frozen_objects": [
+      "S1 seeds",
+      "S1 task definitions",
+      "S1 reward",
+      "S1 model and optimizer scientific settings",
+      "S1 budget",
+      "S1 evaluation",
+      "S1 gates"
+    ],
+    "changed_by_recovery": false,
+    "authority_note": "This spec references and preserves the existing S1 frozen authority; it does not restate, replace or override it."
+  },
+  "hard_invariants": [
+    {
+      "invariant_id": "HI-1",
+      "rule": "S1 manifest, seeds, tasks, reward, model, optimizer, scientific thresholds, budget and evaluation remain frozen."
+    },
+    {
+      "invariant_id": "HI-2",
+      "rule": "Infrastructure failure is never relabeled SCIENTIFIC_FAIL."
+    },
+    {
+      "invariant_id": "HI-3",
+      "rule": "Physical write batching must not change account order, replay visibility, learner-update count or order, checkpoint or generation timing, policy-version attribution or provenance."
+    },
+    {
+      "invariant_id": "HI-4",
+      "rule": "Message de-duplication is not proof of effective learner-update exactly-once."
+    },
+    {
+      "invariant_id": "HI-5",
+      "rule": "Storage-engine, writer-path or commit-protocol code changes create a new implementation identity and require fresh Sol review."
+    },
+    {
+      "invariant_id": "HI-6",
+      "rule": "Runtime evidence must come from GitHub Actions -> Shanxi Docker -> durable evidence -> Sol review."
+    }
+  ],
+  "exactly_once_obligations": [
+    "logical event committed exactly once",
+    "experience becomes replay-visible at the frozen semantic point",
+    "learner update becomes effective exactly once",
+    "parent-to-child checkpoint transition is unique",
+    "child generation adoption is unique",
+    "required proof remains reconstructable"
+  ],
+  "performance_targets": {
+    "target_set_id": "PERF-RC2-V1",
+    "frozen_before_storage_benchmarking": true,
+    "classification": "ENGINEERING_TARGETS_NOT_SCIENTIFIC_GATES",
+    "targets": [
+      {
+        "metric_id": "FULL_S1_CI_C_WALL_TIME",
+        "constraint": "<=",
+        "value": 240,
+        "unit": "minutes",
+        "scope": "full frozen S1 CI-C target wall time",
+        "note": "The existing 360-minute workflow timeout remains only the hard ceiling."
+      },
+      {
+        "metric_id": "EIGHT_WORKER_STEADY_STATE_BACKLOG_GROWTH",
+        "constraint": "NO_SUSTAINED_POSITIVE_GROWTH",
+        "value": true,
+        "unit": "boolean",
+        "scope": "8-worker production-shaped canary over the final 25 percent of steady state",
+        "note": "No sustained positive durable-write backlog growth is allowed."
+      },
+      {
+        "metric_id": "POST_PRODUCER_BACKLOG_DRAIN_TIME",
+        "constraint": "<=",
+        "value": 60,
+        "unit": "seconds",
+        "scope": "after producers stop",
+        "target_backlog": "less than or equal to one configured physical batch"
+      },
+      {
+        "metric_id": "HOT_DURABLE_BOUNDARY_LATENCY_P50",
+        "constraint": "<=",
+        "value": 50,
+        "unit": "milliseconds"
+      },
+      {
+        "metric_id": "HOT_DURABLE_BOUNDARY_LATENCY_P99",
+        "constraint": "<=",
+        "value": 250,
+        "unit": "milliseconds"
+      },
+      {
+        "metric_id": "PROCESS_LEVEL_RECOVERY_TIME",
+        "constraint": "<=",
+        "value": 60,
+        "unit": "seconds"
+      },
+      {
+        "metric_id": "CONTAINER_LEVEL_RECOVERY_TIME",
+        "constraint": "<=",
+        "value": 180,
+        "unit": "seconds"
+      },
+      {
+        "metric_id": "FAST_HOT_NON_ROTATIONAL_PLACEMENT",
+        "constraint": "MUST_HOLD",
+        "value": true,
+        "unit": "boolean",
+        "scope": "every FAST_HOT surface",
+        "failure_verdict": "CONTRACT_MISMATCH",
+        "note": "Fallback to HDD is a contract failure."
+      },
+      {
+        "metric_id": "ACKNOWLEDGED_LOGICAL_EVENT_LOSSES",
+        "constraint": "==",
+        "value": 0,
+        "unit": "events"
+      },
+      {
+        "metric_id": "DUPLICATE_EFFECTIVE_LEARNER_UPDATES",
+        "constraint": "==",
+        "value": 0,
+        "unit": "updates"
+      },
+      {
+        "metric_id": "CHECKPOINT_PROVENANCE_EQUIVALENCE",
+        "constraint": "REQUIRED",
+        "value": true,
+        "unit": "boolean",
+        "scope": "required checkpoint and provenance equivalence for the tested fault class"
+      }
+    ],
+    "unmeasurable_metric_verdict": "EVIDENCE_INSUFFICIENT"
+  },
+  "fault_classes": {
+    "taxonomy": [
+      {
+        "fault_class": "PROCESS_CRASH",
+        "scope": "process-level restart, replay and idempotence",
+        "recovery_pass_claim_allowed_by_default": true,
+        "requires_host_capable_executor": false,
+        "separate_operational_authorization_required": false
+      },
+      {
+        "fault_class": "CONTAINER_RESTART",
+        "scope": "container lifecycle plus persisted-storage recovery",
+        "recovery_pass_claim_allowed_by_default": true,
+        "requires_host_capable_executor": true,
+        "separate_operational_authorization_required": false
+      },
+      {
+        "fault_class": "HOST_REBOOT",
+        "scope": "controlled host-reboot recovery",
+        "recovery_pass_claim_allowed_by_default": false,
+        "requires_host_capable_executor": true,
+        "separate_operational_authorization_required": true
+      },
+      {
+        "fault_class": "POWER_LOSS",
+        "scope": "abrupt power-loss durability",
+        "recovery_pass_claim_allowed_by_default": false,
+        "requires_host_capable_executor": true,
+        "separate_operational_authorization_required": true
+      }
+    ],
+    "recovery_default_testable_classes": [
+      "PROCESS_CRASH",
+      "CONTAINER_RESTART"
+    ],
+    "stronger_classes_not_implied_by_default": [
+      "HOST_REBOOT",
+      "POWER_LOSS"
+    ],
+    "promotion_rule": "A PASS for one fault class must not be promoted to a stronger untested class."
+  },
+  "identity_rules": {
+    "scientific_identity_frozen": {
+      "rule": "The S1 scientific manifest is the frozen scientific identity and is unchanged by Recovery.",
+      "changed_by_recovery": false
+    },
+    "distinct_identity_fields": [
+      "scientific_manifest_sha256",
+      "implementation_sha",
+      "implementation_tree_sha",
+      "record_binding_head_sha",
+      "reviewed_implementation_sha",
+      "reviewed_implementation_tree_sha",
+      "qualification_checkout_sha",
+      "qualification_checkout_tree_sha",
+      "runner_profile_identity",
+      "fast_hot_storage_identity",
+      "artifact_bundle_identity",
+      "merged_sha"
+    ],
+    "execution_surface_changes_preserving_runtime_code_identity": [
+      "mount placement",
+      "shared-memory sizing",
+      "resource profile",
+      "runner profile"
+    ],
+    "new_implementation_identity_triggers": [
+      "storage-engine replacement",
+      "commit-protocol rewrite",
+      "SQLite batch-writer rewrite",
+      "replay-visibility code change"
+    ],
+    "inheritance_rule": {
+      "runtime_code_acceptance_inherited_when": "R6 was skipped and the accepted S1 runtime code and tree are unchanged",
+      "runtime_code_acceptance_not_inherited_when": "R6 changes runtime code or any new implementation identity trigger is present",
+      "scientific_manifest_remains_frozen_in_all_cases": true
+    }
+  },
+  "verdict_taxonomy": {
+    "allowed_verdicts": [
+      "PASS",
+      "SCIENTIFIC_FAIL",
+      "CONTRACT_MISMATCH",
+      "EXECUTION_BLOCKED",
+      "HARDWARE_LIMIT",
+      "EVIDENCE_INSUFFICIENT"
+    ],
+    "source_primitive": "cb16_local_opt/scientific_qualification_contract_v1.py:ALLOWED_VERDICTS_V1",
+    "no_partial_pass": true,
+    "classification_rules": [
+      {
+        "verdict": "PASS",
+        "rule": "Only when the execution, identity, provenance and evidence contract is complete and all applicable frozen gates pass."
+      },
+      {
+        "verdict": "SCIENTIFIC_FAIL",
+        "rule": "Only when the execution and evidence contract is valid and the frozen scientific criterion fails. Infrastructure or execution failure must never be relabeled SCIENTIFIC_FAIL."
+      },
+      {
+        "verdict": "CONTRACT_MISMATCH",
+        "rule": "Identity, authorization, profile, storage-placement, provenance or contract mismatch; fail closed."
+      },
+      {
+        "verdict": "EXECUTION_BLOCKED",
+        "rule": "Authorized execution surface, host session or external dependency is unavailable."
+      },
+      {
+        "verdict": "HARDWARE_LIMIT",
+        "rule": "Hardware capability or capacity prevents execution or qualification."
+      },
+      {
+        "verdict": "EVIDENCE_INSUFFICIENT",
+        "rule": "A required metric, artifact or proof could not be measured or retained; this is not PASS."
+      }
+    ],
+    "precedence_rule": "Contract-invalid conditions must not be downgraded into SCIENTIFIC_FAIL."
+  },
+  "required_receipts_and_artifacts": {
+    "common_receipt_fields": [
+      "task_id",
+      "producer_role",
+      "authority_version",
+      "branch",
+      "head_sha",
+      "tree_sha",
+      "checkout_sha",
+      "host_session_used",
+      "host_session_mode",
+      "host_changes_applied",
+      "github_actions_run_id",
+      "github_actions_job_id",
+      "artifact_ids",
+      "tests",
+      "verdict",
+      "implementation_identity_impact",
+      "scientific_constants_changed",
+      "unresolved_items"
+    ],
+    "rules": [
+      "A task receipt must bind the exact head SHA and tree SHA it reports.",
+      "Any host change requires a versioned before/after machine-readable receipt produced by the authorized executor.",
+      "GitHub Actions runtime evidence must bind the exact checkout SHA and tree; ancestor CI does not validate descendant code.",
+      "Host observations alone are not runtime qualification evidence.",
+      "Missing mandatory receipt or proof yields EVIDENCE_INSUFFICIENT or CONTRACT_MISMATCH according to the gate, never PASS.",
+      "scientific_constants_changed must be false for every Recovery task."
+    ],
+    "per_task_required_artifact_ids": {
+      "R0": [
+        "R21_RC2_RECOVERY_SPEC_V1"
+      ],
+      "R1": [
+        "R1_RUNNER_DEFINITION_V1",
+        "R1_LAUNCH_PROFILE_V1",
+        "R1_RUNNER_IMAGE_IDENTITY_V1",
+        "R1_SANITIZED_SNAPSHOT_GENERATOR_V1",
+        "R1_REPRODUCTION_GATE_RECEIPT_V1"
+      ],
+      "R2": [
+        "R2_SSD_CAPACITY_INVENTORY_V1",
+        "R2_PROTECTED_KEEP_LIST_V1",
+        "R2_RECLAIM_CANDIDATES_V1",
+        "R2_FAST_HOT_PROVISION_PROPOSAL_V1",
+        "R2_OWNER_APPROVAL_V1"
+      ],
+      "R3": [
+        "R3_TASK_LOCAL_CHANGE_PLAN_V1",
+        "R3_PRE_CHANGE_SNAPSHOT_V1",
+        "R3_POST_CHANGE_HOST_RECEIPT_V1",
+        "R3_RUNNER_PROFILE_IDENTITY_V1",
+        "R3_SHANXI_PREFLIGHT_GATE_V1",
+        "R3_ROLLBACK_REFERENCE_V1"
+      ],
+      "R4": [
+        "R4_WRITE_PATH_INVENTORY_V1",
+        "R4_DEVICE_TELEMETRY_V1",
+        "R4_MEASUREMENT_ENVIRONMENT_IDENTITY_V1"
+      ],
+      "R5": [
+        "R5_PLACEMENT_CANARY_IDENTITY_V1",
+        "R5_SEMANTIC_PROVENANCE_EQUIVALENCE_V1",
+        "R5_PERF_RC2_V1_RESULTS_V1",
+        "R5_FAST_HOT_DEVICE_PROOF_V1",
+        "R5_BACKLOG_EVIDENCE_V1",
+        "R5_FAILURE_ARTIFACT_INDEX_V1"
+      ],
+      "R6": [
+        "R6_NEW_IMPLEMENTATION_CANDIDATE_V1",
+        "R6_EQUIVALENCE_SUITE_V1",
+        "R6_EXACT_SHA_CI_EVIDENCE_V1",
+        "R6_SOL_IMPLEMENTATION_REVIEW_V1"
+      ],
+      "R7": [
+        "R7_PROCESS_RECOVERY_RECEIPT_V1",
+        "R7_CONTAINER_RECOVERY_RECEIPT_V1",
+        "R7_ARTIFACT_ONLY_PROVENANCE_RECEIPT_V1",
+        "R7_HOSTILE_CORRUPTION_RECEIPT_V1",
+        "R7_FAILURE_EVIDENCE_INDEX_V1"
+      ],
+      "R8": [
+        "R8_SOL_REVIEW_RECORD_V1",
+        "R8_S1_CI_C_REAUTHORIZATION_V1"
+      ]
+    }
+  },
+  "artifact_registry": {
+    "R21_RC2_RECOVERY_SPEC_V1": {
+      "task_id": "R0",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Machine-readable Recovery contract covering task registry, PERF-RC2-V1, fault classes, identity rules, required receipts/artifacts and verdict taxonomy.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R1_RUNNER_DEFINITION_V1": {
+      "task_id": "R1",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Versioned runner image/build definition and uid/gid ownership contract.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R1_LAUNCH_PROFILE_V1": {
+      "task_id": "R1",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Versioned launch/profile definition including mount and storage-class declarations and shared-memory declaration.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R1_RUNNER_IMAGE_IDENTITY_V1": {
+      "task_id": "R1",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Exact runner/image identity bound to the versioned definition.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R1_SANITIZED_SNAPSHOT_GENERATOR_V1": {
+      "task_id": "R1",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Read-only sanitized snapshot generator that does not read secret values.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R1_REPRODUCTION_GATE_RECEIPT_V1": {
+      "task_id": "R1",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Evidence that a disposable or recovery runner created from repo definitions reproduces the declared contract and passes Shanxi preflight.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R2_SSD_CAPACITY_INVENTORY_V1": {
+      "task_id": "R2",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Machine-readable SSD total, used and free capacity inventory collected under read-only host authorization.",
+      "consumer": "OWNER_AND_SOL_REVIEWER"
+    },
+    "R2_PROTECTED_KEEP_LIST_V1": {
+      "task_id": "R2",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Protected and keep list with explicit rationale.",
+      "consumer": "OWNER_AND_SOL_REVIEWER"
+    },
+    "R2_RECLAIM_CANDIDATES_V1": {
+      "task_id": "R2",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Reclaim candidates and sizes; no cleanup is authorized by this artifact.",
+      "consumer": "OWNER_AND_SOL_REVIEWER"
+    },
+    "R2_FAST_HOT_PROVISION_PROPOSAL_V1": {
+      "task_id": "R2",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Proposed FAST_HOT quota, required free-space reserve and expected before/after capacity.",
+      "consumer": "OWNER_AND_SOL_REVIEWER"
+    },
+    "R2_OWNER_APPROVAL_V1": {
+      "task_id": "R2",
+      "producer": "OWNER",
+      "required": true,
+      "content": "Owner approval of the concrete capacity and provision plan; required before R3.",
+      "consumer": "DS_FLASH_AND_SOL_REVIEWER"
+    },
+    "R3_TASK_LOCAL_CHANGE_PLAN_V1": {
+      "task_id": "R3",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Exact intended host and container changes, target components, rollback path and out-of-scope statement before execution.",
+      "consumer": "OWNER_AND_SOL_REVIEWER"
+    },
+    "R3_PRE_CHANGE_SNAPSHOT_V1": {
+      "task_id": "R3",
+      "producer": "AUTHORIZED_HOST_EXECUTOR",
+      "required": true,
+      "content": "Versioned sanitized before-change snapshot of the affected host and container configuration.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R3_POST_CHANGE_HOST_RECEIPT_V1": {
+      "task_id": "R3",
+      "producer": "AUTHORIZED_HOST_EXECUTOR",
+      "required": true,
+      "content": "Versioned after-change receipt binding exact host/container operations to the approved plan.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R3_RUNNER_PROFILE_IDENTITY_V1": {
+      "task_id": "R3",
+      "producer": "R21_RECOVERY_RUNNER",
+      "required": true,
+      "content": "Exact repo-defined image/profile identity, dedicated R21 runner identity and label, FAST_HOT mount and 2 GiB shared-memory identity.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R3_SHANXI_PREFLIGHT_GATE_V1": {
+      "task_id": "R3",
+      "producer": "R21_RECOVERY_RUNNER",
+      "required": true,
+      "content": "GitHub Actions Shanxi evidence proving profile identity, write permissions, shared-memory size, non-rotational FAST_HOT placement and protected-input read-only status.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R3_ROLLBACK_REFERENCE_V1": {
+      "task_id": "R3",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Record that the current R11 runner remains available as rollback and reference.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R4_WRITE_PATH_INVENTORY_V1": {
+      "task_id": "R4",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Measured S1-shaped write paths covering replay, SQLite, update journal, checkpoints, generation-switch receipts, provenance and artifact staging.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R4_DEVICE_TELEMETRY_V1": {
+      "task_id": "R4",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Device telemetry artifact supporting the measured read/write and durability claims.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R4_MEASUREMENT_ENVIRONMENT_IDENTITY_V1": {
+      "task_id": "R4",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Exact runtime, profile, device and filesystem identity for the measurement environment.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R5_PLACEMENT_CANARY_IDENTITY_V1": {
+      "task_id": "R5",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Identity of the accepted S1 runtime, runner profile and FAST_HOT surface used by the placement-only canary.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R5_SEMANTIC_PROVENANCE_EQUIVALENCE_V1": {
+      "task_id": "R5",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Semantic and provenance equivalence result against the accepted bounded canary.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R5_PERF_RC2_V1_RESULTS_V1": {
+      "task_id": "R5",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Applicable PERF-RC2-V1 metric results with explicit measured evidence.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R5_FAST_HOT_DEVICE_PROOF_V1": {
+      "task_id": "R5",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Machine evidence that every FAST_HOT surface resolves to non-rotational storage.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R5_BACKLOG_EVIDENCE_V1": {
+      "task_id": "R5",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Backlog over the final 25 percent of steady state and post-producer drain evidence.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R5_FAILURE_ARTIFACT_INDEX_V1": {
+      "task_id": "R5",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Retained failure artifacts and machine-readable index.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R6_NEW_IMPLEMENTATION_CANDIDATE_V1": {
+      "task_id": "R6",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "New exact-SHA implementation candidate for conditional SQLite physical batching.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R6_EQUIVALENCE_SUITE_V1": {
+      "task_id": "R6",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Event/order, replay-visibility, effective-update exactly-once, checkpoint/generation, policy-generation attribution, provenance reconstruction and retry/recovery idempotence equivalence suite.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R6_EXACT_SHA_CI_EVIDENCE_V1": {
+      "task_id": "R6",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "GitHub Actions to Shanxi Docker evidence bound to the new implementation SHA and tree.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R6_SOL_IMPLEMENTATION_REVIEW_V1": {
+      "task_id": "R6",
+      "producer": "SOL_REVIEWER",
+      "required": true,
+      "content": "Independent Sol implementation review before R7.",
+      "consumer": "DS_FLASH_AND_OWNER"
+    },
+    "R7_PROCESS_RECOVERY_RECEIPT_V1": {
+      "task_id": "R7",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Process-level restart, replay and idempotence recovery receipt under GitHub Actions.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R7_CONTAINER_RECOVERY_RECEIPT_V1": {
+      "task_id": "R7",
+      "producer": "AUTHORIZED_HOST_EXECUTOR",
+      "required": true,
+      "content": "Container-level recovery receipt produced through the task-limited authorized host restart boundary.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R7_ARTIFACT_ONLY_PROVENANCE_RECEIPT_V1": {
+      "task_id": "R7",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Artifact-only reconstruction and provenance verification receipt.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R7_HOSTILE_CORRUPTION_RECEIPT_V1": {
+      "task_id": "R7",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Hostile intermediate-link corruption result proving fail-closed behavior.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R7_FAILURE_EVIDENCE_INDEX_V1": {
+      "task_id": "R7",
+      "producer": "DS_FLASH",
+      "required": true,
+      "content": "Failure evidence retained and indexed for the tested fault class.",
+      "consumer": "SOL_REVIEWER"
+    },
+    "R8_SOL_REVIEW_RECORD_V1": {
+      "task_id": "R8",
+      "producer": "SOL_REVIEWER",
+      "required": true,
+      "content": "Sol review record of repo diff, runner/profile identity, host-change receipts, R4/R5 evidence, any R6 implementation, R7 evidence and frozen performance gates.",
+      "consumer": "OWNER"
+    },
+    "R8_S1_CI_C_REAUTHORIZATION_V1": {
+      "task_id": "R8",
+      "producer": "SOL_REVIEWER",
+      "required": true,
+      "content": "S1 CI-C reauthorization binding the accepted runtime identity to the qualified R21 execution surface.",
+      "consumer": "DS_FLASH_AND_OWNER"
+    }
+  },
+  "task_registry": [
+    {
+      "task_id": "R0",
+      "title": "Freeze Recovery authority, performance and fault contract",
+      "purpose": "Deliver a versioned machine-readable Recovery contract covering task registry, PERF-RC2-V1 targets, fault classes, scientific-versus-implementation identity rules, required receipts and artifacts, and verdict taxonomy.",
+      "suggested_branch": "ai/r21-rc2-r0-recovery-freeze",
+      "depends_on": [],
+      "blocking_gate_ids": [],
+      "github_actions_required": false,
+      "host_session": "NONE",
+      "host_container_change": false,
+      "host_session_authorization_required": false,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "No owner approval required for a repository-only contract freeze."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R21_RC2_RECOVERY_SPEC_V1"
+      ],
+      "gate": "Spec is machine-readable, self-consistent with R21 RC2 TODO V2 and accepted by Sol Reviewer before R1 starts.",
+      "scope_boundary": "No host session, no runtime code change, no workflow change and no S1 scientific change."
+    },
+    {
+      "task_id": "R1",
+      "title": "Version and reproduce current runner definition",
+      "purpose": "Version the runner image/build definition, launch/profile definition, uid/gid contract, mount and storage-class declarations, shared-memory declaration, runner/image identity and sanitized snapshot generator.",
+      "suggested_branch": "ai/r21-rc2-r1-runner-spec",
+      "depends_on": [
+        "R0"
+      ],
+      "blocking_gate_ids": [
+        "R1_SOL_ACCEPTANCE_OF_R0"
+      ],
+      "github_actions_required": true,
+      "host_session": "READ_ONLY",
+      "host_container_change": false,
+      "host_session_authorization_required": true,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "Read-only host session is explicitly required and must stay read-only; this is session authorization, not host-change owner approval."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R1_RUNNER_DEFINITION_V1",
+        "R1_LAUNCH_PROFILE_V1",
+        "R1_RUNNER_IMAGE_IDENTITY_V1",
+        "R1_SANITIZED_SNAPSHOT_GENERATOR_V1",
+        "R1_REPRODUCTION_GATE_RECEIPT_V1"
+      ],
+      "gate": "A disposable or recovery runner created from repo definitions reproduces the declared contract and passes Shanxi preflight; the live runner is not changed.",
+      "scope_boundary": "Read-only host inspection only; must not change the live runner."
+    },
+    {
+      "task_id": "R2",
+      "title": "SSD capacity, reserve, protected list and provision proposal",
+      "purpose": "Produce a machine-readable SSD capacity inventory, protected/keep list, reclaim candidates, proposed FAST_HOT quota, required free-space reserve and expected before/after capacity.",
+      "suggested_branch": "ai/r21-rc2-r2-ssd-plan",
+      "depends_on": [
+        "R1"
+      ],
+      "blocking_gate_ids": [],
+      "github_actions_required": false,
+      "host_session": "READ_ONLY",
+      "host_container_change": false,
+      "host_session_authorization_required": true,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": true,
+        "note": "R3 is blocked until the owner approves the concrete R2 capacity and provision proposal."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R2_SSD_CAPACITY_INVENTORY_V1",
+        "R2_PROTECTED_KEEP_LIST_V1",
+        "R2_RECLAIM_CANDIDATES_V1",
+        "R2_FAST_HOT_PROVISION_PROPOSAL_V1",
+        "R2_OWNER_APPROVAL_V1"
+      ],
+      "gate": "Inventory and provision proposal are complete and an owner approval record exists before R3.",
+      "scope_boundary": "R2 does not authorize cleanup, formatting, repartitioning or any other host change."
+    },
+    {
+      "task_id": "R3",
+      "title": "Parallel Recovery runner plus FAST_HOT",
+      "purpose": "Provision a parallel R21 Recovery runner with approved SSD-backed FAST_HOT storage, correct runner write ownership, versioned 2 GiB shared memory, protected read-only inputs, dedicated runner identity and exact repo-defined image/profile identity.",
+      "suggested_branch": "ai/r21-rc2-r3-fast-hot-runner",
+      "depends_on": [
+        "R0",
+        "R1",
+        "R2"
+      ],
+      "blocking_gate_ids": [
+        "R2_OWNER_APPROVAL"
+      ],
+      "github_actions_required": true,
+      "host_session": "CHANGE_REQUIRED",
+      "host_container_change": true,
+      "host_session_authorization_required": true,
+      "owner_approval": {
+        "before_execution": true,
+        "before_dependent_change": false,
+        "note": "The owner must approve the exact task-local host and container changes before execution."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R3_TASK_LOCAL_CHANGE_PLAN_V1",
+        "R3_PRE_CHANGE_SNAPSHOT_V1",
+        "R3_POST_CHANGE_HOST_RECEIPT_V1",
+        "R3_RUNNER_PROFILE_IDENTITY_V1",
+        "R3_SHANXI_PREFLIGHT_GATE_V1",
+        "R3_ROLLBACK_REFERENCE_V1"
+      ],
+      "gate": "GitHub Actions on the new R21 runner proves profile identity, write permissions, 2 GiB shared-memory size, non-rotational FAST_HOT placement and protected-input read-only status.",
+      "scope_boundary": "Only the parallel R21 Recovery runner and its named components; retain the current R11 runner as rollback and reference; unrelated host services and storage are out of scope."
+    },
+    {
+      "task_id": "R4",
+      "title": "Measure actual S1-shaped write path",
+      "purpose": "Instrument one bounded S1-shaped run and produce measured per-surface write-path facts.",
+      "suggested_branch": "ai/r21-rc2-r4-writepath-inventory",
+      "depends_on": [
+        "R3"
+      ],
+      "blocking_gate_ids": [],
+      "github_actions_required": true,
+      "host_session": "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED",
+      "host_container_change": false,
+      "host_session_authorization_required": true,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "A read-only host session is allowed only when device telemetry cannot be collected from the runner."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R4_WRITE_PATH_INVENTORY_V1",
+        "R4_DEVICE_TELEMETRY_V1",
+        "R4_MEASUREMENT_ENVIRONMENT_IDENTITY_V1"
+      ],
+      "measurement_fields": [
+        "surface",
+        "bytes_per_update",
+        "writes_per_update",
+        "durable_sync_frequency",
+        "random_versus_sequential",
+        "sqlite_transaction_or_lock_wait_where_measurable",
+        "wal_or_checkpoint_activity",
+        "physical_device",
+        "consumer",
+        "durability_requirement"
+      ],
+      "gate": "R5 and R6 decisions cite measured surfaces rather than assumptions; required fields are present or the result is EVIDENCE_INSUFFICIENT.",
+      "scope_boundary": "No host change and no science-semantic change."
+    },
+    {
+      "task_id": "R5",
+      "title": "Placement-only accepted-runtime canary",
+      "purpose": "Run the already accepted S1 runtime unchanged on the qualified R21 Recovery execution surface and decide whether R6 is needed.",
+      "suggested_branch": "ai/r21-rc2-r5-placement-canary",
+      "depends_on": [
+        "R4"
+      ],
+      "blocking_gate_ids": [],
+      "github_actions_required": true,
+      "host_session": "READ_ONLY_IF_HOST_TELEMETRY_REQUIRED",
+      "host_container_change": false,
+      "host_session_authorization_required": true,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "Read-only host telemetry is allowed only if needed; no host change."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R5_PLACEMENT_CANARY_IDENTITY_V1",
+        "R5_SEMANTIC_PROVENANCE_EQUIVALENCE_V1",
+        "R5_PERF_RC2_V1_RESULTS_V1",
+        "R5_FAST_HOT_DEVICE_PROOF_V1",
+        "R5_BACKLOG_EVIDENCE_V1",
+        "R5_FAILURE_ARTIFACT_INDEX_V1"
+      ],
+      "gate": "Semantic and provenance equivalence pass, applicable PERF-RC2-V1 targets hold, every FAST_HOT surface is non-rotational, there is no sustained backlog growth and failure artifacts are retained.",
+      "decision_rule": [
+        "If R5 meets all targets with headroom, skip R6 and proceed to R7.",
+        "If R5 is correct but misses a target, Sol reviews R4 and R5 before opening R6 or an alternate targeted task."
+      ],
+      "scope_boundary": "Accepted S1 runtime code remains unchanged; only placement and execution-surface configuration may differ."
+    },
+    {
+      "task_id": "R6",
+      "title": "Conditional SQLite physical batching",
+      "purpose": "If and only if measured evidence identifies SQLite transaction or durability frequency as a material bottleneck, implement bounded physical batching without changing semantic batching.",
+      "suggested_branch": "ai/r21-rc2-r6-sqlite-batch-r0",
+      "depends_on": [
+        "R5"
+      ],
+      "blocking_gate_ids": [
+        "R5_TARGET_MISS_SOL_REVIEW"
+      ],
+      "closed_by_default": true,
+      "open_trigger": "R4 or R5 measured evidence shows SQLite transaction or durability frequency remains a material bottleneck; Sol explicitly opens R6.",
+      "github_actions_required": true,
+      "host_session": "NONE_NORMALLY",
+      "host_container_change": false,
+      "host_session_authorization_required": false,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "Sol authority gates task opening; no blanket owner approval is implied."
+      },
+      "new_runtime_implementation_identity": true,
+      "required_artifact_ids": [
+        "R6_NEW_IMPLEMENTATION_CANDIDATE_V1",
+        "R6_EQUIVALENCE_SUITE_V1",
+        "R6_EXACT_SHA_CI_EVIDENCE_V1",
+        "R6_SOL_IMPLEMENTATION_REVIEW_V1"
+      ],
+      "equivalence_obligations": [
+        "event and order equivalence",
+        "replay-visibility timing equivalence",
+        "exactly one effective learner update at every frozen update boundary",
+        "checkpoint and generation equivalence",
+        "policy-generation attribution equivalence",
+        "provenance reconstruction equivalence",
+        "retry and recovery idempotence"
+      ],
+      "gate": "New exact-SHA implementation candidate is independently reviewed and accepted by Sol Reviewer before R7.",
+      "scope_boundary": "Physical write batching must not be treated as semantic event batching or learner-update batching."
+    },
+    {
+      "task_id": "R7",
+      "title": "Recovery, restart and provenance qualification",
+      "purpose": "Qualify only the failure classes actually tested, including process-level and task-limited container-level recovery, effective-update exactly-once and artifact-only provenance reconstruction.",
+      "suggested_branch": "ai/r21-rc2-r7-recovery-qualification",
+      "depends_on": [
+        "R5"
+      ],
+      "conditional_dependency": "R6 if R6 is opened",
+      "blocking_gate_ids": [
+        "R6_SOL_ACCEPTANCE",
+        "R7_HOST_AUTHORIZATION"
+      ],
+      "github_actions_required": true,
+      "host_session": "TASK_LIMITED_CHANGE_ONLY_FOR_CONTAINER_LEVEL_RECOVERY",
+      "host_container_change": true,
+      "host_session_authorization_required": true,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "Only the R21 Recovery components named in the task-local plan are in scope for the external container restart boundary; task-limited host authorization is required."
+      },
+      "new_runtime_implementation_identity": "DEPENDS_ON_R6",
+      "testable_fault_classes": [
+        "PROCESS_CRASH",
+        "CONTAINER_RESTART"
+      ],
+      "not_claimed_without_separate_authorization": [
+        "HOST_REBOOT",
+        "POWER_LOSS"
+      ],
+      "required_artifact_ids": [
+        "R7_PROCESS_RECOVERY_RECEIPT_V1",
+        "R7_CONTAINER_RECOVERY_RECEIPT_V1",
+        "R7_ARTIFACT_ONLY_PROVENANCE_RECEIPT_V1",
+        "R7_HOSTILE_CORRUPTION_RECEIPT_V1",
+        "R7_FAILURE_EVIDENCE_INDEX_V1"
+      ],
+      "gate": "Semantic equivalence, effective-update exactly-once, artifact-only provenance reconstruction, applicable performance and latency gates, storage and profile identity and failure-evidence retention all pass for the tested fault class.",
+      "scope_boundary": "A container-level PASS must not be promoted to HOST_REBOOT or POWER_LOSS."
+    },
+    {
+      "task_id": "R8",
+      "title": "Sol review and S1 CI-C reauthorization",
+      "purpose": "Independently review the Recovery evidence and bind the accepted or new runtime identity to the qualified R21 execution surface.",
+      "suggested_branch": "reviewer-owned",
+      "depends_on": [
+        "R7"
+      ],
+      "blocking_gate_ids": [],
+      "github_actions_required": false,
+      "host_session": "EVIDENCE_READ",
+      "host_container_change": false,
+      "host_session_authorization_required": false,
+      "owner_approval": {
+        "before_execution": false,
+        "before_dependent_change": false,
+        "note": "Reviewer-owned; DS does not self-certify or merge."
+      },
+      "new_runtime_implementation_identity": false,
+      "required_artifact_ids": [
+        "R8_SOL_REVIEW_RECORD_V1",
+        "R8_S1_CI_C_REAUTHORIZATION_V1"
+      ],
+      "gate": "Sol accepts the repo diff, runner/profile identity, host-change receipts, R4/R5 evidence, any R6 implementation, R7 evidence and frozen performance gates; only then may PR #102 leave execution-frozen state and formal S1 CI-C be dispatched again.",
+      "scope_boundary": "Sol review and authorization only; DS implementation remains frozen until reauthorization."
+    }
+  ],
+  "immediate_authorized_order": [
+    "R0",
+    "R1",
+    "R2"
+  ],
+  "blocking_gates": [
+    {
+      "gate_id": "R1_SOL_ACCEPTANCE_OF_R0",
+      "blocks": "R1",
+      "producer": "SOL_REVIEWER",
+      "condition": "R0 spec accepted as the Recovery contract."
+    },
+    {
+      "gate_id": "R2_OWNER_APPROVAL",
+      "blocks": "R3",
+      "producer": "OWNER",
+      "condition": "Owner approves the exact R2 SSD capacity and FAST_HOT provision proposal."
+    },
+    {
+      "gate_id": "R5_TARGET_MISS_SOL_REVIEW",
+      "blocks": "R6",
+      "producer": "SOL_REVIEWER",
+      "condition": "Sol explicitly opens R6 after reviewing measured R4/R5 evidence."
+    },
+    {
+      "gate_id": "R6_SOL_ACCEPTANCE",
+      "blocks": "R7",
+      "producer": "SOL_REVIEWER",
+      "condition": "New R6 implementation SHA and tree are accepted before R7 if R6 was opened."
+    },
+    {
+      "gate_id": "R7_HOST_AUTHORIZATION",
+      "blocks": "R7_CONTAINER_LEVEL_RECOVERY",
+      "producer": "OWNER",
+      "condition": "Task-limited host change authorization exists for the named R21 Recovery component."
+    },
+    {
+      "gate_id": "R8_SOL_ACCEPTANCE_AND_REAUTHORIZATION",
+      "blocks": "S1_CI_C",
+      "producer": "SOL_REVIEWER",
+      "condition": "R8 review is accepted and S1 CI-C reauthorization is issued."
+    }
+  ],
+  "forbidden_shortcuts": [
+    "Do not lower the S1 scientific budget.",
+    "Do not reduce frozen S1 seeds.",
+    "Do not delete durable journal or provenance data.",
+    "Do not disable exactly-once persistence.",
+    "Do not weaken fsync or durability semantics.",
+    "Do not change S1 sampling, reward, thresholds, model or optimizer.",
+    "Do not declare success because a one-worker run eventually finishes.",
+    "Do not treat adding workers as a rescue for the HDD bottleneck.",
+    "Do not repeatedly launch the same formal campaign on the same spindle as useful evidence.",
+    "Do not perform host mutation before owner approval of the exact R2 proposal.",
+    "Do not implement Valkey, JetStream and RocksDB in parallel without an evidence trigger.",
+    "Do not self-certify Sol acceptance or merge.",
+    "Do not relabel infrastructure failure as SCIENTIFIC_FAIL.",
+    "Do not allow a hidden FAST_HOT fallback to HDD."
+  ],
+  "stop_conditions": [
+    "Any host action not explicitly authorized by the current task must stop as EXECUTION_BLOCKED.",
+    "A required metric that cannot be measured must be reported as EVIDENCE_INSUFFICIENT, not PASS.",
+    "Any identity, authorization, profile or provenance mismatch must fail closed as CONTRACT_MISMATCH.",
+    "If the execution and evidence contract is invalid, a science-gate failure must not be reported as SCIENTIFIC_FAIL.",
+    "R6 remains closed unless Sol opens it from measured evidence.",
+    "HOST_REBOOT and POWER_LOSS must not be claimed unless separately authorized and tested.",
+    "DS terminal state is READY_FOR_SOL_REVIEW; DS does not issue PASS, acceptance or merge."
+  ],
+  "evidence_rules": {
+    "github_actions_required_for_runtime_behavior": true,
+    "evidence_path": "GitHub Actions -> authorized Shanxi Docker execution surface -> durable artifacts/receipts -> Sol review",
+    "exact_checkout_binding_required": [
+      "head_sha",
+      "tree_sha"
+    ],
+    "ancestor_ci_cannot_validate_descendant_code": true,
+    "host_observations_are_not_runtime_qualification_evidence": true,
+    "host_changes_require_versioned_before_after_receipts": true,
+    "artifact_retention_required_for_failure_classes": true
+  }
+}
