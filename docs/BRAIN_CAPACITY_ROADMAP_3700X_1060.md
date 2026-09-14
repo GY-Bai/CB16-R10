@@ -1,5 +1,7 @@
 # Central Brain 容量发展规划：3700X / GTX 1060 6GB
 
+> 2026-09-14 用户后继决定：起步 CPU-only。本页的 GPU 显存与扩容估算仅用于未来规划，不授权当前扩大模型或引入 GPU。当前 S1 是合成小网络，不等于约 16K 产品 Brain；实际结构见 ARCHITECTURE_MAP。执行设备和落地规则见 [性能策略](PERFORMANCE_STRATEGY_3700X_1060.md)。
+
 日期：2026-09-12。性质：面向未来的容量评估与实验建议，不是模型晋升决定或新的训练 authority。**状态更新：CC R11 integration 已通过 PR #99 合入 `main`；本文后续容量实验必须以当前 integration receipt/spec 为运行 authority。本文本身仍不授权扩容、训练、FINAL 或 fresh data。**
 
 ## 1. 结论先行

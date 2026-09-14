@@ -2,19 +2,11 @@
 
 日期：2026-09-13。本文把用户已确认目标转成可审阅的行为要求；不替代运行 authority，也不因为实现完成而自动提升科学证据。
 
-**当前状态更新：** AC/BC/CC 四线程均已成为历史实施 provenance；CC R11 integration 已通过 PR #99 合入 `main`。当前实现/运行 authority 以 `CB16_R11_CC_INTEGRATION_SPEC_V1.json`、`CB16_R11_CC_INTEGRATION_RECEIPT_V1.json`、`CURRENT_STATE.md` 为准。
+当前进度只见 [CURRENT_STATE](CURRENT_STATE.md)；科学要求到实际组件的对应见 [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md)。本页保留 P-01..P-10 审阅规则，不复制旧 stage 的待实施状态。起步 CPU-only，按性能策略落实，科学目标不变。
 
 ## 1. 当前阅读与使用方式
 
-新 Agent 不再从 AC TODO 或 CC 四线程 TODO 作为“待实施清单”开始。推荐顺序：
-
-1. `CURRENT_STATE.md`
-2. `ROLES_AND_REVIEW_PROTOCOL.md` 与当前 `R11_POST_CC_S0_S1_TODO.md`
-3. 适用的 S0 receipt / S1 任务包，再读 `CC_INTEGRATION_HANDOFF.md` 和 integration spec / receipt
-4. 本页与 `COMPONENT_REQUIREMENTS.md`；TODO 作者另读 `S_SERIES_TODO_AUTHORING_PRINCIPLES.md`
-5. 再按具体新任务读取算法、历史 TODO、Stage-4、performance 或 capacity 文档。
-
-AC/BC/CC task numbering 现在主要用于历史追溯；未来新任务如需改变 science semantics，应创建新的版本化任务/authority，而不是在旧编号上静默改义。
+先读 VISION → ARCHITECTURE_MAP → CURRENT_STATE，再读角色与任务局部合同。AC/BC/CC、Stage-4 与早期算法 TODO 按历史追溯；不能从其旧“未完成”文字重新建造已接受功能。
 
 每项结论应标明身份：
 
@@ -92,11 +84,7 @@ CC 已在 synthetic known-answer canary 中接通 policy -> execution -> account
 | 经济能力改善 | 固定范围、共同期限、完整失败分母下的真实历史/市场政策比较 |
 | 未见时期可迁移 | 与所声称独立性匹配的证据，不重复计算已用于选择的时期 |
 
-当前最强证据是：
-
-`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`
-
-不得升级为 ECONOMIC 或 TRANSFER。
+CC、S0、S0-v2 分别提供合成闭环、经济契约迁移和 durable foundation 证据；S1 结果与最新状态见 CURRENT_STATE。没有一项自动升级为 ECONOMIC 或 TRANSFER。
 
 常规工程选择由执行 Agent 在已有授权内处理。只有改变用户目标、经济 master ranking 含义或未来部署权限的选择才提交 owner。O-01 已在本轮后续沙盒设计中关闭：两基准不设主次，完整算术收益排名与基准诊断、晋升证据分开；有证据的相对改善可以晋升沙盒冠军。见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md)。
 

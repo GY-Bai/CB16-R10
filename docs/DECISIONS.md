@@ -133,3 +133,9 @@ Astra 用文档向用户对齐，Sol 用 TODO 向文档对齐，DS Flash 用代�
 | CC integration receipt/spec | 当前 canonical CC authority |
 
 任何后续科学迁移仍需记录旧版本、替代版本、验证方式和证据上限；不得只因分支更新就自动抬高 scientific claim。
+
+## D-CPU-20260914 — 起步 CPU-only
+
+用户明确要求：“改成 cpu only，一开始不要太复杂。”当前恢复与 S1 的计算以 CPU 为起步配置，GPU 不作为必需依赖；Python/PyTorch、冻结科学常量和现有 durable 学习语义保持。CPU-only 不等于单 worker，也不授权重装、清盘或改写全部历史运行。
+
+Sol 在当前执行合同中落实 device/profile/检查范围，保留旧证据身份，按实际变更验证；本条不声称迁移已完成，不代签 CI-C。后续真实冻结器官先做 CPU 接入与资源验证，GPU 由明确后续选择再启用。规则正文见 [性能策略](PERFORMANCE_STRATEGY_3700X_1060.md)。

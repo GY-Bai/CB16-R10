@@ -2,6 +2,12 @@
 
 日期：2026-09-12。状态：**算法设计提案；已有部分接口实现，完整训练闭环未科学资格认定**。用户已批准保留成功与失败的完整经历、优胜示范另筛，并允许失败经历参与长期后果学习；同时要求继续设计具体训练算法。本次不修改运行代码或冻结 authority，不启动训练。
 
+## 当前使用说明（2026-09-14）
+
+本页保留早期算法推导，不是当前 S1 参数 authority。S0-v2 已实现 durable 联合动作 Actor–Critic/V-trace；S1 采用合成小网络、条件 logistic-normal 风险分布、FLAT 零点质量与 SGD。下文 Beta＋端点质量、Adam、128/8 batch 等为历史候选，不能覆盖冻结 S1。
+
+实际映射见 [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md)，执行断点见 CURRENT_STATE。起步 CPU-only；不将本页的旧接口缺口作为重新建设已接受 foundation 的理由。
+
 ## 1. 推荐选择
 
 主候选：**序列经验回放 Actor–Critic，使用 V-trace 处理行为策略差异**。PPO + GAE 作为近策略对照，SAO 作为价值学习及策略滞后处理的参考，不把三个算法叠成一个未经说明的新 loss。
@@ -16,23 +22,11 @@
 
 以上是针对 CB16 的选择判断，不是论文证明 V-trace 最适合交易。V-trace 的截断会带来偏差，对陈旧经验也不是万能校正。[IMPALA 原文 §4–5](https://arxiv.org/html/1802.01561)、[ACER 原文](https://arxiv.org/abs/1611.01224)、[PPO 原文](https://arxiv.org/abs/1707.06347)、[SAO 原文](https://arxiv.org/html/2607.07508v1)
 
-## 2. 开始训练前必须处理的能力边界
+## 2. 历史执行边界
 
-在文档基线 `951f1bdd5c63bb315500fa57e09f14fc555afa0f` 下：
+原基线 `951f1bdd5c63bb315500fa57e09f14fc555afa0f` 使用确定性动作和限制持仓后主动退出的旧链，这解释早期提案为何要求目标仓位、随机概率与自主退出。后继 CC 已形成新执行闭环；原代码与当时讨论从 Git 历史追溯，不再逐版本堆叠在当前算法入口。
 
-- [typed_central_brain_r10.py](../cb16_local_opt/typed_central_brain_r10.py)：`compose_action` 使用 argmax 方向和确定性 sigmoid risk。它没有这套算法所需的完整随机动作概率。
-- [risk_supervisor_r1.py](../authority/control_plane_r1/risk_supervisor_r1.py)：已有持仓时返回 `FORCED_NOOP`，理由含 `POSITION_ALREADY_OPEN`、`ENVIRONMENT_OWNS_EXIT`。
-- [冻结 engine](../authority/account_physics_r0/CB16_ACCOUNT_PHYSICS_STATE_V1_R0/runtime/v55/kernel/engine.py)：明确禁止策略主动改变持仓规模、平仓或反转。
-
-所以该旧运行链可以研究入场方向、入场风险请求及其后果，但不能声称已经让模型自主学习持仓后的主动减仓和退出。这个结构事实不等于解释了所有历史 scientific FAIL。
-
-**最初提出、后续新链已部分实现的执行接口设计**：方向与 risk 表示目标方向及目标风险暴露；FLAT 表示目标空仓；持仓期间允许调整暴露、退出和反转，实际执行仍受成交、保证金、数量精度和清算机制约束。risk 到数量的公式必须版本化，不能把旧 requested_risk_multiplier 偷换含义。
-
-状态更新（2026-09-12）：main `2da90a0b4577ad7d950641fe0a1bcd81f08d58e2` 已包含目标动作、持仓调整许可、先平后开反转契约及线性合法额度比例的目标数量映射。该快照尚无新 Physics adapter / 随机 Actor / learner，不能将接口实现视为闭环资格通过。旧链限制仍是历史事实，已不适合概括整个新实现。当前实现入口和证据见 [CURRENT_STATE](CURRENT_STATE.md)。
-
-提交前后续核对：`7c412ee264c463e8f9f28c707c02eccfa4ab055c` 已新增 AC-014 adapter，但仍委托旧内核处理 SL/TP 与 max-hold；具体实现范围及理念差异见 [CURRENT_STATE](CURRENT_STATE.md)。
-
-固定止盈止损、时间退出、最大回撤终止与市场强制清算需逐项分类。首轮若沿用旧执行规则，应标为受限动作环境资格实验，不能将其结果泛化为完整自主 Trader 的结果。
+新 canonical 行为按 COMPONENT_REQUIREMENTS 及阶段 authority 保持；旧链的限制不能被推广为所有后继实现仍然缺失。
 
 ## 3. 奖励：以账户真实净值变化为基础
 

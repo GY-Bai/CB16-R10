@@ -1,61 +1,53 @@
-# 当前状态与接手断点
+# 当前状态与唯一接手断点
 
-核对日期：2026-09-13 UTC。基于 `main@b19d3473a87fe36ec3394be53ad1cc6220f324c6`，另核对 PR #102 和 #104 的 live head。本文是当前状态的统一导航；冻结科学值、运行权限与结果仍由对应版本的 authority/review/receipt 约束。
+核对日期：2026-09-14 UTC；文档审阅基线 main `b88c152a007bb483be5ed0f4ad6371f13e317558`。这是时点记录；执行前重新核对相应 PR/review/receipt。旧 PR body 中的“待批准”或“READY”不能覆盖后继审核与合并事实。
 
-## 1. 当前阶段
+## 1. 当前目标与新设备决定
 
-| 阶段 | 核对状态 | 依据与下一步 |
+**完成 S1 受控端到端可学习性；当前直接依赖为 R21 RC2-Recovery。** 不重开已完成 CC/S0/S0-v2，不把 Evolution 或数据库四路竞争变成共同前置条件。
+
+用户于本轮明确：**起步 CPU-only，先降低复杂度。** Sol 应将该设备决定落实到当前执行 profile/相关检查，复用已验证依赖；不要仅为 CPU 执行重装整套工具链。尚未完成 CPU-only profile 验证，本页不代签授权。模型、种子、奖励、优化器、预算、阈值保持冻结；若设备迁移暴露数值/身份差异，报告并验证，不能改科学门槛救结果。详见 [性能策略](PERFORMANCE_STRATEGY_3700X_1060.md)。
+
+## 2. 已合入 main 与未合入工作
+
+| 对象 | 本次核对状态 | 证据范围 |
 |---|---|---|
-| CC integration | 已完成 | PR #99；canonical integration spec/receipt 保持历史身份 |
-| 历史 S0 contract migration | PASS / 冻结 | `CB16_R11_POST_CC_S0_RECEIPT_V1.json`；不重做 |
-| S0-v2 durable foundation | 已经 Sol 验收并合入 main | `CB16_R11_S0V2_RECEIPT_V1.json` 为 QUALIFIED，review_verdict=PASS；后继 S1 以接受后的 merge 为 parent |
-| S1 end-to-end learnability | PR #102 实现/审阅进行中，未合并 | 使用 post-S0-v2 的 R1 任务包和最新 PR review，不退回旧 r0 分支；正式资格必须满足其 Sol authorization |
-| 通用 qualification framework R0 | PR #104 候选，未合并 | 指定提交的 Shanxi CI 有效；Astra 要求修订基础校验与文档边界，仍待 Sol 独立审核 |
-| S2/S3 历史科学、S4 容量、S5 经济确认 | 后续路线 | 本轮导航维护与 PR #104 均不授权启动 |
+| CC / PR #99 | 已合入 | 合成闭环、已知答案和指定 Shanxi benchmark；不是市场经济证据 |
+| S0 | 已合入、PASS | 后继经济排序/双基准/晋升合同迁移；不再等待 baseline 主次决定 |
+| S0-v2 | 已合入、Sol R2 QUALIFIED | durable observation/replay、联合动作学习、恢复与换代基础；不等于 S1 |
+| 资格框架 / PR #104 | 已合入，merge `15f6a14efa09c3d72ace9f5f3e77d1d80c3f0129` | 公共 primitive；不自动证明阶段科学声明 |
+| S1 / PR #102 | Draft / execution frozen；未合入 | PR 记录 runtime 已接受，CI-A/B/D 证据保留；尚无有效完整 scientific verdict |
+| RC2 R0 / PR #106 | 已合入本次 main 基线 | Recovery 合同；不是 Recovery runtime PASS |
+| RC2 R1–R4 / PR #107–#110 | 本次仍 open | 作者产物/运行记录不自动等于 Sol 接受或 main 集成完成 |
+| S2–S5 | 后续科学路线 | 当前不启动历史训练、扩容或经济确认 |
 
-S0-v2 已闭合的 foundation 不应因旧 TODO 中的“待实现”重新建设。PR #102 的实现/复审状态不能自动写成 S1 scientific PASS；本次未全面审计其最新修复和正式资格记录。
+基础证据：[S0 receipt](../authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json)、[S0-v2 receipt](../authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json)、[S0-v2 Sol R2 review](reviews/S0V2_CODE_REVIEW_2026-09-13_R2.md)、[CC integration receipt](../authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json)。
 
-## 2. 已合格基础与不可改写的证据
+## 3. S1 的精确身份
 
-Canonical CC authority：
+- PR：[S1 #102](https://github.com/GY-Bai/CB16-R10/pull/102)，分支 `ai/r11-post-cc-s1-end-to-end-learnability-r1`。
+- PR 记录的 accepted runtime：`19c6b7ece5a5f76b048ed2946fa8fb1354765b63`。
+- 本次核对的 metadata/authorization head：`a974e2803ccc2693d67a0375e460da35837636a4`；历史授权不解除当前执行冻结。
+- 原 parent：S0-v2 accepted merge `fc80b472236e7a4df8094563f8adac826fc42231`。
+- [R1 TODO](https://github.com/GY-Bai/CB16-R10/blob/a974e2803ccc2693d67a0375e460da35837636a4/docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md)、[baseline](https://github.com/GY-Bai/CB16-R10/blob/a974e2803ccc2693d67a0375e460da35837636a4/authority/rearchitecture_r11/CB16_R11_POST_CC_S1_BASELINE_V1.json)、[runner](https://github.com/GY-Bai/CB16-R10/blob/a974e2803ccc2693d67a0375e460da35837636a4/scripts/run_r11_post_cc_s1_learnability.py)。
 
-- [integration spec](../authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_SPEC_V1.json)
-- [integration receipt](../authority/rearchitecture_r11/CB16_R11_CC_INTEGRATION_RECEIPT_V1.json)
+不要执行旧 r0 分支，也不要因 main 暂无 S1 runner 就重写它。main、S1 分支、RC2 叠层分支和已部署容器是不同身份，集成与资格由 Sol 显式绑定。
 
-CC evidence：`INTEGRATED_SYNTHETIC_CLOSED_LOOP_KNOWN_ANSWER_PLUS_SHANXI_PERFORMANCE`。
+## 4. RC2 恢复路径与实际断点
 
-历史 S0：[receipt](../authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json)。Qualified implementation 为 `5760061d6c274e9f8796e6608e86bb173018148f`，receipt-bearing head 为 `ec30185bf9b815f37d6dda99f6cd7ad6cad0c19f`；证据为 `POST_CC_CONTRACT_MIGRATION_QUALIFIED`。
+当前任务来源：[RC2 TODO](infra/R21_RC2_INFRA_UPGRADE_TODO.md)、[复用与测量规则](infra/R21_RC2_UPSTREAM_REUSE_AND_MEASUREMENT_RULES.md)、[Recovery spec](../authority/infra/R21_RC2_RECOVERY_SPEC_V1.json)。CPU-only 决定由 Sol 对设备相关执行合同作显式后继绑定，不改写历史 receipt。
 
-S0-v2：[receipt](../authority/rearchitecture_r11/CB16_R11_S0V2_RECEIPT_V1.json)、[Sol R2 review](reviews/S0V2_CODE_REVIEW_2026-09-13_R2.md)。接受后的合并基线为 `fc80b472236e7a4df8094563f8adac826fc42231`，已核对它是本次 main 的祖先。证据为 `POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`。它不等于 S1 可学习性或市场 ECONOMIC/TRANSFER。
+| 任务 / PR | 本次核对 head | 已提交内容 / 待确认 |
+|---|---|---|
+| R1 / [#107](https://github.com/GY-Bai/CB16-R10/pull/107) | `bd3153f6051337e7b19bf3ac10da651fd5357cd4` | runner 定义与只读检查；按实际 review 确认接受状态 |
+| R2 / [#108](https://github.com/GY-Bai/CB16-R10/pull/108) | `5afec101e9caf4746244c9c597fbe73699d01eeb` | SSD 方案；旧 body 的 owner-pending 必须结合 R3 后继 approval V2 读取，不重复询问旧选项 |
+| R3 / [#109](https://github.com/GY-Bai/CB16-R10/pull/109) | `c6c1d9cdab1a3c858e34ad2797294dde74073f76` | 作者报告新 runner、100 GB SSD hot 与 2 GiB shm；本次未独立重验宿主或代签接受 |
+| R4 / [#110](https://github.com/GY-Bai/CB16-R10/pull/110) | `59690ddde02061dfd69ecb8b0a521226af38c4ac` | 测量修订已交审；[run 34791392083](https://github.com/GY-Bai/CB16-R10/actions/runs/34791392083) success；不等于完整负载延迟/积压已合格 |
 
-历史科学合同与 receipt 不因本次导航更新改变。旧状态页内容仍可从 [更新前版本](https://github.com/GY-Bai/CB16-R10/blob/b19d3473a87fe36ec3394be53ad1cc6220f324c6/docs/CURRENT_STATE.md) 追溯；其中 S0-v2 ACTIVE 的状态描述已被本页纠正。
+下一步由 Sol 收拢现有审阅状态、绑定 CPU 执行配置，按既有门槛推进 R5 placement-only canary；只有 R4/R5 证明必要才开启 R6。之后 R7 验证适用恢复能力、R8 重新授权 S1 CI-C。文档精炼不跳过现有必要 gate，也不新增一轮通用框架建设。
 
-## 3. S1 的当前接手路径
+## 5. 接手只带这些材料
 
-当前 PR：[S1 / #102](https://github.com/GY-Bai/CB16-R10/pull/102)；分支 `ai/r11-post-cc-s1-end-to-end-learnability-r1`。本次观测 head：`d82381850891149a43c9562689ee10b38bc57d5c`。接手时重新核对 live head、最新 review、candidate 和相关 CI，不能只读可能过时的 PR body。
+先读 [VISION](VISION.md) → [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md) → 本页；再按 [角色协议](ROLES_AND_REVIEW_PROTOCOL.md) 读取当前任务、直接上游代码和适用合同。完整历史、旧失败与原始科学值按需追溯。
 
-以下是 **PR 分支中的精确版本链接**，尚未作为本次 main 新代码导入：
-
-- [post-S0-v2 base handoff](https://github.com/GY-Bai/CB16-R10/blob/d82381850891149a43c9562689ee10b38bc57d5c/docs/post_cc/S1_POST_S0V2_BASE_HANDOFF.md)
-- [S1 R1 implementation/qualification TODO](https://github.com/GY-Bai/CB16-R10/blob/d82381850891149a43c9562689ee10b38bc57d5c/docs/post_cc/S1_R1_IMPLEMENTATION_AND_QUALIFICATION_TODO.md)
-- [S1 baseline](https://github.com/GY-Bai/CB16-R10/blob/d82381850891149a43c9562689ee10b38bc57d5c/authority/rearchitecture_r11/CB16_R11_POST_CC_S1_BASELINE_V1.json)
-
-其中旧 S1 TODO 的任务/科学要求按适用合同继承，旧 working base 与“foundation 尚不存在”的文字由后继 handoff 覆盖。不能把本页当作另一次实验参数冻结，也不能据此回退至 `ec30185...` 或旧 r0 分支。
-
-S1 正式多 seed qualification 必须满足其 reviewer-owned `READY_FOR_S1_QUALIFICATION` authorization 和对应的代码/manifest 绑定。本轮 Astra 导航与 PR #104 审阅不代签该授权。
-
-## 4. PR #104 的位置
-
-[PR #104](https://github.com/GY-Bai/CB16-R10/pull/104) 当前观测 head：`4583c39738c8b901c53308598685492d1f069db2`。这是独立的 non-scientific infrastructure 候选。
-
-[Shanxi run 34770356260](https://github.com/GY-Bai/CB16-R10/actions/runs/34770356260) 在该提交完成 17 项测试，证据仅为 `NON_SCIENTIFIC_QUALIFICATION_INFRA_VALIDATION`。所查交付状态为 READY_FOR_SOL_REVIEW，未发现 Sol acceptance。
-
-[Astra 审阅](reviews/PR104_ASTRA_REVIEW_2026-09-13.md)：支持方向，当前提交暂不建议合并；null identity/reference 校验须修复，开工与资格条件及 primitive 证明边界须澄清，再由 Sol 审阅新代码与 CI。框架不自动接管 active S1。
-
-## 5. 协作和边界
-
-[角色协议](ROLES_AND_REVIEW_PROTOCOL.md)：用户审核 Astra 文档，Astra 审核 Sol TODO，Sol 审核 DS 代码。运行验证走 GitHub Actions → Shanxi Docker；临时沙盒静态准备不构成 runtime evidence。
-
-Account continuity、真实 nominal action/log_mu、signed economics/失败事实、冻结器官、算术期望目标、并列 B&H/FLAT 和 FINAL/fresh firewall 继续保持。新框架不能改变这些含义。
-
-文档如何分层见 [DOCUMENTATION_MAP](DOCUMENTATION_MAP.md)。本次只收敛导航与发布审阅，没有修改实现、冻结 authority/receipt，也没有启动业务测试或训练。
+本次是文档与方向对齐，未修改业务代码/历史 authority，未做宿主变更、未运行训练或代替 Sol 接受。CPU-only 已获用户方向授权，具体可执行状态仍需对应证据。

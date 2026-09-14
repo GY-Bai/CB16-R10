@@ -2,6 +2,8 @@
 
 日期：2026-09-12。状态：本轮理念澄清与后续沙盒训练设计决定。用户要求对基准优先级及下一科学阶段表态并落实；本文据其既有收益目标确定“相对改善可晋升沙盒冠军，双基准并列诊断”，不把该设计扩展为真实账户部署授权。本文不修改代码、immutable authority 或历史 receipt，不追认新的经济 PASS。
 
+**2026-09-14 状态澄清：** 下文保留决定的推导与原修补要求；对应 S0 迁移已由 [S0 receipt](../authority/rearchitecture_r11/CB16_R11_POST_CC_S0_RECEIPT_V1.json) 记录 PASS。当前实现为 `post_cc_economic_ordering_v1.py`、`post_cc_baseline_components_v1.py`、`post_cc_promotion_v1.py`；不再次执行旧迁移清单。
+
 ## 1. “master precedence”问题来自哪里
 
 最初追溯 main `ea9f3e0` 及集成分支 `5d236e9d2368a79e830bec1971b949de88c032df`；随后核实 CC 已通过 PR #99 合入 main。本轮发布基线为 `7d5fb8a860cd14fea2f6ea8c0b4b81cb24d12389`。
@@ -87,11 +89,11 @@ B&H/FLAT 目前是诊断参照。是否把它们作为可当选的执行策略�
 - 若没有现任，则先登记初始 checkpoint 作为比较起点；不能把它命名为经济合格冠军。
 - 沙盒冠军、达到双基准水平、经济证据充分、未来模拟账户/真实账户准入分别报告。本文不授权后两类账户的部署或新数据访问。
 
-现有 C-20 的旧 `assess` 分支仍可能输出 `UNRESOLVED_OWNER_DECISION`；那是待迁移实现，不是继续要求 owner 再选基准。新版计划先修订该契约并验证，然后才能依新规则执行晋升。旧 receipt 仍保持原始字节与适用范围。
+C-20 的旧 `assess` 保留 `UNRESOLVED_OWNER_DECISION` 历史行为；post-CC 使用已迁移的后继路由。不能调用旧分类器再把历史 unresolved 当作当前用户未决定。旧 receipt 保持原字节与适用范围。
 
 期限、权重、资本、成本、统计门槛及候选选择预算由科学执行者在运行前版本化冻结，不再作为需要 owner 反复回答的最高理念问题。下一阶段顺序见 [后 CC 科学计划](POST_CC_SCIENTIFIC_PROGRAM_R0.md)。
 
-## 6. 给 sol 的修补要求
+## 6. 原 S0 修补要求（历史追溯，已迁移）
 
 这是文档与语义交接，不是本轮已实现的代码功能，也不新建第二套 CC TODO。
 

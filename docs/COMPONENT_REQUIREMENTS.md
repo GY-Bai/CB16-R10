@@ -4,6 +4,8 @@
 
 **状态更新：** CC R11 integration 已完成并合入 `main`。本页现在用于审阅 canonical CC 与未来 successor 是否继续满足理念，不再作为 AC/BC/CC TODO 的待实施导航。当前实现事实见 [CURRENT_STATE](CURRENT_STATE.md)、[ARCHITECTURE_MAP](ARCHITECTURE_MAP.md) 和 integration spec/receipt。
 
+**2026-09-14 对齐：** 本页描述责任与验收含义；实际 post-CC/S1 模块和技术选择见 [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md)。§5 是 CC 历史责任表，不代表 S0-v2/S1 仍只使用原 CC learner。当前起步 CPU-only；保持账户与学习语义，不新增 GPU 依赖。
+
 ## 1. 组件边界和可观察后果
 
 | 组件 | 必须承担的责任 | 交给下游的内容 | 关键验收方向 | 理念 |
@@ -91,7 +93,7 @@ Canonical topology：
 
 O-01 已由本轮设计关闭。评价组件分别输出可比策略排序、单策略双基准诊断和晋升资格；共同基准不会改变模型名次，混合 delta 不再是需要 owner 猜主次的问题。满足预登记证据的相对改善可以晋升沙盒学习冠军；不能自动推定真实账户准入。单结果分类器不能冒充多模型 winner selector。
 
-旧 C-20 的 unresolved 行为须在后继评价语义中迁移与验证，原 receipt 不改写。见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md) 与 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)。
+旧 C-20 的 unresolved 行为已由 S0 后继经济合同迁移并验证，原 receipt 不改写；不把这项重新列作当前待办。见 [经济排序与晋升](ECONOMIC_ORDERING_AND_PROMOTION.md) 与 [后 CC 科学计划 R0](POST_CC_SCIENTIFIC_PROGRAM_R0.md)。
 
 除此之外，未来 horizon、cohort、budget、replay mixture、sequence length、model capacity 等通常属于具体科学 run 的预注册参数，不再作为本页的永久 owner-open 原则。
 

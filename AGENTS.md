@@ -4,14 +4,7 @@
 
 ## 1. 先确定自己的角色
 
-所有 agent 必须先读：
-
-1. `docs/ROLES_AND_REVIEW_PROTOCOL.md`
-2. `docs/SCIENTIFIC_QUALIFICATION_FRAMEWORK.md`
-3. 与自己角色对应的 principle：
-   - Sol：`docs/SOL_ROLE_PRINCIPLES.md`
-   - DS Flash / implementation agent：`docs/DS_FLASH_ROLE_PRINCIPLES.md`
-4. 当前 stage 的 TODO、Stage Qualification Profile、authority、receipt 和 candidate/review artifacts。
+先读 [VISION](docs/VISION.md) → [ARCHITECTURE_MAP](docs/ARCHITECTURE_MAP.md) → [CURRENT_STATE](docs/CURRENT_STATE.md)，分别确定用户目标、科学到技术映射、当前断点；再读角色协议、资格框架和本次任务的直接依赖。Sol/DS 分别遵循自己的 role principle，不要求每次遍历历史文档。
 
 当前 owner 指定的责任链：
 
@@ -87,15 +80,11 @@ DS terminal handoff state 是 `READY_FOR_SOL_REVIEW`。
 
 当前 qualification framework 的公共 primitive 属于独立 non-scientific infrastructure；不得在 active authority-sensitive stage PR 中顺手重构科学 runtime。
 
-## 5. 当前 stage
+## 5. 当前 stage 与设备
 
-S0-v2 Durable Learnability Foundation 已被 Sol 验收并合入 main；其最高 evidence 为：
+当前阶段、PR、接受状态和精确版本只在 [CURRENT_STATE](docs/CURRENT_STATE.md) 维护。不得从旧 TODO 的 ACTIVE、未实现或 owner-open 标签重开已关闭工作；也不从代码存在推定科学资格。
 
-`POST_CC_DURABLE_LEARNING_FOUNDATION_QUALIFIED`
-
-当前 active implementation/review stage 是 **S1 End-to-End Learnability**，工作通过 PR #102 在指定 S1 branch 上多轮修订。S1 正式 5-seed qualification 只有在 Sol 明确签发 `READY_FOR_S1_QUALIFICATION` authorization 后才能运行。
-
-当前 implementation agent 不得重开 S0-v2 foundation，也不得把 S1 bounded smoke 当 scientific qualification。本 qualification framework 不授权修改 S1 frozen science 或顺手抽取/重构 PR #102 runtime。
+用户已明确起步 **CPU-only**。按 [性能策略](docs/PERFORMANCE_STRATEGY_3700X_1060.md) 落实阶段设备/profile，GPU 不作为起步前置条件；不改变冻结科学参数、不代签运行授权。
 
 ## 6. Historical authority 必须保持不可变
 

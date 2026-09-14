@@ -35,7 +35,7 @@
 - 新的动作路径能够产生新账户经验，但不自动增加独立市场未来数量。
 - 不强迫每次学习都来自从未见过的静态测试集，也不能将“训练场就是验证场”解释成任何未来表现都已经被证明。
 - 专门用于独立推断的评价证据必须如实记录是否被训练或选择使用；这限制的是结论，而不是复习权利。
-- 当前示范分支把 `TRAIN` 用作 Teacher 内部路由，详见 [CURRENT_STATE](CURRENT_STATE.md)。这不授权绕过 FINAL 或把任何外来数据自动变成可训练数据。
+- 旧示范分支的 `TRAIN` 是其版本化路由，不能替代当前 stage 数据授权。S1 合成学习与后续历史消费范围分开；FINAL/fresh 边界保持。
 
 ## 4. 账户连续性
 
@@ -57,7 +57,7 @@
 
 一条先暴赚后爆仓的轨迹，其早期盈利应真实计账，但不能删除后段、把前段永久认证为优秀。失败中的有效减仓也不应仅因最终结局而自动作为错误标签。
 
-具体怎样用于策略更新、价值估计，以及采样和权重，见 [算法候选 R0](TRAINING_ALGORITHM_R0.md)。目前主提案是 V-trace 序列回放 Actor–Critic，已有部分接口实现，完整训练尚未科学认定；实时断点见 [CURRENT_STATE](CURRENT_STATE.md)。保留事实并不意味着所有数据等权无限训练。
+当前 S0-v2 已有 durable joint replay、Actor–Critic/V-trace 与更新恢复实现；S1 尚需完整受控学习资格。实际组件与早期算法候选差异见 [ARCHITECTURE_MAP](ARCHITECTURE_MAP.md)，参数按当前 stage 冻结。保留事实不意味着所有数据等权无限训练。
 
 ## 6. 代际学习与回放
 
@@ -81,4 +81,4 @@
 
 [GAE](https://arxiv.org/abs/1506.02438) 和 [Time Limits in Reinforcement Learning](https://arxiv.org/abs/1712.00378) 提供价值估计与截断处理的背景。不能由这些论文直接推断 CB16 已经解决长期归因，也不要求照搬大型语言模型的 token 算法。
 
-后续已形成 [具体算法提案](TRAINING_ALGORITHM_R0.md)，包括概率输出、奖励恒等式、V-trace 回放和有限目标边界。它与现有确定性策略、soft CE / SmoothL1 训练及 H72 log utility 不是同一协议，必须显式迁移。
+[算法 R0](TRAINING_ALGORITHM_R0.md) 保留设计推导；旧确定性策略、soft CE / SmoothL1 与 H72 log utility 是历史协议，不能覆盖已接受的 post-CC 学习链。CPU-only 改执行设备，不改这些学习要求。
