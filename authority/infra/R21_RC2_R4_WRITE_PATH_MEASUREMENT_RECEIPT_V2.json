@@ -1,0 +1,81 @@
+{
+  "schema": "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_RECEIPT_V2",
+  "status": "CHANGES_APPLIED_PENDING_SOL_REVIEW",
+  "revision": 2,
+  "supersedes": "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_RECEIPT_V1.json",
+  "task_id": "R4",
+  "authority": [
+    "docs/infra/R21_RC2_UPSTREAM_REUSE_AND_MEASUREMENT_RULES.md",
+    "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V2.json",
+    "authority/infra/R21_RC2_R4_UPSTREAM_REUSE_AUDIT_V1.json"
+  ],
+  "inventory": "authority/infra/R21_RC2_R4_WRITE_PATH_INVENTORY_V2.json",
+  "runtime_identity": {
+    "source_branch": "ai/r11-post-cc-s1-end-to-end-learnability-r1",
+    "authorization_head_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532"
+  },
+  "evidence": {
+    "workflow": ".github/workflows/cb16-r21-rc2-r4-writepath-inventory.yml",
+    "run_id": 34791174155,
+    "job_id": 103815570731,
+    "checkout_sha": "83d467b740bad7a41f4b242d20506a88a6530a13",
+    "runner": "shanxi-docker-r21",
+    "artifact_id": 10328147897,
+    "artifact_name": "cb16-r21-rc2-r4-writepath-inventory",
+    "artifact_digest": "sha256:ef9ab713854acc23b7ea81a1922b6da58fa2d0becc78ffe9967d3f5aff8f1483"
+  },
+  "measurement_integrity": {
+    "exact_count_canary_status": "PASS",
+    "exact_count_match": true,
+    "overlapping_wrapper_double_count_detected": false,
+    "metrics_self_exclusion": true,
+    "atomic_temp_replace_attribution": "ONE_WRITE_ONE_REPLACE",
+    "application_direct_write_bytes_status": "EXACT_FOR_INTERCEPTED_PYTHON_FILE_WRITES",
+    "sqlite_bytes_status": "ESTIMATED_PAGE_AND_WAL_GROWTH_NOT_DIRECT_BYTES",
+    "device_bytes_status": "DEVICE_SECTOR_COUNTER_DELTA_REPORTED_SEPARATELY"
+  },
+  "measurement_result": {
+    "status": "PASS",
+    "committed_updates": 52,
+    "wall_seconds": 77.0,
+    "workers": 2,
+    "observed_surfaces": [
+      "artifact_staging",
+      "checkpoint_store",
+      "generation_continuity",
+      "observation_store",
+      "provenance",
+      "replay_materialization",
+      "sqlite_index",
+      "update_journal"
+    ],
+    "missing_required_surfaces": [],
+    "physical_device": {
+      "source": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+      "mount_point": "/cb16/fast_hot",
+      "rotational": false
+    }
+  },
+  "separation_rule": {
+    "application_direct_write_bytes": "directly intercepted Python file write bytes",
+    "sqlite_page_growth_estimate_bytes": "PRAGMA page_count * page_size growth, estimate only",
+    "sqlite_wal_growth_estimate_bytes": "WAL file size growth, estimate only",
+    "device_sectors_written": "device-level sector counter delta in device_io_deltas"
+  },
+  "measurement_limitations": [
+    "SQLite direct write syscalls are not intercepted; page/WAL growth is an estimate and is not merged into direct application bytes.",
+    "random-versus-sequential is a size/frequency estimate, not a device seek trace.",
+    "Backlog growth and durable-boundary latency p50/p99 are not measured by the bounded R4 smoke; downstream decisions requiring them remain EVIDENCE_INSUFFICIENT.",
+    "The measurement is bounded smoke evidence, not scientific qualification."
+  ],
+  "scientific_boundary": {
+    "s1_scientific_constants_changed": false,
+    "s1_runtime_code_changed": false,
+    "scientific_payload_modified": false,
+    "final_holdout_accessed": false,
+    "training_or_qualification_started": false
+  }
+}

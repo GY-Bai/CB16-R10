@@ -1,0 +1,55 @@
+{
+  "schema": "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1",
+  "status": "FROZEN_FOR_EXECUTION",
+  "task_id": "R4",
+  "source_authority": "docs/infra/R21_RC2_INFRA_UPGRADE_TODO.md",
+  "s1_runtime_identity": {
+    "source_branch": "ai/r11-post-cc-s1-end-to-end-learnability-r1",
+    "authorization_head_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532"
+  },
+  "scope": {
+    "mode": "bounded_s1_smoke_measurement_only",
+    "host_changes_allowed": false,
+    "s1_runtime_code_changes_allowed": false,
+    "scientific_manifest_changes_allowed": false,
+    "training_or_qualification_allowed": false,
+    "fast_hot_usage": "run scratch/output under /cb16/fast_hot/r4 and clean up after evidence extraction"
+  },
+  "measurement_fields": [
+    "surface",
+    "bytes_per_update",
+    "writes_per_update",
+    "durable_sync_frequency",
+    "random_versus_sequential",
+    "sqlite_transaction_or_lock_wait_where_measurable",
+    "wal_or_checkpoint_activity",
+    "physical_device",
+    "consumer",
+    "durability_requirement"
+  ],
+  "required_surfaces": [
+    "observation_store",
+    "sqlite_index",
+    "replay_materialization",
+    "update_journal",
+    "checkpoint_store",
+    "generation_continuity",
+    "provenance",
+    "artifact_staging"
+  ],
+  "instrumentation": {
+    "install_method": "sitecustomize on PYTHONPATH for the measured S1 process tree",
+    "captures": [
+      "Python file write bytes and calls",
+      "os.open/os.write and fsync events",
+      "replace/rename events",
+      "SQLite execute/commit durations and locked errors"
+    ],
+    "changes_runtime_semantics": false,
+    "measurement_only": true
+  },
+  "verdict_rule": "PASS only if the bounded S1 smoke exits 0, committed updates > 0, and every required surface is observed. Otherwise EVIDENCE_INSUFFICIENT."
+}

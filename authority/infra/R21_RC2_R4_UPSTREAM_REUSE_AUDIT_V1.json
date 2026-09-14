@@ -1,0 +1,143 @@
+{
+  "schema": "CB16_R21_RC2_UPSTREAM_REUSE_AUDIT_V1",
+  "task_id": "R4",
+  "status": "REQUIRED_BEFORE_R4_REVIEW",
+  "authority": "docs/infra/R21_RC2_UPSTREAM_REUSE_AND_MEASUREMENT_RULES.md",
+  "audited_at_utc": "2026-09-13T24:00:00Z",
+  "direct_upstream": [
+    {
+      "artifact": "authority/infra/R21_RC2_RECOVERY_SPEC_V1.json",
+      "relationship": "R0 recovery contract and verdict taxonomy"
+    },
+    {
+      "artifact": "infra/shanxi_runner/runner_launch_spec_v1.json",
+      "relationship": "R1 exact live runner definition"
+    },
+    {
+      "artifact": "authority/infra/R21_RC2_R2_OWNER_APPROVAL_V2.json",
+      "relationship": "owner-approved FAST_HOT quota and reserve"
+    },
+    {
+      "artifact": "authority/infra/R21_RC2_R3_HOST_CHANGE_RECEIPT_V1.json",
+      "relationship": "accepted R3 execution surface and profile identity"
+    },
+    {
+      "artifact": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1.json",
+      "relationship": "accepted S1 runtime authorization and manifest binding"
+    }
+  ],
+  "accepted_identity": {
+    "s1_authorization_head_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532",
+    "r21_runner_profile_id": "R21_RC2_FAST_HOT_RUNNER_V2",
+    "runner_image_id": "sha256:dcba97125b2e42f76444cbdf369b82fe8930d017c25032e69b32c8227f0b5a0e"
+  },
+  "existing_implementation": [
+    {
+      "path": "scripts/run_r11_post_cc_s1_learnability.py",
+      "classification": "REUSE_AS_IS",
+      "role": "canonical S1 smoke/qualification entrypoint; R4 invokes it unchanged",
+      "reason": "accepted runtime entrypoint; no replacement authorized"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_s1_qualification_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "S1 program orchestration, durable artifacts and audit outputs",
+      "reason": "frozen runtime path under measurement"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_observation_store_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "observation fact persistence and SQLite index/WAL producer",
+      "reason": "R4 observes this producer rather than reimplementing it"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_durable_collection_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "durable observation collection producer"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_replay_materializer_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "durable replay materialization producer"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_update_transaction_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "exactly-once update journal and checkpoint store producer"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_s1_provenance_audit_r4_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "generation-switch receipt persistence and S1-026 provenance/export path"
+    },
+    {
+      "path": "cb16_local_opt/post_cc_learner_v1.py",
+      "classification": "REUSE_AS_IS",
+      "role": "child checkpoint production and generation adoption"
+    },
+    {
+      "path": "authority/rearchitecture_r11/CB16_R11_POST_CC_S1_EXECUTION_MANIFEST_V1.json",
+      "classification": "REUSE_AS_IS",
+      "role": "frozen execution manifest identity"
+    },
+    {
+      "path": ".github/workflows/_cb16-shanxi-preflight.yml",
+      "classification": "REUSE_AS_IS",
+      "role": "shared GitHub Actions preflight"
+    },
+    {
+      "path": "ci/docker_preflight.py",
+      "classification": "REUSE_AS_IS",
+      "role": "runner topology and capability preflight"
+    },
+    {
+      "path": "ci/resolve_verified_r104_python.py",
+      "classification": "REUSE_AS_IS",
+      "role": "verified canonical Python resolution"
+    },
+    {
+      "path": "cb16-runner-r11 container/volume",
+      "classification": "DO_NOT_TOUCH",
+      "role": "rollback/reference runner",
+      "reason": "R3 receipt guarantees immutability"
+    },
+    {
+      "path": "ci/r4_write_path_instrument/",
+      "classification": "NEW",
+      "role": "measurement-only sitecustomize adapter",
+      "reason": "no existing qualified per-surface write/fsync/SQLite measurement layer; this adapter observes existing producers without modifying them"
+    }
+  ],
+  "historical_references": [
+    {
+      "path": "docs/infra/INFRA_ENGINEERING_DEBT_TODO.md",
+      "classification": "REUSE_AS_IS",
+      "role": "storage-class and measurement requirements"
+    },
+    {
+      "path": "docs/CB16_R2_EVIDENCE_STORAGE_ARCHITECTURE_R0.md",
+      "classification": "LEGACY_REFERENCE_ONLY",
+      "role": "historical R2 storage architecture and hot/cold separation rationale"
+    },
+    {
+      "path": "cb16_local_opt/cc_experience_store_r0.py",
+      "classification": "LEGACY_REFERENCE_ONLY",
+      "role": "historical SQLite/fsync persistence pattern"
+    },
+    {
+      "path": "cb16_local_opt/async_trajectory_pipeline.py",
+      "classification": "LEGACY_REFERENCE_ONLY",
+      "role": "historical WAL/ledger persistence pattern"
+    }
+  ],
+  "new_implementation_justification": "R4 requires per-surface write-path observation of existing S1 producers. No qualified production telemetry exposes the required bytes/calls/fsync/SQLite/device split. The new layer is measurement-only, does not modify S1 code, and must prove exact counting for directly intercepted writes and label derived SQLite quantities as estimates.",
+  "forbidden": [
+    "replacing or reimplementing S1 observation/replay/journal/checkpoint/provenance writers",
+    "changing S1 runtime code or scientific manifest",
+    "collapsing direct write bytes and derived estimates into one field",
+    "using an unproven quantitative metric as a hard R6 selection gate"
+  ]
+}

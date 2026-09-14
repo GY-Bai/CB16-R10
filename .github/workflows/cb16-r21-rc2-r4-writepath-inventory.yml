@@ -1,0 +1,126 @@
+name: CB16 R21 RC2 R4 Write-Path Inventory
+
+on:
+  push:
+    branches:
+      - ai/r21-rc2-r4-writepath-inventory
+    paths:
+      - "ci/r4_write_path_instrument/**"
+      - "scripts/measure_r21_rc2_r4_write_path_v1.py"
+      - "tests/test_r21_rc2_r4_write_path_v1.py"
+      - "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V2.json"
+      - "authority/infra/R21_RC2_R4_UPSTREAM_REUSE_AUDIT_V1.json"
+      - "docs/infra/R21_RC2_UPSTREAM_REUSE_AND_MEASUREMENT_RULES.md"
+      - ".github/workflows/cb16-r21-rc2-r4-writepath-inventory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CB16_RAW_ROOT: /cb16/raw
+  CB16_G0_ROOT: /cb16/g0
+  CB16_R11_G0_ROOT: /cb16/g0
+  CB16_R104_ROOT: /cb16/runtime/r104
+  CB16_VERIFIED_VENV: /cb16/venv
+  CB16_UV_CACHE_DIR: /cb16/uv-cache
+  CB16_CI_WORKER_ROOT: /cb16/worker
+  CB16_PROVISION_ENV: /cb16/worker/provision.env
+  S1_AUTHORIZED_HEAD: a974e2803ccc2693d67a0375e460da35837636a4
+
+jobs:
+  shanxi-preflight:
+    uses: ./.github/workflows/_cb16-shanxi-preflight.yml
+
+  r4-write-path-inventory:
+    name: R4 bounded write-path inventory
+    needs: shanxi-preflight
+    runs-on: [self-hosted, shanxi-docker-r21]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout R4 branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Docker execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/docker_preflight.py --json-out "$RUNNER_TEMP/r4_docker_preflight.json"
+
+      - name: Resolve verified canonical Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/r4_python.json"
+          python3 ci/resolve_verified_r104_python.py --out "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          assert p['status'] == 'READY', p
+          assert p['python']['network_install_attempted'] is False, p
+          print('R4_PYTHON_ENV_READY')
+          PY
+
+      - name: Extract exact authorized S1 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin ai/r11-post-cc-s1-end-to-end-learnability-r1
+          test "$(git rev-parse FETCH_HEAD)" = "$S1_AUTHORIZED_HEAD"
+          S1_ROOT="$RUNNER_TEMP/s1_runtime"
+          rm -rf "$S1_ROOT"
+          mkdir -p "$S1_ROOT"
+          git archive FETCH_HEAD | tar -x -C "$S1_ROOT"
+          echo "S1_RUNTIME_TREE=$(git rev-parse FETCH_HEAD^{tree})"
+          test -f "$S1_ROOT/scripts/run_r11_post_cc_s1_learnability.py"
+          test -f "$S1_ROOT/cb16_local_opt/post_cc_s1_qualification_v1.py"
+
+      - name: Run R4 instrumentation tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/r4_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" -m pytest -q tests/test_r21_rc2_r4_write_path_v1.py
+
+      - name: Run bounded S1-shaped write-path measurement
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/r4_python.json"
+          PYTHON=$(python3 - "$OUT" <<'PY'
+          import json, sys
+          p = json.load(open(sys.argv[1]))
+          print(p['python']['venv'] + '/bin/python')
+          PY
+          )
+          PYTHONPATH=. "$PYTHON" scripts/measure_r21_rc2_r4_write_path_v1.py \
+            --s1-root "$RUNNER_TEMP/s1_runtime" \
+            --fast-hot-root /cb16/fast_hot \
+            --run-id "$GITHUB_RUN_ID" \
+            --workers 2 \
+            --json-out "$RUNNER_TEMP/R4_WRITE_PATH_INVENTORY.json"
+
+      - name: Upload R4 write-path evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cb16-r21-rc2-r4-writepath-inventory
+          path: |
+            ${{ runner.temp }}/R4_WRITE_PATH_INVENTORY.json
+            ${{ runner.temp }}/R4_S1_STDOUT.json
+            ${{ runner.temp }}/R4_S1_STDERR.txt
+            ${{ runner.temp }}/r4_python.json
+            ${{ runner.temp }}/r4_docker_preflight.json
+          if-no-files-found: error
+          retention-days: 90

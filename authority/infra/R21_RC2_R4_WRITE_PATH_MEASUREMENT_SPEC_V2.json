@@ -1,0 +1,59 @@
+{
+  "schema": "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V2",
+  "status": "FROZEN_FOR_EXECUTION",
+  "revision": 2,
+  "supersedes": "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1.json",
+  "task_id": "R4",
+  "authority_supplement": "docs/infra/R21_RC2_UPSTREAM_REUSE_AND_MEASUREMENT_RULES.md",
+  "upstream_reuse_audit": "authority/infra/R21_RC2_R4_UPSTREAM_REUSE_AUDIT_V1.json",
+  "s1_runtime_identity": {
+    "authorization_head_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532"
+  },
+  "measurement_integrity_requirements": {
+    "exact_count_canary": true,
+    "canary_must_check": [
+      "known write call count equals observed count",
+      "known write byte count equals observed count",
+      "builtins.open/io.open/Path.open/os.write overlapping wrappers do not double count",
+      "metrics directory self-writes are excluded",
+      "atomic temp-write plus replace is attributed once"
+    ],
+    "direct_metrics": [
+      "application_direct_write_calls",
+      "application_direct_write_bytes",
+      "application_direct_write_bytes_per_update",
+      "application_direct_writes_per_update",
+      "fsync_calls",
+      "durable_sync_frequency_per_update",
+      "sqlite_commit_calls",
+      "sqlite_locked_errors"
+    ],
+    "estimated_metrics_separate": [
+      "sqlite_page_growth_estimate_bytes",
+      "sqlite_wal_growth_estimate_bytes"
+    ],
+    "device_metrics_separate": [
+      "device_io_deltas.sda.sectors_written_delta",
+      "device_io_deltas.sdb.sectors_written_delta"
+    ],
+    "forbidden": [
+      "merging page/WAL growth estimates into application direct write bytes",
+      "using an estimate as exact physical bytes written",
+      "filtering unknown writes so that they disappear silently"
+    ]
+  },
+  "required_surfaces": [
+    "observation_store",
+    "sqlite_index",
+    "replay_materialization",
+    "update_journal",
+    "checkpoint_store",
+    "generation_continuity",
+    "provenance",
+    "artifact_staging"
+  ],
+  "verdict_rule": "PASS for surface discovery requires exact-count canary PASS and all required surfaces observed. SQLite byte quantities remain estimates and must not be used as a hard R6 selection gate. Backlog and latency gates unmeasured in bounded smoke remain EVIDENCE_INSUFFICIENT for R5/R6 decisions."
+}

@@ -1,0 +1,502 @@
+{
+  "committed_updates": 52,
+  "committed_updates_source": "/cb16/fast_hot/r4/34790302670/output/provenance/artifact_only_update_trace_audit.json:traced_update_count",
+  "device_io_deltas": {
+    "sda": {
+      "ms_reading_delta": 0,
+      "ms_writing_delta": 25513,
+      "rotational": true,
+      "sectors_read_delta": 0,
+      "sectors_written_delta": 88552
+    },
+    "sdb": {
+      "ms_reading_delta": 13,
+      "ms_writing_delta": 16638,
+      "rotational": false,
+      "sectors_read_delta": 288,
+      "sectors_written_delta": 1212664
+    }
+  },
+  "evidence_binding": {
+    "artifact_digest": "sha256:436b77aec96ae2b1d46f7c6bf5725079aafddba3c0a0639fb062e57a4339e520",
+    "artifact_id": 10328071823,
+    "artifact_name": "cb16-r21-rc2-r4-writepath-inventory",
+    "checkout_sha": "62e456baeb6bab82d0da8f92a55244b22e0df725",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532",
+    "job_id": 103813171724,
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "run_id": 34790302670,
+    "runner": "shanxi-docker-r21",
+    "runtime_authorization_head": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "workflow": ".github/workflows/cb16-r21-rc2-r4-writepath-inventory.yml"
+  },
+  "fast_hot_root": "/cb16/fast_hot",
+  "instrumentation_canary": {
+    "observed_paths": [
+      "artifact_staging|/cb16/fast_hot/r4/34790302670/instrument/canary/output/.artifact.tmp-canary",
+      "artifact_staging|/cb16/fast_hot/r4/34790302670/instrument/canary/output/artifact.json",
+      "provenance|/cb16/fast_hot/r4/34790302670/instrument/canary/output/provenance_staged/.prov.tmp-canary",
+      "provenance|/cb16/fast_hot/r4/34790302670/instrument/canary/output/provenance_staged/prov.jsonl",
+      "sqlite_index|/cb16/fast_hot/r4/34790302670/instrument/canary/scratch/index.sqlite3"
+    ],
+    "returncode": 0,
+    "status": "PASS",
+    "stderr": "",
+    "stdout": "",
+    "summary": {
+      "artifact_staging": {
+        "flush": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        },
+        "fsync": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 6021843,
+          "extra": {}
+        },
+        "replace": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        },
+        "write": {
+          "bytes": 15,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        }
+      },
+      "provenance": {
+        "flush": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        },
+        "fsync": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 1008905,
+          "extra": {}
+        },
+        "replace": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        },
+        "write": {
+          "bytes": 11,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        }
+      },
+      "sqlite_index": {
+        "sqlite_bytes_estimate": {
+          "bytes": 16384,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {}
+        },
+        "sqlite_commit": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 590,
+          "extra": {}
+        },
+        "sqlite_execute": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 2491705,
+          "extra": {}
+        },
+        "sqlite_statement": {
+          "bytes": 0,
+          "count": 1,
+          "duration_ns": 0,
+          "extra": {
+            "statement": 0
+          }
+        }
+      }
+    }
+  },
+  "measured_at_utc": "2026-09-13T23:41:10Z",
+  "metric_process_count": 3,
+  "missing_required_surfaces": [],
+  "observed_paths_by_category": {
+    "artifact_staging": [
+      "/cb16/fast_hot/r4/34790302670/output/S1_REPORT.md",
+      "/cb16/fast_hot/r4/34790302670/output/SMOKE_RESULT.json",
+      "/cb16/fast_hot/r4/34790302670/output/checkpoints/index.json",
+      "/cb16/fast_hot/r4/34790302670/output/control_results/ACCOUNT_INPUT_ABLATION/ACCOUNT_DEPENDENT_ACTION__1701.json",
+      "/cb16/fast_hot/r4/34790302670/output/control_results/NO_SIGNAL_OR_ZERO_REWARD_CONTROL/ACCOUNT_DEPENDENT_ACTION__1701.json",
+      "/cb16/fast_hot/r4/34790302670/output/control_results/NO_SIGNAL_OR_ZERO_REWARD_CONTROL/A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION__1701.json",
+      "/cb16/fast_hot/r4/34790302670/output/control_results/NO_SIGNAL_OR_ZERO_REWARD_CONTROL/DELAYED_CONSEQUENCE_CREDIT__1701.json",
+      "/cb16/fast_hot/r4/34790302670/output/control_results/RANDOM_OR_IMPOSSIBLE_LABEL_CONTROL/A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION__1701.json"
+    ],
+    "checkpoint_store": [
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/.4369c228102ca68f697238baf37d517b85e13899ed0e57245378e37f2a3f7a77.json.tmp-4mv3qirv",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/.65ad3015afb42bd20034e55156bcf902de2d0ca877336f363ba0982744fb0db0.json.tmp-chv_dwpf",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/.c86b08324f6c316d9b73db52389bfd674997686ed49f3929a29591992796d1aa.json.tmp-lems2r7a",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/.d5aa669f9e8f7c68d72416b40ddba419f69d2bb8310e47a10bc0c8bad5c52e8d.json.tmp-szsvkmol",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/4369c228102ca68f697238baf37d517b85e13899ed0e57245378e37f2a3f7a77.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/65ad3015afb42bd20034e55156bcf902de2d0ca877336f363ba0982744fb0db0.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/checkpoints/c86b08324f6c316d9b73db52389bfd674997686ed49f3929a29591992796d1aa.json"
+    ],
+    "generation_continuity": [
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/.cf24a37b6125e916e6b5be4e5859abe31174374b2c41c4535814468711451d29.json.tmp-4662",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/.d34842d14104b06b944d2f1a48bb29ed777c8e7c784d5dab3f8106dd23d2e1d2.json.tmp-4662",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/.f8912aa758fd0fea028772ab1d04a20b917275ab7f921d282e51bd1e719c5e84.json.tmp-4662",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/.fcd945a8c89c7154524f3662ea1448417f7f5c34e8b7450ffd9353c16ca0a2b1.json.tmp-4662",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/cf24a37b6125e916e6b5be4e5859abe31174374b2c41c4535814468711451d29.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/d34842d14104b06b944d2f1a48bb29ed777c8e7c784d5dab3f8106dd23d2e1d2.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/f8912aa758fd0fea028772ab1d04a20b917275ab7f921d282e51bd1e719c5e84.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/generation_switch_receipts/fcd945a8c89c7154524f3662ea1448417f7f5c34e8b7450ffd9353c16ca0a2b1.json"
+    ],
+    "observation_store": [
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/index.sqlite3",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/06",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/06/.06f1a2f4a34bbe599bae398f9dc4785c0cf47399b73330d11e63a32b9bda6116.bin.tmp-bwo5zwes",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/06/06f1a2f4a34bbe599bae398f9dc4785c0cf47399b73330d11e63a32b9bda6116.bin",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/07",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/07/.07a705f204b95779e01945a4ac802a18d2a8faef7689310e301669029be2c9f9.bin.tmp-ue2rwxec",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/07/07a705f204b95779e01945a4ac802a18d2a8faef7689310e301669029be2c9f9.bin",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/observations/objects/0a"
+    ],
+    "other": [
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_no_signal_or_zero_reward_control/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/positive/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION/control_no_signal_or_zero_reward_control/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION/control_random_or_impossible_label_control/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/A_B_A_RETENTION_WITHOUT_HANDCRAFTED_REGIME_ACTIVATION/positive/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/DELAYED_CONSEQUENCE_CREDIT/control_no_signal_or_zero_reward_control/seed_1701/setup_provenance.json",
+      "/cb16/fast_hot/r4/34790302670/scratch/DELAYED_CONSEQUENCE_CREDIT/control_shuffled_credit_control/seed_1701/setup_provenance.json"
+    ],
+    "provenance": [
+      "/cb16/fast_hot/r4/34790302670/output/provenance/artifact_only_update_trace_audit.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance/fabricated_log_mu_audit.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance/high_bankruptcy_failure_fact_audit.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance/integrity_attack_suite.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance/objective_firewall_audit.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance/run_index.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance/task_specs.json",
+      "/cb16/fast_hot/r4/34790302670/output/provenance_staged/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/.s1_026_transitions.jsonl.tmp-4662"
+    ],
+    "replay_materialization": [
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_credit_views/index.sqlite3",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_manifests/index.sqlite3",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_raw_advances/index.sqlite3",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_sequences/index.sqlite3",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_sequences/objects/01",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_sequences/objects/01/.01c24cb73d8cfe8123aec380d0439ff484029ea3ea3262b35786e9ce4c63930d.bin.tmp-l8a70tem",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_sequences/objects/01/01c24cb73d8cfe8123aec380d0439ff484029ea3ea3262b35786e9ce4c63930d.bin",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/replay_sequences/objects/02"
+    ],
+    "sqlite_index": [
+      "/tmp/cb16-s1-fabricated-h0hj0t9c/observations/index.sqlite3",
+      "/tmp/cb16-s1-fabricated-h0hj0t9c/replay_credit_views/index.sqlite3",
+      "/tmp/cb16-s1-fabricated-h0hj0t9c/replay_manifests/index.sqlite3",
+      "/tmp/cb16-s1-fabricated-h0hj0t9c/replay_raw_advances/index.sqlite3",
+      "/tmp/cb16-s1-fabricated-h0hj0t9c/replay_sequences/index.sqlite3",
+      "/tmp/cb16-s1-fabricated-h0hj0t9c/replay_transitions/index.sqlite3",
+      "/tmp/cb16-s1-failure-fact-loss-ko69h_bw/observations/index.sqlite3",
+      "/tmp/cb16-s1-failure-fact-loss-ko69h_bw/replay_credit_views/index.sqlite3"
+    ],
+    "update_journal": [
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/durable_index.jsonl",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates/.cf24a37b6125e916e6b5be4e5859abe31174374b2c41c4535814468711451d29.json.tmp-44wwn7ry",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates/.cf24a37b6125e916e6b5be4e5859abe31174374b2c41c4535814468711451d29.json.tmp-5h_6p_0b",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates/.cf24a37b6125e916e6b5be4e5859abe31174374b2c41c4535814468711451d29.json.tmp-kx25808w",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates/.d34842d14104b06b944d2f1a48bb29ed777c8e7c784d5dab3f8106dd23d2e1d2.json.tmp-27m0v2x_",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates/.d34842d14104b06b944d2f1a48bb29ed777c8e7c784d5dab3f8106dd23d2e1d2.json.tmp-49rg7l8_",
+      "/cb16/fast_hot/r4/34790302670/scratch/ACCOUNT_DEPENDENT_ACTION/control_account_input_ablation/seed_1701/updates/updates/.d34842d14104b06b944d2f1a48bb29ed777c8e7c784d5dab3f8106dd23d2e1d2.json.tmp-at3yizp3"
+    ]
+  },
+  "observed_surfaces": [
+    "artifact_staging",
+    "checkpoint_store",
+    "generation_continuity",
+    "observation_store",
+    "other",
+    "provenance",
+    "replay_materialization",
+    "sqlite_index",
+    "update_journal"
+  ],
+  "physical_device": {
+    "fstype": "ext4",
+    "major_minor": "253:0",
+    "mount_point": "/cb16/fast_hot",
+    "rotational": false,
+    "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+  },
+  "run_root": "/cb16/fast_hot/r4/34790302670",
+  "s1_exit_code": 0,
+  "s1_runtime_changed": false,
+  "s1_runtime_root": "/home/cb16-runner/actions-runner/_work/_temp/s1_runtime",
+  "s1_stderr_path": "/cb16/fast_hot/r4/34790302670/s1_smoke_stderr.txt",
+  "s1_stdout_path": "/cb16/fast_hot/r4/34790302670/s1_smoke_stdout.json",
+  "schema": "CB16_R21_RC2_R4_WRITE_PATH_INVENTORY_V1",
+  "scientific_manifest_changed": false,
+  "status": "PASS",
+  "surfaces": [
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 19760.19230769231,
+      "bytes_written": 1027530,
+      "consumer": "qualification artifact staging",
+      "durability_requirement": "exported artifact staging",
+      "durable_sync_frequency_per_update": 0.0,
+      "durable_syncs": 0,
+      "fsync_calls": 0,
+      "fsync_duration_ms": 0.0,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "MIXED",
+      "sqlite_commit_calls": 0,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": null,
+      "surface": "artifact_staging",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 18,
+      "writes_per_update": 0.34615384615384615
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 11381.76923076923,
+      "bytes_written": 591852,
+      "consumer": "parent/child checkpoint store",
+      "durability_requirement": "durable child checkpoint bytes",
+      "durable_sync_frequency_per_update": 3.25,
+      "durable_syncs": 169,
+      "fsync_calls": 126,
+      "fsync_duration_ms": 947.772665,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "RANDOM_OR_SMALL_FSYNC_HEAVY",
+      "sqlite_commit_calls": 43,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": 13.07248965116279,
+      "surface": "checkpoint_store",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 108,
+      "writes_per_update": 2.076923076923077
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 782.9230769230769,
+      "bytes_written": 40712,
+      "consumer": "generation-switch continuity receipts",
+      "durability_requirement": "durable generation-switch receipt",
+      "durable_sync_frequency_per_update": 0.8461538461538461,
+      "durable_syncs": 44,
+      "fsync_calls": 44,
+      "fsync_duration_ms": 58.044433,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "RANDOM_OR_SMALL_FSYNC_HEAVY",
+      "sqlite_commit_calls": 0,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": null,
+      "surface": "generation_continuity",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 44,
+      "writes_per_update": 0.8461538461538461
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 34670.730769230766,
+      "bytes_written": 1802878,
+      "consumer": "durable observation fact store",
+      "durability_requirement": "fsync-before-success",
+      "durable_sync_frequency_per_update": 112.57692307692308,
+      "durable_syncs": 5854,
+      "fsync_calls": 2128,
+      "fsync_duration_ms": 4685.549329,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "MIXED",
+      "sqlite_commit_calls": 3726,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": 0.7545531889425657,
+      "surface": "observation_store",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 4790,
+      "writes_per_update": 92.11538461538461
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 234.51923076923077,
+      "bytes_written": 12195,
+      "consumer": "unclassified runtime writes",
+      "durability_requirement": "unclassified",
+      "durable_sync_frequency_per_update": 0.0,
+      "durable_syncs": 0,
+      "fsync_calls": 0,
+      "fsync_duration_ms": 0.0,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "MIXED",
+      "sqlite_commit_calls": 0,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": null,
+      "surface": "other",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 19,
+      "writes_per_update": 0.36538461538461536
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 75999.98076923077,
+      "bytes_written": 3951999,
+      "consumer": "R4 provenance exporter/auditor",
+      "durability_requirement": "artifact-exported provenance",
+      "durable_sync_frequency_per_update": 0.4230769230769231,
+      "durable_syncs": 22,
+      "fsync_calls": 22,
+      "fsync_duration_ms": 67.33826,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "MIXED",
+      "sqlite_commit_calls": 0,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": null,
+      "surface": "provenance",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 919,
+      "writes_per_update": 17.673076923076923
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 112026.42307692308,
+      "bytes_written": 5825374,
+      "consumer": "durable replay materializer",
+      "durability_requirement": "durable replay provenance",
+      "durable_sync_frequency_per_update": 592.7692307692307,
+      "durable_syncs": 30824,
+      "fsync_calls": 4236,
+      "fsync_duration_ms": 8618.232094,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "MIXED",
+      "sqlite_commit_calls": 26588,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": 0.20695087550774785,
+      "surface": "replay_materialization",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 28706,
+      "writes_per_update": 552.0384615384615
+    },
+    {
+      "bytes_measurement_method": "SQLITE_PAGE_GROWTH_AND_WAL_ESTIMATE_PLUS_PYTHON_WRITES",
+      "bytes_per_update": 44898.46153846154,
+      "bytes_written": 2334720,
+      "consumer": "observation index / SQLite WAL",
+      "durability_requirement": "SQLite WAL/commit durable boundary",
+      "durable_sync_frequency_per_update": 13.807692307692308,
+      "durable_syncs": 718,
+      "fsync_calls": 0,
+      "fsync_duration_ms": 0.0,
+      "measurement_limitations": [
+        "SQLITE_C_LEVEL_WRITES_ESTIMATED_FROM_PAGE_GROWTH_AND_WAL_FILE_SIZE"
+      ],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "MIXED",
+      "sqlite_commit_calls": 718,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": 9.529656360724234,
+      "surface": "sqlite_index",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 718,
+      "writes_per_update": 13.807692307692308
+    },
+    {
+      "bytes_measurement_method": "PYTHON_FILE_WRITE_INTERCEPTION",
+      "bytes_per_update": 36865.03846153846,
+      "bytes_written": 1916982,
+      "consumer": "exactly-once learner update journal",
+      "durability_requirement": "three-phase durable journal",
+      "durable_sync_frequency_per_update": 22.153846153846153,
+      "durable_syncs": 1152,
+      "fsync_calls": 1152,
+      "fsync_duration_ms": 1891.276668,
+      "measurement_limitations": [],
+      "physical_device": {
+        "fstype": "ext4",
+        "major_minor": "253:0",
+        "mount_point": "/cb16/fast_hot",
+        "rotational": false,
+        "source": "/dev/mapper/ubuntu--vg-ubuntu--lv"
+      },
+      "random_versus_sequential": "RANDOM_OR_SMALL_FSYNC_HEAVY",
+      "sqlite_commit_calls": 0,
+      "sqlite_locked_errors": 0,
+      "sqlite_transaction_wait_ms_per_commit": null,
+      "surface": "update_journal",
+      "wal_or_checkpoint_activity": 0,
+      "write_calls": 992,
+      "writes_per_update": 19.076923076923077
+    }
+  ],
+  "task_id": "R4",
+  "wall_seconds": 76.41488194465637,
+  "workers": 2
+}

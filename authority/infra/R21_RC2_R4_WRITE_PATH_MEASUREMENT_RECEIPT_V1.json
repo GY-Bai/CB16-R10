@@ -1,0 +1,58 @@
+{
+  "schema": "CB16_R21_RC2_R4_WRITE_PATH_MEASUREMENT_RECEIPT_V1",
+  "status": "READY_FOR_SOL_REVIEW",
+  "task_id": "R4",
+  "authority": "authority/infra/R21_RC2_R4_WRITE_PATH_MEASUREMENT_SPEC_V1.json",
+  "inventory": "authority/infra/R21_RC2_R4_WRITE_PATH_INVENTORY_V1.json",
+  "runtime_identity": {
+    "source_branch": "ai/r11-post-cc-s1-end-to-end-learnability-r1",
+    "authorization_head_sha": "a974e2803ccc2693d67a0375e460da35837636a4",
+    "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+    "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+    "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532"
+  },
+  "evidence": {
+    "workflow": ".github/workflows/cb16-r21-rc2-r4-writepath-inventory.yml",
+    "run_id": 34790302670,
+    "job_id": 103813171724,
+    "checkout_sha": "62e456baeb6bab82d0da8f92a55244b22e0df725",
+    "runner": "shanxi-docker-r21",
+    "artifact_id": 10328071823,
+    "artifact_name": "cb16-r21-rc2-r4-writepath-inventory",
+    "artifact_digest": "sha256:436b77aec96ae2b1d46f7c6bf5725079aafddba3c0a0639fb062e57a4339e520"
+  },
+  "measurement_result": {
+    "status": "PASS",
+    "committed_updates": 52,
+    "wall_seconds": 76.41488194465637,
+    "workers": 2,
+    "observed_surfaces": [
+      "artifact_staging",
+      "checkpoint_store",
+      "generation_continuity",
+      "observation_store",
+      "provenance",
+      "replay_materialization",
+      "sqlite_index",
+      "update_journal"
+    ],
+    "missing_required_surfaces": [],
+    "physical_device": {
+      "source": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+      "mount_point": "/cb16/fast_hot",
+      "rotational": false
+    }
+  },
+  "measurement_limitations": [
+    "SQLite bytes are estimated from page_count*page_size plus WAL file size at commit boundaries; SQLite C-level write syscalls are not intercepted directly.",
+    "Random-versus-sequential is a classification estimate from write sizes and fsync frequency, not a device-level seek trace.",
+    "The measurement is a bounded smoke workload, not the frozen five-seed qualification."
+  ],
+  "scientific_boundary": {
+    "s1_scientific_constants_changed": false,
+    "s1_runtime_code_changed": false,
+    "scientific_payload_modified": false,
+    "final_holdout_accessed": false,
+    "training_or_qualification_started": false
+  }
+}
