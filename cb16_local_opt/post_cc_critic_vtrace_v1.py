@@ -211,8 +211,20 @@ def joint_actor_critic_losses_v1(
     )
 
 
-def audit_gradient_ownership_v1(actor: CCCentralBrain, critic: SeparateCritic) -> Mapping[str, Any]:
-    """Fail closed unless the frozen market organ stays frozen and trainable paths get gradients."""
+def audit_gradient_ownership_v1(
+    actor: CCCentralBrain,
+    critic: SeparateCritic,
+    *,
+    require_risk_gradient: bool = True,
+) -> Mapping[str, Any]:
+    """Fail closed unless the frozen market organ stays frozen and trainable paths get gradients.
+
+    ``require_risk_gradient`` makes the audit support-aware: when the durable
+    batch contains no non-FLAT density samples, a zero risk-head gradient is
+    mathematically legal (FLAT contributes only the categorical direction
+    log-probability).  The default stays ``True`` so every pre-existing caller
+    keeps the original S0-v2 contract.
+    """
     actor.assert_gradient_ownership()
     assert_disjoint_parameters(actor, critic)
     frozen = actor.market_organ
@@ -260,6 +272,9 @@ def audit_gradient_ownership_v1(actor: CCCentralBrain, critic: SeparateCritic) -
     summary["critic_nonzero_gradient_parameter_count"] = critic_nonzero
     summary["actor_critic_parameter_alias"] = False
     summary["all_gradients_finite"] = True
-    if summary["risk_log_scale_nonzero_gradient_parameter_count"] <= 0:
+    summary["risk_gradient_required"] = bool(require_risk_gradient)
+    if bool(require_risk_gradient) and summary["risk_log_scale_nonzero_gradient_parameter_count"] <= 0:
         raise RuntimeError("RISK_LOG_SCALE_NO_GRADIENT")
+    if not bool(require_risk_gradient):
+        summary["risk_gradient_waived_no_density_support"] = True
     return summary

@@ -1,0 +1,24 @@
+{
+  "schema": "CB16_R11_POST_CC_S1_QUALIFICATION_AUTHORIZATION_V1",
+  "status": "READY_FOR_S1_QUALIFICATION",
+  "reviewer_role": "SOL_INDEPENDENT_QUALIFICATION_REVIEW",
+  "reviewed_implementation_sha": "19c6b7ece5a5f76b048ed2946fa8fb1354765b63",
+  "reviewed_implementation_tree_sha": "8bffb90d635e11f0e2fdbefff5cf6e1cdba2f66d",
+  "execution_manifest_sha256": "b5f2bb868870aa392e9006f58520aad63606c5971fa4e9144050326d96d3c532",
+  "pr_number": 102,
+  "runtime_review_comment_id": 5654977406,
+  "record_binding_handoff_comment_id": 5655207298,
+  "record_binding_run_id": 34773856554,
+  "record_binding_job_id": 103768255867,
+  "record_binding_artifact_id": 10322968120,
+  "record_binding_artifact_digest_sha256": "e4d82af85e9e124d18f9ebc6d84b4a36389c29f7e6162ca9e66c397a84867e92",
+  "record_binding_verified_head_sha": "8752002829d381e3c1c1f385c45d3e9b3d6e9850",
+  "record_binding_verified_head_tree_sha": "ee30df2874e4ff566c7f122d24e5423f9bdd64da",
+  "authorization_scope": "FORMAL_S1_FIVE_SEED_QUALIFICATION_ONLY",
+  "authorization_notes": [
+    "R4 runtime/code accepted by Sol; R3-B6/S1-026 closed.",
+    "CI-D record binding independently verified PASS with reuse_of_qualified_artifacts_allowed=true.",
+    "The workflow-level failure in run 34773856554 came from an obsolete implementation-suite test whose prior expectation was that CI-D remained unbound; the designated CI-D evidence job passed and no runtime/science code changed after the accepted implementation candidate.",
+    "This authorization does not authorize merge and does not pre-judge the scientific result. Formal qualification remains no-rescue under the frozen S1 manifest."
+  ]
+}

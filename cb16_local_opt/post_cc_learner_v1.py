@@ -318,12 +318,20 @@ class PostCCDurableReplayLearnerV1:
         self.restart_required = True
         self.restart_required_reason = "POST_MUTATION_FAILURE"
         before_frozen = self._frozen_snapshot()
+        risk_density_support_present = bool(batch.risk_point_mass_mask.logical_not().any().item())
         losses = joint_actor_critic_losses_v1(self.target_actor, self.target_critic, batch)
         self.actor_opt.zero_grad(set_to_none=True)
         self.critic_opt.zero_grad(set_to_none=True)
         losses.actor_loss.backward()
         losses.critic_loss.backward()
-        gradient_summary = dict(audit_gradient_ownership_v1(self.target_actor, self.target_critic))
+        gradient_summary = dict(
+            audit_gradient_ownership_v1(
+                self.target_actor,
+                self.target_critic,
+                require_risk_gradient=risk_density_support_present,
+            )
+        )
+        gradient_summary["risk_density_support_present"] = risk_density_support_present
         self.actor_opt.step()
         self.critic_opt.step()
         self.optimizer_step += 1
