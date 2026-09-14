@@ -165,15 +165,39 @@ bwrap --ro-bind / / --dev /dev --proc /proc --die-with-parent -- true; echo "bwr
 
 ---
 
-## 9. 和山西 runner 的区别（别混淆）
+## 9. 内置 CLI 工具（本环境已配好）
 
-| 现象 | 性质 |
-|---|---|
-| OCI 沙箱里 `~/.cache/uv`、`~/.cache/pip` 只读 | ✅ **设计**：`workspace-write` 只承诺"工作区 + 临时目录"可写，防止 agent 往 `~/.local/bin`、`~/.bashrc` 等持久化 |
-| 山西 runner 容器 `/cb16/uv-cache` 为 `root:root 0755`，而 `UV_CACHE_DIR=/cb16/uv-cache` | ❌ **真 infra 缺陷**（runner uid 1001 写不进去）；见 `docs/infra/SHANXI_DOCKER_RUNNER_CONTRACT.md` §9 缺口 2 |
-| 山西 `/cb16/worker` 同理（`root:root 0755`，却挂着 `CB16_CI_WORKER_ROOT`） | ❌ 真缺陷，同 §9 缺口 3 |
+三个 CLI 都装在 `~/.local/bin`（DSH 服务的 PATH 首位就是它），**沙箱内可直接调用**（只读可执行），网络不受限：
 
-一句话：**沙箱的"缓存不可写"是边界设计；runner 的"缓存不可写"是配置错误。**
+| CLI | 用途 | 沙箱内实测 |
+|---|---|---|
+| `jina <url>` | 走 `r.jina.ai` 把网页转 Markdown | ✅ `--json` / `-o <文件>`（写到工作区）/ `--search` 均可用 |
+| `ddgs text -q "..." -m 5` | DuckDuckGo 搜索（另有 `news` / `images` / `books` / `videos`） | ✅ 正常返回标题+链接+摘要 |
+| `gh ...` | GitHub CLI（OCI 已认证 `GY-Bai`，git 凭据助手已配） | ✅ `gh auth status` / `gh run list` / `gh api /user` 全部正常 |
+
+常用姿势：
+
+```bash
+jina https://example.com                 # 网页 → Markdown 到 stdout
+jina --json https://example.com | jq -r .data.content
+jina https://example.com -o notes.md     # 落盘必须写在工作区内
+jina --search "deepseek v4.1 flash"      # 搜索（s.jina.ai）
+JINA_API_KEY=... jina <url>              # 可选：提高配额
+
+ddgs text -q "CB16 R11 S0V2" -m 5
+ddgs news -q "DeepSeek" -m 5
+
+gh run list -R GY-Bai/CB16-R10 -L 5
+gh run view <run-id> --log
+gh api /repos/GY-Bai/CB16-R10/actions/runners
+```
+
+注意：
+
+- 三个工具**都不需要写缓存即可运行**（已验证）；若要做包装/缓存，指向工作区（见 §5）。
+- `gh` 的认证在 `~/.config/gh/hosts.yml`（只读可读）→ **只读命令不受沙箱影响**；需要写 `~/.config/gh` 的操作（`gh auth login`、`gh config set`）会被拒，请在非沙箱会话里做。
+- `jina` 输出可能很长，配合 `head` / `-o` 使用。
+- 极简模式（`minimal-safe`）只有 bash + str_replace_editor 两个工具，**这些 CLI 就是它上网、搜索、查 CI 的入口**。
 
 ---
 
